@@ -1,0 +1,18 @@
+# Minimal requirements for the scaffold
+# Add real dependencies as needed
+numpy
+scipy
+scikit-learn
+torch
+faiss-cpu
+sentence-transformers
+streamlit
+groq
+python-dotenv
+yfinance
+requests
+openai-whisper
+imageio-ffmpeg
+edge-tts
+pyttsx3
+loguru

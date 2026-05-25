@@ -1,0 +1,1 @@
+Scaffold scripts folder. Place training and data generation scripts here.
