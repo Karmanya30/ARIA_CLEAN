@@ -1,16 +1,19 @@
 """
 ai/llm/groq_client.py
 
-Groq API client replacement for the local LLaMA client.
+LLM client with automatic reliability fallback: Groq (primary, fast) falls
+back to Google Gemini (secondary, more stable free tier) on any error or
+rate limit. Implements a minimal, backwards-compatible LLM surface focused
+on the single required function
+`generate_response(prompt: str, system_prompt: str|None) -> str`.
 
-Implements a minimal, backwards-compatible LLM surface focused on the
-single required function `generate_response(prompt: str, system_prompt: str|None) -> str`.
+Every caller in the codebase only depends on that function's signature, so
+the fallback is transparent — no caller needs to change.
 """
 from __future__ import annotations
 
 import os
 import re
-import sys
 from typing import Iterator
 
 try:
@@ -25,6 +28,9 @@ if load_dotenv is not None:
 DEFAULT_MODEL_NAME = "llama-3.3-70b-versatile"
 MODEL_NAME = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
 
+DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
+
 
 # ── HELPERS ────────────────────────────────────────────────────────────
 def normalize_currency(text: str) -> str:
@@ -38,7 +44,7 @@ def normalize_currency(text: str) -> str:
     return normalized
 
 
-def _make_client():
+def _make_groq_client():
     try:
         import groq
     except Exception as e:
@@ -53,49 +59,100 @@ def _make_client():
     return groq.Groq(api_key=api_key)
 
 
+def _extract_groq_text(response) -> str:
+    try:
+        return response.choices[0].message.content
+    except Exception:
+        pass
+    try:
+        return response["choices"][0]["message"]["content"]
+    except Exception:
+        return str(response)
+
+
+def _call_groq(prompt: str, system_prompt: str) -> str:
+    """Raises on any failure — caller decides how to handle it."""
+    client = _make_groq_client()
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=messages,
+        temperature=0.6,
+        top_p=0.9,
+    )
+    text = _extract_groq_text(response)
+    if not text:
+        raise RuntimeError("Groq returned an empty response")
+    return text
+
+
+def _call_gemini(prompt: str, system_prompt: str) -> str:
+    """Raises on any failure — caller decides how to handle it.
+
+    Uses the current `google-genai` SDK (`from google import genai`), not the
+    deprecated `google-generativeai` package.
+    """
+    try:
+        from google import genai
+        from google.genai import types
+    except Exception as e:
+        raise RuntimeError(
+            "google-genai SDK not installed. Run: python -m pip install google-genai"
+        ) from e
+
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY is not set")
+
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model=GEMINI_MODEL_NAME,
+        contents=prompt,
+        config=types.GenerateContentConfig(system_instruction=system_prompt),
+    )
+    text = getattr(response, "text", None)
+    if not text:
+        raise RuntimeError("Gemini returned an empty response")
+    return text
+
+
+_BACKENDS = (("groq", _call_groq), ("gemini", _call_gemini))
+
+
 # ── CORE GENERATION ────────────────────────────────────────────────────
 def generate_response(prompt: str, system_prompt: str | None = None) -> str:
     """
-    Generate a response using Groq API.
-    Safe wrapper — never crashes, always returns string.
+    Generate a response, trying Groq first and automatically falling back to
+    Gemini if Groq errors out or is rate-limited. Safe wrapper — never
+    crashes, always returns a string.
     """
-    try:
-        client = _make_client()
+    if system_prompt is None:
+        system_prompt = "You are a helpful AI assistant."
 
-        if system_prompt is None:
-            system_prompt = "You are a helpful AI assistant."
+    text: str | None = None
+    last_error: Exception | None = None
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ]
-
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,         
-            temperature=0.6,         
-            top_p=0.9,              
-        )
-
-        # Extract safely
+    for _name, backend in _BACKENDS:
         try:
-            text = response.choices[0].message.content
-        except Exception:
-            try:
-                text = response["choices"][0]["message"]["content"]
-            except Exception:
-                text = str(response)
+            text = backend(prompt, system_prompt)
+            break
+        except Exception as e:
+            last_error = e
+            continue
 
-        text = normalize_currency(text).strip()
+    if text is None:
+        return f"Error: {last_error}"
 
-        # Ensure clean ending (no abrupt cut)
-        if not text.endswith((".", "!", "?")):
-            text += "."
+    text = normalize_currency(text).strip()
 
-        return text
+    # Ensure clean ending (no abrupt cut)
+    if not text.endswith((".", "!", "?")):
+        text += "."
 
-    except Exception as e:
-        return f"Error: {str(e)}"
+    return text
 
 
 # ── WRAPPERS ───────────────────────────────────────────────────────────
@@ -124,62 +181,65 @@ def generate_stream(
     *,
     system_prompt: str | None = None,
 ) -> Iterator[str]:
+    """Streams from Groq when possible; falls back to a single non-streamed
+    chunk from generate_response() (which itself carries the Groq->Gemini
+    fallback) on any failure."""
+    if system_prompt is None:
+        system_prompt = "You are a helpful AI assistant."
+
     try:
-        client = _make_client()
-
-        if system_prompt is None:
-            system_prompt = "You are a helpful AI assistant."
-
+        client = _make_groq_client()
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
         ]
 
-        try:
-            stream = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                stream=True,
-            )
+        stream = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            stream=True,
+        )
 
-            for event in stream:
-                try:
-                    chunk = getattr(event, "choices", None)
-                    if chunk:
-                        delta = getattr(chunk[0], "delta", None)
-                        if delta and hasattr(delta, "get"):
+        yielded = False
+        for event in stream:
+            try:
+                chunk = getattr(event, "choices", None)
+                if chunk:
+                    delta = getattr(chunk[0], "delta", None)
+                    if delta and hasattr(delta, "get"):
+                        text = delta.get("content")
+                    else:
+                        text = getattr(chunk[0], "text", None)
+                    if text:
+                        yielded = True
+                        yield text
+                        continue
+            except Exception:
+                pass
+
+            try:
+                if isinstance(event, dict):
+                    choices = event.get("choices")
+                    if choices:
+                        delta = choices[0].get("delta") or choices[0].get("message")
+                        if isinstance(delta, dict):
                             text = delta.get("content")
-                        else:
-                            text = getattr(chunk[0], "text", None)
-                        if text:
-                            yield text
-                            continue
-                except Exception:
-                    pass
+                            if text:
+                                yielded = True
+                                yield text
+            except Exception:
+                pass
 
-                try:
-                    if isinstance(event, dict):
-                        choices = event.get("choices")
-                        if choices:
-                            delta = choices[0].get("delta") or choices[0].get("message")
-                            if isinstance(delta, dict):
-                                text = delta.get("content")
-                                if text:
-                                    yield text
-                except Exception:
-                    pass
-
-        except TypeError:
-            # fallback
+        if not yielded:
             yield generate_response(prompt, system_prompt=system_prompt)
 
-    except Exception as e:
-        yield f"Error: {str(e)}"
+    except Exception:
+        yield generate_response(prompt, system_prompt=system_prompt)
 
 
 # ── UTILITIES ──────────────────────────────────────────────────────────
 def health() -> bool:
-    return bool(os.environ.get("GROQ_API_KEY", ""))
+    return bool(os.environ.get("GROQ_API_KEY", "") or os.environ.get("GEMINI_API_KEY", ""))
 
 
 def unload() -> None:

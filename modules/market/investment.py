@@ -24,9 +24,6 @@ _FUNDAMENTAL_KEYWORDS = (
 )
 
 
-NEWS_API_URL = "https://newsapi.org/v2/everything"
-
-
 def _clean_company_query(query: str) -> str:
     cleaned = query.lower()
     cleaned = re.sub(r"\b(analy\w*|stock|stocks|share|shares|price|of|for|about|please|tell|me|the)\b", " ", cleaned)

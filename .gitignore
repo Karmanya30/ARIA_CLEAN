@@ -2,3 +2,15 @@
 .venv/
 __pycache__/
 *.py[cod]
+
+# local binaries / logs — never commit these
+data/bin/
+data/*.log
+*.log
+
+# trained model artifacts — regenerate via scripts/train scripts, not committed
+models/**/*.json
+models/**/*.pt
+models/**/*.joblib
+models/**/*.zip
+!models/.gitkeep
