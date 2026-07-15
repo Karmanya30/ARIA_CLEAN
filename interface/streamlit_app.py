@@ -139,9 +139,16 @@ def render_response(response: str) -> None:
 
 def run() -> None:
     import streamlit as st
+    from uuid import uuid4
 
     st.set_page_config(page_title="ARIA", page_icon="A")
     st.title("ARIA")
+
+    # Each browser tab gets its own session id so concurrent public visitors
+    # never share chat history or profile state with each other.
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = str(uuid4())
+    session_id = st.session_state.session_id
 
     if "query_text" not in st.session_state:
         st.session_state.query_text = ""
@@ -154,14 +161,14 @@ def run() -> None:
         st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
         if st.button("Clear Chat", use_container_width=True):
             from core.session import clear_session
-            clear_session("streamlit")
+            clear_session(session_id)
             st.rerun()
-            
+
     st.divider()
 
     # Render Chat History (Top)
     from core.session import get_session
-    session = get_session("streamlit")
+    session = get_session(session_id)
     history = session.get("history", [])
 
     for turn in history:
@@ -214,7 +221,7 @@ def run() -> None:
     # Handle Submission
     if submitted and query.strip():
         with st.spinner("Analyzing..."):
-            result = _handle_query(query.strip(), session_id="streamlit", mode=mode)
+            result = _handle_query(query.strip(), session_id=session_id, mode=mode)
             response = result.get("response", "No response generated.")
 
             # Generate TTS Audio

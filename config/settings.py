@@ -19,11 +19,14 @@ try:
 except Exception:
     pass
 
-# Groq / LLM settings
+# LLM settings — Groq primary, Gemini automatic fallback (see ai/llm/groq_client.py)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 DEFAULT_MODEL_NAME = "llama-3.3-70b-versatile"
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
-NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+DEFAULT_GEMINI_MODEL_NAME = "gemini-2.0-flash"
+GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL_NAME)
 
 
 # ===============================
@@ -42,23 +45,6 @@ def _bool_env(name: str, default: bool) -> bool:
 PROJECT_NAME = os.getenv("PROJECT_NAME", "ARIA_CLEAN")
 DEBUG = _bool_env("DEBUG", True)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-
-
-# ===============================
-# LLM Runtime
-# ===============================
-LLM_N_CTX = int(os.getenv("LLM_N_CTX", "4096"))
-
-# 🔥 Optimized for GTX 1080
-LLM_N_GPU_LAYERS = int(os.getenv("LLM_N_GPU_LAYERS", "20"))
-
-LLM_N_THREADS = int(
-    os.getenv("LLM_N_THREADS", str(max(1, (os.cpu_count() or 4) - 1)))
-)
-
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
-LLM_TOP_P = float(os.getenv("LLM_TOP_P", "0.9"))
 
 
 # ===============================

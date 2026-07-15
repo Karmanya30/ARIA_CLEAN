@@ -52,9 +52,6 @@ CONCEPTS_KB_FILE = CONCEPTS_KB_DIR / "concepts.json"
 RAW_TRANSACTIONS_DIR = TRANSACTIONS_DIR  # compatibility alias
 RAW_KT_DIR = KT_SEQUENCES_DIR  # compatibility alias
 
-AVATAR_DIR = DATA_DIR / "avatar"
-AVATAR_CACHE_DIR = DATA_DIR / "avatar_cache"
-
 
 # ---------------------------------------------------------------------------
 # Models
@@ -85,14 +82,6 @@ LSTM_KT_PATH = DKT_MODEL_PATH  # compatibility alias
 DQN_TEACHER_PATH = TUTOR_MODELS_DIR / "dqn_teacher"  # stable-baselines path without .zip
 
 
-# ---------------------------------------------------------------------------
-# Avatar and Third-party Tools
-# ---------------------------------------------------------------------------
-
-AVATAR_PORTRAIT = AVATAR_DIR / "portrait.png"
-WAV2LIP_DIR = ROOT / "thirdparty" / "Wav2Lip"
-LIVEPORTRAIT_DIR = ROOT / "thirdparty" / "LivePortrait"
-
 
 # ---------------------------------------------------------------------------
 # Interface and Scripts
@@ -113,8 +102,6 @@ REQUIRED_DIRS = [
     TRANSACTIONS_DIR,
     KT_SEQUENCES_DIR,
     CONCEPTS_KB_DIR,
-    AVATAR_DIR,
-    AVATAR_CACHE_DIR,
     MODELS_DIR,
     FINANCE_MODELS_DIR,
     TUTOR_MODELS_DIR,
