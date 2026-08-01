@@ -3,10 +3,13 @@
 __pycache__/
 *.py[cod]
 
-# local binaries / logs — never commit these
+# local binaries / logs / runtime DB — never commit these
 data/bin/
 data/*.log
 *.log
+data/user_profiles/*.db
+data/vector_store/*.faiss
+data/vector_store/*.index
 
 # trained model artifacts — regenerate via scripts/train scripts, not committed
 models/**/*.json
@@ -14,3 +17,7 @@ models/**/*.pt
 models/**/*.joblib
 models/**/*.zip
 !models/.gitkeep
+
+# synthetic training data — deterministic (RANDOM_STATE=42), regenerate via
+# python -m scripts.generate_synthetic_transactions instead of committing
+data/raw/transactions_synthetic/

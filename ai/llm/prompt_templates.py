@@ -69,11 +69,16 @@ Forecast spend: ₹{forecast:,.0f}
 Anomalies: {n_anomalies}
 
 TASK:
-Write a 4–6 sentence explanation in simple Indian English.
-Mention risk profile, SIP, and one key observation.
+Write a short explanation in simple Indian English, mentioning the risk
+profile, the SIP amount, and one key observation from the computed data.
 
-NARRATIVE (4–6 sentences only):
-Stop after completing the response.
+Return EXACTLY this format:
+Insight: <risk profile + SIP amount, the headline takeaway>
+Analysis: <what the forecast/anomalies/budget numbers mean together>
+Recommendation: <one practical next step>
+Risk: <one caveat — SIP returns are market-linked, not guaranteed>
+
+Stop after Risk.
 """
 
 

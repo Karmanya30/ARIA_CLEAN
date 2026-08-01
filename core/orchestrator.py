@@ -49,14 +49,14 @@ Follow-up query: {query}
 
     # Fundamental financial analysis about a company → screener pipeline
     if is_fundamental_query(query) and resolve_company(query):
-        response = finance_pipeline(query)
+        response = finance_pipeline(query, user_id=session_id)
 
     # Live stock price / market queries → investment module
     elif is_investment_query(query):
         response = investment_module(query)
 
     elif domain == "finance":
-        response = finance_pipeline(query)
+        response = finance_pipeline(query, user_id=session_id)
     elif domain == "market":
         response = market_pipeline(query) if is_broad_market_query(query) else investment_module(query)
     elif domain == "tutor":

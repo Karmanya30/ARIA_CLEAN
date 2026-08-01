@@ -3,9 +3,14 @@
 numpy
 scipy
 scikit-learn
+xgboost
+shap
 torch
 faiss-cpu
 sentence-transformers
+sqlalchemy
+pyarrow
+pydantic
 streamlit
 groq
 google-genai

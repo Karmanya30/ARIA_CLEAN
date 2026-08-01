@@ -6,6 +6,9 @@ from typing import Any
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import finance_prompt
 from ai.pipeline.financial_pipeline import process_financial_query
+from modules.finance import orchestrator as m1_orchestrator
+from modules.finance.schemas import UserFinancialInput
+from shared import user_store
 from shared.company_resolver import resolve_company
 from shared.ner import extract_entities
 
@@ -83,7 +86,7 @@ def _build_known_concepts_response(query: str) -> str | None:
 
 
 def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
-    pattern = r"(\d+(?:\.\d+)?)\s*(?:lpa|lakh|lakhs|lac|lacs|crore|cr)?"
+    pattern = r"(\d+(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|crore|cr|k|thousand)?\b"
     search_area = text.lower()
 
     if keyword:
@@ -107,6 +110,8 @@ def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
         return value * 10_000_000
     if "lpa" in unit_text or "lakh" in unit_text or "lakhs" in unit_text or "lac" in unit_text or "lacs" in unit_text:
         return value * 100_000
+    if "thousand" in unit_text or unit_text.strip().endswith("k"):
+        return value * 1_000
     return value
 
 
@@ -178,6 +183,39 @@ def _build_sip_planning_response(query: str) -> str | None:
     )
 
 
+def _extract_age(text: str) -> int | None:
+    match = re.search(r"\b(\d{2})\s*(?:years?\s*old|yo|y/o)\b", text.lower())
+    return int(match.group(1)) if match else None
+
+
+def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput | None:
+    """Parse structured financial fields (income, EMI, age) out of free text,
+    merging with any profile already saved for this session so a follow-up
+    turn doesn't need to repeat every number. Returns None if there's no
+    income anywhere — the caller falls back to the freeform heuristics."""
+    saved = user_store.get_financial_profile(user_id) or {}
+
+    monthly_income = _parse_indian_amount(query, "earn") or _parse_indian_amount(query, "income")
+    existing_emi = _parse_indian_amount(query, "emi")
+    age = _extract_age(query)
+
+    income = monthly_income or saved.get("monthly_income")
+    if not income:
+        return None
+
+    profile = {
+        "monthly_income": income,
+        "age": age or saved.get("age") or 30,
+        "dependents": saved.get("dependents") or 0,
+        "existing_emi": existing_emi if existing_emi is not None else (saved.get("existing_emi") or 0.0),
+        "emergency_fund_months": saved.get("emergency_fund_months") or 0.0,
+        "city_tier": saved.get("city_tier") or 1,
+        "tax_regime": saved.get("tax_regime") or "new",
+    }
+    user_store.save_financial_profile(user_id, **profile)
+    return UserFinancialInput(user_id=user_id, transactions=[], **profile)
+
+
 def build_context(query: str) -> dict[str, Any]:
     return {
         "entities": extract_entities(query),
@@ -188,14 +226,17 @@ def build_context(query: str) -> dict[str, Any]:
     }
 
 
-def run_pipeline(query: str) -> dict[str, Any]:
+def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     """
     Finance pipeline entry point.
 
-    If the query mentions a known company, fetch real data from screener.in
-    and use a data-grounded LLM explanation.
-
-    Otherwise fall back to the generic finance prompt.
+    Priority order:
+    1. Company mentioned -> data-grounded screener.in explanation.
+    2. Income (this turn or a previously saved profile) -> full Module 1
+       structured pipeline: XGBoost risk, LSTM forecast, Isolation Forest
+       anomalies, LP budget, real tax, SIP plan, narrated by the LLM.
+    3. Freeform heuristics (SIP planning math, known-concept glossary).
+    4. Generic LLM prompt.
     """
     ticker = resolve_company(query)
 
@@ -210,6 +251,26 @@ def run_pipeline(query: str) -> dict[str, Any]:
             "value": result.get("value"),
             "response": result.get("explanation", ""),
             "confidence": result.get("confidence", "low"),
+        }
+
+    profile = _try_build_financial_profile(query, user_id)
+    if profile is not None:
+        m1_response = m1_orchestrator.run(profile)
+        user_store.save_financial_profile(
+            user_id,
+            risk_label=m1_response.risk.label,
+            risk_confidence=m1_response.risk.confidence,
+        )
+        return {
+            "domain": "finance",
+            "query": query,
+            "response": m1_response.natural_language,
+            "risk": m1_response.risk.model_dump(),
+            "sip_plan": m1_response.sip_plan.model_dump(),
+            "budget": m1_response.budget.model_dump(),
+            "tax": m1_response.tax.model_dump(),
+            "anomalies": [a.model_dump() for a in m1_response.anomalies],
+            "forecast": [f.model_dump() for f in m1_response.forecast],
         }
 
     sip_planning_response = _build_sip_planning_response(query)
@@ -242,8 +303,8 @@ def run_pipeline(query: str) -> dict[str, Any]:
     }
 
 
-def run(query: str, *args: Any, **kwargs: Any) -> dict[str, Any]:
-    return run_pipeline(query)
+def run(query: str, user_id: str = "default", *args: Any, **kwargs: Any) -> dict[str, Any]:
+    return run_pipeline(query, user_id=user_id)
 
 
 def build_narration_prompt(query: str, result: dict[str, Any] | None = None) -> str:
