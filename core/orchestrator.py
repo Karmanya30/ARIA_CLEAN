@@ -60,9 +60,9 @@ Follow-up query: {query}
     elif domain == "market":
         response = market_pipeline(query) if is_broad_market_query(query) else investment_module(query)
     elif domain == "tutor":
-        response = tutor_pipeline(query)
+        response = tutor_pipeline(query, user_id=session_id)
     else:
-        response = tutor_pipeline(query)
+        response = tutor_pipeline(query, user_id=session_id)
         response["domain"] = "general"
 
     save_turn(session_id, query, response)

@@ -11,6 +11,8 @@ sentence-transformers
 sqlalchemy
 pyarrow
 pydantic
+gymnasium
+stable-baselines3
 streamlit
 groq
 google-genai
