@@ -16,6 +16,7 @@ from typing import Any
 
 import requests
 import yfinance as yf
+from loguru import logger
 
 INDEX_TICKERS = {"nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN"}
 
@@ -81,10 +82,12 @@ def get_sector_snapshot(sector: str) -> dict[str, Any]:
             if change is not None:
                 changes.append(change)
                 constituents.append({"ticker": symbol, "five_day_change_pct": round(change, 2)})
-        except Exception:
+        except Exception as exc:
+            logger.debug(f"yfinance fetch failed for {symbol} (sector {sector}): {exc}")
             continue
 
     if not changes:
+        logger.warning(f"No live data available for any ticker in sector '{sector}'")
         return {"error": f"No live data available for sector '{sector}'"}
 
     avg_change = sum(changes) / len(changes)
@@ -108,7 +111,8 @@ def get_market_news(limit: int = 6) -> list[str]:
         root = ET.fromstring(response.content)
         titles = [item.findtext("title", "").strip() for item in root.iter("item")]
         return [t for t in titles if t][:limit]
-    except Exception:
+    except Exception as exc:
+        logger.warning(f"Economic Times RSS feed unreachable: {exc}")
         return []
 
 

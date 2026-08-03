@@ -8,6 +8,8 @@ from importlib import import_module, reload
 from pathlib import Path
 from uuid import uuid4
 
+from loguru import logger
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -424,8 +426,8 @@ def _render_chat_tab(session_id: str) -> None:
                 if audio_path and session.get("history"):
                     session["history"][-1]["audio_path"] = audio_path
                     session["history"][-1]["mode"] = mode
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(f"TTS generation failed; showing text-only response: {exc}")
 
         st.session_state.clear_query = True
         st.rerun()
