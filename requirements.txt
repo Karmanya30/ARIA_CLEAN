@@ -19,6 +19,7 @@ google-genai
 python-dotenv
 yfinance
 requests
+beautifulsoup4
 openai-whisper
 imageio-ffmpeg
 edge-tts

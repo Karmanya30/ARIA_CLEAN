@@ -13,7 +13,8 @@ def _handle_query(query: str, session_id: str, mode: str) -> dict:
     """Load the orchestrator after Streamlit reruns so local pipeline edits apply."""
     for module_name in (
         "modules.finance.pipeline",
-        "modules.market.investment",
+        "modules.equity_research.investment",
+        "modules.equity_research.pipeline",
         "modules.market.pipeline",
         "core.orchestrator",
     ):

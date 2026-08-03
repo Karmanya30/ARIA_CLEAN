@@ -1,5 +1,5 @@
 from typing import Callable, Optional
-from ai.analysis.calculations import (
+from modules.equity_research.calculations import (
     calculate_revenue_growth,
     calculate_profit_growth,
     calculate_debt_change,

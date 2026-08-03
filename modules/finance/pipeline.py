@@ -5,11 +5,9 @@ from typing import Any
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import finance_prompt
-from ai.pipeline.financial_pipeline import process_financial_query
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import UserFinancialInput
 from shared import user_store
-from shared.company_resolver import resolve_company
 from shared.ner import extract_entities
 
 
@@ -228,31 +226,18 @@ def build_context(query: str) -> dict[str, Any]:
 
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     """
-    Finance pipeline entry point.
+    Finance pipeline entry point (Module 1 — Personal Finance).
+
+    Company-specific queries never reach here: core/orchestrator.py routes
+    those to modules.equity_research.pipeline (Module 4) first.
 
     Priority order:
-    1. Company mentioned -> data-grounded screener.in explanation.
-    2. Income (this turn or a previously saved profile) -> full Module 1
+    1. Income (this turn or a previously saved profile) -> full Module 1
        structured pipeline: XGBoost risk, LSTM forecast, Isolation Forest
        anomalies, LP budget, real tax, SIP plan, narrated by the LLM.
-    3. Freeform heuristics (SIP planning math, known-concept glossary).
-    4. Generic LLM prompt.
+    2. Freeform heuristics (SIP planning math, known-concept glossary).
+    3. Generic LLM prompt.
     """
-    ticker = resolve_company(query)
-
-    if ticker:
-        # Data-grounded path: real numbers from screener.in
-        result = process_financial_query(query, ticker)
-        return {
-            "domain": "finance",
-            "query": query,
-            "company": ticker,
-            "metric": result.get("metric"),
-            "value": result.get("value"),
-            "response": result.get("explanation", ""),
-            "confidence": result.get("confidence", "low"),
-        }
-
     profile = _try_build_financial_profile(query, user_id)
     if profile is not None:
         m1_response = m1_orchestrator.run(profile)
