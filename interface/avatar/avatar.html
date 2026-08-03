@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin:0; padding:0; width:100%; height:100%; background:transparent; overflow:hidden; }
+  #avatar { width:100%; height:100%; }
+  #status {
+    position:absolute; top:8px; left:8px; font-family:sans-serif; font-size:12px;
+    color:#888; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:4px;
+  }
+</style>
+<!--
+  Three.js and TalkingHead are loaded from jsdelivr's CDN, exactly as the
+  TalkingHead project's own official examples do -- free, versioned, no
+  API key, no build step. Only model.glb (the avatar itself) is vendored
+  locally; see NOTICE.md for its license.
+-->
+<script type="importmap">
+{ "imports":
+  {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@v1.7.0/modules/talkinghead.mjs"
+  }
+}
+</script>
+</head>
+<body>
+<div id="avatar"></div>
+<div id="status">Loading avatar...</div>
+
+<script type="module">
+import { TalkingHead } from "talkinghead";
+import { HeadAudio } from "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/headaudio.min.mjs";
+
+// Injected by interface/streamlit_app.py before this file is handed to
+// st.components.v1.html() -- AUDIO_BASE64 may be empty (avatar loads and
+// idles, no speech) or a base64-encoded MP3/WAV from ai/speech/tts.py.
+const AUDIO_BASE64 = "__AUDIO_BASE64__";
+const AVATAR_DATA_URL = "__AVATAR_DATA_URL__";
+
+const statusEl = document.getElementById("status");
+let head = null;
+let headaudio = null;
+let ready = false;
+
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function playAudio(base64) {
+  if (!ready || !base64) return;
+  try {
+    const arrayBuffer = base64ToArrayBuffer(base64);
+    const audioBuffer = await head.audioCtx.decodeAudioData(arrayBuffer);
+    head.lookAtCamera(500);
+    head.speakAudio({ audio: audioBuffer });
+  } catch (err) {
+    statusEl.style.display = "block";
+    statusEl.textContent = "Could not play audio: " + err;
+  }
+}
+
+async function init() {
+  const node = document.getElementById("avatar");
+  head = new TalkingHead(node, { cameraView: "head", lipsyncModules: ["en"] });
+
+  await head.showAvatar(
+    { url: AVATAR_DATA_URL, body: "F", avatarMood: "neutral", lipsyncLang: "en" },
+    (ev) => {
+      if (ev.lengthComputable) {
+        statusEl.textContent = "Loading avatar " + Math.round((ev.loaded / ev.total) * 100) + "%";
+      }
+    }
+  );
+
+  // HeadAudio: real-time, audio-signal-driven viseme detection -- no text
+  // transcription or word timestamps needed, works with our existing
+  // edge-tts/pyttsx3 audio directly. Falls back to a static avatar (still
+  // visible, just no lip-sync) if HeadAudio fails to load, rather than
+  // breaking the whole embed.
+  try {
+    await head.audioCtx.audioWorklet.addModule(
+      "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/headworklet.min.mjs"
+    );
+    headaudio = new HeadAudio(head.audioCtx, {});
+    await headaudio.loadModel(
+      "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/model-en-mixed.bin"
+    );
+    head.audioSpeechGainNode.connect(headaudio);
+    headaudio.onvalue = (key, value) => {
+      if (head.mtAvatar[key]) {
+        Object.assign(head.mtAvatar[key], { newvalue: value, needsUpdate: true });
+      }
+    };
+    head.opt.update = headaudio.update.bind(headaudio);
+  } catch (err) {
+    console.warn("HeadAudio failed to initialize; avatar will not lip-sync:", err);
+  }
+
+  ready = true;
+  statusEl.style.display = "none";
+
+  if (AUDIO_BASE64) {
+    await playAudio(AUDIO_BASE64);
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!head) return;
+  if (document.visibilityState === "visible") head.start();
+  else head.stop();
+});
+
+init().catch((err) => {
+  statusEl.style.display = "block";
+  statusEl.textContent = "Avatar failed to load: " + err;
+  console.error(err);
+});
+</script>
+</body>
+</html>
