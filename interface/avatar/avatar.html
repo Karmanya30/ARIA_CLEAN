@@ -9,19 +9,34 @@
     position:absolute; top:8px; left:8px; font-family:sans-serif; font-size:12px;
     color:#888; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:4px;
   }
+  #playBtn {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-family:sans-serif; font-size:15px; padding:10px 18px; border-radius:8px;
+    border:none; background:#4ade80; color:#111; cursor:pointer; display:none;
+  }
 </style>
 <!--
   Three.js and TalkingHead are loaded from jsdelivr's CDN, exactly as the
   TalkingHead project's own official examples do -- free, versioned, no
   API key, no build step. Only model.glb (the avatar itself) is vendored
   locally; see NOTICE.md for its license.
+
+  TalkingHead is pinned to commit 1a7ca9c8a9, NOT the v1.7.0 tag: verified
+  by actually loading this page in a real headless browser (Playwright)
+  that v1.7.0's showAvatar() never calls loader.setMeshoptDecoder(), so it
+  cannot load our meshopt-compressed model.glb at all ("setMeshoptDecoder
+  must be called before loading compressed files"). "Added Meshopt
+  compression support" landed on main on 2026-02-03 (commit 1a7ca9c8a9)
+  but was never cut into a tagged release. Pinned to the exact commit
+  (not `main`) so this stays reproducible instead of tracking a moving
+  branch. Re-verify this pin if TalkingHead ever cuts a v1.8.0+ release.
 -->
 <script type="importmap">
 { "imports":
   {
     "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
     "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
-    "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@v1.7.0/modules/talkinghead.mjs"
+    "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
   }
 }
 </script>
@@ -29,6 +44,7 @@
 <body>
 <div id="avatar"></div>
 <div id="status">Loading avatar...</div>
+<button id="playBtn">&#128266; Click to hear ARIA</button>
 
 <script type="module">
 import { TalkingHead } from "talkinghead";
@@ -41,6 +57,7 @@ const AUDIO_BASE64 = "__AUDIO_BASE64__";
 const AVATAR_DATA_URL = "__AVATAR_DATA_URL__";
 
 const statusEl = document.getElementById("status");
+const playBtn = document.getElementById("playBtn");
 let head = null;
 let headaudio = null;
 let ready = false;
@@ -64,6 +81,23 @@ async function playAudio(base64) {
     statusEl.textContent = "Could not play audio: " + err;
   }
 }
+
+// Browsers suspend a freshly created AudioContext until a real user
+// gesture happens INSIDE this document -- Streamlit's "Submit" click
+// happens in the parent page, not in this iframe, so autoplay is always
+// blocked here (verified live: Chrome logs "AudioContext was not allowed
+// to start" and audio is silently dropped with no visible error
+// otherwise). Requiring one click per avatar embed is the standard,
+// reliable fix -- the plain <audio> player Streamlit renders underneath
+// this component still works immediately with no click needed, so the
+// response is never silently lost while waiting for that click.
+playBtn.addEventListener("click", async () => {
+  playBtn.style.display = "none";
+  if (head.audioCtx.state !== "running") {
+    await head.audioCtx.resume();
+  }
+  await playAudio(AUDIO_BASE64);
+});
 
 async function init() {
   const node = document.getElementById("avatar");
@@ -93,7 +127,11 @@ async function init() {
     );
     head.audioSpeechGainNode.connect(headaudio);
     headaudio.onvalue = (key, value) => {
-      if (head.mtAvatar[key]) {
+      // Defensive: guard the whole lookup, not just the key, in case a
+      // future TalkingHead version renames/removes the internal morph-
+      // target map this relies on -- fail silently (no lip-sync) rather
+      // than throwing on every audio frame.
+      if (head.mtAvatar && head.mtAvatar[key]) {
         Object.assign(head.mtAvatar[key], { newvalue: value, needsUpdate: true });
       }
     };
@@ -106,12 +144,12 @@ async function init() {
   statusEl.style.display = "none";
 
   if (AUDIO_BASE64) {
-    await playAudio(AUDIO_BASE64);
+    playBtn.style.display = "block";
   }
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (!head) return;
+  if (!ready) return;
   if (document.visibilityState === "visible") head.start();
   else head.stop();
 });

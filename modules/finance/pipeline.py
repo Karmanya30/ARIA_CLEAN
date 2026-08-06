@@ -88,8 +88,12 @@ def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
     search_area = text.lower()
 
     if keyword:
+        # \b around the keyword so "emi" doesn't match inside "premium" and
+        # "earn" doesn't match inside "learn" -- found via code review: both
+        # produced real false-positive extractions that silently overwrote
+        # a user's saved profile with garbage.
         keyword_match = re.search(
-            rf"{keyword}[^0-9]{{0,40}}{pattern}|{pattern}[^a-z0-9]{{0,40}}{keyword}",
+            rf"\b{keyword}\b[^0-9]{{0,40}}{pattern}|{pattern}[^a-z0-9]{{0,40}}\b{keyword}\b",
             search_area,
         )
         if not keyword_match:
@@ -182,7 +186,14 @@ def _build_sip_planning_response(query: str) -> str | None:
 
 
 def _extract_age(text: str) -> int | None:
-    match = re.search(r"\b(\d{2})\s*(?:years?\s*old|yo|y/o)\b", text.lower())
+    text_lower = text.lower()
+    match = re.search(r"\b(\d{2})\s*(?:years?\s*old|yo|y/o)\b", text_lower)
+    if match:
+        return int(match.group(1))
+    # Also catch bare "I am 45" / "I'm 45" / "age 45" / "age: 45" -- the
+    # "years old" pattern alone missed these, silently defaulting age to 30
+    # for anyone who just states their age plainly.
+    match = re.search(r"\b(?:i\s*am|i'm|my\s*age\s*is|age\s*(?:is|:)?)\s*(\d{2})\b", text_lower)
     return int(match.group(1)) if match else None
 
 
@@ -193,12 +204,19 @@ def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput
     income anywhere — the caller falls back to the freeform heuristics."""
     saved = user_store.get_financial_profile(user_id) or {}
 
-    monthly_income = _parse_indian_amount(query, "earn") or _parse_indian_amount(query, "income")
+    # `is None`, not `or` -- an explicit "I earn 0" must not be discarded in
+    # favor of the "income" keyword parse (0.0 is falsy but real).
+    monthly_income = _parse_indian_amount(query, "earn")
+    if monthly_income is None:
+        monthly_income = _parse_indian_amount(query, "income")
     existing_emi = _parse_indian_amount(query, "emi")
     age = _extract_age(query)
 
-    income = monthly_income or saved.get("monthly_income")
-    if not income:
+    # `is not None`, not truthy -- an explicit "I earn 0 now, lost my job"
+    # must overwrite a stale saved income instead of silently keeping the
+    # old value (0 is falsy but a real, meaningful update).
+    income = monthly_income if monthly_income is not None else saved.get("monthly_income")
+    if income is None:
         return None
 
     profile = {

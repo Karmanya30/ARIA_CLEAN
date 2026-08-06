@@ -47,10 +47,26 @@ def build_user_feature_row(
     city_tier: int,
 ) -> dict[str, float]:
     """Derive the XGBoost feature vector for one user from their transaction
-    history + profile fields. Returns an all-zero row if there's not enough
-    data, rather than raising — callers decide whether that's acceptable."""
+    history + profile fields. Profile-only features (income, age,
+    dependents, debt-to-income, city tier) are always computed from the
+    caller's arguments -- only the transaction-*derived* features (category
+    ratios, spend volatility, etc.) fall back to zero when there's no
+    transaction history. A brand-new user asking a question through the
+    live chat pipeline (which always passes an empty transaction list, since
+    there's no transaction-upload flow yet) must still get a risk
+    prediction driven by their real income/age/EMI, not an all-zero vector
+    that ignores who's asking."""
+    profile_features = {
+        "income_log": float(np.log1p(max(monthly_income, 0.0))),
+        "age": float(age),
+        "dependents": float(dependents),
+        "debt_to_income": float(existing_emi / monthly_income) if monthly_income > 0 else 0.0,
+        "city_tier": float(city_tier),
+    }
+    transaction_feature_names = [n for n in FEATURE_NAMES if n not in profile_features]
+
     if monthly_income <= 0 or txn_df is None or txn_df.empty:
-        return dict.fromkeys(FEATURE_NAMES, 0.0)
+        return {**dict.fromkeys(transaction_feature_names, 0.0), **profile_features}
 
     df = txn_df.copy()
     df["date"] = pd.to_datetime(df["date"])
@@ -77,10 +93,7 @@ def build_user_feature_row(
     neg_balance_months = int((monthly_totals > monthly_income).sum())
 
     row = {
-        "income_log": float(np.log1p(monthly_income)),
-        "age": float(age),
-        "dependents": float(dependents),
-        "debt_to_income": float(existing_emi / monthly_income),
+        **profile_features,
         "savings_rate": float(savings_rate),
         **{f"{c}_ratio": float(cat_ratio[c]) for c in CATEGORIES},
         "discretionary_ratio": float(
