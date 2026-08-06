@@ -363,6 +363,19 @@ def _render_chat_tab(session_id: str) -> None:
 
             audio_path = turn.get("audio_path")
             if audio_path:
+                if turn.get("mode") == "Conversational Mode":
+                    # Free, self-hosted-in-browser avatar (TalkingHead +
+                    # HeadAudio, both loaded from jsdelivr's CDN, no API
+                    # key, no quota) -- see interface/avatar/. The plain
+                    # audio player stays underneath as an automatic
+                    # fallback if the avatar iframe can't render (e.g. no
+                    # WebGL), so the response is never silently lost.
+                    try:
+                        from interface.avatar.render import build_avatar_html
+
+                        st.components.v1.html(build_avatar_html(audio_path), height=420)
+                    except Exception as exc:
+                        st.caption(f"Avatar unavailable ({exc}); playing audio only.")
                 suffix = Path(audio_path).suffix.lower()
                 audio_format = "audio/wav" if suffix == ".wav" else "audio/mp3"
                 st.audio(audio_path, format=audio_format)
@@ -410,6 +423,7 @@ def _render_chat_tab(session_id: str) -> None:
                 audio_path = synthesize(_speech_text(audio_script))
                 if audio_path and session.get("history"):
                     session["history"][-1]["audio_path"] = audio_path
+                    session["history"][-1]["mode"] = mode
             except Exception:
                 pass
 
