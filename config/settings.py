@@ -71,7 +71,10 @@ SBERT_MODEL = os.getenv(
 SBERT_DEVICE = os.getenv("SBERT_DEVICE", "cpu")
 
 RETRIEVAL_K = int(os.getenv("RETRIEVAL_K", "5"))
-RETRIEVAL_THRESHOLD = float(os.getenv("RETRIEVAL_THRESHOLD", "0.45"))
+# Empirically tuned against the 50-concept KB: genuinely off-topic queries
+# score <= 0.23, misspelled-but-real finance queries score >= 0.41 -- 0.40
+# cleanly separates them (0.45 rejected some real misspelled queries).
+RETRIEVAL_THRESHOLD = float(os.getenv("RETRIEVAL_THRESHOLD", "0.40"))
 
 
 # ===============================

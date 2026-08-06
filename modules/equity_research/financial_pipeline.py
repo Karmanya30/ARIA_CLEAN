@@ -1,11 +1,11 @@
 import re
 from typing import Dict, Any, Optional, List
 
-from ai.data.screener_adapter import get_screener_data
-from ai.data.data_normalizer import normalize_screener_data, get_value_for_fy, _fy_to_mar
-from ai.analysis.metric_router import route_metric, get_calculation_function
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import screener_data_prompt
+from modules.equity_research.data_normalizer import normalize_screener_data, get_value_for_fy, _fy_to_mar
+from modules.equity_research.metric_router import route_metric, get_calculation_function
+from modules.equity_research.screener_adapter import get_screener_data
 
 
 def _extract_fiscal_years(query: str) -> List[str]:

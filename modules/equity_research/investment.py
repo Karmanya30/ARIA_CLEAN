@@ -2,26 +2,13 @@
 
 from __future__ import annotations
 
-import os
 import re
 from functools import lru_cache
 from typing import Any
 
-import requests
 import yfinance as yf
 
 from ai.llm.groq_client import generate_response
-from config import settings
-
-# Keywords that indicate fundamental/balance-sheet analysis — must go to screener pipeline
-_FUNDAMENTAL_KEYWORDS = (
-    "debt", "borrowing", "borrowings", "revenue", "sales", "profit",
-    "net profit", "balance sheet", "cash flow", "quarterly", "annual",
-    "earnings", "ebitda", "income", "expense", "equity ratio",
-    "debt to equity", "d/e ratio", "financial year", "fy", "revenue growth",
-    "profit growth", "debt change", "numerical difference", "financial report",
-    "financial results", "statement", "results",
-)
 
 
 def _clean_company_query(query: str) -> str:
@@ -333,56 +320,3 @@ def investment_module(query: str) -> dict[str, Any]:
         },
         "response": answer,
     }
-
-
-def is_fundamental_query(query: str) -> bool:
-    """Returns True if the query is about fundamental/balance-sheet data, not live stock price."""
-    text = query.lower()
-    return any(kw in text for kw in _FUNDAMENTAL_KEYWORDS)
-
-
-def is_investment_query(query: str) -> bool:
-    """Returns True ONLY for live market/stock price/news queries — NOT for fundamental analysis."""
-    text = query.lower()
-    # If it's a fundamental query, let the screener pipeline handle it
-    if is_fundamental_query(query):
-        return False
-    intent_words = ("stock price", "share price", "stock analysis", "analyze stock", "market cap", "news")
-    return any(word in text for word in intent_words)
-
-
-def is_broad_market_query(query: str) -> bool:
-    """Return True for market/event questions that are not about one listed stock."""
-    text = query.lower()
-    broad_terms = (
-        "stock market",
-        "market respond",
-        "market react",
-        "nifty",
-        "sensex",
-        "index",
-        "indices",
-        "sector",
-        "sectors",
-        "election",
-        "government",
-        "policy",
-        "budget",
-        "rbi",
-        "inflation",
-        "gdp",
-        "bjp",
-        "congress",
-        "west bengal",
-    )
-    individual_stock_terms = (
-        "stock price",
-        "share price",
-        "market cap",
-        "pe ratio",
-        "p/e",
-        "ticker",
-    )
-    return any(term in text for term in broad_terms) and not any(
-        term in text for term in individual_stock_terms
-    )

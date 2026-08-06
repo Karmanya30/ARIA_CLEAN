@@ -69,11 +69,16 @@ Forecast spend: ₹{forecast:,.0f}
 Anomalies: {n_anomalies}
 
 TASK:
-Write a 4–6 sentence explanation in simple Indian English.
-Mention risk profile, SIP, and one key observation.
+Write a short explanation in simple Indian English, mentioning the risk
+profile, the SIP amount, and one key observation from the computed data.
 
-NARRATIVE (4–6 sentences only):
-Stop after completing the response.
+Return EXACTLY this format:
+Insight: <risk profile + SIP amount, the headline takeaway>
+Analysis: <what the forecast/anomalies/budget numbers mean together>
+Recommendation: <one practical next step>
+Risk: <one caveat — SIP returns are market-linked, not guaranteed>
+
+Stop after Risk.
 """
 
 
@@ -99,14 +104,28 @@ Stop after completing the explanation.
 # ===============================
 # MODULE 2 — TUTOR (TAXAL)
 # ===============================
-def build_taxal_prompt(concept: str, level: int) -> str:
+
+# Extra style instruction layered on top of the level hint, keyed by the
+# DQN teaching agent's chosen action (config.settings.TEACHING_ACTIONS).
+TAXAL_ACTION_STYLE_HINTS = {
+    "simplify_level_down": "Use very simple language and one everyday analogy.",
+    "give_example": "Include a concrete numerical ₹ example.",
+    "ask_quiz": "Keep the explanation brief -- a quiz question follows separately.",
+    "increase_level": "Include the formula and a short derivation.",
+    "use_analogy": "Lead with a single memorable analogy before the definition.",
+    "teach_prerequisite": "Briefly connect this concept back to its prerequisite first.",
+}
+
+
+def build_taxal_prompt(concept: str, level: int, action: str | None = None) -> str:
     level = max(1, min(8, int(level)))
+    action_hint = TAXAL_ACTION_STYLE_HINTS.get(action or "", "")
 
     return f"""\
 You are ARIA, a financial tutor explaining "{concept}".
 
 Level: {level}/8
-Style: {TAXAL_LEVEL_HINTS[level]}
+Style: {TAXAL_LEVEL_HINTS[level]} {action_hint}
 
 Produce EXACTLY 3 sections:
 

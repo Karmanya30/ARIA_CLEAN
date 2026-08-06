@@ -3,10 +3,14 @@
 __pycache__/
 *.py[cod]
 
-# local binaries / logs — never commit these
+# local binaries / logs / runtime DB — never commit these
 data/bin/
 data/*.log
 *.log
+data/user_profiles/*.db
+# vector index is rebuilt from data/raw/concepts_kb/concepts.json via
+# python -m scripts.build_concept_kb — never committed
+data/vector_store/
 
 # trained model artifacts — regenerate via scripts/train scripts, not committed
 models/**/*.json
@@ -14,3 +18,9 @@ models/**/*.pt
 models/**/*.joblib
 models/**/*.zip
 !models/.gitkeep
+
+# synthetic training data — deterministic (RANDOM_STATE=42), regenerate via
+# the matching scripts instead of committing. concepts.json is hand-authored
+# and NOT ignored — that one is real curated content.
+data/raw/transactions_synthetic/
+data/raw/kt_sequences/
