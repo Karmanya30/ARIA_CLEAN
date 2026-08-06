@@ -9,6 +9,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+from loguru import logger
 
 from config.paths import FINANCE_MODELS_DIR, XGB_RISK_PATH
 from modules.finance.features import (
@@ -59,7 +60,8 @@ def _top_shap_features(x: pd.DataFrame, class_idx: int, k: int = 3) -> list[tupl
         contributions = shap_values[0, :, class_idx]
         order = np.argsort(-np.abs(contributions))[:k]
         return [(FEATURE_NAMES[i], float(contributions[i])) for i in order]
-    except Exception:
+    except Exception as exc:
+        logger.debug(f"SHAP explanation failed (non-critical, narration still works): {exc}")
         return []
 
 

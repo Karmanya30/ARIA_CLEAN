@@ -16,6 +16,8 @@ import os
 import re
 from typing import Iterator
 
+from loguru import logger
+
 try:
     from dotenv import load_dotenv
 except Exception:
@@ -135,15 +137,17 @@ def generate_response(prompt: str, system_prompt: str | None = None) -> str:
     text: str | None = None
     last_error: Exception | None = None
 
-    for _name, backend in _BACKENDS:
+    for name, backend in _BACKENDS:
         try:
             text = backend(prompt, system_prompt)
             break
         except Exception as e:
             last_error = e
+            logger.warning(f"LLM backend '{name}' failed, trying next: {e}")
             continue
 
     if text is None:
+        logger.error(f"All LLM backends failed: {last_error}")
         return f"Error: {last_error}"
 
     text = normalize_currency(text).strip()
@@ -233,7 +237,8 @@ def generate_stream(
         if not yielded:
             yield generate_response(prompt, system_prompt=system_prompt)
 
-    except Exception:
+    except Exception as exc:
+        logger.warning(f"Groq streaming failed, falling back to non-streaming: {exc}")
         yield generate_response(prompt, system_prompt=system_prompt)
 
 
@@ -247,7 +252,7 @@ def unload() -> None:
 
 
 def warmup() -> None:
-    try:
-        generate_response("Hello")
-    except Exception:
-        pass
+    # generate_response() catches its own backend errors and returns an
+    # "Error: ..." string rather than raising, so there's nothing to catch
+    # here -- this just primes any lazy client setup (e.g. SDK imports).
+    generate_response("Hello")

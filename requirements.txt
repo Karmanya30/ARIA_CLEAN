@@ -1,27 +1,27 @@
-# Minimal requirements for the scaffold
-# Add real dependencies as needed
-numpy
-scipy
-scikit-learn
-xgboost
-shap
-torch
-faiss-cpu
-sentence-transformers
-sqlalchemy
-pyarrow
-pydantic
-gymnasium
-stable-baselines3
-streamlit
-groq
-google-genai
-python-dotenv
-yfinance
-requests
-beautifulsoup4
-openai-whisper
-imageio-ffmpeg
-edge-tts
-pyttsx3
-loguru
+# Runtime dependencies, pinned to the versions this project is tested
+# against. See requirements-dev.txt for test-only tooling.
+numpy==2.3.1
+scipy==1.16.0
+scikit-learn==1.7.1
+xgboost==3.2.0
+shap==0.52.0
+torch==2.11.0
+faiss-cpu==1.14.3
+sentence-transformers==5.6.1
+sqlalchemy==2.0.49
+pyarrow==24.0.0
+pydantic==2.13.0
+gymnasium==1.3.0
+stable-baselines3==2.9.0
+streamlit==1.56.0
+groq==1.2.0
+google-genai==2.11.0
+python-dotenv==1.2.2
+yfinance==1.2.0
+requests==2.34.2
+beautifulsoup4==4.14.3
+openai-whisper==20250625
+imageio-ffmpeg==0.6.0
+edge-tts==7.2.8
+pyttsx3==2.99
+loguru==0.7.3

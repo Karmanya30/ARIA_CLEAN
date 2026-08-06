@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Any
 
 import yfinance as yf
+from loguru import logger
 
 from ai.llm.groq_client import generate_response
 
@@ -101,7 +102,8 @@ def _search_yahoo_company(search_text: str) -> dict[str, str] | None:
     try:
         search = yf.Search(search_text, max_results=8)
         quotes = getattr(search, "quotes", []) or []
-    except Exception:
+    except Exception as exc:
+        logger.warning(f"Yahoo Finance search failed for {search_text!r}: {exc}")
         return None
 
     indian_quotes = [quote for quote in quotes if _is_indian_quote(quote)]
@@ -212,7 +214,8 @@ def get_news(ticker: str, limit: int = 5) -> list[str]:
             if str(item.get("content", {}).get("title", "")).strip()
         ]
         return articles[:limit]
-    except Exception:
+    except Exception as exc:
+        logger.warning(f"yfinance news fetch failed for {ticker}: {exc}")
         return []
 
 
