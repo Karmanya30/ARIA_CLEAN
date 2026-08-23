@@ -1,0 +1,1768 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R] /Count 12 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 3681 >>
+stream
+BT
+/F1 10 Tf
+/F1 18 Tf
+1 0 0 1 54 784 Tm
+(ARIA Project Report) Tj
+/F1 10 Tf
+1 0 0 1 54 754 Tm
+(Generated on: 7 August 2026) Tj
+/F1 10 Tf
+1 0 0 1 54 734 Tm
+(Project: ARIA - AI-powered finance assistant, tutor, market analyst, and equity researcher) Tj
+/F1 10 Tf
+1 0 0 1 54 714 Tm
+(Repository reviewed: D:\\IIIT SRI CITY\\BTP_clean\\ARIA_CLEAN) Tj
+/F1 10 Tf
+1 0 0 1 54 694 Tm
+(Verification status: pytest completed successfully with 50 passed tests.) Tj
+/F1 13 Tf
+1 0 0 1 54 666 Tm
+(1. Executive Summary) Tj
+/F1 10 Tf
+1 0 0 1 54 642 Tm
+(ARIA is currently a working Streamlit-based prototype that combines four major functional) Tj
+/F1 10 Tf
+1 0 0 1 54 628 Tm
+(modules behind a single chat interface:) Tj
+/F1 10 Tf
+1 0 0 1 54 608 Tm
+(1. Personal Finance Assistant) Tj
+/F1 10 Tf
+1 0 0 1 54 594 Tm
+(2. Intelligent Financial Tutor) Tj
+/F1 10 Tf
+1 0 0 1 54 580 Tm
+(3. Market Analysis Assistant) Tj
+/F1 10 Tf
+1 0 0 1 54 566 Tm
+(4. Equity Research Assistant) Tj
+/F1 10 Tf
+1 0 0 1 54 546 Tm
+(The project also includes voice input, text-to-speech output, and a browser-based 3D avatar) Tj
+/F1 10 Tf
+1 0 0 1 54 532 Tm
+(for conversational mode.) Tj
+/F1 10 Tf
+1 0 0 1 54 512 Tm
+(The backend is much stronger than the current avatar layer. The finance, tutor, market, and) Tj
+/F1 10 Tf
+1 0 0 1 54 498 Tm
+(equity research modules have real routing, structured pipelines, trained local model) Tj
+/F1 10 Tf
+1 0 0 1 54 484 Tm
+(artifacts, real market/fundamental data paths, and a passing test suite. The avatar is) Tj
+/F1 10 Tf
+1 0 0 1 54 470 Tm
+(currently a low-cost/free visual layer built around a local GLB model and browser-side) Tj
+/F1 10 Tf
+1 0 0 1 54 456 Tm
+(TalkingHead/HeadAudio libraries. That explains why it feels anime/cartoon-like and why lip) Tj
+/F1 10 Tf
+1 0 0 1 54 442 Tm
+(sync is weak or unreliable: the avatar asset is not a professional human presenter model,) Tj
+/F1 10 Tf
+1 0 0 1 54 428 Tm
+(the lip sync depends on browser audio permissions and an experimental audio-driven viseme) Tj
+/F1 10 Tf
+1 0 0 1 54 414 Tm
+(detector, and there is no production-grade facial animation stack.) Tj
+/F1 13 Tf
+1 0 0 1 54 386 Tm
+(2. What Has Been Built) Tj
+/F1 11 Tf
+1 0 0 1 54 356 Tm
+(2.1 Streamlit Application Interface) Tj
+/F1 10 Tf
+1 0 0 1 54 334 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 314 Tm
+(- interface/streamlit_app.py) Tj
+/F1 10 Tf
+1 0 0 1 66 300 Tm
+(- interface/components.py) Tj
+/F1 10 Tf
+1 0 0 1 66 286 Tm
+(- main.py) Tj
+/F1 10 Tf
+1 0 0 1 54 266 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 246 Tm
+(- A Streamlit app is built as the main user interface.) Tj
+/F1 10 Tf
+1 0 0 1 66 232 Tm
+(- The app has three tabs:) Tj
+/F1 10 Tf
+1 0 0 1 54 218 Tm
+(- Chat) Tj
+/F1 10 Tf
+1 0 0 1 54 204 Tm
+(- Your Profile) Tj
+/F1 10 Tf
+1 0 0 1 54 190 Tm
+(- Your Progress) Tj
+/F1 10 Tf
+1 0 0 1 66 176 Tm
+(- Users can ask questions from a single chat box.) Tj
+/F1 10 Tf
+1 0 0 1 66 162 Tm
+(- The app supports normal mode and conversational mode.) Tj
+/F1 10 Tf
+1 0 0 1 66 148 Tm
+(- Chat history is stored per browser session using a generated session id.) Tj
+/F1 10 Tf
+1 0 0 1 66 134 Tm
+(- Example questions are provided for all major modules.) Tj
+/F1 10 Tf
+1 0 0 1 66 120 Tm
+(- Responses are rendered into structured cards when the LLM returns known sections such as) Tj
+/F1 10 Tf
+1 0 0 1 66 106 Tm
+(Insight, Analysis, Recommendation, and Risk.) Tj
+/F1 10 Tf
+1 0 0 1 66 92 Tm
+(- Tutor answers are rendered with TAXAL-style sections: Cognitive, Functional, and Causal.) Tj
+/F1 10 Tf
+1 0 0 1 66 78 Tm
+(- Audio input is supported through Streamlit's audio_input.) Tj
+/F1 10 Tf
+1 0 0 1 66 64 Tm
+(- Audio output is generated through TTS and played back in the UI.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 1 of 12) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3947 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- In conversational mode, the generated TTS audio is passed to the avatar iframe.) Tj
+/F1 10 Tf
+1 0 0 1 54 764 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 744 Tm
+(- interface/streamlit_app.py loads the orchestrator dynamically so pipeline code changes are) Tj
+/F1 10 Tf
+1 0 0 1 66 730 Tm
+(picked up on Streamlit reruns.) Tj
+/F1 10 Tf
+1 0 0 1 66 716 Tm
+(- _handle_query\(\) delegates every query to core.orchestrator.handle_query\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 702 Tm
+(- _speech_text\(\) cleans Markdown-like LLM output into a more natural TTS script.) Tj
+/F1 10 Tf
+1 0 0 1 66 688 Tm
+(- render_response\(\) parses known response section labels and formats them as visual cards.) Tj
+/F1 10 Tf
+1 0 0 1 66 674 Tm
+(- render_profile_panel\(\) saves finance profile inputs.) Tj
+/F1 10 Tf
+1 0 0 1 66 660 Tm
+(- render_progress_panel\(\) shows per-concept tutor mastery.) Tj
+/F1 10 Tf
+1 0 0 1 54 640 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 620 Tm
+(- Single-user or small-demo Streamlit usage.) Tj
+/F1 10 Tf
+1 0 0 1 66 606 Tm
+(- Each browser tab gets an independent session id.) Tj
+/F1 10 Tf
+1 0 0 1 66 592 Tm
+(- No multi-user authentication or production account system yet.) Tj
+/F1 10 Tf
+1 0 0 1 66 578 Tm
+(- State is lightweight and local, not enterprise-grade.) Tj
+/F1 10 Tf
+1 0 0 1 54 558 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 538 Tm
+(- Proper user login and persistent user accounts.) Tj
+/F1 10 Tf
+1 0 0 1 66 524 Tm
+(- Production deployment configuration.) Tj
+/F1 10 Tf
+1 0 0 1 66 510 Tm
+(- Stronger UI around source transparency, error states, and data freshness.) Tj
+/F1 10 Tf
+1 0 0 1 66 496 Tm
+(- Better separation between demo session state and long-term user data.) Tj
+/F1 10 Tf
+1 0 0 1 66 482 Tm
+(- Better mobile layout and accessibility verification.) Tj
+/F1 13 Tf
+1 0 0 1 54 454 Tm
+(3. Core Query Routing and Orchestration) Tj
+/F1 10 Tf
+1 0 0 1 54 430 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 410 Tm
+(- core/router.py) Tj
+/F1 10 Tf
+1 0 0 1 66 396 Tm
+(- core/orchestrator.py) Tj
+/F1 10 Tf
+1 0 0 1 66 382 Tm
+(- shared/intent_classifier.py) Tj
+/F1 10 Tf
+1 0 0 1 66 368 Tm
+(- shared/company_resolver.py) Tj
+/F1 10 Tf
+1 0 0 1 54 348 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 328 Tm
+(- A central router chooses which module should answer a query.) Tj
+/F1 10 Tf
+1 0 0 1 66 314 Tm
+(- Personal finance and tutor routing use the shared intent classifier.) Tj
+/F1 10 Tf
+1 0 0 1 66 300 Tm
+(- Broad market routing detects index, sector, and macro-market questions.) Tj
+/F1 10 Tf
+1 0 0 1 66 286 Tm
+(- Equity research routing detects company-specific stock and fundamental questions.) Tj
+/F1 10 Tf
+1 0 0 1 66 272 Tm
+(- The orchestrator dispatches to one of four pipelines:) Tj
+/F1 10 Tf
+1 0 0 1 54 258 Tm
+(- modules.finance.pipeline) Tj
+/F1 10 Tf
+1 0 0 1 54 244 Tm
+(- modules.tutor.pipeline) Tj
+/F1 10 Tf
+1 0 0 1 54 230 Tm
+(- modules.market.pipeline) Tj
+/F1 10 Tf
+1 0 0 1 54 216 Tm
+(- modules.equity_research.pipeline) Tj
+/F1 10 Tf
+1 0 0 1 66 202 Tm
+(- Conversational mode rewrites follow-up queries using recent chat history so questions like) Tj
+/F1 10 Tf
+1 0 0 1 66 188 Tm
+("what about debt?" can become self-contained.) Tj
+/F1 10 Tf
+1 0 0 1 54 168 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 148 Tm
+(- route_query\(\) calls classify_intent\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 134 Tm
+(- is_fundamental_query\(\) detects balance-sheet and financial statement language.) Tj
+/F1 10 Tf
+1 0 0 1 66 120 Tm
+(- is_investment_query\(\) detects live stock price and market-cap style language.) Tj
+/F1 10 Tf
+1 0 0 1 66 106 Tm
+(- is_broad_market_query\(\) detects Nifty, Sensex, sector, election, RBI, inflation, GDP, and) Tj
+/F1 10 Tf
+1 0 0 1 66 92 Tm
+(similar macro terms.) Tj
+/F1 10 Tf
+1 0 0 1 66 78 Tm
+(- resolve_company\(\) is used before final dispatch so company-specific questions can be sent) Tj
+/F1 10 Tf
+1 0 0 1 66 64 Tm
+(to equity research.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 2 of 12) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3654 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 54 784 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 764 Tm
+(- Rule-based routing works well for common demo queries.) Tj
+/F1 10 Tf
+1 0 0 1 66 750 Tm
+(- 50 automated tests include router and adversarial cases.) Tj
+/F1 10 Tf
+1 0 0 1 66 736 Tm
+(- The routing is not yet a trained production NLU classifier.) Tj
+/F1 10 Tf
+1 0 0 1 54 716 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 696 Tm
+(- A stronger intent evaluation dataset.) Tj
+/F1 10 Tf
+1 0 0 1 66 682 Tm
+(- Confusion-matrix reporting across finance/tutor/market/equity/general queries.) Tj
+/F1 10 Tf
+1 0 0 1 66 668 Tm
+(- Confidence scores and clarification prompts when routing is uncertain.) Tj
+/F1 10 Tf
+1 0 0 1 66 654 Tm
+(- More company alias coverage.) Tj
+/F1 13 Tf
+1 0 0 1 54 626 Tm
+(4. Module 1 - Personal Finance) Tj
+/F1 10 Tf
+1 0 0 1 54 602 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 582 Tm
+(- modules/finance/pipeline.py) Tj
+/F1 10 Tf
+1 0 0 1 66 568 Tm
+(- modules/finance/orchestrator.py) Tj
+/F1 10 Tf
+1 0 0 1 66 554 Tm
+(- modules/finance/risk_model.py) Tj
+/F1 10 Tf
+1 0 0 1 66 540 Tm
+(- modules/finance/forecast_model.py) Tj
+/F1 10 Tf
+1 0 0 1 66 526 Tm
+(- modules/finance/anomaly.py) Tj
+/F1 10 Tf
+1 0 0 1 66 512 Tm
+(- modules/finance/budget_optimize.py) Tj
+/F1 10 Tf
+1 0 0 1 66 498 Tm
+(- modules/finance/sip_emi_calc.py) Tj
+/F1 10 Tf
+1 0 0 1 66 484 Tm
+(- modules/finance/tax.py) Tj
+/F1 10 Tf
+1 0 0 1 66 470 Tm
+(- modules/finance/train/train_xgb_risk.py) Tj
+/F1 10 Tf
+1 0 0 1 66 456 Tm
+(- modules/finance/train/train_lstm_spend.py) Tj
+/F1 10 Tf
+1 0 0 1 66 442 Tm
+(- scripts/generate_synthetic_transactions.py) Tj
+/F1 10 Tf
+1 0 0 1 54 422 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 402 Tm
+(- Risk profiling using XGBoost.) Tj
+/F1 10 Tf
+1 0 0 1 66 388 Tm
+(- Spending forecast using a small LSTM.) Tj
+/F1 10 Tf
+1 0 0 1 66 374 Tm
+(- Anomaly detection using Isolation Forest.) Tj
+/F1 10 Tf
+1 0 0 1 66 360 Tm
+(- Budget allocation using linear programming.) Tj
+/F1 10 Tf
+1 0 0 1 66 346 Tm
+(- SIP planning using deterministic financial math.) Tj
+/F1 10 Tf
+1 0 0 1 66 332 Tm
+(- EMI and SIP calculators.) Tj
+/F1 10 Tf
+1 0 0 1 66 318 Tm
+(- Indian tax calculation support.) Tj
+/F1 10 Tf
+1 0 0 1 66 304 Tm
+(- Free-text extraction of income, EMI, age, and related finance values.) Tj
+/F1 10 Tf
+1 0 0 1 66 290 Tm
+(- Saved financial profile fields are reused across turns.) Tj
+/F1 10 Tf
+1 0 0 1 66 276 Tm
+(- Known finance concept answers for terms such as SIP and EMI.) Tj
+/F1 10 Tf
+1 0 0 1 66 262 Tm
+(- LLM narration converts computed results into user-facing Insight, Analysis,) Tj
+/F1 10 Tf
+1 0 0 1 66 248 Tm
+(Recommendation, and Risk sections.) Tj
+/F1 10 Tf
+1 0 0 1 54 228 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 208 Tm
+(- modules.finance.pipeline.run_pipeline\(\) first tries to build a structured) Tj
+/F1 10 Tf
+1 0 0 1 66 194 Tm
+(UserFinancialInput.) Tj
+/F1 10 Tf
+1 0 0 1 66 180 Tm
+(- If enough profile data exists, it calls modules.finance.orchestrator.run\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 166 Tm
+(- The orchestrator combines:) Tj
+/F1 10 Tf
+1 0 0 1 54 152 Tm
+(- risk_model.predict\(\)) Tj
+/F1 10 Tf
+1 0 0 1 54 138 Tm
+(- forecast_model.predict\(\)) Tj
+/F1 10 Tf
+1 0 0 1 54 124 Tm
+(- anomaly.detect_for_user\(\)) Tj
+/F1 10 Tf
+1 0 0 1 54 110 Tm
+(- budget_optimize.optimize_budget\(\)) Tj
+/F1 10 Tf
+1 0 0 1 54 96 Tm
+(- tax.compute\(\)) Tj
+/F1 10 Tf
+1 0 0 1 54 82 Tm
+(- SIP plan construction) Tj
+/F1 10 Tf
+1 0 0 1 66 68 Tm
+(- The final result is narrated through the shared LLM client.) Tj
+/F1 10 Tf
+1 0 0 1 66 54 Tm
+(- If structured finance data is missing, the pipeline falls back to SIP heuristics, known-) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 3 of 12) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 3448 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(concept explanations, or a generic finance prompt.) Tj
+/F1 10 Tf
+1 0 0 1 54 764 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 744 Tm
+(- Local trained artifacts exist under models/finance:) Tj
+/F1 10 Tf
+1 0 0 1 54 730 Tm
+(- xgb_risk_profile.json) Tj
+/F1 10 Tf
+1 0 0 1 54 716 Tm
+(- xgb_risk_profile.artifacts.joblib) Tj
+/F1 10 Tf
+1 0 0 1 54 702 Tm
+(- lstm_spend_forecast.pt) Tj
+/F1 10 Tf
+1 0 0 1 66 688 Tm
+(- Training is designed to run on CPU.) Tj
+/F1 10 Tf
+1 0 0 1 66 674 Tm
+(- Data is synthetic, not real bank transaction data.) Tj
+/F1 10 Tf
+1 0 0 1 66 660 Tm
+(- Good for prototype and BTP demonstration scale.) Tj
+/F1 10 Tf
+1 0 0 1 66 646 Tm
+(- Not yet validated on real user financial histories.) Tj
+/F1 10 Tf
+1 0 0 1 54 626 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 606 Tm
+(- Real or institution-grade anonymized transaction dataset.) Tj
+/F1 10 Tf
+1 0 0 1 66 592 Tm
+(- Proper consent-based data ingestion from CSV, bank statements, UPI exports, or account) Tj
+/F1 10 Tf
+1 0 0 1 66 578 Tm
+(aggregator APIs.) Tj
+/F1 10 Tf
+1 0 0 1 66 564 Tm
+(- Model performance metrics in the app/report: accuracy, precision, recall, MAE/RMSE,) Tj
+/F1 10 Tf
+1 0 0 1 66 550 Tm
+(anomaly precision.) Tj
+/F1 10 Tf
+1 0 0 1 66 536 Tm
+(- Financial planning assumptions screen.) Tj
+/F1 10 Tf
+1 0 0 1 66 522 Tm
+(- Explainability panel for risk model features.) Tj
+/F1 10 Tf
+1 0 0 1 66 508 Tm
+(- Production guardrails against personalized investment advice.) Tj
+/F1 10 Tf
+1 0 0 1 66 494 Tm
+(- More robust handling of inflation, goals, liabilities, insurance, emergency funds, and) Tj
+/F1 10 Tf
+1 0 0 1 66 480 Tm
+(asset allocation.) Tj
+/F1 13 Tf
+1 0 0 1 54 452 Tm
+(5. Module 2 - Intelligent Financial Tutor) Tj
+/F1 10 Tf
+1 0 0 1 54 428 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 408 Tm
+(- modules/tutor/pipeline.py) Tj
+/F1 10 Tf
+1 0 0 1 66 394 Tm
+(- modules/tutor/orchestrator.py) Tj
+/F1 10 Tf
+1 0 0 1 66 380 Tm
+(- modules/tutor/retriever.py) Tj
+/F1 10 Tf
+1 0 0 1 66 366 Tm
+(- modules/tutor/knowledge.py) Tj
+/F1 10 Tf
+1 0 0 1 66 352 Tm
+(- modules/tutor/teaching.py) Tj
+/F1 10 Tf
+1 0 0 1 66 338 Tm
+(- modules/tutor/explainer.py) Tj
+/F1 10 Tf
+1 0 0 1 66 324 Tm
+(- modules/tutor/quiz.py) Tj
+/F1 10 Tf
+1 0 0 1 66 310 Tm
+(- modules/tutor/train/train_lstm_kt.py) Tj
+/F1 10 Tf
+1 0 0 1 66 296 Tm
+(- modules/tutor/train/train_dqn_teacher.py) Tj
+/F1 10 Tf
+1 0 0 1 66 282 Tm
+(- scripts/build_concept_kb.py) Tj
+/F1 10 Tf
+1 0 0 1 66 268 Tm
+(- scripts/generate_kt_sequences.py) Tj
+/F1 10 Tf
+1 0 0 1 66 254 Tm
+(- data/raw/concepts_kb/concepts.json) Tj
+/F1 10 Tf
+1 0 0 1 54 234 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 214 Tm
+(- A financial concept knowledge base exists with 50 concepts.) Tj
+/F1 10 Tf
+1 0 0 1 66 200 Tm
+(- Concept retrieval uses Sentence-BERT and FAISS.) Tj
+/F1 10 Tf
+1 0 0 1 66 186 Tm
+(- Student mastery is estimated from quiz/history interactions.) Tj
+/F1 10 Tf
+1 0 0 1 66 172 Tm
+(- Teaching action selection uses a DQN policy.) Tj
+/F1 10 Tf
+1 0 0 1 66 158 Tm
+(- Explanations are generated in TAXAL format:) Tj
+/F1 10 Tf
+1 0 0 1 54 144 Tm
+(- Cognitive) Tj
+/F1 10 Tf
+1 0 0 1 54 130 Tm
+(- Functional) Tj
+/F1 10 Tf
+1 0 0 1 54 116 Tm
+(- Causal) Tj
+/F1 10 Tf
+1 0 0 1 66 102 Tm
+(- Quiz generation is available.) Tj
+/F1 10 Tf
+1 0 0 1 66 88 Tm
+(- User learning progress is stored and shown in the Streamlit progress tab.) Tj
+/F1 10 Tf
+1 0 0 1 54 68 Tm
+(How it is done:) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 4 of 12) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 3841 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- modules.tutor.pipeline.run_pipeline\(\) calls modules.tutor.orchestrator.handle\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 770 Tm
+(- The orchestrator retrieves the best matching concept.) Tj
+/F1 10 Tf
+1 0 0 1 66 756 Tm
+(- It loads the user's learning state.) Tj
+/F1 10 Tf
+1 0 0 1 66 742 Tm
+(- It computes mastery with mastery_vector\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 728 Tm
+(- It chooses a teaching action with teaching.choose_action\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 714 Tm
+(- It generates an explanation with explainer.explain\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 700 Tm
+(- If the chosen action is quiz-based, it generates a quiz item.) Tj
+/F1 10 Tf
+1 0 0 1 54 680 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 660 Tm
+(- 50 finance concepts are present in the concept KB.) Tj
+/F1 10 Tf
+1 0 0 1 66 646 Tm
+(- Local trained tutor artifacts exist under models/tutor:) Tj
+/F1 10 Tf
+1 0 0 1 54 632 Tm
+(- lstm_kt.pt) Tj
+/F1 10 Tf
+1 0 0 1 54 618 Tm
+(- dqn_teacher.zip) Tj
+/F1 10 Tf
+1 0 0 1 66 604 Tm
+(- Suitable for controlled concept-teaching demos.) Tj
+/F1 10 Tf
+1 0 0 1 66 590 Tm
+(- Not yet a full-scale adaptive learning platform.) Tj
+/F1 10 Tf
+1 0 0 1 54 570 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 550 Tm
+(- Larger concept graph with more prerequisites and difficulty calibration.) Tj
+/F1 10 Tf
+1 0 0 1 66 536 Tm
+(- Real student interaction dataset.) Tj
+/F1 10 Tf
+1 0 0 1 66 522 Tm
+(- A quiz answer UI flow that records answers directly from the chat.) Tj
+/F1 10 Tf
+1 0 0 1 66 508 Tm
+(- Learning analytics: mastery over time, weak areas, revision scheduling.) Tj
+/F1 10 Tf
+1 0 0 1 66 494 Tm
+(- Evaluation against expert-written explanations.) Tj
+/F1 10 Tf
+1 0 0 1 66 480 Tm
+(- More depth levels for advanced finance learners.) Tj
+/F1 13 Tf
+1 0 0 1 54 452 Tm
+(6. Module 3 - Market Analysis) Tj
+/F1 10 Tf
+1 0 0 1 54 428 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 408 Tm
+(- modules/market/pipeline.py) Tj
+/F1 10 Tf
+1 0 0 1 66 394 Tm
+(- modules/market/analyzer.py) Tj
+/F1 10 Tf
+1 0 0 1 54 374 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 354 Tm
+(- Broad market questions are handled separately from company-specific stock research.) Tj
+/F1 10 Tf
+1 0 0 1 66 340 Tm
+(- Real Nifty and Sensex data is fetched through yfinance.) Tj
+/F1 10 Tf
+1 0 0 1 66 326 Tm
+(- Sector basket snapshots are supported for IT, banking, auto, pharma, and FMCG.) Tj
+/F1 10 Tf
+1 0 0 1 66 312 Tm
+(- Economic Times public market RSS headlines are used for broad market news.) Tj
+/F1 10 Tf
+1 0 0 1 66 298 Tm
+(- LLM narration summarizes the current market context.) Tj
+/F1 10 Tf
+1 0 0 1 54 278 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 258 Tm
+(- MarketAnalyzer.analyze\(\) detects index and sector terms in the query.) Tj
+/F1 10 Tf
+1 0 0 1 66 244 Tm
+(- For index queries, it fetches 5-day OHLC history and computes trend/change.) Tj
+/F1 10 Tf
+1 0 0 1 66 230 Tm
+(- For sector queries, it fetches representative large-cap tickers and computes equal-weight) Tj
+/F1 10 Tf
+1 0 0 1 66 216 Tm
+(5-day average change.) Tj
+/F1 10 Tf
+1 0 0 1 66 202 Tm
+(- For general market queries, it fetches both Nifty and Sensex snapshots.) Tj
+/F1 10 Tf
+1 0 0 1 66 188 Tm
+(- Market headlines are pulled from the Economic Times RSS feed.) Tj
+/F1 10 Tf
+1 0 0 1 54 168 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 148 Tm
+(- Works for common Indian market demo queries.) Tj
+/F1 10 Tf
+1 0 0 1 66 134 Tm
+(- Data freshness depends on yfinance and RSS availability.) Tj
+/F1 10 Tf
+1 0 0 1 66 120 Tm
+(- Sector analysis is a representative basket, not an official sector index.) Tj
+/F1 10 Tf
+1 0 0 1 54 100 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 80 Tm
+(- TTL caching instead of simple in-memory lru_cache.) Tj
+/F1 10 Tf
+1 0 0 1 66 66 Tm
+(- Official or more reliable market data source for production.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 5 of 12) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 3785 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- More sectors and official sector index mapping.) Tj
+/F1 10 Tf
+1 0 0 1 66 770 Tm
+(- Technical indicators such as SMA, RSI, MACD, volatility, breadth, and volume analysis.) Tj
+/F1 10 Tf
+1 0 0 1 66 756 Tm
+(- Data timestamp display in the UI.) Tj
+/F1 10 Tf
+1 0 0 1 66 742 Tm
+(- Clear distinction between delayed data and live data.) Tj
+/F1 13 Tf
+1 0 0 1 54 714 Tm
+(7. Module 4 - Equity Research) Tj
+/F1 10 Tf
+1 0 0 1 54 690 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 670 Tm
+(- modules/equity_research/pipeline.py) Tj
+/F1 10 Tf
+1 0 0 1 66 656 Tm
+(- modules/equity_research/financial_pipeline.py) Tj
+/F1 10 Tf
+1 0 0 1 66 642 Tm
+(- modules/equity_research/screener_adapter.py) Tj
+/F1 10 Tf
+1 0 0 1 66 628 Tm
+(- modules/equity_research/data_normalizer.py) Tj
+/F1 10 Tf
+1 0 0 1 66 614 Tm
+(- modules/equity_research/metric_router.py) Tj
+/F1 10 Tf
+1 0 0 1 66 600 Tm
+(- modules/equity_research/calculations.py) Tj
+/F1 10 Tf
+1 0 0 1 66 586 Tm
+(- modules/equity_research/investment.py) Tj
+/F1 10 Tf
+1 0 0 1 54 566 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 546 Tm
+(- Company-specific questions are routed to equity research.) Tj
+/F1 10 Tf
+1 0 0 1 66 532 Tm
+(- Fundamental questions use Screener.in data.) Tj
+/F1 10 Tf
+1 0 0 1 66 518 Tm
+(- Live stock price/news questions use yfinance.) Tj
+/F1 10 Tf
+1 0 0 1 66 504 Tm
+(- Company search supports ticker detection and Yahoo Finance search.) Tj
+/F1 10 Tf
+1 0 0 1 66 490 Tm
+(- An LLM-assisted fallback guesses likely listed Indian company names from noisy user) Tj
+/F1 10 Tf
+1 0 0 1 66 476 Tm
+(queries.) Tj
+/F1 10 Tf
+1 0 0 1 66 462 Tm
+(- Fundamental data is normalized by fiscal year.) Tj
+/F1 10 Tf
+1 0 0 1 66 448 Tm
+(- Metric-specific calculations are routed based on query text.) Tj
+/F1 10 Tf
+1 0 0 1 66 434 Tm
+(- Output is grounded in retrieved numbers and constrained to structured sections.) Tj
+/F1 10 Tf
+1 0 0 1 54 414 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 394 Tm
+(- equity_research.pipeline.run_pipeline\(\) resolves a company/ticker.) Tj
+/F1 10 Tf
+1 0 0 1 66 380 Tm
+(- Fundamental queries call process_financial_query\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 366 Tm
+(- Live price/news queries call investment_module\(\).) Tj
+/F1 10 Tf
+1 0 0 1 66 352 Tm
+(- Screener data is normalized, fiscal years are extracted, a metric route is chosen, and a) Tj
+/F1 10 Tf
+1 0 0 1 66 338 Tm
+(grounded prompt is generated.) Tj
+/F1 10 Tf
+1 0 0 1 66 324 Tm
+(- yfinance provides current price, PE ratio, market cap, recent history, and news headlines.) Tj
+/F1 10 Tf
+1 0 0 1 66 310 Tm
+(- Sentiment is classified by the LLM from headlines.) Tj
+/F1 10 Tf
+1 0 0 1 54 290 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 270 Tm
+(- Strong for demonstration on Indian listed companies when data sources respond.) Tj
+/F1 10 Tf
+1 0 0 1 66 256 Tm
+(- Reliability depends on Screener.in scraping and yfinance behavior.) Tj
+/F1 10 Tf
+1 0 0 1 66 242 Tm
+(- Uses in-memory caching without production-grade freshness guarantees.) Tj
+/F1 10 Tf
+1 0 0 1 54 222 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 202 Tm
+(- Robust data provider integration with service-level reliability.) Tj
+/F1 10 Tf
+1 0 0 1 66 188 Tm
+(- Company master database with NSE/BSE symbols and aliases.) Tj
+/F1 10 Tf
+1 0 0 1 66 174 Tm
+(- More fundamental ratios and multi-year trend analysis.) Tj
+/F1 10 Tf
+1 0 0 1 66 160 Tm
+(- Source links and data timestamps in every answer.) Tj
+/F1 10 Tf
+1 0 0 1 66 146 Tm
+(- Better fallback when Screener or Yahoo changes its structure.) Tj
+/F1 10 Tf
+1 0 0 1 66 132 Tm
+(- Investment compliance layer to avoid buy/sell recommendations.) Tj
+/F1 13 Tf
+1 0 0 1 54 104 Tm
+(8. LLM Layer) Tj
+/F1 10 Tf
+1 0 0 1 54 80 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 60 Tm
+(- ai/llm/groq_client.py) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 6 of 12) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 3437 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- ai/llm/prompt_templates.py) Tj
+/F1 10 Tf
+1 0 0 1 66 770 Tm
+(- ai/llm/audio_script.py) Tj
+/F1 10 Tf
+1 0 0 1 54 750 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 730 Tm
+(- Groq is used as the primary LLM provider.) Tj
+/F1 10 Tf
+1 0 0 1 66 716 Tm
+(- Gemini is used as fallback.) Tj
+/F1 10 Tf
+1 0 0 1 66 702 Tm
+(- Prompt templates exist for finance, tutor, market, and equity research.) Tj
+/F1 10 Tf
+1 0 0 1 66 688 Tm
+(- Audio script generation exists to make spoken output cleaner than raw Markdown.) Tj
+/F1 10 Tf
+1 0 0 1 54 668 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 648 Tm
+(- Pipelines build structured context.) Tj
+/F1 10 Tf
+1 0 0 1 66 634 Tm
+(- Context is inserted into prompt templates.) Tj
+/F1 10 Tf
+1 0 0 1 66 620 Tm
+(- generate_response\(\) handles LLM provider calls and fallback behavior.) Tj
+/F1 10 Tf
+1 0 0 1 66 606 Tm
+(- The UI handles provider errors with a clear error banner.) Tj
+/F1 10 Tf
+1 0 0 1 54 586 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 566 Tm
+(- Good for prototype and demo use.) Tj
+/F1 10 Tf
+1 0 0 1 66 552 Tm
+(- Depends on API keys and free-tier limits.) Tj
+/F1 10 Tf
+1 0 0 1 66 538 Tm
+(- Tests mock LLM calls; test suite does not call real providers.) Tj
+/F1 10 Tf
+1 0 0 1 54 518 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 498 Tm
+(- Provider observability: latency, failures, token usage.) Tj
+/F1 10 Tf
+1 0 0 1 66 484 Tm
+(- Prompt regression tests.) Tj
+/F1 10 Tf
+1 0 0 1 66 470 Tm
+(- Safer financial-disclaimer and compliance templates.) Tj
+/F1 10 Tf
+1 0 0 1 66 456 Tm
+(- Model output validation before rendering.) Tj
+/F1 10 Tf
+1 0 0 1 66 442 Tm
+(- Offline fallback responses for key deterministic calculations.) Tj
+/F1 13 Tf
+1 0 0 1 54 414 Tm
+(9. Speech Layer) Tj
+/F1 10 Tf
+1 0 0 1 54 390 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 370 Tm
+(- ai/speech/stt.py) Tj
+/F1 10 Tf
+1 0 0 1 66 356 Tm
+(- ai/speech/tts.py) Tj
+/F1 10 Tf
+1 0 0 1 54 336 Tm
+(What is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 316 Tm
+(- Speech-to-text uses Whisper.) Tj
+/F1 10 Tf
+1 0 0 1 66 302 Tm
+(- Whisper loading is lazy and thread-safe.) Tj
+/F1 10 Tf
+1 0 0 1 66 288 Tm
+(- CPU and CUDA device selection are supported.) Tj
+/F1 10 Tf
+1 0 0 1 66 274 Tm
+(- ffmpeg path handling is included for Windows.) Tj
+/F1 10 Tf
+1 0 0 1 66 260 Tm
+(- Text-to-speech uses Edge-TTS as primary.) Tj
+/F1 10 Tf
+1 0 0 1 66 246 Tm
+(- pyttsx3 is available as offline fallback.) Tj
+/F1 10 Tf
+1 0 0 1 66 232 Tm
+(- TTS writes temporary MP3/WAV files for playback.) Tj
+/F1 10 Tf
+1 0 0 1 54 212 Tm
+(How it is done:) Tj
+/F1 10 Tf
+1 0 0 1 66 192 Tm
+(- Streamlit collects audio with st.audio_input.) Tj
+/F1 10 Tf
+1 0 0 1 66 178 Tm
+(- transcribe\(\) converts audio to text.) Tj
+/F1 10 Tf
+1 0 0 1 66 164 Tm
+(- The resulting text is inserted into the query box.) Tj
+/F1 10 Tf
+1 0 0 1 66 150 Tm
+(- After a response is generated, generate_audio_script\(\) prepares a speech version.) Tj
+/F1 10 Tf
+1 0 0 1 66 136 Tm
+(- synthesize\(\) creates an audio file.) Tj
+/F1 10 Tf
+1 0 0 1 66 122 Tm
+(- The Streamlit app plays the audio.) Tj
+/F1 10 Tf
+1 0 0 1 54 102 Tm
+(Scale currently supported:) Tj
+/F1 10 Tf
+1 0 0 1 66 82 Tm
+(- Suitable for local demo usage.) Tj
+/F1 10 Tf
+1 0 0 1 66 68 Tm
+(- Whisper model defaults to base.en, which is manageable on CPU but not instantaneous.) Tj
+/F1 10 Tf
+1 0 0 1 66 54 Tm
+(- Temporary audio files are not managed like production media assets.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 7 of 12) Tj
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 3973 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 54 784 Tm
+(What needs to be built:) Tj
+/F1 10 Tf
+1 0 0 1 66 764 Tm
+(- Better microphone UX with recording status and transcription confidence.) Tj
+/F1 10 Tf
+1 0 0 1 66 750 Tm
+(- Audio cleanup and storage lifecycle.) Tj
+/F1 10 Tf
+1 0 0 1 66 736 Tm
+(- Streaming TTS instead of waiting for full synthesis.) Tj
+/F1 10 Tf
+1 0 0 1 66 722 Tm
+(- Voice selection UI.) Tj
+/F1 10 Tf
+1 0 0 1 66 708 Tm
+(- Better handling of multilingual Indian English/Hindi finance queries.) Tj
+/F1 13 Tf
+1 0 0 1 54 680 Tm
+(10. Avatar Layer - Current Problems and Root Cause) Tj
+/F1 10 Tf
+1 0 0 1 54 656 Tm
+(Files:) Tj
+/F1 10 Tf
+1 0 0 1 66 636 Tm
+(- interface/avatar/avatar.html) Tj
+/F1 10 Tf
+1 0 0 1 66 622 Tm
+(- interface/avatar/render.py) Tj
+/F1 10 Tf
+1 0 0 1 66 608 Tm
+(- interface/avatar/model.glb) Tj
+/F1 10 Tf
+1 0 0 1 66 594 Tm
+(- interface/avatar/NOTICE.md) Tj
+/F1 10 Tf
+1 0 0 1 54 574 Tm
+(Current state:) Tj
+/F1 10 Tf
+1 0 0 1 66 554 Tm
+(- The avatar is a browser-embedded 3D head/body model.) Tj
+/F1 10 Tf
+1 0 0 1 66 540 Tm
+(- It uses TalkingHead loaded from jsdelivr.) Tj
+/F1 10 Tf
+1 0 0 1 66 526 Tm
+(- It uses HeadAudio for audio-signal-driven lip sync.) Tj
+/F1 10 Tf
+1 0 0 1 66 512 Tm
+(- The local model.glb is injected as a base64 data URL.) Tj
+/F1 10 Tf
+1 0 0 1 66 498 Tm
+(- TTS audio is also injected as base64 into the iframe.) Tj
+/F1 10 Tf
+1 0 0 1 66 484 Tm
+(- Streamlit also renders a normal audio player as fallback.) Tj
+/F1 10 Tf
+1 0 0 1 54 464 Tm
+(Why it looks anime/cartoon-like:) Tj
+/F1 10 Tf
+1 0 0 1 66 444 Tm
+(- The visual appearance comes from the selected model.glb.) Tj
+/F1 10 Tf
+1 0 0 1 66 430 Tm
+(- The current model is not a professional presenter avatar, not a realistic scanned human,) Tj
+/F1 10 Tf
+1 0 0 1 66 416 Tm
+(and not a polished corporate character.) Tj
+/F1 10 Tf
+1 0 0 1 66 402 Tm
+(- TalkingHead can animate a GLB, but it cannot automatically turn a cartoon/anime asset into) Tj
+/F1 10 Tf
+1 0 0 1 66 388 Tm
+(a professional human avatar.) Tj
+/F1 10 Tf
+1 0 0 1 66 374 Tm
+(- The current app chose a free/local asset to avoid paid avatar APIs and quotas.) Tj
+/F1 10 Tf
+1 0 0 1 54 354 Tm
+(Why lip sync is not working properly:) Tj
+/F1 10 Tf
+1 0 0 1 66 334 Tm
+(- Browser autoplay rules block a new iframe AudioContext until the user clicks inside that) Tj
+/F1 10 Tf
+1 0 0 1 66 320 Tm
+(iframe.) Tj
+/F1 10 Tf
+1 0 0 1 66 306 Tm
+(- The code explicitly shows a "Click to hear ARIA" button because Streamlit's parent-page) Tj
+/F1 10 Tf
+1 0 0 1 66 292 Tm
+(click does not count as a gesture inside the iframe.) Tj
+/F1 10 Tf
+1 0 0 1 66 278 Tm
+(- HeadAudio lip sync is experimental and audio-signal based.) Tj
+/F1 10 Tf
+1 0 0 1 66 264 Tm
+(- It does not use phoneme timestamps from the TTS provider.) Tj
+/F1 10 Tf
+1 0 0 1 66 250 Tm
+(- The code relies on TalkingHead internal morph-target mappings such as head.mtAvatar.) Tj
+/F1 10 Tf
+1 0 0 1 66 236 Tm
+(- If the GLB model does not have correct mouth blendshapes/morph targets, lip sync will be) Tj
+/F1 10 Tf
+1 0 0 1 66 222 Tm
+(weak or invisible.) Tj
+/F1 10 Tf
+1 0 0 1 66 208 Tm
+(- If CDN loading fails, WebGL fails, AudioWorklet fails, or the browser blocks audio, the) Tj
+/F1 10 Tf
+1 0 0 1 66 194 Tm
+(avatar becomes mostly a moving 3D model without believable speech impact.) Tj
+/F1 10 Tf
+1 0 0 1 54 174 Tm
+(Why it feels low impact:) Tj
+/F1 10 Tf
+1 0 0 1 66 154 Tm
+(- No professional avatar identity.) Tj
+/F1 10 Tf
+1 0 0 1 66 140 Tm
+(- No realistic face material, lighting, camera composition, or clothing design.) Tj
+/F1 10 Tf
+1 0 0 1 66 126 Tm
+(- No production-grade animation direction.) Tj
+/F1 10 Tf
+1 0 0 1 66 112 Tm
+(- No emotional expression mapping from response intent.) Tj
+/F1 10 Tf
+1 0 0 1 66 98 Tm
+(- No gaze/gesture system connected to the content.) Tj
+/F1 10 Tf
+1 0 0 1 66 84 Tm
+(- No high-quality viseme track.) Tj
+/F1 10 Tf
+1 0 0 1 66 70 Tm
+(- The avatar is a bolt-on iframe, not a deeply integrated conversational experience.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 8 of 12) Tj
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 3864 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 54 784 Tm
+(What needs to be built for a professional avatar:) Tj
+/F1 10 Tf
+1 0 0 1 66 764 Tm
+(- Replace model.glb with a professional realistic GLB/VRM avatar designed for speech.) Tj
+/F1 10 Tf
+1 0 0 1 66 750 Tm
+(- Ensure the model has correct ARKit-style or TalkingHead-compatible facial blendshapes.) Tj
+/F1 10 Tf
+1 0 0 1 66 736 Tm
+(- Use a TTS provider or pipeline that returns word/phoneme timing.) Tj
+/F1 10 Tf
+1 0 0 1 66 722 Tm
+(- Drive mouth movement from phoneme/viseme timings instead of raw audio energy only.) Tj
+/F1 10 Tf
+1 0 0 1 66 708 Tm
+(- Add expression states: neutral, confident, concerned, explaining, warning.) Tj
+/F1 10 Tf
+1 0 0 1 66 694 Tm
+(- Add gaze, blink, head pose, and idle behavior that feels restrained and professional.) Tj
+/F1 10 Tf
+1 0 0 1 66 680 Tm
+(- Add a polished scene: realistic lighting, camera framing, background, and responsive) Tj
+/F1 10 Tf
+1 0 0 1 66 666 Tm
+(sizing.) Tj
+/F1 10 Tf
+1 0 0 1 66 652 Tm
+(- Remove the repeated click problem by restructuring audio playback flow where possible,) Tj
+/F1 10 Tf
+1 0 0 1 66 638 Tm
+(while still respecting browser autoplay rules.) Tj
+/F1 10 Tf
+1 0 0 1 66 624 Tm
+(- Add automated avatar diagnostics: model loaded, audio decoded, AudioContext running, lip-) Tj
+/F1 10 Tf
+1 0 0 1 66 610 Tm
+(sync worklet loaded, morph targets detected.) Tj
+/F1 10 Tf
+1 0 0 1 66 596 Tm
+(- Add a fallback professional non-3D mode: high-quality voice with transcript and waveform) Tj
+/F1 10 Tf
+1 0 0 1 66 582 Tm
+(if WebGL fails.) Tj
+/F1 10 Tf
+1 0 0 1 54 562 Tm
+(Recommended professional avatar path:) Tj
+/F1 10 Tf
+1 0 0 1 54 542 Tm
+(1. Short-term fix: replace the current GLB with a professional human-style model that has) Tj
+/F1 10 Tf
+1 0 0 1 54 528 Tm
+(proper mouth morph targets.) Tj
+/F1 10 Tf
+1 0 0 1 54 514 Tm
+(2. Short-term fix: show clear status badges for "audio ready", "lip sync ready", and "model) Tj
+/F1 10 Tf
+1 0 0 1 54 500 Tm
+(loaded" during development.) Tj
+/F1 10 Tf
+1 0 0 1 54 486 Tm
+(3. Medium-term fix: generate or obtain viseme timestamps and drive morph targets) Tj
+/F1 10 Tf
+1 0 0 1 54 472 Tm
+(deterministically.) Tj
+/F1 10 Tf
+1 0 0 1 54 458 Tm
+(4. Medium-term fix: improve camera, lighting, clothes, background, and facial expression) Tj
+/F1 10 Tf
+1 0 0 1 54 444 Tm
+(states.) Tj
+/F1 10 Tf
+1 0 0 1 54 430 Tm
+(5. Long-term fix: move to a production avatar stack such as a realistic WebGL avatar) Tj
+/F1 10 Tf
+1 0 0 1 54 416 Tm
+(pipeline, HeyGen-style API, or a custom Ready Player Me/VRM + Rhubarb/viseme timing) Tj
+/F1 10 Tf
+1 0 0 1 54 402 Tm
+(pipeline.) Tj
+/F1 13 Tf
+1 0 0 1 54 374 Tm
+(11. Testing and Verification) Tj
+/F1 10 Tf
+1 0 0 1 54 350 Tm
+(Current verification:) Tj
+/F1 10 Tf
+1 0 0 1 66 330 Tm
+(- Command run: pytest) Tj
+/F1 10 Tf
+1 0 0 1 66 316 Tm
+(- Result: 50 passed) Tj
+/F1 10 Tf
+1 0 0 1 66 302 Tm
+(- Runtime: 29.88 seconds) Tj
+/F1 10 Tf
+1 0 0 1 54 282 Tm
+(Coverage areas visible from tests:) Tj
+/F1 10 Tf
+1 0 0 1 66 262 Tm
+(- Finance anomaly detection) Tj
+/F1 10 Tf
+1 0 0 1 66 248 Tm
+(- Budget optimization) Tj
+/F1 10 Tf
+1 0 0 1 66 234 Tm
+(- Forecast model behavior) Tj
+/F1 10 Tf
+1 0 0 1 66 220 Tm
+(- Risk model behavior) Tj
+/F1 10 Tf
+1 0 0 1 66 206 Tm
+(- SIP and EMI calculations) Tj
+/F1 10 Tf
+1 0 0 1 66 192 Tm
+(- Tax calculations) Tj
+/F1 10 Tf
+1 0 0 1 66 178 Tm
+(- Router behavior) Tj
+/F1 10 Tf
+1 0 0 1 66 164 Tm
+(- Adversarial routing/finance cases) Tj
+/F1 10 Tf
+1 0 0 1 66 150 Tm
+(- Tutor explanation) Tj
+/F1 10 Tf
+1 0 0 1 66 136 Tm
+(- Tutor knowledge/mastery) Tj
+/F1 10 Tf
+1 0 0 1 66 122 Tm
+(- Tutor quiz generation) Tj
+/F1 10 Tf
+1 0 0 1 66 108 Tm
+(- Tutor retrieval) Tj
+/F1 10 Tf
+1 0 0 1 54 88 Tm
+(What still needs to be tested:) Tj
+/F1 10 Tf
+1 0 0 1 66 68 Tm
+(- End-to-end Streamlit UI behavior.) Tj
+/F1 10 Tf
+1 0 0 1 66 54 Tm
+(- Real LLM provider behavior under rate limits.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 9 of 12) Tj
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 2917 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- Real yfinance/Screener/RSS failures.) Tj
+/F1 10 Tf
+1 0 0 1 66 770 Tm
+(- Voice input under noisy audio.) Tj
+/F1 10 Tf
+1 0 0 1 66 756 Tm
+(- TTS fallback behavior.) Tj
+/F1 10 Tf
+1 0 0 1 66 742 Tm
+(- Avatar loading and lip sync in actual browsers.) Tj
+/F1 10 Tf
+1 0 0 1 66 728 Tm
+(- Multi-user data isolation.) Tj
+/F1 10 Tf
+1 0 0 1 66 714 Tm
+(- Deployment on Streamlit Cloud.) Tj
+/F1 13 Tf
+1 0 0 1 54 686 Tm
+(12. Current Scale Assessment) Tj
+/F1 10 Tf
+1 0 0 1 54 662 Tm
+(The current project is at advanced prototype/BTP demo scale.) Tj
+/F1 10 Tf
+1 0 0 1 54 642 Tm
+(What is strong:) Tj
+/F1 10 Tf
+1 0 0 1 66 622 Tm
+(- Four-module architecture exists.) Tj
+/F1 10 Tf
+1 0 0 1 66 608 Tm
+(- Routing is centralized.) Tj
+/F1 10 Tf
+1 0 0 1 66 594 Tm
+(- Finance and tutor local models exist.) Tj
+/F1 10 Tf
+1 0 0 1 66 580 Tm
+(- Real market/equity data paths exist.) Tj
+/F1 10 Tf
+1 0 0 1 66 566 Tm
+(- Tests pass.) Tj
+/F1 10 Tf
+1 0 0 1 66 552 Tm
+(- The app can be run locally.) Tj
+/F1 10 Tf
+1 0 0 1 66 538 Tm
+(- The design avoids requiring a GPU.) Tj
+/F1 10 Tf
+1 0 0 1 54 518 Tm
+(What is not production scale yet:) Tj
+/F1 10 Tf
+1 0 0 1 66 498 Tm
+(- No authentication.) Tj
+/F1 10 Tf
+1 0 0 1 66 484 Tm
+(- No production database migration story.) Tj
+/F1 10 Tf
+1 0 0 1 66 470 Tm
+(- No robust observability.) Tj
+/F1 10 Tf
+1 0 0 1 66 456 Tm
+(- No compliance review layer.) Tj
+/F1 10 Tf
+1 0 0 1 66 442 Tm
+(- Data sources are partly scraped or unofficial.) Tj
+/F1 10 Tf
+1 0 0 1 66 428 Tm
+(- Synthetic data is used for core finance/tutor training.) Tj
+/F1 10 Tf
+1 0 0 1 66 414 Tm
+(- Avatar is not professional quality.) Tj
+/F1 10 Tf
+1 0 0 1 66 400 Tm
+(- Lip sync is not production-grade.) Tj
+/F1 10 Tf
+1 0 0 1 66 386 Tm
+(- Deployment model artifacts need explicit handling.) Tj
+/F1 13 Tf
+1 0 0 1 54 358 Tm
+(13. Build Roadmap by Topic) Tj
+/F1 11 Tf
+1 0 0 1 54 328 Tm
+(13.1 Finance) Tj
+/F1 10 Tf
+1 0 0 1 54 306 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 286 Tm
+(- Real transaction ingestion.) Tj
+/F1 10 Tf
+1 0 0 1 66 272 Tm
+(- Better profile completeness flow.) Tj
+/F1 10 Tf
+1 0 0 1 66 258 Tm
+(- Financial goal planning.) Tj
+/F1 10 Tf
+1 0 0 1 66 244 Tm
+(- Portfolio/risk suitability questionnaire.) Tj
+/F1 10 Tf
+1 0 0 1 66 230 Tm
+(- Explainable risk dashboard.) Tj
+/F1 10 Tf
+1 0 0 1 66 216 Tm
+(- Model evaluation report.) Tj
+/F1 10 Tf
+1 0 0 1 66 202 Tm
+(- Strong guardrails for advice language.) Tj
+/F1 11 Tf
+1 0 0 1 54 176 Tm
+(13.2 Tutor) Tj
+/F1 10 Tf
+1 0 0 1 54 154 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 134 Tm
+(- Full quiz-answer loop in UI.) Tj
+/F1 10 Tf
+1 0 0 1 66 120 Tm
+(- Larger concept graph.) Tj
+/F1 10 Tf
+1 0 0 1 66 106 Tm
+(- Revision scheduler.) Tj
+/F1 10 Tf
+1 0 0 1 66 92 Tm
+(- Learning analytics dashboard.) Tj
+/F1 10 Tf
+1 0 0 1 66 78 Tm
+(- Expert-reviewed explanations.) Tj
+/F1 10 Tf
+1 0 0 1 66 64 Tm
+(- More Indian finance examples.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 10 of 12) Tj
+ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 2593 >>
+stream
+BT
+/F1 10 Tf
+/F1 11 Tf
+1 0 0 1 54 784 Tm
+(13.3 Market Analysis) Tj
+/F1 10 Tf
+1 0 0 1 54 762 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 742 Tm
+(- More reliable market data provider.) Tj
+/F1 10 Tf
+1 0 0 1 66 728 Tm
+(- Timestamped data display.) Tj
+/F1 10 Tf
+1 0 0 1 66 714 Tm
+(- Technical indicators.) Tj
+/F1 10 Tf
+1 0 0 1 66 700 Tm
+(- More sector/index coverage.) Tj
+/F1 10 Tf
+1 0 0 1 66 686 Tm
+(- News clustering and source attribution.) Tj
+/F1 10 Tf
+1 0 0 1 66 672 Tm
+(- Cache expiry and retry strategy.) Tj
+/F1 11 Tf
+1 0 0 1 54 646 Tm
+(13.4 Equity Research) Tj
+/F1 10 Tf
+1 0 0 1 54 624 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 604 Tm
+(- Company master database.) Tj
+/F1 10 Tf
+1 0 0 1 66 590 Tm
+(- More ratios and trend calculations.) Tj
+/F1 10 Tf
+1 0 0 1 66 576 Tm
+(- Source-backed answers with fiscal-year tables.) Tj
+/F1 10 Tf
+1 0 0 1 66 562 Tm
+(- Robust parser for Screener changes.) Tj
+/F1 10 Tf
+1 0 0 1 66 548 Tm
+(- Peer comparison.) Tj
+/F1 10 Tf
+1 0 0 1 66 534 Tm
+(- Valuation summary without unsafe buy/sell calls.) Tj
+/F1 11 Tf
+1 0 0 1 54 508 Tm
+(13.5 Voice) Tj
+/F1 10 Tf
+1 0 0 1 54 486 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 466 Tm
+(- Streaming TTS.) Tj
+/F1 10 Tf
+1 0 0 1 66 452 Tm
+(- Better voice settings.) Tj
+/F1 10 Tf
+1 0 0 1 66 438 Tm
+(- Hindi/Indian-English handling.) Tj
+/F1 10 Tf
+1 0 0 1 66 424 Tm
+(- Transcription confidence.) Tj
+/F1 10 Tf
+1 0 0 1 66 410 Tm
+(- Audio cleanup.) Tj
+/F1 11 Tf
+1 0 0 1 54 384 Tm
+(13.6 Avatar) Tj
+/F1 10 Tf
+1 0 0 1 54 362 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 342 Tm
+(- Replace cartoon/anime GLB with professional avatar.) Tj
+/F1 10 Tf
+1 0 0 1 66 328 Tm
+(- Add correct blendshapes.) Tj
+/F1 10 Tf
+1 0 0 1 66 314 Tm
+(- Use phoneme/viseme timings.) Tj
+/F1 10 Tf
+1 0 0 1 66 300 Tm
+(- Improve lighting and camera.) Tj
+/F1 10 Tf
+1 0 0 1 66 286 Tm
+(- Add expression states.) Tj
+/F1 10 Tf
+1 0 0 1 66 272 Tm
+(- Add diagnostics and fallback UX.) Tj
+/F1 11 Tf
+1 0 0 1 54 246 Tm
+(13.7 UI/UX) Tj
+/F1 10 Tf
+1 0 0 1 54 224 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 204 Tm
+(- Better professional visual system.) Tj
+/F1 10 Tf
+1 0 0 1 66 190 Tm
+(- Source and timestamp panels.) Tj
+/F1 10 Tf
+1 0 0 1 66 176 Tm
+(- Better mobile layout.) Tj
+/F1 10 Tf
+1 0 0 1 66 162 Tm
+(- Loading skeletons and error states.) Tj
+/F1 10 Tf
+1 0 0 1 66 148 Tm
+(- Separate developer/debug info from user-facing output.) Tj
+/F1 11 Tf
+1 0 0 1 54 122 Tm
+(13.8 Deployment) Tj
+/F1 10 Tf
+1 0 0 1 54 100 Tm
+(Build next:) Tj
+/F1 10 Tf
+1 0 0 1 66 80 Tm
+(- Model artifact deployment plan.) Tj
+/F1 10 Tf
+1 0 0 1 66 66 Tm
+(- Secrets management.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 11 of 12) Tj
+ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 1692 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+1 0 0 1 66 784 Tm
+(- Startup health checks.) Tj
+/F1 10 Tf
+1 0 0 1 66 770 Tm
+(- App logging.) Tj
+/F1 10 Tf
+1 0 0 1 66 756 Tm
+(- Cache management.) Tj
+/F1 10 Tf
+1 0 0 1 66 742 Tm
+(- CI test workflow.) Tj
+/F1 13 Tf
+1 0 0 1 54 714 Tm
+(14. Honest Conclusion) Tj
+/F1 10 Tf
+1 0 0 1 54 690 Tm
+(ARIA's core backend is meaningful and demonstrable: it has multiple working modules, local) Tj
+/F1 10 Tf
+1 0 0 1 54 676 Tm
+(ML models, real market/equity data paths, speech support, and a passing automated test) Tj
+/F1 10 Tf
+1 0 0 1 54 662 Tm
+(suite.) Tj
+/F1 10 Tf
+1 0 0 1 54 642 Tm
+(The weakest part is the avatar. It currently makes the project look less serious because the) Tj
+/F1 10 Tf
+1 0 0 1 54 628 Tm
+(selected 3D model has a cartoon/anime feel and the lip sync is fragile. This should not be) Tj
+/F1 10 Tf
+1 0 0 1 54 614 Tm
+(presented as a finished professional avatar. It should be presented as an experimental free) Tj
+/F1 10 Tf
+1 0 0 1 54 600 Tm
+(browser avatar layer until it is replaced with a professional model and a proper viseme-) Tj
+/F1 10 Tf
+1 0 0 1 54 586 Tm
+(driven animation pipeline.) Tj
+/F1 10 Tf
+1 0 0 1 54 566 Tm
+(Priority order from here:) Tj
+/F1 10 Tf
+1 0 0 1 54 546 Tm
+(1. Fix avatar quality or temporarily disable it for formal demos.) Tj
+/F1 10 Tf
+1 0 0 1 54 532 Tm
+(2. Strengthen source transparency and data timestamps.) Tj
+/F1 10 Tf
+1 0 0 1 54 518 Tm
+(3. Improve tutor quiz interaction and finance profile workflows.) Tj
+/F1 10 Tf
+1 0 0 1 54 504 Tm
+(4. Add deployment and model artifact automation.) Tj
+/F1 10 Tf
+1 0 0 1 54 490 Tm
+(5. Build production-level evaluation and compliance guardrails.) Tj
+/F1 8 Tf
+1 0 0 1 277 28 Tm
+(Page 12 of 12) Tj
+ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 26 0 R >>
+endobj
+xref
+0 28
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000197 00000 n 
+0000000267 00000 n 
+0000004000 00000 n 
+0000004126 00000 n 
+0000008125 00000 n 
+0000008251 00000 n 
+0000011957 00000 n 
+0000012083 00000 n 
+0000015584 00000 n 
+0000015712 00000 n 
+0000019606 00000 n 
+0000019734 00000 n 
+0000023572 00000 n 
+0000023700 00000 n 
+0000027190 00000 n 
+0000027318 00000 n 
+0000031344 00000 n 
+0000031472 00000 n 
+0000035389 00000 n 
+0000035517 00000 n 
+0000038487 00000 n 
+0000038615 00000 n 
+0000041261 00000 n 
+0000041389 00000 n 
+0000043134 00000 n 
+trailer
+<< /Size 28 /Root 1 0 R >>
+startxref
+43262
+%%EOF

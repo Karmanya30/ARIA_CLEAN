@@ -281,7 +281,7 @@ print("\\n=== TAX (real FY2025-26 slabs) ===")
 print(f"  Total tax: Rs.{resp.tax.total_tax:,.0f}   Effective rate: {resp.tax.effective_rate:.2f}%")
 
 print(f"\\n=== NARRATION (Groq, falling back to Gemini) ===\\n{resp.natural_language}")"""),
-    ("markdown", "## 13. LLM Reasoning Layer — Live Generation\nGroq (`llama-3.3-70b-versatile`), automatically falling back to Gemini on error/rate-limit -- see `ai/llm/groq_client.py`. Needs `GROQ_API_KEY` and/or `GEMINI_API_KEY` in `.env`; the original plan's local FinGPT server was replaced with this for public-deployment reasons (no GPU needed, no 14GB VRAM requirement)."),
+    ("markdown", "## 13. LLM Reasoning Layer — Live Generation\nGroq (`openai/gpt-oss-120b`), automatically falling back to Gemini on error/rate-limit -- see `ai/llm/groq_client.py`. Needs `GROQ_API_KEY` and/or `GEMINI_API_KEY` in `.env`; the original plan's local FinGPT server was replaced with this for public-deployment reasons (no GPU needed, no 14GB VRAM requirement)."),
     ("code", """from ai.llm.groq_client import generate_response, health
 
 if not health():

@@ -52,10 +52,20 @@ MARKET_KEYWORDS = (
 )
 TUTOR_KEYWORDS = ("learn", "explain", "what is")
 
+# Unambiguous "teach/test me" phrasing -- checked before FINANCE_KEYWORDS
+# because the tutor module's own subject matter (SIP, mutual funds, tax,
+# dividends, ...) inherently overlaps with finance vocabulary. Without this,
+# "Quiz me on mutual funds" matched FINANCE_KEYWORDS' "mutual fund" and was
+# misrouted to Module 1 (which has no real quiz engine and just hallucinated
+# quiz-shaped text in its narration) instead of Module 2's actual quiz flow.
+_STRONG_TUTOR_PHRASES = ("quiz me", "teach me", "explain to me", "test me on")
+
 
 def classify_intent(query: str) -> str:
     text = query.lower()
 
+    if any(phrase in text for phrase in _STRONG_TUTOR_PHRASES):
+        return "tutor"
     if any(keyword in text for keyword in FINANCE_KEYWORDS):
         return "finance"
     if any(keyword in text for keyword in MARKET_KEYWORDS):

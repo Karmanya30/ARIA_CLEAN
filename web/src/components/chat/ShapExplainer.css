@@ -1,0 +1,70 @@
+.shap-explainer {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.shap-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 12px 14px;
+  text-align: left;
+}
+.shap-toggle:hover {
+  color: var(--accent-strong);
+}
+
+.shap-caption {
+  color: var(--ink-faint);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.shap-chevron {
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.shap-chevron.open {
+  transform: rotate(90deg);
+}
+
+.shap-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 14px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink-muted);
+}
+.shap-list li {
+  position: relative;
+}
+.shap-list li::before {
+  content: '•';
+  position: absolute;
+  left: -14px;
+  color: var(--accent);
+}
+.shap-list code {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--accent-strong);
+}
+.shap-list em {
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 600;
+}

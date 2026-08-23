@@ -24,3 +24,9 @@ models/**/*.zip
 # and NOT ignored — that one is real curated content.
 data/raw/transactions_synthetic/
 data/raw/kt_sequences/
+
+# Tavus CVI runtime state — regenerated each run, machine-specific (ngrok
+# URL) or safe-but-pointless to commit (cached persona_id)
+interface/avatar/ngrok_url.txt
+interface/avatar/ngrok_error.txt
+interface/avatar/.tavus_persona_cache.json

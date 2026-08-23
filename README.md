@@ -13,10 +13,27 @@ equity researcher — a BTP (Bachelor's Technology Project) at IIIT Sri City.
 | 4 | Equity Research | Company fundamentals (screener.in) + live price/news (yfinance) | none — real data + LLM narration |
 
 All four are auto-routed from one chat box (see `core/router.py`) and
-narrated by Groq (`llama-3.3-70b-versatile`), automatically falling back
+narrated by Groq (`openai/gpt-oss-120b`), automatically falling back
 to Google Gemini if Groq errors or rate-limits (`ai/llm/groq_client.py`).
 Conversational Mode adds a free, self-hosted-in-browser 3D avatar
 (TalkingHead + HeadAudio, see `interface/avatar/`) with no paid API.
+Tavus CVI Mode adds a paid, real-time WebRTC video call with the same
+avatar for anyone with a Tavus API key.
+
+## Architecture
+
+A FastAPI backend (`api/`) wraps the existing business logic in
+`core/`, `modules/`, `shared/`, and `ai/` unchanged, and serves it to a
+React + TypeScript frontend (`web/`). Everything runs in a single
+process — no subprocess management, no orphaned background processes.
+
+```
+web/ (React + Vite, :5173 in dev)  --/api, /avatar, /embed-->  api/ (FastAPI, :8000)
+                                                                    |
+                                                                    v
+                                                core / modules / shared / ai
+                                                (unchanged BTP logic)
+```
 
 ## Setup
 
@@ -28,6 +45,10 @@ pip install -r requirements.txt    # add -r requirements-dev.txt to also get pyt
 cp .env.example .env
 # edit .env: set GROQ_API_KEY (console.groq.com) and GEMINI_API_KEY
 # (aistudio.google.com/apikey) -- both have free tiers, no card needed
+# Tavus CVI Mode is optional: also set TAVUS_API_KEY, TAVUS_REPLICA_ID,
+# and NGROK_AUTHTOKEN if you want the paid video-call avatar mode.
+
+cd web && npm install && cd ..
 ```
 
 ## Train the models (once)
@@ -54,13 +75,35 @@ anywhere in this project.
 
 ## Run it
 
+Two processes, both from the repo root:
+
 ```bash
-streamlit run interface/streamlit_app.py
+# Terminal 1 — API backend
+uvicorn api.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd web && npm run dev
 ```
 
-Three tabs: **Chat** (all 4 modules, auto-routed — try the example
-queries if unsure what to ask), **Your Profile** (Module 1 inputs),
-**Your Progress** (Module 2 mastery).
+Open the URL Vite prints (`http://localhost:5173`). The dev server
+proxies `/api`, `/avatar`, and `/embed` through to the backend on
+`:8000`, so both must be running.
+
+Three tabs: **Chat** (all 4 modules, auto-routed, plus a mode selector
+for Normal / Conversational (free avatar) / Tavus CVI (paid video call)
+— try the example queries if unsure what to ask), **Your Profile**
+(Module 1 inputs), **Your Progress** (Module 2 mastery).
+
+### Production build
+
+```bash
+cd web && npm run build   # outputs web/dist
+```
+
+Serve `web/dist` from any static host (or point FastAPI's own static
+file serving at it) and point it at the deployed `api/main:app`
+process; there's no dev-only proxy needed once the frontend calls an
+absolute API URL instead of Vite's relative proxy.
 
 ## Tests
 
@@ -74,28 +117,17 @@ models" above) skip themselves with a clear reason if that artifact isn't
 present yet, rather than failing. The LLM is always mocked — no test ever
 makes a real Groq/Gemini call.
 
-## Deploying (Streamlit Community Cloud)
+The frontend has no separate test suite yet; typecheck it with:
 
-1. Push this repo to GitHub (already done if you're reading this from
-   the repo).
-2. Go to [share.streamlit.io](https://share.streamlit.io), sign in with
-   GitHub, "New app", point it at this repo and
-   `interface/streamlit_app.py`.
-3. In the app's **Settings → Secrets**, add:
-   ```toml
-   GROQ_API_KEY = "..."
-   GEMINI_API_KEY = "..."
-   ```
-4. **Important**: the trained models (Module 1/2) and the FAISS concept
-   index are gitignored, so they won't exist on a fresh deploy. Either
-   run the training commands above and temporarily commit the
-   `models/`/`data/vector_store/` output for the deploy, or add a
-   one-time startup step that runs them (e.g. in a `packages.txt`/build
-   hook) — this isn't automated yet, see the roadmap doc for follow-up.
+```bash
+cd web && npx tsc -b --noEmit
+```
 
 ## Repo layout
 
 ```
+api/             FastAPI backend -- routes wrapping core/modules/shared/ai for the React frontend
+web/             React + TypeScript frontend (Vite)
 ai/llm/          Groq+Gemini client, prompt templates (shared by all 4 modules)
 ai/speech/       Whisper STT, edge-tts/pyttsx3 TTS
 core/            Router (which module handles a query) + orchestrator + session state
@@ -105,7 +137,7 @@ modules/
   market/        Module 3 — real index/sector data
   equity_research/  Module 4 — screener.in + yfinance
 shared/          SQLite user store, vector store, NER, company resolver
-interface/       Streamlit app + the avatar (TalkingHead/HeadAudio)
+interface/avatar/  The 3D avatar (TalkingHead/HeadAudio) + Tavus embed page, served by api/routes/avatar.py
 config/          Paths, runtime settings, model hyperparameters
 scripts/         One-off generators (synthetic data, concept KB, KT sequences)
 tests/           pytest suite, mirrors the modules/ layout
@@ -118,14 +150,20 @@ tests/           pytest suite, mirrors the modules/ layout
   deployment on free hosting. Groq (fast, free tier) with a Gemini
   fallback (more stable free tier) gets the reliability without the
   GPU requirement.
-- **All models are small and CPU-only on purpose**: the target
-  deployment (Streamlit Community Cloud) has no GPU. Every trained
+- **All models are small and CPU-only on purpose**: every trained
   model here (XGBoost, tiny LSTMs, Isolation Forest, tiny DQN) trains
-  in minutes on a laptop CPU.
+  in minutes on a laptop CPU, with no GPU required anywhere.
 - **Real data over mocks**: Module 3/4 use real yfinance/screener.in
   data; Module 1/2's synthetic training data is disclosed as synthetic
   (standard practice when real consumer/student data isn't available),
   not silently faked at inference time.
+- **FastAPI + React over Streamlit**: Streamlit's per-run rerender model
+  and lack of first-class real-time audio/video control made a
+  natural-feeling conversational avatar impractical. A real backend/
+  frontend split gives the avatar (both the free TalkingHead mode and
+  the paid Tavus WebRTC mode) proper control over audio playback and
+  UI state, and runs as a single process — no subprocess/orphaned-
+  process management to get wrong.
 
 See `ARIA Requirements.pdf` for the original BTP report spec this
 implementation is scoped against.

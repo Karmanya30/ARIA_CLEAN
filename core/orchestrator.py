@@ -1,5 +1,6 @@
 """Thin orchestrator for ARIA."""
 
+import re
 from typing import Any
 
 from core.router import is_broad_market_query, is_equity_research_query, route_query
@@ -9,6 +10,51 @@ from modules.finance.pipeline import run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
+
+# Casual greetings/small-talk with no real question in them -- found live:
+# these fell through to modules/tutor/pipeline.py's generic fallback, whose
+# prompt unconditionally instructs the LLM to "explain the concept" in a
+# rigid Insight/Analysis/Recommendation/Risk format. Sent through a real
+# voice call (Conversational/Tavus mode), saying "hey" got answered with a
+# structured lecture on what the word "hey" means -- the opposite of
+# sounding like a person talking. Matched BEFORE any module routing so it
+# never reaches that fallback at all.
+_SMALLTALK_PHRASES = (
+    "hi", "hey", "hello", "yo", "sup", "what's up", "whats up", "howdy",
+    "good morning", "good afternoon", "good evening", "good night",
+    "how are you", "how're you", "how are you doing", "how you doing",
+    "thanks", "thank you", "thanks a lot", "thx", "cheers",
+    "bye", "goodbye", "see you", "see ya", "cya", "talk later",
+    "who are you", "what are you", "what's your name", "whats your name",
+    "what can you do", "what can you help with", "help",
+)
+_SMALLTALK_RE = re.compile(
+    r"^(" + "|".join(re.escape(p) for p in _SMALLTALK_PHRASES) + r")[\s!.,?]*$"
+)
+
+
+def _is_smalltalk(query: str) -> bool:
+    text = query.strip().lower()
+    return bool(text) and bool(_SMALLTALK_RE.match(text))
+
+
+def _smalltalk_reply(query: str) -> dict[str, Any]:
+    from ai.llm.groq_client import generate_response
+
+    reply = generate_response(
+        query,
+        system_prompt=(
+            "You are ARIA, a friendly Indian financial assistant in a real-time "
+            "conversation (sometimes spoken aloud). The user just sent a casual "
+            "greeting or small talk, not a real question. Reply the way a person "
+            "would -- one or two short, warm sentences. No bullet points, no "
+            "'Insight:'/'Analysis:' style sections, no definitions, no lecture. "
+            "Naturally invite them to ask about their finances, a concept, or "
+            "the market."
+        ),
+    )
+    text = reply if (reply and not reply.lower().startswith("error")) else "Hey! What can I help you with today?"
+    return {"domain": "smalltalk", "query": query, "response": text}
 
 
 def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
@@ -39,6 +85,11 @@ Follow-up query: {query}
             rewritten = generate_response(prompt, system_prompt="You rewrite queries. Output ONLY the rewritten query.")
             if rewritten and not rewritten.lower().startswith("error"):
                 query = rewritten.strip('"\' \n')
+
+    if _is_smalltalk(query):
+        response = _smalltalk_reply(query)
+        save_turn(session_id, query, response)
+        return response
 
     domain = route_query(query)
     ticker = resolve_company(query)
