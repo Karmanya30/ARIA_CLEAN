@@ -1,0 +1,203 @@
+.chat-page {
+  max-width: 780px;
+  margin: 0 auto;
+  height: calc(100vh - 120px); /* matches .app-main's 40px + 80px vertical padding */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Conversational/Tavus modes have a real avatar to show large, so they
+ * get more width and a two-column split instead of the single centered
+ * column Normal Mode uses. */
+.chat-page-split {
+  max-width: 1180px;
+}
+.chat-split-body {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-avatar-col {
+  flex: 0 0 44%;
+  max-width: 560px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* The real avatar/video content grows to fill the column -- without
+ * this, a column-direction flex child sizes to its own content instead
+ * of the available height, and the "large view" this layout exists for
+ * wouldn't actually happen. The idle orb is deliberately excluded (kept
+ * fixed-size + margin:auto centered below) -- giving it flex:1 too would
+ * stretch its 220px circle into a tall oval filling the whole column. */
+.chat-avatar-col > .tavus-video-panel,
+.chat-avatar-col > .avatar-embed {
+  flex: 1;
+  min-height: 0;
+}
+/* The idle placeholder orb (ConversationalAvatar before the first
+ * response) reads as lost/tiny at this column's size -- scale it up
+ * here without touching Normal Mode's small centered version. */
+.chat-avatar-col .hero-orb {
+  width: 220px;
+  height: 220px;
+  margin: auto;
+}
+
+.chat-chat-col {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-empty-hint {
+  color: var(--ink-faint);
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+@media (max-width: 1080px) {
+  .chat-split-body {
+    flex-direction: column;
+  }
+  .chat-avatar-col {
+    flex: 0 0 auto;
+    max-width: none;
+    height: 320px;
+  }
+}
+
+.chat-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.chat-mode-select {
+  width: auto;
+  min-width: 220px;
+}
+
+/* Avatar / Tavus video / idle orb -- stays put; only chat-scroll-region
+ * below it scrolls. */
+.chat-stage {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 8px;
+  flex-shrink: 0;
+}
+
+.chat-idle-block {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+}
+/* margin:auto (not justify-content:center) so this only centers when it
+ * fits -- justify-content:center on a scrolling flex container clips
+ * overflowing content from BOTH edges instead of letting it scroll from
+ * the top, which is the opposite of what a "fits when it can" hero
+ * should do. Auto margins on a flex item never go negative, so they fall
+ * back to top-aligned (0 margin) once content is taller than the box. */
+.chat-idle-inner {
+  margin: auto 0;
+  width: 100%;
+  padding: 12px 0;
+}
+
+.chat-hero-text {
+  text-align: center;
+  margin: 4px 0 28px;
+}
+.chat-hero-text h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.chat-hero-text p {
+  color: var(--ink-muted);
+  font-size: 14.5px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 8px 8px 16px;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+.composer-centered {
+  margin-bottom: 28px;
+}
+.composer-pinned {
+  margin-top: 14px;
+}
+.composer-input {
+  flex: 1;
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 10px 4px;
+}
+.composer-input:focus {
+  box-shadow: none;
+}
+.composer-submit {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.chat-status {
+  color: var(--ink-muted);
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+/* The only part of the chat page that actually scrolls -- avatar/video
+ * above it and the composer below it both stay fixed in place. */
+.chat-scroll-region {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 880px) {
+  /* Sidebar collapses to a static top bar on this breakpoint, so there's
+   * no fixed-height column to anchor a scroll region against -- fall
+   * back to normal whole-page scrolling instead. */
+  .chat-page {
+    height: auto;
+    overflow: visible;
+  }
+  .chat-idle-block,
+  .chat-scroll-region {
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-topbar {
+    flex-wrap: wrap;
+  }
+  .chat-mode-select {
+    width: 100%;
+  }
+}

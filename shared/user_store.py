@@ -2,7 +2,8 @@
 shared/user_store.py
 
 SQLite-backed per-user state, keyed by the same session id the UI already
-generates (see interface/streamlit_app.py). Two tables:
+generates (see web/src -- a UUID minted client-side per browser tab).
+Tables:
 
 - FinancialProfile — Module 1's risk label + financial inputs.
 - LearningState    — Module 2's per-concept mastery vector + interaction history.
@@ -19,6 +20,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from config.paths import USER_PROFILES_DIR
@@ -51,7 +53,29 @@ class FinancialProfile(Base):
     tax_regime = Column(String, default="new")
     risk_label = Column(String, nullable=True)
     risk_confidence = Column(Float, nullable=True)
+    # JSON-encoded list[tuple[str, float]] -- the XGBoost risk model's own
+    # SHAP top-3 feature explanation (modules/finance/risk_model.py). Stored
+    # so the Profile tab can show *why* a classification was made, not just
+    # the label -- otherwise this real, already-computed signal only ever
+    # reaches the user filtered through one word in the LLM's narration.
+    risk_top_features = Column(Text, default="[]")
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class TransactionRecord(Base):
+    """A user-entered transaction (Profile tab). Feeds Module 1's LSTM spend
+    forecast and Isolation Forest anomaly detector, both of which otherwise
+    only ever see an empty transaction list in the live chat pipeline."""
+
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String, index=True, nullable=False)
+    date = Column(String, nullable=False)  # ISO "YYYY-MM-DD"
+    category = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
+    merchant = Column(String, nullable=True)
+    channel = Column(String, nullable=True)  # upi | card | cash | netbanking
 
 
 class LearningState(Base):
@@ -67,7 +91,26 @@ class LearningState(Base):
 
 _engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 _SessionLocal = sessionmaker(bind=_engine)
-Base.metadata.create_all(_engine)
+Base.metadata.create_all(_engine)  # creates missing tables only, never columns
+
+
+def _migrate_add_missing_columns() -> None:
+    """Lightweight, dependency-free migration for columns added to an
+    existing table after its first deploy (no Alembic at this project's
+    scale) -- `create_all` above only creates missing *tables*. Safe to
+    call every startup: each ALTER is wrapped so an already-present column
+    (the common case) is silently ignored rather than raising."""
+    with _engine.begin() as conn:
+        for statement in (
+            "ALTER TABLE financial_profiles ADD COLUMN risk_top_features TEXT DEFAULT '[]'",
+        ):
+            try:
+                conn.exec_driver_sql(statement)
+            except OperationalError:
+                pass  # column already exists
+
+
+_migrate_add_missing_columns()
 
 
 # ── Module 1: financial profile ─────────────────────────────────────────
@@ -87,10 +130,13 @@ def get_financial_profile(user_id: str) -> dict[str, Any] | None:
             "tax_regime": row.tax_regime,
             "risk_label": row.risk_label,
             "risk_confidence": row.risk_confidence,
+            "risk_top_features": json.loads(row.risk_top_features or "[]"),
         }
 
 
 def save_financial_profile(user_id: str, **fields: Any) -> None:
+    if "risk_top_features" in fields and not isinstance(fields["risk_top_features"], str):
+        fields["risk_top_features"] = json.dumps(fields["risk_top_features"])
     with _SessionLocal() as session:
         row = session.get(FinancialProfile, user_id)
         if row is None:
@@ -101,6 +147,64 @@ def save_financial_profile(user_id: str, **fields: Any) -> None:
                 setattr(row, key, value)
         row.updated_at = datetime.now(timezone.utc)
         session.commit()
+
+
+# ── Module 1: transactions (Profile tab entry -> feeds forecast + anomaly) ─
+def add_transaction(
+    user_id: str,
+    date: str,
+    category: str,
+    amount: float,
+    merchant: str | None = None,
+    channel: str | None = None,
+) -> None:
+    with _SessionLocal() as session:
+        session.add(
+            TransactionRecord(
+                user_id=user_id,
+                date=date,
+                category=category,
+                amount=amount,
+                merchant=merchant,
+                channel=channel,
+            )
+        )
+        session.commit()
+
+
+def get_transactions(user_id: str) -> list[dict[str, Any]]:
+    with _SessionLocal() as session:
+        rows = (
+            session.query(TransactionRecord)
+            .filter(TransactionRecord.user_id == user_id)
+            .order_by(TransactionRecord.date)
+            .all()
+        )
+        return [
+            {
+                "id": row.id,
+                "date": row.date,
+                "category": row.category,
+                "amount": row.amount,
+                "merchant": row.merchant,
+                "channel": row.channel,
+            }
+            for row in rows
+        ]
+
+
+def clear_transactions(user_id: str) -> None:
+    with _SessionLocal() as session:
+        session.query(TransactionRecord).filter(TransactionRecord.user_id == user_id).delete()
+        session.commit()
+
+
+def delete_financial_profile(user_id: str) -> None:
+    with _SessionLocal() as session:
+        row = session.get(FinancialProfile, user_id)
+        if row is not None:
+            session.delete(row)
+            session.commit()
 
 
 # ── Module 2: learning / mastery state ──────────────────────────────────

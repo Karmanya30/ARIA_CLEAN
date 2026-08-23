@@ -27,10 +27,15 @@ if load_dotenv is not None:
     load_dotenv()
 
 # ── CONFIG ─────────────────────────────────────────────────────────────
-DEFAULT_MODEL_NAME = "llama-3.3-70b-versatile"
+# llama-3.3-70b-versatile was retired from Groq's hosted catalog; gpt-oss-120b
+# is its current general-purpose replacement (checked live against
+# client.models.list() on 2026-08-18).
+DEFAULT_MODEL_NAME = "openai/gpt-oss-120b"
 MODEL_NAME = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
 
-DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
+# gemini-2.0-flash was retired; Google's own 404 response names
+# gemini-3.6-flash as its replacement (checked live 2026-08-18).
+DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
 
 

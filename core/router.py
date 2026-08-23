@@ -26,15 +26,20 @@ _FUNDAMENTAL_KEYWORDS = (
 # yfinance-grounded path.
 _INVESTMENT_INTENT_WORDS = (
     "stock price", "share price", "stock analysis", "analyze stock",
-    "market cap", "news",
+    "market cap",
 )
 
 # Broad market/index/sector/macro terms -> Module 3 (market analysis),
-# not about any single listed company.
+# not about any single listed company. Deliberately no bare "news" (collides
+# with per-stock news, e.g. "Reliance news" -> handled by the fundamental/
+# investment paths and the domain fallback instead) and no bare "policy"/
+# "budget" (collide with personal-finance phrasing like "plan my monthly
+# budget" or "is this insurance policy good" -> Module 1). "rbi"/"election"/
+# "government"/etc. already cover genuine macro-policy queries.
 _BROAD_MARKET_TERMS = (
     "stock market", "market respond", "market react", "nifty", "sensex",
     "index", "indices", "sector", "sectors", "election", "government",
-    "policy", "budget", "rbi", "inflation", "gdp", "bjp", "congress",
+    "rbi", "inflation", "gdp", "bjp", "congress",
     "west bengal",
 )
 _INDIVIDUAL_STOCK_TERMS = (

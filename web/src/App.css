@@ -1,0 +1,32 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  /* Barely-there wash for depth, not a decorative feature -- a premium
+   * light UI reads as considered restraint, not color blobs. */
+  background:
+    radial-gradient(ellipse 1000px 480px at 50% -12%, rgba(41, 83, 184, 0.035), transparent 60%),
+    var(--bg);
+  padding: 40px 40px 80px;
+  overflow-x: hidden;
+}
+
+.page-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+@media (max-width: 880px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .app-main {
+    padding: 24px 18px 60px;
+  }
+}

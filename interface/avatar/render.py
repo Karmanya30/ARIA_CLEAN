@@ -1,5 +1,7 @@
 """
-Builds the avatar.html payload for st.components.v1.html() -- injects the
+Builds the avatar.html payload served by api/routes/avatar.py's
+GET /avatar/render (the React frontend embeds it as an iframe srcdoc) --
+injects the
 base64-encoded avatar model (cached after first read) and, optionally, a
 base64-encoded TTS audio clip into the avatar.html template.
 """
@@ -25,7 +27,7 @@ def _avatar_data_url() -> str:
 
 def build_avatar_html(audio_path: str | None = None) -> str:
     """Full avatar.html content with the avatar model and (if given) an
-    audio clip injected, ready for st.components.v1.html()."""
+    audio clip injected, ready to serve as an HTML response."""
     html = _HTML_TEMPLATE_PATH.read_text(encoding="utf-8")
 
     audio_base64 = ""

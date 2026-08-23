@@ -21,11 +21,16 @@ except Exception:
 
 # LLM settings — Groq primary, Gemini automatic fallback (see ai/llm/groq_client.py)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-DEFAULT_MODEL_NAME = "llama-3.3-70b-versatile"
+# llama-3.3-70b-versatile was retired from Groq's hosted catalog; gpt-oss-120b
+# is its current general-purpose replacement (checked live against
+# client.models.list() on 2026-08-18).
+DEFAULT_MODEL_NAME = "openai/gpt-oss-120b"
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-DEFAULT_GEMINI_MODEL_NAME = "gemini-2.0-flash"
+# gemini-2.0-flash was retired; Google's own 404 response names
+# gemini-3.6-flash as its replacement (checked live 2026-08-18).
+DEFAULT_GEMINI_MODEL_NAME = "gemini-3.6-flash"
 GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL_NAME)
 
 

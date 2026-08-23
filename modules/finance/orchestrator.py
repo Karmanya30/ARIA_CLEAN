@@ -9,7 +9,7 @@ from __future__ import annotations
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import M1_NARRATION
 from modules.finance import anomaly, budget_optimize, forecast_model, risk_model, tax
-from modules.finance.schemas import M1Response, SipPlan, UserFinancialInput
+from modules.finance.schemas import BudgetAllocation, M1Response, SipPlan, UserFinancialInput
 
 # Equity/debt split by risk class — more aggressive risk tolerance -> more equity.
 EQUITY_SPLIT = {"Conservative": 0.3, "Moderate": 0.6, "Aggressive": 0.8}
@@ -40,13 +40,45 @@ def run(user_input: UserFinancialInput) -> M1Response:
     )
     forecast = forecast_model.predict(user_input.monthly_income, user_input.transactions)
     anomalies = anomaly.detect_for_user(user_input.transactions)
-    budget = budget_optimize.optimize_budget(
-        income=user_input.monthly_income,
-        existing_emi=user_input.existing_emi,
-        city_tier=user_input.city_tier,
-        risk_label=risk.label,
-        emergency_fund_months=user_input.emergency_fund_months,
-    )
+    try:
+        budget = budget_optimize.optimize_budget(
+            income=user_input.monthly_income,
+            existing_emi=user_input.existing_emi,
+            city_tier=user_input.city_tier,
+            risk_label=risk.label,
+            emergency_fund_months=user_input.emergency_fund_months,
+        )
+    except ValueError as exc:
+        # Zero or negative income (e.g. "I earn 0 a month") cannot be
+        # optimised — return a graceful, informative response instead of
+        # crashing.  All other fields (risk score, tax at zero, etc.) are
+        # still meaningful and are returned so callers get a well-formed dict.
+        return M1Response(
+            risk=risk,
+            forecast=forecast,
+            anomalies=anomalies,
+            budget=BudgetAllocation(
+                housing=0.0,
+                food=0.0,
+                transport=0.0,
+                utilities=0.0,
+                emi=0.0,
+                sip=0.0,
+                entertainment=0.0,
+                emergency_fund_add=0.0,
+            ),
+            sip_plan=_build_sip_plan(0.0, risk.label, user_input.tax_regime),
+            tax=tax.compute(
+                monthly_income=user_input.monthly_income,
+                regime=user_input.tax_regime,
+            ),
+            natural_language=(
+                f"I wasn't able to build a budget plan because: {exc}  "
+                "If you've recently lost income or are between jobs, I can still "
+                "help you with tax questions, SIP concepts, or financial planning "
+                "once you have an income to work with."
+            ),
+        )
     tax_result = tax.compute(
         monthly_income=user_input.monthly_income, regime=user_input.tax_regime
     )

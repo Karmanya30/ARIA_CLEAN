@@ -1,14 +1,30 @@
 """Finance pipeline: context + prompt + Groq response."""
 
+import json
 import re
 from typing import Any
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import finance_prompt
 from modules.finance import orchestrator as m1_orchestrator
-from modules.finance.schemas import UserFinancialInput
+from modules.finance.schemas import Transaction, UserFinancialInput
 from shared import user_store
 from shared.ner import extract_entities
+
+# Query terms that signal the user wants a *personalized* number (risk
+# profile, budget, "how much can I invest") rather than a general concept
+# explanation. Gates the income-clarification short-circuit below so it
+# never intercepts concept questions ("what is SIP") that don't need income.
+_PERSONALIZATION_SIGNALS = (
+    "risk profile", "my risk", "budget", "afford", "how much should i invest",
+    "how much can i invest", "plan my", "save for", "emergency fund",
+    "how much should i save", "financial plan", "how much can i save",
+)
+
+
+def _needs_income_clarification(query: str) -> bool:
+    text = query.lower()
+    return any(signal in text for signal in _PERSONALIZATION_SIGNALS)
 
 
 KNOWN_FINANCE_CONCEPTS = {
@@ -84,12 +100,24 @@ def _build_known_concepts_response(query: str) -> str | None:
 
 
 def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
-    pattern = r"(\d+(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|crore|cr|k|thousand)?\b"
+    # \d[\d,]* (not just \d+) -- Conversational Mode's follow-up query
+    # rewrite runs through the LLM, which formats amounts with thousands
+    # separators ("₹60,000"); the old digits-only pattern matched just
+    # "60" and stopped at the comma, silently truncating a real income by
+    # 1000x. Found live: "what is diversification" as a follow-up after
+    # stating a real income produced an "EMI (₹5) ... income (₹60)"
+    # budget-infeasible error from figures that had been quietly divided
+    # by 1000. Commas are stripped below before the float conversion.
+    pattern = r"(\d[\d,]*(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|crore|cr|k|thousand)?\b"
     search_area = text.lower()
 
     if keyword:
+        # \b around the keyword so "emi" doesn't match inside "premium" and
+        # "earn" doesn't match inside "learn" -- found via code review: both
+        # produced real false-positive extractions that silently overwrote
+        # a user's saved profile with garbage.
         keyword_match = re.search(
-            rf"{keyword}[^0-9]{{0,40}}{pattern}|{pattern}[^a-z0-9]{{0,40}}{keyword}",
+            rf"\b{keyword}\b[^0-9]{{0,40}}{pattern}|{pattern}[^a-z0-9]{{0,40}}\b{keyword}\b",
             search_area,
         )
         if not keyword_match:
@@ -102,7 +130,7 @@ def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
     if not number_match:
         return None
 
-    value = float(number_match.group(1))
+    value = float(number_match.group(1).replace(",", ""))
     unit_text = number_match.group(0)
     if "crore" in unit_text or "cr" in unit_text:
         return value * 10_000_000
@@ -182,8 +210,25 @@ def _build_sip_planning_response(query: str) -> str | None:
 
 
 def _extract_age(text: str) -> int | None:
-    match = re.search(r"\b(\d{2})\s*(?:years?\s*old|yo|y/o)\b", text.lower())
+    text_lower = text.lower()
+    match = re.search(r"\b(\d{2})\s*(?:years?\s*old|yo|y/o)\b", text_lower)
+    if match:
+        return int(match.group(1))
+    # Also catch bare "I am 45" / "I'm 45" / "age 45" / "age: 45" -- the
+    # "years old" pattern alone missed these, silently defaulting age to 30
+    # for anyone who just states their age plainly.
+    match = re.search(r"\b(?:i\s*am|i'm|my\s*age\s*is|age\s*(?:is|:)?)\s*(\d{2})\b", text_lower)
     return int(match.group(1)) if match else None
+
+
+def _load_transactions(user_id: str) -> list[Transaction]:
+    """Real transactions entered via the Profile tab (shared/user_store.py),
+    if any. Without this, the LSTM spend forecaster and Isolation Forest
+    anomaly detector always see an empty list and both explicitly degrade to
+    zero-signal output (forecast_model.py, anomaly.py) — real trained models
+    with nothing real to run on in the live chat pipeline."""
+    rows = user_store.get_transactions(user_id)
+    return [Transaction(**row) for row in rows]
 
 
 def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput | None:
@@ -193,12 +238,19 @@ def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput
     income anywhere — the caller falls back to the freeform heuristics."""
     saved = user_store.get_financial_profile(user_id) or {}
 
-    monthly_income = _parse_indian_amount(query, "earn") or _parse_indian_amount(query, "income")
+    # `is None`, not `or` -- an explicit "I earn 0" must not be discarded in
+    # favor of the "income" keyword parse (0.0 is falsy but real).
+    monthly_income = _parse_indian_amount(query, "earn")
+    if monthly_income is None:
+        monthly_income = _parse_indian_amount(query, "income")
     existing_emi = _parse_indian_amount(query, "emi")
     age = _extract_age(query)
 
-    income = monthly_income or saved.get("monthly_income")
-    if not income:
+    # `is not None`, not truthy -- an explicit "I earn 0 now, lost my job"
+    # must overwrite a stale saved income instead of silently keeping the
+    # old value (0 is falsy but a real, meaningful update).
+    income = monthly_income if monthly_income is not None else saved.get("monthly_income")
+    if income is None:
         return None
 
     profile = {
@@ -211,7 +263,7 @@ def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput
         "tax_regime": saved.get("tax_regime") or "new",
     }
     user_store.save_financial_profile(user_id, **profile)
-    return UserFinancialInput(user_id=user_id, transactions=[], **profile)
+    return UserFinancialInput(user_id=user_id, transactions=_load_transactions(user_id), **profile)
 
 
 def build_context(query: str) -> dict[str, Any]:
@@ -245,6 +297,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             user_id,
             risk_label=m1_response.risk.label,
             risk_confidence=m1_response.risk.confidence,
+            risk_top_features=json.dumps(m1_response.risk.top_features),
         )
         return {
             "domain": "finance",
@@ -274,6 +327,28 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "query": query,
             "context": build_context(query),
             "response": known_concepts_response,
+        }
+
+    # Deterministic clarifying question -- fires only when the query signals
+    # a personalized ask (risk profile / budget / "how much can I afford")
+    # with no income known yet. Avoids both an unhelpful generic-LLM guess
+    # and a full multi-turn elicitation flow -- one targeted question,
+    # answerable in the user's next message, no LLM call spent on it.
+    if _needs_income_clarification(query):
+        return {
+            "domain": "finance",
+            "query": query,
+            "context": build_context(query),
+            "response": (
+                "Insight: I can build a personalized risk profile, budget, and SIP plan, "
+                "but I need a starting number first.\n"
+                "Analysis: Tell me your monthly income (optionally your age, any EMI, and "
+                "city tier too) and I'll compute this from real numbers, not a generic guess.\n"
+                'Recommendation: Try something like "I earn 60000 a month with an EMI of 8000" '
+                "and ask again.\n"
+                "Risk: Without income, any budget or SIP number here would be generic, not "
+                "actually computed for you."
+            ),
         }
 
     # Generic path: no company detected, use LLM with context

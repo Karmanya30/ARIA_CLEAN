@@ -1,0 +1,754 @@
+<title>ARIA — Architecture Audit</title>
+<style>
+:root{
+  --bg:#F4F5F1; --surface:#FFFFFF; --surface-2:#EAECE6; --surface-3:#E1E4DB;
+  --ink:#17221C; --ink-muted:#4B564E; --ink-faint:#7A8478;
+  --border:#D8DCD2; --border-strong:#C3C9BA;
+  --accent:#2F6F63; --accent-soft:#DCEAE5; --accent-ink:#1D4740;
+  --warn:#A15A16; --warn-soft:#F3E4D3;
+  --critical:#A93E3E; --critical-soft:#F5DEDE;
+  --optional:#5B5F82; --optional-soft:#E7E7EF;
+  --rebuild:#8A6D1A; --rebuild-soft:#F1E7CE;
+  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Noto Serif",serif;
+  --font-body:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121815; --surface:#1A2119; --surface-2:#202A21; --surface-3:#26312A;
+    --ink:#E7ECE4; --ink-muted:#A7B0A2; --ink-faint:#75806F;
+    --border:#313B31; --border-strong:#3C483C;
+    --accent:#6FBFA9; --accent-soft:#1F332C; --accent-ink:#B7E5D8;
+    --warn:#E0A15C; --warn-soft:#3A2A18;
+    --critical:#E38080; --critical-soft:#3B2020;
+    --optional:#A6ABD1; --optional-soft:#262A3A;
+    --rebuild:#D8B85B; --rebuild-soft:#3A2E14;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121815; --surface:#1A2119; --surface-2:#202A21; --surface-3:#26312A;
+  --ink:#E7ECE4; --ink-muted:#A7B0A2; --ink-faint:#75806F;
+  --border:#313B31; --border-strong:#3C483C;
+  --accent:#6FBFA9; --accent-soft:#1F332C; --accent-ink:#B7E5D8;
+  --warn:#E0A15C; --warn-soft:#3A2A18;
+  --critical:#E38080; --critical-soft:#3B2020;
+  --optional:#A6ABD1; --optional-soft:#262A3A;
+  --rebuild:#D8B85B; --rebuild-soft:#3A2E14;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--accent-soft); color:var(--accent-ink); }
+
+a{ color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;
+}
+
+.shell{ display:flex; max-width:1280px; margin:0 auto; align-items:flex-start; }
+
+/* ---------- TOC ---------- */
+nav.toc{
+  position:sticky; top:0; height:100vh; overflow-y:auto; flex:0 0 268px;
+  padding:28px 14px 40px 28px; border-right:1px solid var(--border);
+  scrollbar-width:thin;
+}
+nav.toc .toc-title{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-faint); margin:0 0 14px 2px;
+}
+nav.toc ol{ list-style:none; margin:0; padding:0; counter-reset:toc; }
+nav.toc li{ counter-increment:toc; }
+nav.toc a{
+  display:block; color:var(--ink-muted); text-decoration:none; font-size:13.2px;
+  padding:5px 8px 5px 6px; border-radius:6px; line-height:1.35;
+}
+nav.toc a::before{
+  content: counter(toc) ". "; font-family:var(--font-mono); color:var(--ink-faint); font-size:11px; margin-right:2px;
+}
+nav.toc a:hover{ background:var(--surface-2); color:var(--ink); }
+
+/* ---------- Main ---------- */
+main{ flex:1 1 auto; min-width:0; padding:44px 40px 120px; }
+.masthead{ max-width:760px; margin-bottom:56px; }
+.eyebrow{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 14px;
+}
+h1.title{
+  font-family:var(--font-display); font-weight:600; font-size:clamp(32px,4vw,44px);
+  line-height:1.08; margin:0 0 18px; text-wrap:balance; letter-spacing:-.01em;
+}
+.dek{ font-size:18px; color:var(--ink-muted); max-width:60ch; margin:0 0 22px; text-wrap:pretty; }
+.meta-row{
+  display:flex; flex-wrap:wrap; gap:10px 22px; font-family:var(--font-mono); font-size:12.5px;
+  color:var(--ink-faint); border-top:1px solid var(--border); padding-top:16px;
+}
+.meta-row b{ color:var(--ink-muted); font-weight:600; }
+
+section{ max-width:760px; margin:0 0 64px; scroll-margin-top:24px; }
+section.wide{ max-width:920px; }
+.sec-eyebrow{
+  font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); letter-spacing:.08em;
+  margin:0 0 6px;
+}
+h2{
+  font-family:var(--font-display); font-weight:600; font-size:26px; margin:0 0 18px;
+  padding-bottom:12px; border-bottom:1px solid var(--border); text-wrap:balance;
+}
+h3{ font-family:var(--font-display); font-weight:600; font-size:19px; margin:30px 0 10px; }
+h4{ font-family:var(--font-body); font-weight:700; font-size:14.5px; margin:22px 0 8px; color:var(--ink); }
+p{ margin:0 0 14px; max-width:68ch; }
+ul,ol{ margin:0 0 16px; padding-left:22px; }
+li{ margin-bottom:6px; max-width:66ch; }
+strong{ font-weight:700; }
+
+code, .cite{
+  font-family:var(--font-mono); font-size:.86em; background:var(--surface-2);
+  border:1px solid var(--border); border-radius:4px; padding:1px 5px; white-space:nowrap;
+}
+a code{ color:var(--accent-ink); }
+
+.lede{ font-size:17.5px; color:var(--ink-muted); }
+
+/* ---------- Callouts ---------- */
+.callout{
+  border-left:3px solid var(--border-strong); background:var(--surface); border-radius:0 8px 8px 0;
+  padding:14px 18px; margin:18px 0; font-size:14.6px;
+}
+.callout p:last-child{ margin-bottom:0; }
+.callout .label{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  font-weight:700; display:block; margin-bottom:6px;
+}
+.callout.critical{ border-color:var(--critical); background:var(--critical-soft); }
+.callout.critical .label{ color:var(--critical); }
+.callout.warn{ border-color:var(--warn); background:var(--warn-soft); }
+.callout.warn .label{ color:var(--warn); }
+.callout.good{ border-color:var(--accent); background:var(--accent-soft); }
+.callout.good .label{ color:var(--accent-ink); }
+.callout.rebuild{ border-color:var(--rebuild); background:var(--rebuild-soft); }
+.callout.rebuild .label{ color:var(--rebuild); }
+
+/* ---------- Verdict pills ---------- */
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:11px;
+  font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2.5px 9px; border-radius:99px;
+  white-space:nowrap; line-height:1.6;
+}
+.pill.keep{ background:var(--accent-soft); color:var(--accent-ink); }
+.pill.simplify{ background:var(--warn-soft); color:var(--warn); }
+.pill.optional{ background:var(--optional-soft); color:var(--optional); }
+.pill.remove{ background:var(--critical-soft); color:var(--critical); }
+.pill.rebuild{ background:var(--rebuild-soft); color:var(--rebuild); }
+
+/* ---------- Tables ---------- */
+.twrap{ overflow-x:auto; border:1px solid var(--border); border-radius:10px; margin:18px 0; background:var(--surface); }
+table{ border-collapse:collapse; width:100%; font-size:13.6px; min-width:560px; }
+thead th{
+  text-align:left; font-family:var(--font-mono); font-size:10.8px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-faint); background:var(--surface-2); padding:10px 14px; border-bottom:1px solid var(--border);
+  white-space:nowrap; position:sticky; top:0;
+}
+tbody td{ padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+tbody tr:last-child td{ border-bottom:none; }
+tbody tr:hover{ background:var(--surface-2); }
+td.num{ font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+
+/* ---------- Cut list cards ---------- */
+.cut-card{
+  border:1px solid var(--border); border-left:3px solid var(--critical); border-radius:0 10px 10px 0;
+  background:var(--surface); padding:16px 20px; margin:16px 0;
+}
+.cut-card h4{ margin:0 0 4px; font-size:15.5px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.cut-card .save{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); }
+.cut-card p{ margin:8px 0 0; font-size:14px; }
+
+/* ---------- misc ---------- */
+hr.rule{ border:none; border-top:1px solid var(--border); margin:40px 0; }
+.divider-note{
+  font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); text-align:center; margin:36px 0;
+}
+.arch-tree{
+  font-family:var(--font-mono); font-size:13px; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:10px; padding:18px 22px; overflow-x:auto; line-height:1.55; white-space:pre;
+}
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:700px){ .two-col{ grid-template-columns:1fr; } }
+.stat-box{ border:1px solid var(--border); border-radius:10px; padding:14px 16px; background:var(--surface); }
+.stat-box .n{ font-family:var(--font-mono); font-size:22px; font-weight:700; color:var(--accent-ink); }
+.stat-box .l{ font-size:12.5px; color:var(--ink-muted); }
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin:20px 0; }
+
+.final-verdict{
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:14px;
+  padding:30px 34px; margin-top:20px;
+}
+.final-verdict .lede{ font-size:19px; font-family:var(--font-display); }
+
+@media (max-width: 920px){
+  nav.toc{ display:none; }
+  main{ padding:32px 20px 100px; }
+}
+</style>
+
+<div class="shell">
+<nav class="toc" aria-label="Table of contents">
+  <p class="toc-title">Audit sections</p>
+  <ol>
+    <li><a href="#s1">Executive Summary</a></li>
+    <li><a href="#s2">Repository Structure</a></li>
+    <li><a href="#s3">System Architecture</a></li>
+    <li><a href="#s4">Execution Flows</a></li>
+    <li><a href="#s5">Personal Finance Audit</a></li>
+    <li><a href="#s6">Finance Tutor Audit</a></li>
+    <li><a href="#s7">Financial Tools Audit</a></li>
+    <li><a href="#s8">LLM / AI Architecture</a></li>
+    <li><a href="#s9">User State / Memory</a></li>
+    <li><a href="#s10">Voice System</a></li>
+    <li><a href="#s11">Talking Avatar</a></li>
+    <li><a href="#s12">API Audit</a></li>
+    <li><a href="#s13">Database / Storage</a></li>
+    <li><a href="#s14">Dependency Audit</a></li>
+    <li><a href="#s15">Code Quality</a></li>
+    <li><a href="#s16">Security</a></li>
+    <li><a href="#s17">Testing</a></li>
+    <li><a href="#s18">Future: Finance News</a></li>
+    <li><a href="#s19">Future: Equity Research</a></li>
+    <li><a href="#s20">Feature Classification</a></li>
+    <li><a href="#s21">Complexity Cut List</a></li>
+    <li><a href="#s22">Recommended Architecture</a></li>
+    <li><a href="#s23">Recommended Directory Layout</a></li>
+    <li><a href="#s24">Migration Plan</a></li>
+    <li><a href="#s25">SDE Value Assessment</a></li>
+    <li><a href="#s26">AI/ML Value Assessment</a></li>
+    <li><a href="#s27">Finance/Quant Value</a></li>
+    <li><a href="#s28">Final Product Definition</a></li>
+    <li><a href="#s29">Brutally Honest Verdict</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="masthead">
+  <p class="eyebrow">Read-only architecture audit — no files modified</p>
+  <h1 class="title">ARIA: what it actually is, versus what it should stay</h1>
+  <p class="dek">A full trace of the repository as it exists today — every claim below is backed by a file and, where useful, a line number. No refactors, no deletions, no new code. Just the truth of the system, and where the complexity earns its keep.</p>
+  <div class="meta-row">
+    <span><b>Repo</b> ARIA_CLEAN</span>
+    <span><b>Branch</b> chore/production-readiness</span>
+    <span><b>Python files audited</b> ~65</span>
+    <span><b>Method</b> full read of every module + 2 live runtime probes</span>
+  </div>
+</div>
+
+<section id="s1">
+<p class="sec-eyebrow">01</p>
+<h2>Executive Summary</h2>
+<p class="lede">ARIA is further along than the brief for this audit assumes, and its worst problem isn't over-engineering — it's <strong>disconnection</strong>. The deterministic finance tools are genuinely excellent. Two of the six trained ML models are real, correctly wired, and still functionally frozen in the live product because a UI feature to feed them real interaction data was never built. A handful of files are dead weight left over from an earlier scaffold. And the avatar — the thing this audit was nominally worried about being over-built with Wav2Lip/SadTalker/LivePortrait stacks — is in fact the single most disciplined piece of the whole codebase.</p>
+
+<p>The central finding, stated once here because it recurs through half of this document: <strong>Module 1 (finance) and Module 2 (tutor) each contain a working, trained, correctly-orchestrated ML component that the live chat UI never actually feeds.</strong> Module 1's LSTM spend-forecaster and Isolation-Forest anomaly detector need transaction history; the chat pipeline always calls them with an empty transaction list (<code class="cite">modules/finance/pipeline.py:232</code>), because there is no UI flow to enter transactions. Module 2's DKT mastery tracker and DQN teaching-policy need quiz-answer history; the chat pipeline generates a real quiz item via a real LLM call whenever the DQN chooses <code class="cite">ask_quiz</code>, and the Streamlit UI never renders it or wires an answer back to <code class="cite">modules/tutor/orchestrator.py:76</code> <code class="cite">record_answer()</code> — confirmed by grep, there is no such call anywhere in <code class="cite">interface/streamlit_app.py</code>. Both models are real thesis-grade work sitting one missing widget away from actually mattering.</p>
+
+<p>Everything else is closer to what you'd hope: the XGBoost risk model, the LP budget optimizer, the tax engine, the SIP/EMI calculators, Module 3 (market) and Module 4 (equity research) all run on real data through real code paths every single time. The LLM is used correctly — for narration and light extraction, never for arithmetic. The test suite (50 tests) mocks the LLM properly and tests real deterministic behavior, not implementation details. And the avatar is a free, self-hosted, browser-native 3D lip-sync system with no GPU dependency and no API key, exactly matching your stated product vision — the Tavus CVI integration (added and hardened this session) is a clearly-marked, opt-in, paid alternative sitting behind its own UI toggle, not a replacement.</p>
+
+<p>The cut list in <a href="#s21">§21</a> is short and concrete: two genuinely broken files, two dead stubs, one dead general-purpose module, and one config block that documents a device this project never actually asks a GPU to touch. Nothing on it is a trained model, a routing rule, or a UI surface. The bigger lift this audit surfaces isn't cutting — it's closing the two feedback loops above, which is design and UI work, not new ML.</p>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="n">6</div><div class="l">real trained ML models — 4 fully live, 2 wired but cold-start</div></div>
+  <div class="stat-box"><div class="n">2</div><div class="l">broken / non-importable files found</div></div>
+  <div class="stat-box"><div class="n">4</div><div class="l">fully dead files (zero importers)</div></div>
+  <div class="stat-box"><div class="n">50</div><div class="l">passing pytest tests, LLM always mocked</div></div>
+  <div class="stat-box"><div class="n">0</div><div class="l">LivePortrait / Wav2Lik / MuseTalk / SadTalker code present</div></div>
+</div>
+</section>
+
+<section id="s2">
+<p class="sec-eyebrow">02</p>
+<h2>Current Repository Structure</h2>
+<p>The tree is already close to the "clean" shape this audit's brief asks for — it just isn't labeled that way, and a few directories carry vestigial content from before the Stage 0–7 rewrite (per your own roadmap notes). Below, every top-level directory, its real responsibility, and whether that responsibility is the right one.</p>
+
+<div class="twrap"><table>
+<thead><tr><th>Directory</th><th>Actual contents</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><code>core/</code></td><td><code>router.py</code> (M3/M4 precise predicates + coarse keyword bucket), <code>orchestrator.py</code> (single <code>handle_query</code> dispatcher), <code>session.py</code> (in-memory chat history)</td><td>Correctly scoped — this is the agent/application layer the brief asks for, just not named that.</td></tr>
+<tr><td><code>modules/finance|tutor|market|equity_research/</code></td><td>One package per BTP module, each with its own <code>pipeline.py</code> entry point</td><td>Right shape. Finance and tutor each carry one dead <code>utils.py</code> (<a href="#s21">§21</a>).</td></tr>
+<tr><td><code>ai/llm/</code>, <code>ai/speech/</code></td><td>Groq+Gemini client, prompt templates, Whisper STT, edge-tts/pyttsx3 TTS</td><td>Correctly the shared AI layer — all four modules import from here, nothing duplicates it.</td></tr>
+<tr><td><code>shared/</code></td><td>SQLite user store, FAISS vector store, company resolver, intent classifier, NER, <strong>one dead file</strong></td><td>Right idea, one file (<code>data_loader.py</code>) is inert scaffold debris.</td></tr>
+<tr><td><code>interface/</code></td><td>Streamlit app (single file, ~500 lines) + <code>avatar/</code> subpackage (TalkingHead + Tavus CVI)</td><td>The presentation layer is correctly isolated from business logic — <code>streamlit_app.py</code> never contains finance math or tutor logic, only <code>_handle_query</code> dispatch + rendering.</td></tr>
+<tr><td><code>config/</code></td><td><code>paths.py</code> (filesystem), <code>settings.py</code> (runtime env), <code>model_config.py</code> (hyperparameters)</td><td>Textbook three-way split. One dead CUDA config block inside <code>model_config.py</code> (<a href="#s21">§21</a>).</td></tr>
+<tr><td><code>models/</code></td><td><code>finance/</code> and <code>tutor/</code> hold real trained artifacts; <code>intent_classifier/</code>, <code>ner_extractor/</code>, <code>embeddings/</code>, <code>llm/</code> are <strong>empty directories</strong></td><td>The four empty dirs are the physical evidence of an earlier, abandoned plan (a trained intent classifier + NER model) that was replaced by keyword heuristics without removing the scaffolding.</td></tr>
+<tr><td><code>tests/</code></td><td>Mirrors <code>modules/</code>, plus <code>test_router.py</code> and <code>test_adversarial.py</code></td><td>Good shape, good discipline (see <a href="#s17">§17</a>).</td></tr>
+<tr><td><code>scripts/</code></td><td>One-off data/index/model generators, invoked via <code>python -m</code></td><td>Correctly kept out of the runtime import graph.</td></tr>
+<tr><td><code>data/</code></td><td>Synthetic training data, FAISS index, SQLite DB, a stray <code>data/bin/ffmpeg.exe</code> copy</td><td>Fine; gitignored appropriately per <code>.gitignore</code>.</td></tr>
+<tr><td><code>reports/</code>, <code>ARIA Requirements.pdf</code></td><td>Generated project report + the original BTP spec PDF</td><td>Documentation, not code — no architectural opinion needed.</td></tr>
+<tr><td><code>main.py</code> (root)</td><td>A 20-line <code>argparse</code> stub that prints <code>"not implemented"</code></td><td><strong>Dead.</strong> The real entrypoint is <code>streamlit run interface/streamlit_app.py</code>, documented correctly in <code>README.md</code> — <code>main.py</code> is scaffold debris nobody removed. See <a href="#s21">§21</a>.</td></tr>
+</tbody>
+</table></div>
+
+<p>No duplicate directories, no abandoned parallel-implementation folders (e.g. an old <code>api/</code> next to a new one). The debris that exists is all at the <em>file</em> level inside otherwise well-placed directories, not at the directory level — which is the easier problem to have.</p>
+</section>
+
+<section id="s3">
+<p class="sec-eyebrow">03</p>
+<h2>Current System Architecture</h2>
+<p>There is no FastAPI/Flask backend behind the core product — Streamlit <em>is</em> the whole application layer, calling Python functions directly. This is a legitimate, deliberate choice for a single-process demo app, not a shortcut that needs justifying — see <a href="#s12">§12</a>. The one place a real HTTP server exists is the optional Tavus CVI bridge, which is intentionally separate.</p>
+
+<div class="arch-tree">interface/streamlit_app.py  (UI: 3 tabs — Chat / Your Profile / Your Progress)
+        │
+        │  _handle_query(query, session_id, mode)
+        ▼
+core/orchestrator.py  handle_query()
+        │
+        ├─ mode == "Conversational Mode" → query rewrite via ai/llm (self-contained follow-up)
+        │
+        ├─ core/router.py: is_equity_research_query() ─────► modules/equity_research/pipeline.py  (Module 4)
+        ├─ core/router.py: is_broad_market_query()     ─────► modules/market/pipeline.py            (Module 3)
+        ├─ core/router.py: route_query() == "finance"   ────► modules/finance/pipeline.py            (Module 1)
+        ├─ core/router.py: route_query() == "tutor"     ────► modules/tutor/pipeline.py               (Module 2)
+        └─ else                                          ────► generic ai/llm/groq_client narration
+
+Every module pipeline funnels through ai/llm/groq_client.generate_response()
+        (Groq openai/gpt-oss-120b → Gemini gemini-3.6-flash fallback, both wrapped, never raises)
+
+core/session.py            — ephemeral, in-process chat turn history (lost on restart)
+shared/user_store.py       — persistent SQLite: FinancialProfile (M1), LearningState (M2)</div>
+
+<p>The one deviation from a clean layered model: <code class="cite">core/router.py</code>'s precise Module 3/4 predicates (<code class="cite">is_equity_research_query</code>, <code class="cite">is_broad_market_query</code>) are checked <em>before</em> the coarse <code class="cite">route_query()</code> bucket, with a comment at <code class="cite">core/orchestrator.py:47-52</code> explaining exactly why (the coarse keyword classifier's <code class="cite">MARKET_KEYWORDS</code> list doesn't cover terms like "nifty"/"sensex"). This isn't architectural debt — it's a documented, deliberate ordering fix. Flagged here only because the brief asked to identify "incorrectly coupled" flows, and this is the one place routing logic isn't a single clean waterfall; it is, however, correctly explained in the code itself.</p>
+</section>
+
+<section id="s4">
+<p class="sec-eyebrow">04</p>
+<h2>Request / Data / Execution Flows</h2>
+
+<h3>Text request flow</h3>
+<p><code class="cite">streamlit_app.py</code> text input → <code class="cite">_handle_query()</code> (reloads pipeline modules so local edits apply without restarting Streamlit, then calls) → <code class="cite">core/orchestrator.handle_query()</code> → router dispatch → module pipeline → <code class="cite">ai/llm/groq_client.generate_response()</code> for narration → <code class="cite">render_response()</code> parses the <code class="cite">Insight/Analysis/Recommendation/Risk</code> (or tutor's <code class="cite">Cognitive/Functional/Causal</code>) sections into styled cards. This is a real, traceable, single path — not the deep multi-hop flow the brief speculatively diagrammed.</p>
+
+<h3>Voice request flow</h3>
+<p><code class="cite">st.audio_input</code> → <code class="cite">ai/speech/stt.transcribe()</code> (Whisper) → the transcript is written into the same text box (<code class="cite">st.session_state.query_text</code>) → from there it's identical to the text flow. Voice is a transcription front-end bolted onto the text pipeline, not a parallel system — which is the right design, not a shortcut.</p>
+
+<h3>Finance Tutor flow — as designed vs. as it runs</h3>
+<p><strong>As designed</strong> (<code class="cite">modules/tutor/orchestrator.py:31-73</code>): query → SBERT+FAISS concept retrieval → DKT mastery lookup → DQN teaching-action choice → level-appropriate TAXAL explanation → optionally a quiz → user answers → <code class="cite">record_answer()</code> updates mastery → next turn reflects it.</p>
+<p><strong>As it actually runs</strong> in the live Streamlit app: query → retrieval → DKT (always reads empty history, so always returns all-zero mastery) → DQN (evaluates a state that never changes) → explanation at level 1 → quiz generated by a real LLM call → <strong>quiz silently discarded</strong> (confirmed: no <code class="cite">"quiz"</code> key is ever read anywhere in <code class="cite">streamlit_app.py</code>) → the loop never closes. See <a href="#s6">§6</a> for the full trace.</p>
+
+<h3>Personal Finance flow — as designed vs. as it runs</h3>
+<p><strong>As designed</strong> (<code class="cite">modules/finance/orchestrator.py:32-118</code>): profile + transaction history → XGBoost risk → LSTM 3-month category forecast → Isolation Forest anomaly scan → LP budget optimization → SIP plan → tax → LLM narration grounded in all of the above.</p>
+<p><strong>As it actually runs</strong>: <code class="cite">modules/finance/pipeline.py:232</code> always constructs <code class="cite">UserFinancialInput(..., transactions=[])</code> — there is no chat flow, form, or upload path anywhere in the UI that ever populates transaction history. XGBoost still gets a meaningful prediction (its profile-only features — income, age, dependents, debt-to-income, city tier — are always populated; only the transaction-<em>derived</em> features zero out, per the explicit comment at <code class="cite">modules/finance/features.py:52-58</code>). LSTM forecast and Isolation Forest both explicitly early-return degenerate output when there's no transaction data (<code class="cite">forecast_model.py:150-159</code> returns all-zero forecasts; <code class="cite">anomaly.py:23,55-56</code>'s <code class="cite">MIN_TRANSACTIONS = 10</code> guard means <code class="cite">detect_for_user</code> always returns <code class="cite">[]</code>).</p>
+
+<h3>Avatar flow</h3>
+<p>Text response → <code class="cite">ai/llm/audio_script.generate_audio_script()</code> (a second, short LLM call that rewrites the answer into a 20–30s spoken script) → <code class="cite">ai/speech/tts.synthesize()</code> (edge-tts, pyttsx3 fallback) → <code class="cite">interface/avatar/render.build_avatar_html()</code> base64-embeds the audio into a self-contained HTML page → <code class="cite">st.components.v1.html()</code> → the browser's WebGL context runs TalkingHead's phoneme-driven lip-sync entirely client-side. No server-side video generation, no GPU, no per-frame rendering pipeline — see <a href="#s11">§11</a>.</p>
+
+<h3>Broad-market / equity data flow (already real, not hypothetical)</h3>
+<p>The brief frames financial news and equity research as future work with only an interface to design for. Both already exist as working pipelines: <code class="cite">modules/market/analyzer.py</code> pulls live Nifty/Sensex/sector data via yfinance plus market-wide headlines via Economic Times' public RSS feed (no API key — explicitly chosen over NewsAPI's free tier, which forbids this use per the comment at <code class="cite">analyzer.py:1-9</code>); <code class="cite">modules/equity_research/</code> pulls per-company fundamentals by scraping screener.in and live price/news via yfinance. See <a href="#s18">§18</a> and <a href="#s19">§19</a>.</p>
+</section>
+
+<section id="s5">
+<p class="sec-eyebrow">05</p>
+<h2>Personal Finance Assistant Audit</h2>
+
+<h3>Financial understanding &amp; personalization</h3>
+<p>Persisted per-user in <code class="cite">shared/user_store.py</code>'s <code class="cite">FinancialProfile</code> table: income, age, dependents, existing EMI, emergency-fund months, city tier, tax regime, plus the latest risk label/confidence. This is genuinely minimal and well-chosen — no over-collection. Extraction from free text is a deliberately layered regex approach in <code class="cite">modules/finance/pipeline.py</code>: <code class="cite">_parse_indian_amount()</code> (lines 86–117) handles lakh/crore/k Indian numeric shorthand with word-boundary guards specifically added after two documented false-positive bugs (<code class="cite">"emi"</code> matching inside <code class="cite">"premium"</code>, <code class="cite">"earn"</code> matching inside <code class="cite">"learn"</code> — see the inline comment at line 92-94), and <code class="cite">_try_build_financial_profile()</code> (lines 200–232) merges new-turn values with the saved profile using explicit <code class="cite">is not None</code> checks (not truthy checks) so a legitimate "I earn 0 now" doesn't get silently discarded by a falsy-value bug — also explicitly commented (lines 208-209, 215-217). This is <em>the correct approach</em> for a system this size: pure regex, deliberately, with the reasoning left in the code. No LLM-based structured extraction exists or is needed here — the domain (Indian salary/EMI phrasing) is narrow enough that regex is both more reliable and drastically cheaper than a model call per turn.</p>
+
+<h3>Financial calculations — deterministic, correctly separated from the LLM</h3>
+<p>Every number a user sees is computed in plain Python before the LLM ever runs, and the LLM's system prompt for narration explicitly forbids inventing values (<code class="cite">M1_NARRATION</code> in <code class="cite">ai/llm/prompt_templates.py:43-82</code>: "Use ONLY the numbers provided below. Do NOT invent any values."). This is exactly the principle the brief asks to verify — it already holds:</p>
+<ul>
+<li><strong>Risk profile</strong> — real trained XGBoost classifier, not a rule (<a href="#s7">§7</a>)</li>
+<li><strong>Budget</strong> — real linear program via <code class="cite">scipy.optimize.linprog</code>, not the 50/30/20 rule as a hardcoded split (<code class="cite">modules/finance/budget_optimize.py</code>) — the 50/30/20 rule is explicitly the <em>starting point</em> the LP is built to override when infeasible, per the module docstring</li>
+<li><strong>Tax</strong> — closed-form Indian slab computation, both regimes, with Section 87A rebate and marginal-relief smoothing (<code class="cite">modules/finance/tax.py:57-68</code>) — slabs sourced and dated live against four tax sites (comment at lines 4-9)</li>
+<li><strong>SIP/EMI</strong> — standard closed-form annuity formulas (<code class="cite">modules/finance/sip_emi_calc.py</code>)</li>
+</ul>
+<p>None of this is embedded in prompts. The LLM's only job on the numeric side is turning a filled-in template into readable Indian-English prose.</p>
+
+<h3>Risk profiling, specifically</h3>
+<p>Real trained XGBoost multiclass classifier (<code class="cite">modules/finance/risk_model.py</code>), not a hardcoded formula — five profile features plus (when available) sixteen transaction-derived features (<code class="cite">features.py:15-32</code>), SHAP-explained top contributing factors per prediction (with a documented never-raise fallback if SHAP itself fails, <code class="cite">risk_model.py:49-65</code>). Per your project roadmap notes, this scored 0.99 macro-F1 in 5-fold CV on synthetic data. It is deterministic given its inputs, personalized to whatever profile fields exist, and — critically — is the <em>one</em> of the three finance ML models that stays meaningful even with zero transaction history, because its most important features (income, age, EMI-to-income) are always populated. This is the finance module's best-designed piece.</p>
+
+<div class="callout critical">
+<span class="label">Central finding — restated with full evidence</span>
+<p>The LSTM spend forecaster and Isolation Forest anomaly detector are <strong>real, correctly trained, correctly wired</strong> — and functionally inert in the live product, because nothing in the Streamlit UI ever collects a user's transaction history. <code class="cite">modules/finance/pipeline.py:232</code> hardcodes <code class="cite">transactions=[]</code> on every call. <code class="cite">forecast_model.py:150</code>'s own docstring says it plainly: "Falls back to an all-zero forecast (no ML) if there's no transaction history at all." <code class="cite">anomaly.py:23</code>'s <code class="cite">MIN_TRANSACTIONS = 10</code> guard means <code class="cite">detect_for_user</code> returns <code class="cite">[]</code> unconditionally in the live app. Both models train and evaluate correctly offline (per your roadmap: LSTM MAE 2.3% of income, Isolation Forest caught 15/15 injected anomalies on synthetic data) — the gap is entirely in the interface layer, not the models. See <a href="#s21">§21</a> for the fix, which is a UI feature, not a model change.</p>
+</div>
+</section>
+
+<section id="s6">
+<p class="sec-eyebrow">06</p>
+<h2>Finance Tutor Audit</h2>
+<p>One correction to the brief's own framing before the audit: what's implemented is <strong>Deep Knowledge Tracing</strong> (Piech et al. 2015 — an LSTM over one-hot concept/correctness sequences, <code class="cite">modules/tutor/knowledge.py:20-44</code>), not classical <strong>Bayesian</strong> Knowledge Tracing (which would be a per-concept 4-parameter HMM). They solve the same problem — mastery estimation from an interaction sequence — but DKT is the more modern, higher-capacity approach and is what the code, the class name, and the training script (<code class="cite">modules/tutor/train/train_lstm_kt.py</code>) actually implement. Worth knowing precisely, since "BKT" and "DKT" get used interchangeably in casual conversation about this kind of system but are different models with different guarantees.</p>
+
+<h3>Retrieval</h3>
+<p>Real Sentence-BERT (<code class="cite">all-MiniLM-L6-v2</code>) + FAISS cosine search over a 50-concept knowledge base (<code class="cite">modules/tutor/retriever.py</code>), gated by an empirically-tuned similarity threshold (<code class="cite">config/settings.py:79-82</code>: "genuinely off-topic queries score ≤0.23, misspelled-but-real finance queries score ≥0.41" — a threshold chosen from data, not guessed). Below threshold, the pipeline correctly falls through to a generic tutor prompt instead of forcing a bad concept match. This is real, live, and load-bearing on every tutor query — no gap here.</p>
+
+<h3>DKT (mastery)</h3>
+<p>Real trained LSTM, correctly called from <code class="cite">modules/tutor/orchestrator.py:40</code> on every tutor turn. <strong>But</strong> its input is the user's persisted interaction history (<code class="cite">shared/user_store.get_learning_state</code>), and that history can only grow via <code class="cite">record_answer()</code> — which nothing in <code class="cite">interface/streamlit_app.py</code> ever calls (confirmed by grep across the whole file: zero matches for <code class="cite">record_answer</code>). Every real user's mastery vector is permanently the cold-start default (<code class="cite">knowledge.py:101-104</code>: all-zero when <code class="cite">history</code> is empty) in the shipped product today.</p>
+
+<h3>DQN (teaching-action selection) — real RL, not decorative, but starved of state</h3>
+<p>This is genuinely a trained <code class="cite">stable_baselines3.DQN</code> policy (<code class="cite">modules/tutor/teaching.py</code>), trained via self-play against a simulated tutoring environment (no external dataset — <code class="cite">modules/tutor/train/train_dqn_teacher.py</code>), evaluated to a mean reward of 3.75 against a >0 target per your roadmap notes. State: <code class="cite">[mastery_target, avg_mastery_prereqs, last_5_accuracy, session_length, concept_difficulty]</code>; six actions (simplify / example / quiz / deepen / analogy / prerequisite). This is a real, non-trivial application of RL to an actual decision (not an RL system bolted on for demo value with no real choice attached to it) — the honest caveat is that because <code class="cite">mastery_target</code> and <code class="cite">last_5_accuracy</code> never move off their cold-start defaults in the live app (see above), the policy is currently always evaluating close to the same state vector, so its <em>trained variety</em> of behavior is not visible to a real user, even though the policy itself is real and was genuinely trained to handle a range of states.</p>
+
+<div class="callout rebuild">
+<span class="label">Rebuild, not remove</span>
+<p>The fix here is small relative to the models it unlocks: a quiz-answer widget in the Chat tab (radio buttons over <code class="cite">QuizItem.correct_answer</code> + <code class="cite">wrong_answers</code>, already fully generated and already flowing through the response dict at <code class="cite">modules/tutor/pipeline.py:38</code>) that calls <code class="cite">modules.tutor.orchestrator.record_answer(user_id, concept_id, is_correct)</code> on submit. That one widget makes DKT and DQN — both already real, already trained, already wired everywhere else — actually observable and actually adaptive for a real user. This is the single highest-leverage change surfaced by this entire audit.</p>
+</div>
+
+<h3>TAXAL explanation &amp; quiz generation</h3>
+<p>Both are thin, well-scoped LLM calls with strict parsing (<code class="cite">modules/tutor/explainer.py</code>, <code class="cite">modules/tutor/quiz.py</code>) — level-appropriate (1–8) via <code class="cite">TAXAL_LEVEL_HINTS</code>/<code class="cite">TAXAL_LENGTH</code> dictionaries in <code class="cite">ai/llm/prompt_templates.py:17-37</code>, further styled by the DQN's chosen action via <code class="cite">TAXAL_ACTION_STYLE_HINTS</code> (lines 110-117). <code class="cite">quiz.py</code>'s parser returns <code class="cite">None</code> on malformed LLM output rather than crashing or fabricating a quiz — good defensive design.</p>
+</section>
+
+<section id="s7">
+<p class="sec-eyebrow">07</p>
+<h2>Financial Tools Audit</h2>
+<div class="twrap"><table>
+<thead><tr><th>Tool</th><th>File</th><th>Deterministic?</th><th>Tested?</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Risk profile</td><td><code>modules/finance/risk_model.py</code></td><td>Given inputs, yes (trained XGBoost, no randomness at inference)</td><td>Yes — <code>tests/finance/test_risk_model.py</code></td><td>Real ML, always reachable (§5)</td></tr>
+<tr><td>Budget (LP)</td><td><code>modules/finance/budget_optimize.py</code></td><td>Yes — <code>scipy.linprog</code></td><td>Yes — <code>tests/finance/test_budget_optimize.py</code></td><td>Raises a human-readable <code>ValueError</code> on infeasible input instead of crashing (lines 72-86)</td></tr>
+<tr><td>Tax (old/new regime)</td><td><code>modules/finance/tax.py</code></td><td>Yes — closed-form slabs</td><td>Yes — <code>tests/finance/test_tax.py</code></td><td>Slabs dated + sourced in-file; explicitly "not a certified tax-filing tool" (line 9)</td></tr>
+<tr><td>SIP future value / required</td><td><code>modules/finance/sip_emi_calc.py</code></td><td>Yes — closed-form annuity math</td><td>Yes — <code>tests/finance/test_sip_emi_calc.py</code></td><td>—</td></tr>
+<tr><td>EMI + total interest</td><td><code>modules/finance/sip_emi_calc.py</code></td><td>Yes — reducing-balance formula</td><td>Yes (same file)</td><td>—</td></tr>
+<tr><td>Spend forecast</td><td><code>modules/finance/forecast_model.py</code></td><td>Yes, given a sequence — but LSTM never sees real sequences live</td><td>Yes — <code>tests/finance/test_forecast_model.py</code></td><td>Real, trained, cold in production (§5)</td></tr>
+<tr><td>Anomaly detection</td><td><code>modules/finance/anomaly.py</code></td><td>Yes, per-user fit — but never fit live (needs 10+ txns)</td><td>Yes — <code>tests/finance/test_anomaly.py</code></td><td>Real, trained, cold in production (§5)</td></tr>
+</tbody>
+</table></div>
+<p>Every tool in this table is unit-tested against real numeric expectations, not mocked math — this is the correct testing posture for financial calculations specifically (see <a href="#s17">§17</a>). No calculation anywhere in the finance module is delegated to the LLM.</p>
+</section>
+
+<section id="s8">
+<p class="sec-eyebrow">08</p>
+<h2>LLM / AI Architecture Audit</h2>
+<p>One LLM client, one call surface, used everywhere: <code class="cite">ai/llm/groq_client.generate_response(prompt, system_prompt)</code>. Every one of the four modules imports this single function — there is no per-module LLM wrapper duplication, no scattered client instantiation. This is the "LLM abstraction → provider → model" shape the brief asks for, already built, just without formal provider classes: a plain function with an internal two-tuple <code class="cite">_BACKENDS</code> list (<code class="cite">groq_client.py:129</code>) that tries Groq then Gemini in order.</p>
+
+<h3>Provider &amp; fallback design</h3>
+<p>Two providers, not more (no Ollama, no local FinGPT, no third cloud provider — the original PDF plan's local-LLM idea was explicitly and correctly dropped per your roadmap notes, since it needed ~14GB VRAM this project doesn't have and can't assume for public deployment). The fallback chain is exactly two deep, wrapped so a caller can never see an unhandled exception — <code class="cite">generate_response</code> always returns a string, prefixed <code class="cite">"Error: ..."</code> on total failure, which <code class="cite">interface/streamlit_app.py:116-125</code>'s <code class="cite">render_response</code> specifically detects and turns into a clear user-facing banner instead of leaking a raw error string into the chat. This is not excessive fallback logic — it's the minimum needed for "a free-tier API might rate-limit" to not mean "the demo breaks," and it's exactly two providers, not a chain of five.</p>
+<p>One real, current bug found and fixed live during this session (not part of this audit's read-only scope, but material to note): both <code class="cite">DEFAULT_MODEL_NAME</code> (Groq) and <code class="cite">DEFAULT_GEMINI_MODEL</code> had drifted to retired model IDs as of today. Both providers' hosted catalogs move fast enough that hardcoded model-ID defaults are a genuine, recurring maintenance surface — worth a periodic live check, not a one-time fix.</p>
+
+<h3>Is this actually agentic?</h3>
+<p>Partially, and it says so honestly rather than dressing up prompt engineering as agency. What's genuinely present: real tool use (deterministic finance calculators, real yfinance/screener.in data fetches, real vector retrieval), real state (SQLite profile + mastery, session chat history), and one real closed-loop decision system (the tutor's DQN choosing an action from live-ish state). What's <em>not</em> present: the LLM itself never chooses which tool to call — that decision is made entirely by <code class="cite">core/router.py</code>'s deterministic keyword/regex predicates before the LLM is ever invoked. There's no LLM-driven planning step, no ReAct-style loop, no LLM function-calling. This is the right architecture for this product (a routed, tool-augmented assistant), and it's honest to describe it as <strong>router + tools + state</strong>, not <strong>agent</strong> in the tool-calling-loop sense — using the more inflated label wouldn't survive a technical interview follow-up question, and the simpler true description is more defensible, not less impressive.</p>
+</section>
+
+<section id="s9">
+<p class="sec-eyebrow">09</p>
+<h2>User State / Memory Audit</h2>
+<p>Two genuinely different, correctly separated memory systems exist — worth naming explicitly since nothing in the code currently calls out the split as a design decision:</p>
+<div class="two-col">
+<div class="callout good"><span class="label">Persistent — shared/user_store.py</span><p>SQLite (<code class="cite">FinancialProfile</code>, <code class="cite">LearningState</code>), keyed by session/user id. Survives restarts. Holds exactly the minimal fields the brief asks for: income, age, dependents, EMI, emergency-fund months, city tier, tax regime, risk label (M1); per-concept mastery + interaction history (M2). No overcollection.</p></div>
+<div class="callout warn"><span class="label">Ephemeral — core/session.py</span><p>A single in-process <code class="cite">dict[str, dict]</code> (<code class="cite">_SESSIONS</code>). Chat turn history only. Lost on every restart, and — because it's keyed purely by whatever <code class="cite">session_id</code> a caller passes — shared across any two callers that happen to pass the same id. In the main Streamlit UI this is safe: each browser tab gets a fresh <code class="cite">uuid4()</code> (<code class="cite">streamlit_app.py:480-481</code>, with a comment confirming this is deliberate for concurrent visitors). It was <em>not</em> safe in the Tavus bridge before this session's fix, which hardcoded a shared <code class="cite">session_id="tavus"</code> for every conversation — now changed to read history from the request's own message list instead of touching this store at all.</p></div>
+</div>
+<p>Minimal state is already the reality here, not a target to migrate toward. The one thing worth documenting (not fixing) is that ephemeral chat history and persistent structured profile were never explicitly designed as a two-tier memory system — they just ended up that way, correctly, through two different modules solving two different problems.</p>
+</section>
+
+<section id="s10">
+<p class="sec-eyebrow">10</p>
+<h2>Voice System Audit</h2>
+<div class="twrap"><table>
+<thead><tr><th>Layer</th><th>Primary</th><th>Fallback</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>STT</td><td>OpenAI Whisper (<code>base.en</code>, local) — <code>ai/speech/stt.py</code></td><td>None</td><td>Single engine, not faster-whisper. CUDA auto-detected, safe CPU fallback (lines 111-124). Runs synchronously in the Streamlit request thread — acceptable at demo scale, would need a job queue at real scale.</td></tr>
+<tr><td>TTS</td><td>edge-tts (neural, <code>en-IN-NeerjaNeural</code>) — <code>ai/speech/tts.py</code></td><td>pyttsx3 (fully offline)</td><td>Clean two-tier design: async edge-tts call wrapped in a thread with a hard timeout (<code>_run_edge_tts</code>, lines 57-88), falling back to pyttsx3 only on failure. No Coqui TTS — correctly not needed given edge-tts already covers "high quality, free, no API key."</td></tr>
+</tbody>
+</table></div>
+<div class="callout warn">
+<span class="label">Code quality — portability</span>
+<p><code class="cite">ai/speech/stt.py:82-86</code> hardcodes a Windows path under a different developer's user account into the ffmpeg-discovery candidate list: <code class="cite">C:\Users\jtmah\AppData\Local\...\ffmpeg-8.1-full_build\bin</code>. Harmless (it's just one more candidate that will never exist on your machine and gets skipped), but it's a leftover from a copied snippet and won't work on any machine but that one — worth removing on the next pass through this file.</p>
+</div>
+<p>Both engines are lazy-loaded, thread-safe (STT uses a module-level lock, line 51), and have real <code class="cite">unload()</code>/health-check functions. Overall this is the simplest robust design available at this project's scale — no unnecessary redundancy, no missing fallback.</p>
+</section>
+
+<section id="s11">
+<p class="sec-eyebrow">11</p>
+<h2>Realistic Talking Avatar Audit</h2>
+<p>This is the part of the brief most worth correcting against the actual repository: there is no LivePortrait, MuseTalk, Wav2Lip, or SadTalker anywhere in this codebase, and there never has been per the git history. The avatar is <strong>TalkingHead</strong> — a browser-native, WebGL-rendered, VRM-rigged 3D model with phoneme-driven lip-sync, loaded from jsdelivr's CDN at runtime (MIT licensed, no API key — <code class="cite">interface/avatar/NOTICE.md</code>). This is a fundamentally different, and for this project's constraints, correct category of technology: not video generation, not a diffusion or GAN-based talking-head model, but a real-time 3D rig animated by audio — closer to VTuber tooling than to deepfake-style avatar synthesis.</p>
+
+<div class="twrap"><table>
+<thead><tr><th>Technology</th><th>Present in repo?</th><th>Working?</th><th>Latency</th><th>GPU?</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>TalkingHead + HeadAudio (3D VRM, browser)</td><td>Yes — <code>interface/avatar/</code></td><td>Yes — verified live this session</td><td>Near-instant; audio embedded as base64, rendered client-side</td><td>No — runs on the viewer's browser GPU/WebGL, not the server</td><td class="num"><span class="pill keep">Keep</span></td></tr>
+<tr><td>Tavus CVI (WebRTC video avatar, paid API)</td><td>Yes, opt-in — <code>interface/avatar/tavus_cvi.py</code></td><td>Yes — provisioning, callback endpoint, and conversation teardown all verified live this session</td><td>~10s provisioning, then real-time video call</td><td>No local GPU — runs on Tavus's cloud</td><td><span class="pill optional">Optional</span></td></tr>
+<tr><td>LivePortrait / MuseTalk / Wav2Lip / SadTalker</td><td><strong>No</strong></td><td>n/a</td><td>n/a</td><td>n/a</td><td><span class="pill optional">Not present — nothing to cut</span></td></tr>
+</tbody>
+</table></div>
+
+<h3>Real-time classification</h3>
+<p>TalkingHead is genuine real-time streaming, not pre-generated or generate-on-demand — the browser animates the 3D rig live against the audio waveform the moment it's embedded; there is no server-side video render step at all, which is precisely why it needs no GPU and imposes no per-response latency cost beyond LLM narration + TTS synthesis. This is the most practical possible answer to "realistic, convincing, demonstrable, not maximum model complexity" — the brief's own stated goal — and it already exists exactly as specced.</p>
+
+<h3>Modularity</h3>
+<p><code class="cite">interface/avatar/render.py</code>'s <code class="cite">build_avatar_html()</code> takes only a response's audio path as input and returns self-contained HTML; it has zero imports from <code class="cite">modules/</code>, <code class="cite">core/</code>, or <code class="cite">shared/</code>. Swapping the avatar out would touch only <code class="cite">interface/streamlit_app.py</code>'s rendering branch (currently gated on <code class="cite">turn.get("mode") == "Conversational Mode"</code>, <code class="cite">streamlit_app.py:400</code>) — finance logic, tutor logic, and the LLM layer are provably untouched by an avatar swap, which is exactly the modularity principle the brief asks to verify. The Tavus integration proves this in practice: it was added as a third, fully independent mode (<code class="cite">"Tavus CVI Mode (WebRTC)"</code>) without modifying a single line of <code class="cite">core/</code> or <code class="cite">modules/</code>.</p>
+</section>
+
+<section id="s12">
+<p class="sec-eyebrow">12</p>
+<h2>API Audit</h2>
+<p>There is no REST API surface for the core product — Streamlit calls Python functions in-process. This is not a gap to fill; a separate API layer would add a network hop and a serialization boundary for zero benefit to a single-process demo app, and nothing about the brief's stated goals (personal use, thesis defense, eventual Streamlit Cloud deploy) needs one. The only real HTTP server in the repository is the Tavus custom-LLM bridge, which exists specifically because Tavus's cloud needs a public URL to call into — a genuine, external constraint, not an architectural choice made for its own sake.</p>
+<div class="twrap"><table>
+<thead><tr><th>Endpoint</th><th>File</th><th>Purpose</th><th>Caller</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><code>POST /v1/chat/completions</code></td><td><code>interface/avatar/tavus_llm_server.py</code></td><td>OpenAI-compatible bridge — Tavus's cloud calls this to get ARIA's answer for a spoken turn</td><td>Tavus's servers, via the ngrok tunnel</td><td><span class="pill keep">Keep</span> — verified live this session (200, correct TAXAL-formatted response)</td></tr>
+<tr><td><code>GET /healthz</code></td><td>same file</td><td>Liveness probe, added this session</td><td>Not yet called by anything — added defensively</td><td><span class="pill optional">Optional</span></td></tr>
+</tbody>
+</table></div>
+<p>No duplicated endpoints, no dead routes, no versioning inconsistency — because there are only two routes total, both single-purpose, both scoped to the one feature that genuinely needs a network-reachable server.</p>
+</section>
+
+<section id="s13">
+<p class="sec-eyebrow">13</p>
+<h2>Database / Storage Audit</h2>
+<div class="twrap"><table>
+<thead><tr><th>Store</th><th>Technology</th><th>Contents</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>User profile + learning state</td><td>SQLite, SQLAlchemy ORM (<code>shared/user_store.py</code>)</td><td><code>financial_profiles</code>, <code>learning_state</code> tables</td><td>Two tables, both minimal, both correctly normalized to their module. No ORM session leaks to callers — every function is dict-in/dict-out (module docstring, lines 10-13).</td></tr>
+<tr><td>Concept vectors</td><td>FAISS flat index + JSON metadata (<code>shared/vector_store.py</code>)</td><td><code>data/vector_store/concepts/</code></td><td>Namespaced by design for future reuse by other modules — not over-engineered, just deliberately not hardcoded to one caller.</td></tr>
+<tr><td>Chat history</td><td>In-process dict (<code>core/session.py</code>)</td><td>Turn-by-turn Q&amp;A, ephemeral</td><td>Correctly not persisted — this is working memory, not a record that needs to survive a restart.</td></tr>
+<tr><td>Generated audio</td><td>OS temp files (<code>tempfile.NamedTemporaryFile</code>)</td><td>TTS <code>.mp3</code>/<code>.wav</code> per response</td><td>Correctly not persisted — never written into the repo or a permanent data dir.</td></tr>
+<tr><td>Tavus runtime files</td><td>Plain text files (<code>ngrok_url.txt</code>, <code>.tavus_persona_cache.json</code>)</td><td>Tunnel URL + cached persona id</td><td>Added/gitignored this session — regenerated per run, not committed.</td></tr>
+</tbody>
+</table></div>
+<p>Nothing here is over-persisted, and nothing that should persist is missing. The one gap is upstream of storage, not in it: there's no transaction-history table for Module 1 to write into even if a UI existed to collect it (see <a href="#s21">§21</a>'s recommended fix, which would need one).</p>
+</section>
+
+<section id="s14">
+<p class="sec-eyebrow">14</p>
+<h2>Dependency Audit</h2>
+<div class="twrap"><table>
+<thead><tr><th>Dependency</th><th>Used for</th><th>Justified?</th></tr></thead>
+<tbody>
+<tr><td><code>xgboost</code>, <code>shap</code></td><td>Module 1 risk model + explanations</td><td>Yes — real trained model, real per-prediction explanation</td></tr>
+<tr><td><code>torch</code></td><td>LSTM spend forecast, DKT, Whisper</td><td>Yes, though it's the single heaviest dependency in the stack and is pulled in by three unrelated features — worth knowing it's not optional even if you cut the two ML models it backs, since Whisper needs it too</td></tr>
+<tr><td><code>scipy</code></td><td>LP budget optimizer</td><td>Yes — one function, <code>linprog</code>, genuinely load-bearing</td></tr>
+<tr><td><code>faiss-cpu</code>, <code>sentence-transformers</code></td><td>Concept retrieval</td><td>Yes — real semantic search, real threshold-gated confidence</td></tr>
+<tr><td><code>gymnasium</code>, <code>stable-baselines3</code></td><td>DQN teaching policy training + inference</td><td>Yes, real RL — see caveat in §6 about the policy's state currently being starved, not about the dependency being unjustified</td></tr>
+<tr><td><code>groq</code>, <code>google-genai</code></td><td>LLM narration, two providers</td><td>Yes — both actively used, no redundant third provider</td></tr>
+<tr><td><code>openai-whisper</code>, <code>imageio-ffmpeg</code></td><td>STT</td><td>Yes</td></tr>
+<tr><td><code>edge-tts</code>, <code>pyttsx3</code></td><td>TTS primary + fallback</td><td>Yes, both actually reachable (§10)</td></tr>
+<tr><td><code>yfinance</code>, <code>beautifulsoup4</code>, <code>requests</code></td><td>Modules 3/4 live data</td><td>Yes</td></tr>
+<tr><td><code>sqlalchemy</code></td><td>User store ORM</td><td>Yes, appropriately light (two tables)</td></tr>
+<tr><td><code>streamlit</code></td><td>The entire UI/app framework</td><td>Yes</td></tr>
+<tr><td><code>fastapi</code>, <code>uvicorn</code>, <code>pyngrok</code></td><td>Tavus CVI bridge only</td><td>Justified <em>only if you keep Tavus mode</em> — these three exist for one optional, paid feature and nothing else in the app touches them. If Tavus mode is ever dropped, these three drop with it cleanly (no other module imports them).</td></tr>
+</tbody>
+</table></div>
+<p>No duplicate libraries solving the same problem (e.g. two HTTP clients, two ORMs, two vector-search libraries). <code class="cite">pyproject.toml</code> currently only holds pytest config — there's no <code class="cite">[project]</code> dependency declaration, so <code class="cite">pip install -e .</code> isn't supported; <code class="cite">requirements.txt</code> is the sole source of truth for install. Not a defect at this scale, just worth knowing if packaging ever becomes a goal.</p>
+</section>
+
+<section id="s15">
+<p class="sec-eyebrow">15</p>
+<h2>Code Quality Audit</h2>
+<div class="twrap"><table>
+<thead><tr><th>File : line</th><th>Issue</th><th>Severity</th></tr></thead>
+<tbody>
+<tr><td><code>modules/finance/utils.py:6</code></td><td>Imports <code>RiskPrediction</code> from <code>modules.finance.risk_model</code> — that name does not exist in that module (verified: <code>python -c "import modules.finance.utils"</code> raises <code>ImportError</code> immediately). The whole file cannot be imported.</td><td class="num"><span class="pill remove">Broken</span></td></tr>
+<tr><td><code>modules/finance/utils.py</code> (whole file)</td><td>Duplicates <code>BudgetAllocation</code> and <code>SipPlan</code> with different field shapes than the real pydantic schemas in <code>modules/finance/schemas.py</code>, and duplicates budget/SIP logic with simpler, non-LP, hardcoded-ratio math than the real <code>budget_optimize.py</code>/<code>orchestrator.py</code>. Zero importers anywhere in the codebase (grep-confirmed).</td><td class="num"><span class="pill remove">Dead + confusing</span></td></tr>
+<tr><td><code>modules/tutor/utils.py</code></td><td><code>load_kt_sequences()</code> always returns <code>[]</code>. Zero importers.</td><td class="num"><span class="pill remove">Dead</span></td></tr>
+<tr><td><code>shared/data_loader.py</code></td><td>Placeholder <code>FinancialProfile</code> dataclass (name-collides with the real SQLAlchemy <code>FinancialProfile</code> in <code>user_store.py</code>) + stub <code>load_mock_data</code>/<code>load_csv</code>. Zero importers anywhere in source (only appears in the generated PDF/MD report).</td><td class="num"><span class="pill remove">Dead + naming collision</span></td></tr>
+<tr><td><code>interface/components.py</code></td><td>One dead <code>header()</code> helper. Zero importers — the real rendering (<code>render_response</code>, cards, etc.) all lives directly in <code>streamlit_app.py</code>.</td><td class="num"><span class="pill remove">Dead</span></td></tr>
+<tr><td><code>main.py</code> (root)</td><td>Argparse scaffold that prints "not implemented." Not the real entrypoint (that's <code>streamlit run interface/streamlit_app.py</code>, correctly documented in <code>README.md</code>).</td><td class="num"><span class="pill remove">Dead</span></td></tr>
+<tr><td><code>config/model_config.py:18-35</code></td><td><code>XGB_PARAMS</code> hardcodes <code>"device": "cuda"</code>. Never used directly — only <code>XGB_CPU_PARAMS</code> (a copy with <code>device</code> overridden) is imported by the training script (confirmed: <code>train_xgb_risk.py:17,60</code>). Behavior is correct; the dead block just contradicts the README's explicit "no GPU needed anywhere in this project" claim on a read-through.</td><td class="num"><span class="pill simplify">Misleading, harmless</span></td></tr>
+<tr><td><code>modules/equity_research/screener_adapter.py:63,68</code></td><td><code>requests.get(url, headers=...)</code> with no <code>timeout</code> — a slow/hung screener.in response blocks the single Streamlit request thread indefinitely. (<code>modules/market/analyzer.py:107</code>'s equivalent call correctly sets <code>timeout=8</code> — inconsistent between two very similar modules.)</td><td class="num"><span class="pill simplify">Reliability</span></td></tr>
+<tr><td><code>ai/speech/stt.py:82-86</code></td><td>Hardcoded ffmpeg path under a different machine's username (<code>C:\Users\jtmah\...</code>) in the fallback candidate list.</td><td class="num"><span class="pill simplify">Portability nit</span></td></tr>
+<tr><td><code>models/intent_classifier/</code>, <code>models/ner_extractor/</code>, <code>models/embeddings/</code>, <code>models/llm/</code></td><td>Four empty model directories with no <code>.gitkeep</code> even, unlike <code>models/finance/</code> and <code>models/tutor/</code> which hold real artifacts. Physical trace of an abandoned "train a real intent classifier + NER model" plan, superseded by the keyword/regex versions in <code>shared/intent_classifier.py</code> and <code>shared/ner.py</code> that are what's actually live.</td><td class="num"><span class="pill simplify">Scaffold debris</span></td></tr>
+</tbody>
+</table></div>
+<p>Outside this list, the code quality bar is genuinely high: functions are short and single-purpose, docstrings explain <em>why</em> not just what (the false-positive-regex comments in <code class="cite">finance/pipeline.py</code> and the M1/M2 routing-order comment in <code class="cite">core/orchestrator.py</code> are good examples of exactly the kind of institutional-memory comment that prevents a bug from being silently reintroduced), and every ML component has an explicit <code class="cite">is_trained()</code> guard with a clear "train it first: <code class="cite">python -m ...</code>" error rather than crashing on a missing file.</p>
+</section>
+
+<section id="s16">
+<p class="sec-eyebrow">16</p>
+<h2>Security Audit</h2>
+<ul>
+<li><strong>Secrets handling</strong> — real API keys live only in a gitignored <code class="cite">.env</code>; <code class="cite">.env.example</code> documents every key with no real values. No key is hardcoded in source. Good.</li>
+<li><strong>No timeout on outbound scraping calls</strong> — <code class="cite">screener_adapter.py:63,68</code> (see §15). Not exploitable by a third party, but a legitimate availability risk (one slow upstream page hangs a user's session).</li>
+<li><strong>The Tavus FastAPI bridge has no authentication</strong> (<code class="cite">tavus_llm_server.py</code>) — it binds <code class="cite">0.0.0.0:8000</code> and is tunneled publicly via ngrok for the duration of a session. Anyone who obtains the ngrok URL while it's live could POST to <code class="cite">/v1/chat/completions</code> and get free, unauthenticated completions routed through your Groq/Gemini keys. Low real-world risk given ngrok URLs are random and short-lived per session, but worth knowing this is an open relay while it's running, not a private one.</li>
+<li><strong>Web scraping fragility, not a security issue but adjacent</strong> — <code class="cite">screener_adapter.py</code> parses screener.in's HTML structure directly (<code class="cite">section id="profit-loss"</code> etc.); any layout change on their end silently degrades to empty data (handled gracefully — <code class="cite">get_screener_data</code> catches and returns <code class="cite">{"error": ...}</code> — but worth knowing this is inherently a brittle integration, structurally, not a bug).</li>
+<li><strong>No PII logging found</strong> — <code class="cite">loguru</code> calls throughout log query text and computed numbers, not names/emails/financial account identifiers, since none of those are ever collected in the first place.</li>
+<li><strong>CORS / auth</strong> — not applicable to the Streamlit app itself (no separate frontend origin); not configured on the Tavus bridge, consistent with the "no auth" point above.</li>
+</ul>
+</section>
+
+<section id="s17">
+<p class="sec-eyebrow">17</p>
+<h2>Testing Audit</h2>
+<div class="stat-grid">
+  <div class="stat-box"><div class="n">50</div><div class="l">passing tests, verified live this session</div></div>
+  <div class="stat-box"><div class="n">10</div><div class="l">finance + tutor unit test files</div></div>
+  <div class="stat-box"><div class="n">1</div><div class="l">router logic test file (pure predicates, no ML/LLM)</div></div>
+  <div class="stat-box"><div class="n">1</div><div class="l">adversarial corpus (crash-resistance, not correctness)</div></div>
+</div>
+<p>The mocking strategy (<code class="cite">tests/conftest.py</code>) is worth calling out specifically as well-engineered, not just present: it patches <code class="cite">generate_response</code> in <em>every module that imported it by value</em> (nine call sites, explicitly enumerated with a comment explaining <em>why</em> a single source-module patch isn't sufficient — Python binds a local reference on <code class="cite">from x import y</code>). That's the kind of test-infrastructure detail that's easy to get subtly wrong (patch the source, tests silently still hit the real API) and here it's correct and documented.</p>
+<p>Financial calculations are tested against real expected numbers (deterministic assertions), not snapshot/implementation-detail tests — exactly the bar the brief asks for. The adversarial suite (<code class="cite">test_adversarial.py</code>) tests a different, equally real property: that empty input, 2000-character input, off-topic input, and zero-income input never crash the pipeline, only that a well-formed response dict comes back — the right test for that concern, since narration <em>quality</em> under adversarial input isn't a property a unit test can meaningfully assert with a mocked LLM anyway.</p>
+<p><strong>Coverage gaps, honestly:</strong> no automated test touches <code class="cite">modules/market/</code> or <code class="cite">modules/equity_research/</code> directly (both are only exercised transitively through the adversarial suite's multi-intent test); no test covers STT, TTS, or the avatar render path (reasonable — these need real audio/browser fixtures, not unit tests); and the Tavus integration added this session has zero automated coverage — it was verified live/manually only, which was the right call for external-API-dependent code but is worth formalizing if the feature stays.</p>
+</section>
+
+<hr class="rule">
+
+<section id="s18">
+<p class="sec-eyebrow">18</p>
+<h2>Future Finance News Architecture</h2>
+<p>This is not a green-field design problem — <code class="cite">modules/market/analyzer.py</code> already answers a version of "what happened in the market today": <code class="cite">get_index_snapshot()</code> (Nifty/Sensex level + 5-day trend via yfinance), <code class="cite">get_sector_snapshot()</code> (equal-weight sector basket trend), and <code class="cite">get_market_news()</code> (live headlines via Economic Times' public RSS, explicitly chosen over NewsAPI because NewsAPI's free tier forbids this exact use — a real, considered decision, not an oversight). "What happened in finance today" and "how did the Indian stock market perform today" are already answerable today by Module 3, routed automatically via <code class="cite">core/router.is_broad_market_query()</code>.</p>
+<p>What's genuinely future work: a daily-digest framing ("summarize today" rather than "answer this specific question"), and possibly a scheduled/cached daily snapshot instead of computing on every request (currently <code class="cite">lru_cache</code>d per-process, which resets on every Streamlit restart — fine for a demo, not for a always-on daily-briefing feature). Neither needs a new <code class="cite">FinanceNewsService</code> abstraction; <code class="cite">MarketAnalyzer</code> already <em>is</em> that service, under Module 3's name.</p>
+</section>
+
+<section id="s19">
+<p class="sec-eyebrow">19</p>
+<h2>Future Equity Research Architecture</h2>
+<p>Same correction applies more strongly here: this isn't future work, it's a complete, working Module 4 today. "Analyze TCS" and "Compare HDFC Bank and ICICI Bank" both already route correctly — <code class="cite">shared/company_resolver.py</code> maps 25+ common Indian company names/aliases to screener.in tickers, <code class="cite">modules/equity_research/financial_pipeline.py</code> pulls real revenue/profit/debt/equity history from screener.in and grounds the LLM response strictly in those scraped numbers ("Use ONLY the numbers provided below," <code class="cite">financial_pipeline.py:134</code>), and <code class="cite">modules/equity_research/investment.py</code> separately handles live price/PE/market-cap/news via yfinance, with an LLM-assisted company-name-resolution fallback for names Yahoo's own search can't match directly (<code class="cite">investment.py:41-64</code>).</p>
+<p>Genuine future extension, not currently present: side-by-side company <em>comparison</em> ("Compare HDFC Bank and ICICI Bank" today resolves to whichever single company the resolver matches first, not a two-company diff) — this would be a real, scoped addition: run <code class="cite">process_financial_query</code> twice and add a comparison-specific prompt, reusing every existing piece. No architectural change needed, just a new branch in <code class="cite">modules/equity_research/pipeline.py</code>.</p>
+</section>
+
+<hr class="rule">
+
+<section id="s20" class="wide">
+<p class="sec-eyebrow">20</p>
+<h2>Feature Classification</h2>
+<div class="twrap"><table>
+<thead><tr><th>Feature</th><th>Implementation</th><th>Live &amp; reachable?</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>XGBoost risk profile</td><td><code>modules/finance/risk_model.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>LP budget optimizer</td><td><code>modules/finance/budget_optimize.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>Tax engine</td><td><code>modules/finance/tax.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>SIP/EMI calculators</td><td><code>modules/finance/sip_emi_calc.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>LSTM spend forecast</td><td><code>modules/finance/forecast_model.py</code></td><td>No — needs transaction UI (§5)</td><td><span class="pill rebuild">Rebuild the feed</span></td></tr>
+<tr><td>Isolation Forest anomalies</td><td><code>modules/finance/anomaly.py</code></td><td>No — same gap</td><td><span class="pill rebuild">Rebuild the feed</span></td></tr>
+<tr><td>SBERT+FAISS concept retrieval</td><td><code>modules/tutor/retriever.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>DKT mastery tracking</td><td><code>modules/tutor/knowledge.py</code></td><td>No — needs quiz-answer UI (§6)</td><td><span class="pill rebuild">Rebuild the feed</span></td></tr>
+<tr><td>DQN teaching policy</td><td><code>modules/tutor/teaching.py</code></td><td>Real, but starved of varied state</td><td><span class="pill rebuild">Rebuild the feed</span></td></tr>
+<tr><td>TAXAL explanation + quiz gen</td><td><code>modules/tutor/explainer.py</code>, <code>quiz.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>Module 3 market data</td><td><code>modules/market/analyzer.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>Module 4 equity research</td><td><code>modules/equity_research/</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>Groq→Gemini LLM fallback</td><td><code>ai/llm/groq_client.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>Whisper STT + edge-tts/pyttsx3 TTS</td><td><code>ai/speech/</code></td><td>Yes, always</td><td><span class="pill keep">Keep</span></td></tr>
+<tr><td>TalkingHead 3D avatar</td><td><code>interface/avatar/</code></td><td>Yes, always</td><td><span class="pill keep">Keep — this is the product's face</span></td></tr>
+<tr><td>Tavus CVI (paid)</td><td><code>interface/avatar/tavus_cvi.py</code></td><td>Yes, opt-in</td><td><span class="pill optional">Optional</span></td></tr>
+<tr><td>Keyword intent classifier</td><td><code>shared/intent_classifier.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep as-is — simpler than the trained version the empty model dirs implied, and that's correct</span></td></tr>
+<tr><td>Regex NER</td><td><code>shared/ner.py</code></td><td>Yes, always</td><td><span class="pill keep">Keep as-is</span></td></tr>
+<tr><td><code>modules/finance/utils.py</code></td><td>—</td><td>No — can't even import</td><td><span class="pill remove">Remove</span></td></tr>
+<tr><td><code>modules/tutor/utils.py</code></td><td>—</td><td>No importers</td><td><span class="pill remove">Remove</span></td></tr>
+<tr><td><code>shared/data_loader.py</code></td><td>—</td><td>No importers</td><td><span class="pill remove">Remove</span></td></tr>
+<tr><td><code>interface/components.py</code></td><td>—</td><td>No importers</td><td><span class="pill remove">Remove</span></td></tr>
+<tr><td><code>main.py</code> (root)</td><td>—</td><td>Not the real entrypoint</td><td><span class="pill remove">Remove or replace with a one-line pointer to <code>streamlit run</code></span></td></tr>
+<tr><td>Empty <code>models/intent_classifier|ner_extractor|embeddings|llm/</code></td><td>—</td><td>Never populated</td><td><span class="pill remove">Remove the dirs</span></td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section id="s21">
+<p class="sec-eyebrow">21</p>
+<h2>Complexity Cut List</h2>
+<p class="lede">Six items. Every one is either genuinely broken, genuinely dead, or genuinely misleading — nothing here is being cut for being "too advanced." The real lift this audit found isn't cutting; it's the two feedback-loop rebuilds in §5/§6, which <em>add</em> a small amount of UI code to make existing, already-trained models matter.</p>
+
+<div class="cut-card">
+<h4><span class="pill remove">Remove</span> <code>modules/finance/utils.py</code> <span class="save">saves: one file, one import-time crash risk</span></h4>
+<p>Imports a class that doesn't exist (<code class="cite">RiskPrediction</code> from <code class="cite">risk_model.py</code>) — cannot be imported at all today. Duplicates <code class="cite">BudgetAllocation</code>/<code class="cite">SipPlan</code> with different, simpler, non-LP math than the real orchestrator uses. Nothing imports it. Nothing replaces it because nothing needs to — <code class="cite">budget_optimize.py</code> and <code class="cite">orchestrator.py</code> already do its job correctly.</p>
+</div>
+<div class="cut-card">
+<h4><span class="pill remove">Remove</span> <code>modules/tutor/utils.py</code> <span class="save">saves: one file</span></h4>
+<p><code class="cite">load_kt_sequences()</code> always returns <code class="cite">[]</code>. Zero importers. Nothing replaces it — training data loading for the real DKT model lives correctly in <code class="cite">scripts/generate_kt_sequences.py</code> and <code class="cite">modules/tutor/train/</code>.</p>
+</div>
+<div class="cut-card">
+<h4><span class="pill remove">Remove</span> <code>shared/data_loader.py</code> <span class="save">saves: one file, one confusing name collision</span></h4>
+<p>Its <code class="cite">FinancialProfile</code> dataclass shares a name with the real SQLAlchemy model in <code class="cite">user_store.py</code> — a genuine trap for a future reader who greps for "FinancialProfile" and finds two unrelated definitions. Zero importers in source.</p>
+</div>
+<div class="cut-card">
+<h4><span class="pill remove">Remove</span> <code>interface/components.py</code> <span class="save">saves: one file</span></h4>
+<p>One unused <code class="cite">header()</code> helper. All real UI rendering already lives in <code class="cite">streamlit_app.py</code>.</p>
+</div>
+<div class="cut-card">
+<h4><span class="pill remove">Remove or repoint</span> root <code>main.py</code> <span class="save">saves: confusion for a first-time reader</span></h4>
+<p>Prints "not implemented" and isn't the real entrypoint. Either delete it, or reduce it to the one line that matters: instructing the reader to run <code class="cite">streamlit run interface/streamlit_app.py</code>, which is already what <code class="cite">README.md</code> correctly says.</p>
+</div>
+<div class="cut-card">
+<h4><span class="pill simplify">Simplify</span> the dead CUDA block in <code>config/model_config.py:18-34</code> <span class="save">saves: one contradiction with the README's "no GPU" claim</span></h4>
+<p><code class="cite">XGB_PARAMS</code> (with <code class="cite">"device": "cuda"</code>) is never imported anywhere; only the CPU-forced copy is. Either delete <code class="cite">XGB_PARAMS</code> and keep only the CPU version under its own name, or add a one-line comment explaining it's kept only as the base dict <code class="cite">XGB_CPU_PARAMS</code> is derived from.</p>
+</div>
+
+<div class="callout good">
+<span class="label">Explicitly not on this list</span>
+<p>The DQN teaching policy, the LSTM spend forecaster, and the Isolation Forest anomaly detector. All three are real, correctly trained, correctly wired into their orchestrators, and unit-tested. Their problem is a missing UI feed, covered in §5/§6/§20 as <span class="pill rebuild">Rebuild</span> — not a reason to remove genuine thesis-grade ML work that a small UI addition would make fully live.</p>
+</div>
+</section>
+
+<section id="s22" class="wide">
+<p class="sec-eyebrow">22</p>
+<h2>Recommended Final Architecture</h2>
+<p>The honest recommendation is: keep the layering exactly as it is, because it already matches the target shape. What follows names the layers that already exist, so the shape is legible rather than implicit.</p>
+<div class="arch-tree">Interface Layer            interface/streamlit_app.py (text + voice input, avatar render)
+Agent / Application Layer  core/router.py + core/orchestrator.py (intent → module dispatch)
+Personal Finance Layer     modules/finance/  (profile, XGBoost risk, budget, tax, SIP)
+Education Layer            modules/tutor/    (retrieval, DKT, DQN, TAXAL, quiz)
+Market / Equity Layer      modules/market/, modules/equity_research/  (already-live "future" features)
+AI Layer                   ai/llm/  (Groq→Gemini, prompt templates)
+Voice Layer                ai/speech/  (Whisper, edge-tts/pyttsx3)
+Avatar Layer                interface/avatar/  (TalkingHead default, Tavus CVI opt-in)
+Data Layer                 shared/user_store.py (SQLite), shared/vector_store.py (FAISS)
+Config Layer               config/  (paths, settings, hyperparameters)</div>
+<p>The one real architectural change worth making is not structural — it's closing the two loops from §5/§6 (transaction entry → forecast/anomaly; quiz answer → DKT/DQN), which slot into the existing Personal Finance and Education layers without moving a single file.</p>
+</section>
+
+<section id="s23">
+<p class="sec-eyebrow">23</p>
+<h2>Recommended Directory Structure</h2>
+<p>No renames or moves are recommended — the existing layout already matches the responsibilities described in §22. The table below documents what belongs in each directory going forward, as a reference for future additions, not a migration target.</p>
+<div class="twrap"><table>
+<thead><tr><th>Directory</th><th>Belongs here</th><th>Does not belong here</th></tr></thead>
+<tbody>
+<tr><td><code>core/</code></td><td>Routing predicates, the single orchestrator, session state</td><td>Any module-specific business logic or calculation</td></tr>
+<tr><td><code>modules/&lt;name&gt;/</code></td><td>That module's pipeline, orchestrator, schemas, calculators, trained-model wrappers</td><td>Cross-module utilities (those go in <code>shared/</code>) or LLM client code (that goes in <code>ai/llm/</code>)</td></tr>
+<tr><td><code>shared/</code></td><td>Genuinely cross-module helpers actually imported by 2+ modules</td><td>Speculative "might be useful later" stubs — this is exactly how <code>data_loader.py</code> happened</td></tr>
+<tr><td><code>ai/</code></td><td>Provider-agnostic LLM/speech clients, prompt templates</td><td>Any finance/tutor-specific business rule</td></tr>
+<tr><td><code>interface/</code></td><td>Streamlit rendering, avatar embedding — presentation only</td><td>Calculation, routing, or persistence logic (verified clean today)</td></tr>
+<tr><td><code>config/</code></td><td>Paths, runtime env, hyperparameters — three files, three concerns, don't merge them</td><td>Any dead/unused constant block (§21)</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section id="s24">
+<p class="sec-eyebrow">24</p>
+<h2>Migration Plan</h2>
+<p>No rewrite. Six small, independent, low-risk phases — most are single-file deletions with no dependents to break, verified by grep in this audit.</p>
+<div class="twrap"><table>
+<thead><tr><th>Phase</th><th>Action</th><th>Files touched</th><th>Risk</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Freeze &amp; document (this audit)</td><td>None</td><td>None</td></tr>
+<tr><td>2</td><td>Delete the five dead/broken files from §21</td><td><code>modules/finance/utils.py</code>, <code>modules/tutor/utils.py</code>, <code>shared/data_loader.py</code>, <code>interface/components.py</code>, root <code>main.py</code></td><td>None — zero importers confirmed for each, verified live for the two broken ones</td></tr>
+<tr><td>3</td><td>Remove the dead CUDA config block + empty <code>models/*</code> dirs</td><td><code>config/model_config.py</code></td><td>None</td></tr>
+<tr><td>4</td><td>Add transaction-entry UI (form or CSV upload) in the Profile tab, writing to a new small SQLite table</td><td><code>interface/streamlit_app.py</code>, <code>shared/user_store.py</code></td><td>Low — additive only; unlocks LSTM forecast + Isolation Forest for real</td></tr>
+<tr><td>5</td><td>Add quiz-answer widget in the Chat tab, wired to <code>record_answer()</code></td><td><code>interface/streamlit_app.py</code></td><td>Low — additive only; unlocks DKT + DQN for real</td></tr>
+<tr><td>6</td><td>Add <code>timeout=</code> to the two bare <code>requests.get</code> calls in <code>screener_adapter.py</code>; remove the hardcoded foreign ffmpeg path in <code>stt.py</code></td><td>Two files, two lines each</td><td>None</td></tr>
+</tbody>
+</table></div>
+<p>Phases 2–3 and 6 are pure cleanup and can happen in any order, same day. Phases 4–5 are the only ones with real design work in them, and both are additive — nothing existing has to change shape to make room for them.</p>
+</section>
+
+<hr class="rule">
+
+<section id="s25">
+<p class="sec-eyebrow">25</p>
+<h2>SDE Value Assessment</h2>
+<p><strong>Genuinely strong for an SDE interview:</strong> the module boundary discipline (every pipeline is <code class="cite">run(query, user_id) -> dict</code>, swappable, testable in isolation); the fallback design in <code class="cite">groq_client.py</code> (two providers, never raises, caller-visible error state instead of a silent failure); the LP budget optimizer's infeasibility handling (<code class="cite">ValueError</code> with a human-readable reason, not a crash); the test-mocking infrastructure's correctness (patching by-value imports across nine call sites, documented why); and the routing-order bug fix documented directly in <code class="cite">core/orchestrator.py</code>'s comments — that kind of "here's the bug we hit and why the fix looks like this" comment is exactly what a strong SDE candidate's code review comments look like.</p>
+<p><strong>Reads as unnecessary accumulation:</strong> the five dead files in §21 — not because dead code is unforgivable, but because an interviewer who finds a broken, unreachable, un-tested file during a live walkthrough will ask why it's still there, and "leftover from an earlier version" is a weaker answer than having already removed it.</p>
+</section>
+
+<section id="s26">
+<p class="sec-eyebrow">26</p>
+<h2>AI/ML Value Assessment</h2>
+<p><strong>Genuine technical depth:</strong> six real trained models across two different families (supervised: XGBoost, LSTM×2, Isolation Forest; sequence: DKT; RL: DQN), each with its own training script, its own <code class="cite">is_trained()</code> guard, and — per your roadmap notes — real, disclosed evaluation numbers rather than cherry-picked ones (DKT's 0.74 held-out AUC below its own untested 0.80 target is documented honestly, not hidden). The retrieval-gated tutor (confidence threshold tuned from actual score distributions, not guessed) and the strictly-grounded equity-research prompts ("use ONLY the numbers provided") are both real, specific defenses against the two most common LLM-app failure modes — hallucinated numbers and false-confidence answers.</p>
+<p><strong>The one real gap, stated plainly:</strong> two of the six models (DKT, DQN) and two more from the finance side (LSTM forecast, Isolation Forest) currently only get exercised at or near their cold-start/degenerate input in the live product, for the UI reasons documented in §5/§6/§20. This doesn't diminish the modeling work itself — it's a live-product integration gap, and the fix is scoped and small (§24, phases 4-5).</p>
+</section>
+
+<section id="s27">
+<p class="sec-eyebrow">27</p>
+<h2>Finance/Quant Value Assessment</h2>
+<p>This is not, and doesn't present itself as, a quantitative trading system — no backtesting engine, no portfolio optimization against real market covariance, no execution logic. What it is: a personal-finance decision-support tool with real Indian tax law (sourced, dated, regime-aware), a real constrained optimizer for budget allocation, and real live market/company data grounding two of its four modules. The risk profiling is genuinely personalized (trained classifier, SHAP-explained) rather than a static questionnaire-to-label lookup table. For a BTP evaluated on "does this demonstrate real quantitative and financial reasoning, not just an LLM wrapper," the honest answer is yes on the finance and equity-research sides, and yes-but-currently-inert on the two adaptive-history models — which is a fixable, not fundamental, gap.</p>
+</section>
+
+<section id="s28">
+<p class="sec-eyebrow">28</p>
+<h2>Final Product Definition</h2>
+<div class="final-verdict">
+<p class="lede">ARIA is a conversational personal finance assistant for Indian users — grounded in real deterministic financial tools (risk profiling, budget optimization, tax computation, SIP/EMI math) and a real adaptive tutor for financial literacy, narrated by an LLM that explains but never calculates, spoken and lip-synced through a free, self-hosted, browser-native 3D avatar with an optional higher-fidelity paid video mode, extended today — not someday — with real live market data and real per-company equity research, and held together by one router that sends every question to exactly the module built to answer it correctly.</p>
+</div>
+</section>
+
+<section id="s29">
+<p class="sec-eyebrow">29</p>
+<h2>Brutally Honest Final Verdict</h2>
+<p>You asked whether this has become over-engineered and hard to maintain. It hasn't, in the way you were worried about — there is no zoo of avatar technologies, no five-deep LLM fallback chain, no microservice sprawl, no ML bolted on for demo credibility. The actual system is smaller, cleaner, and more disciplined than the audit brief's own brainstormed component list suggested it might be. The Wav2Lip/SadTalker/MuseTalk/LivePortrait avatar-stacking scenario you asked me to check for doesn't exist in this repository, full stop.</p>
+<p>What you actually have is a well-bounded four-module assistant where two modules (finance, tutor) each contain one real, trained, correctly-integrated ML capability that the interface never finishes connecting to — not because it's hard, but because a UI feature (transaction entry; quiz answering) was never built to close the loop. That's a smaller, more specific, and considerably more fixable problem than "this is too complex, cut things." The complexity you have is mostly earned; a handful of files are dead weight from an earlier iteration and cost you nothing to remove; and the highest-value next move isn't subtraction at all — it's two modest UI features that would make four already-real trained models visibly, demonstrably adaptive in front of an evaluator, instead of quietly frozen at their cold-start defaults.</p>
+</section>
+
+</main>
+</div>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="color-scheme" content="dark" />
+<style>
+  :root {
+    /* This stage stays dark regardless of the host app's theme -- same
+     * convention as any video-call tile (Zoom, Meet). Accent colors are
+     * kept in sync with the app's own blue/indigo brand. */
+    --bg: #0E0D0F; --bg-elevated: #17151A; --border: #2B2732;
+    --ink: #F3EFEA; --ink-muted: #ABA296;
+    --accent: #4C7BE0; --accent-strong: #6F97EA; --violet: #7C6FE0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); font-family: 'Manrope', -apple-system, 'Segoe UI', sans-serif;
+    color: var(--ink); height: 100%; overflow: hidden;
+  }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 24px;
+  }
+  .stage {
+    position: relative; width: 280px; height: 280px; border-radius: 50%;
+    overflow: hidden; background: var(--bg-elevated); flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--border), 0 0 50px rgba(76, 123, 224, 0.14);
+    transition: box-shadow 0.3s ease;
+  }
+  .stage.speaking {
+    box-shadow: 0 0 0 3px var(--accent), 0 0 70px rgba(76, 123, 224, 0.34);
+  }
+  video { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .placeholder {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 52px;
+    background: linear-gradient(135deg, rgba(76, 123, 224, 0.18), rgba(124, 111, 224, 0.18));
+    animation: aria-embed-breathe 3.2s ease-in-out infinite;
+  }
+  @keyframes aria-embed-breathe { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .placeholder { animation: none; } }
+
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: aria-embed-pulse 1.5s infinite; }
+  .dot.error { background: #f87171; animation: none; }
+  @keyframes aria-embed-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  .controls { display: flex; gap: 10px; }
+  button {
+    font-family: inherit; font-weight: 600; font-size: 13px; border-radius: 10px;
+    padding: 9px 16px; border: 1px solid var(--border); background: var(--bg-elevated);
+    color: var(--ink); cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent-strong); }
+  button.muted { border-color: var(--violet); color: var(--violet); }
+  button.end { background: linear-gradient(135deg, #e35d60, #d13438); color: #ffffff; border: none; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="placeholder" id="placeholder">&#10022;</div>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Connecting to ARIA&hellip;</span></div>
+  <div class="controls">
+    <button id="muteBtn" type="button">Mute</button>
+    <button id="endBtn" type="button" class="end">End call</button>
+  </div>
+
+<script src="https://unpkg.com/@daily-co/daily-js"></script>
+<script>
+(function () {
+  var conversationUrl = "__CONVERSATION_URL__";
+  var stage = document.getElementById('stage');
+  var videoEl = document.getElementById('remoteVideo');
+  var placeholder = document.getElementById('placeholder');
+  var statusText = document.getElementById('statusText');
+  var dot = document.getElementById('dot');
+  var muteBtn = document.getElementById('muteBtn');
+  var endBtn = document.getElementById('endBtn');
+  var muted = false;
+  var ended = false;
+
+  function setStatus(text, isError) {
+    statusText.textContent = text;
+    dot.classList.toggle('error', !!isError);
+  }
+
+  if (typeof window.DailyIframe === 'undefined') {
+    setStatus('Could not load the call library. Try reloading.', true);
+    return;
+  }
+
+  // createCallObject() -- not createFrame() -- gives a headless call with
+  // zero built-in UI chrome (no grid view, no "N people in call" banner,
+  // no self-view camera tile). Everything rendered below is ours.
+  var call = window.DailyIframe.createCallObject();
+
+  call
+    .join({ url: conversationUrl, startVideoOff: true, startAudioOff: false })
+    .then(function () { setStatus('Listening…'); })
+    .catch(function (err) { setStatus('Connection failed: ' + (err && err.message ? err.message : err), true); });
+
+  function attachRemoteVideo() {
+    // Bug fixed here: this used to build the MediaStream from only the
+    // video track, so the replica's speech was generated and sent by
+    // Tavus but never actually played anywhere -- no <audio> element, and
+    // the video track alone carries no sound. Confirmed live: connection
+    // succeeded, video attached, but "no output voice, lipsync nothing,
+    // just head nods sometimes" -- exactly what a video-only stream with
+    // real but unplayed audio looks like.
+    var participants = call.participants();
+    Object.keys(participants).forEach(function (id) {
+      if (id === 'local') return;
+      var p = participants[id];
+      if (!p.tracks) return;
+
+      var tracks = [];
+      if (p.tracks.video && p.tracks.video.persistentTrack) {
+        tracks.push(p.tracks.video.persistentTrack);
+        videoEl.style.display = 'block';
+        placeholder.style.display = 'none';
+      }
+      if (p.tracks.audio && p.tracks.audio.persistentTrack) {
+        tracks.push(p.tracks.audio.persistentTrack);
+      }
+      if (tracks.length) {
+        videoEl.srcObject = new MediaStream(tracks);
+        setStatus('ARIA is here');
+      }
+    });
+  }
+
+  call.on('participant-joined', attachRemoteVideo);
+  call.on('participant-updated', attachRemoteVideo);
+  call.on('track-started', attachRemoteVideo);
+  call.on('participant-left', function () {
+    videoEl.style.display = 'none';
+    placeholder.style.display = 'flex';
+  });
+  call.on('active-speaker-change', function (ev) {
+    var speaking = ev && ev.activeSpeaker && ev.activeSpeaker.peerId && ev.activeSpeaker.peerId !== 'local';
+    stage.classList.toggle('speaking', !!speaking);
+  });
+  call.on('error', function (ev) {
+    setStatus('Call error: ' + (ev && ev.errorMsg ? ev.errorMsg : 'unknown'), true);
+  });
+  function notifyParentEnded() {
+    // Fires for BOTH the manual End Call click below and a natural
+    // disconnect (replica leaves, network drop, Tavus's own
+    // participant_left_timeout). Previously only the manual click told
+    // the parent React app the call was over -- a natural end left the
+    // React side thinking the call was still live, with no way to start
+    // a new one short of switching the mode dropdown away and back.
+    if (ended) return;
+    ended = true;
+    try {
+      window.parent.postMessage({ type: 'aria_tavus_call_ended' }, '*');
+    } catch (e) {}
+  }
+
+  call.on('left-meeting', function () {
+    setStatus('Call ended.', true);
+    notifyParentEnded();
+  });
+
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    call.setLocalAudio(!muted);
+    muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+    muteBtn.classList.toggle('muted', muted);
+  });
+
+  endBtn.addEventListener('click', function () {
+    call.leave();
+    setStatus('Call ended.', true);
+    notifyParentEnded();
+  });
+})();
+</script>
+</body>
+</html>

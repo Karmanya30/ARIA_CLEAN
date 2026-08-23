@@ -1,0 +1,57 @@
+@import '@fontsource/sora/500.css';
+@import '@fontsource/sora/600.css';
+@import '@fontsource/sora/700.css';
+@import '@fontsource/sora/800.css';
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+
+:root {
+  /* Light, professional palette -- cool near-white ground (not stark
+   * #fff, which reads flat under long reading sessions), deep navy ink
+   * for contrast, and a restrained corporate blue as the single accent
+   * (paired with an indigo for gradients only -- never used standalone,
+   * so the UI reads as "one accent," not two competing ones). */
+  --bg: #f6f8fb;
+  --bg-elevated: #ffffff;
+  --bg-inset: #f0f3f8;
+  --border: #e2e7f0;
+  --border-strong: #ccd4e3;
+  --ink: #101a33;
+  --ink-muted: #4c586f;
+  --ink-faint: #8b96ab;
+
+  --accent: #2953b8;
+  --accent-strong: #1c3d8f;
+  --accent-soft: rgba(41, 83, 184, 0.08);
+  --accent-ink: #ffffff;
+
+  --violet: #5b4fcf;
+  --violet-soft: rgba(91, 79, 207, 0.08);
+
+  --green: #0f8a5f;
+  --green-soft: #e7f7f0;
+  --blue: #2563eb;
+  --blue-soft: #eaf1fe;
+  --emerald: #0d9488;
+  --emerald-soft: #e6f7f5;
+  --red: #d13438;
+  --red-soft: #fdedee;
+  --amber: #b45309;
+  --amber-soft: #fdf3e3;
+
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'Manrope', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 54, 0.05);
+  --shadow-md: 0 4px 14px rgba(16, 24, 54, 0.07), 0 1px 2px rgba(16, 24, 54, 0.04);
+  --shadow-lg: 0 16px 36px rgba(16, 24, 54, 0.1);
+  --shadow-glow: 0 4px 16px rgba(41, 83, 184, 0.22);
+}
