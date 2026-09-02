@@ -10,6 +10,7 @@ import yfinance as yf
 from loguru import logger
 
 from ai.llm.groq_client import generate_response
+from core.router import wants_stock_suggestions
 
 
 def _clean_company_query(query: str) -> str:
@@ -273,20 +274,46 @@ Rules:
 - Use only Indian rupees.
 - EXPLICITLY use the exact numbers provided in the 'Stock data' section in your output. Prioritize hard data and numbers over theoretical explanations.
 - Do not promise returns.
-- Do not give personalized buy/sell advice.
+- You do NOT give personalized buy/sell advice or a buy/sell verdict -- state this plainly as part of the Insight, don't just silently avoid a verdict. Give the real data instead so the user can judge for themselves.
+- The Recommendation section is NOT a buy/sell call -- it's practical guidance on HOW to evaluate this stock further (e.g. compare the PE against sector peers and its own historical range, check recent earnings trends, read the actual headlines above), not a verdict on whether to buy.
 - If data is missing, mention it clearly.
 - Keep the answer concise and practical.
 
 Return exactly this format:
-Insight:
-Analysis:
-Recommendation:
+Insight: <state plainly this isn't a buy/sell recommendation, then the key data point>
+Analysis: <what the numbers and headlines actually show>
+Recommendation: <how to evaluate this further yourself, not a verdict>
 Risk:
 """
 
 
+def _stock_suggestions_response(query: str) -> dict[str, Any]:
+    from modules.equity_research import beginner_screener
+
+    beginner_list = beginner_screener.beginner_friendly_candidates()
+    performers_list = beginner_screener.top_recent_performers()
+    prompt = beginner_screener.build_suggestions_prompt(beginner_list, performers_list)
+    answer = generate_response(
+        prompt,
+        system_prompt="You are an Indian financial analyst presenting objective, published market data. You never give personalized security recommendations.",
+    )
+    return {
+        "domain": "stock_suggestions",
+        "query": query,
+        "context": {
+            "beginner_candidates": beginner_list,
+            "top_performers": performers_list,
+            "performance_window": "1 month",
+        },
+        "response": answer,
+    }
+
+
 def investment_module(query: str) -> dict[str, Any]:
     """Analyze an Indian stock using yfinance, NewsAPI, and Groq."""
+    if wants_stock_suggestions(query):
+        return _stock_suggestions_response(query)
+
     company = detect_company(query)
     if company is None:
         response = (

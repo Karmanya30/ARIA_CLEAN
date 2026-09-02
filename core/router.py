@@ -29,6 +29,20 @@ _INVESTMENT_INTENT_WORDS = (
     "market cap",
 )
 
+# Generic "should I invest in <company>" phrasing -> Module 4, but ONLY
+# when a company is actually resolved (see is_equity_research_query) --
+# unlike _INVESTMENT_INTENT_WORDS above, these words alone are far too
+# common in genuine Module 1 queries ("how should I invest my salary") to
+# use without that guard. Found live: "should I invest in TCS" resolves a
+# real ticker but matches none of _INVESTMENT_INTENT_WORDS's narrow
+# phrasing, so it fell through to Module 1's generic answer instead of
+# ever reaching the real yfinance-grounded, disclaimer-first analysis in
+# modules/equity_research/investment.py.
+_GENERIC_INVESTMENT_PHRASES = (
+    "invest in", "should i invest", "should i buy", "good time to buy",
+    "worth buying", "worth investing",
+)
+
 # Broad market/index/sector/macro terms -> Module 3 (market analysis),
 # not about any single listed company. Deliberately no bare "news" (collides
 # with per-stock news, e.g. "Reliance news" -> handled by the fundamental/
@@ -44,6 +58,28 @@ _BROAD_MARKET_TERMS = (
 )
 _INDIVIDUAL_STOCK_TERMS = (
     "stock price", "share price", "market cap", "pe ratio", "p/e", "ticker",
+)
+
+# Unnamed "pick a stock for me" phrasing -> Module 4's beginner-screener
+# path (modules/equity_research/beginner_screener.py), checked as a
+# precise routing predicate for the same reason is_broad_market_query and
+# is_equity_research_query are -- classify_intent's coarse bucket sends
+# "which stock should I invest in" to "finance" (FINANCE_KEYWORDS' "invest"
+# is checked before MARKET_KEYWORDS' "stock"), which would otherwise never
+# reach Module 4 at all. Gated on "stock" being present, then a signal
+# word/phrase -- exact multi-word phrase matching was tried first and
+# missed real phrasing like "name me some stocks which are performing
+# well" (no exact match for "stocks performing well" with "which are" in
+# between) and "recommend a good stock" (no exact match for "recommend a
+# stock" with "good" in between), so this uses bare "recommend"/"suggest"
+# instead. Deliberately does NOT include a bare "should i buy" as a
+# standalone signal, though -- "should I buy TCS stock" must still resolve
+# TCS specifically, not fall in here.
+_STOCK_SUGGESTION_SIGNALS = (
+    "which stock", "name some stock", "name me some stock", "name a stock",
+    "recommend", "suggest", "beginner", "performing well", "perform well",
+    "good stocks", "best stocks", "top stocks", "help me pick",
+    "don't know which", "dont know which",
 )
 
 
@@ -75,10 +111,14 @@ def is_investment_query(query: str) -> bool:
 
 def is_equity_research_query(query: str, ticker: str | None) -> bool:
     """True if this query should go to Module 4 (Equity Research) at all --
-    either a resolved company + fundamental intent, or a live-price/news
-    intent."""
+    a resolved company + fundamental intent, a resolved company + generic
+    investment intent, or a live-price/news intent."""
     if ticker and is_fundamental_query(query):
         return True
+    if ticker:
+        text = query.lower()
+        if any(phrase in text for phrase in _GENERIC_INVESTMENT_PHRASES):
+            return True
     return is_investment_query(query)
 
 
@@ -89,3 +129,13 @@ def is_broad_market_query(query: str) -> bool:
     return any(term in text for term in _BROAD_MARKET_TERMS) and not any(
         term in text for term in _INDIVIDUAL_STOCK_TERMS
     )
+
+
+def wants_stock_suggestions(query: str) -> bool:
+    """True for unnamed "which stock should I buy"-style requests (Module
+    4's beginner-screener path) -- checked ahead of the coarse domain
+    bucket, same as is_broad_market_query/is_equity_research_query."""
+    text = query.lower()
+    if "stock" not in text:
+        return False
+    return any(signal in text for signal in _STOCK_SUGGESTION_SIGNALS)
