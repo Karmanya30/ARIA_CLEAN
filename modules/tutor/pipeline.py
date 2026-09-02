@@ -10,6 +10,7 @@ from typing import Any
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import tutor_prompt
 from modules.tutor import orchestrator as m2_orchestrator
+from shared import finance_knowledge
 from shared.ner import extract_entities
 
 
@@ -38,10 +39,14 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "quiz": result["quiz"],
         }
 
-    # No confident concept match -- generic tutor prompt (still useful for
-    # greetings, meta-questions, etc.) rather than a hard failure.
+    # No confident concept match in the 50-concept KB -- generic tutor
+    # prompt (still useful for greetings, meta-questions, etc.) rather
+    # than a hard failure. Try the broader finance_knowledge namespace
+    # first (covers real finance topics outside the 50-concept KB, e.g.
+    # "what is a REIT") so the answer is grounded rather than raw recall.
     context = build_context(query)
-    prompt = tutor_prompt(query, context)
+    grounding = finance_knowledge.grounding_for(query)
+    prompt = tutor_prompt(query, context, grounding=grounding)
     answer = generate_response(prompt)
     return {"domain": "tutor", "query": query, "context": context, "response": answer}
 

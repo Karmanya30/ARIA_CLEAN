@@ -8,7 +8,7 @@ from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import finance_prompt
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import Transaction, UserFinancialInput
-from shared import user_store
+from shared import finance_knowledge, user_store
 from shared.ner import extract_entities
 
 # Query terms that signal the user wants a *personalized* number (risk
@@ -351,9 +351,14 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             ),
         }
 
-    # Generic path: no company detected, use LLM with context
+    # Generic path: no company detected, use LLM with context. Grounded in
+    # curated reference passages (shared/finance_knowledge.py) when the
+    # query matches one -- covers topics outside this module's
+    # deterministic paths above (e.g. "should I use a REIT or direct
+    # property") instead of falling straight to raw model recall.
     context = build_context(query)
-    prompt = finance_prompt(query, context)
+    grounding = finance_knowledge.grounding_for(query)
+    prompt = finance_prompt(query, context, grounding=grounding)
     answer = generate_response(prompt)
     return {
         "domain": "finance",
