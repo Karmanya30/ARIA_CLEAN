@@ -38,6 +38,11 @@ class UserFinancialInput(BaseModel):
     emergency_fund_months: float = 0.0
     city_tier: int = 1  # 1 / 2 / 3
     tax_regime: str = "new"  # "old" | "new"
+    # Stage 12 -- drives modules/finance/instrument_recommender.py's
+    # horizon-fit scoring. horizon_years=None means "not stated" (the
+    # scorer skips horizon-based adjustments rather than assuming a value).
+    goal: str = "general"  # "general" | "retirement" | "house" | "education" | "wedding" | "short_term"
+    horizon_years: float | None = None
     transactions: list[Transaction] = Field(default_factory=list)
 
 
@@ -88,6 +93,20 @@ class TaxResult(BaseModel):
     regime: str
 
 
+class InstrumentRecommendation(BaseModel):
+    """One ranked entry from modules/finance/instrument_recommender.py --
+    deterministic, rule-based scoring, never an LLM guess. `fit` buckets
+    `score` into "strong_fit" / "consider" / "not_a_fit"; reasons are
+    plain-language explanations of which rules fired, for and against."""
+
+    instrument_id: str
+    instrument_name: str
+    score: float  # 0-100
+    fit: str
+    reasons_for: list[str] = Field(default_factory=list)
+    reasons_against: list[str] = Field(default_factory=list)
+
+
 class M1Response(BaseModel):
     risk: RiskProfile
     forecast: list[CategoryForecast]
@@ -96,3 +115,5 @@ class M1Response(BaseModel):
     sip_plan: SipPlan
     tax: TaxResult
     natural_language: str
+    investment_plan: list[InstrumentRecommendation] = Field(default_factory=list)
+    investment_plan_narrative: str = ""
