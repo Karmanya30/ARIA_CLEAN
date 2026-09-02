@@ -307,6 +307,21 @@ async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest):
         logger.exception("Error in orchestrator while handling Tavus query")
         response_text = "I'm sorry, I encountered an internal error while processing that."
 
+    # Tavus's TTS reads exactly what this endpoint returns -- shorten it
+    # the same way /api/chat already does for its own <audio> playback
+    # (ai/llm/audio_script.py), instead of reading the full narration text
+    # aloud verbatim (found live: a multi-hundred-word answer got read in
+    # full during a voice call). handle_query() above already saved the
+    # full, unshortened answer to session history via core.session.
+    # save_turn, so the text-chat transcript is unaffected -- only the
+    # spoken output changes here.
+    try:
+        from ai.llm.audio_script import generate_audio_script
+
+        response_text = generate_audio_script(response_text)
+    except Exception:
+        logger.warning("Audio-script shortening failed for Tavus response; speaking full text", exc_info=True)
+
     if req.stream:
         return StreamingResponse(_stream_sse(response_text, req.model), media_type="text/event-stream")
 

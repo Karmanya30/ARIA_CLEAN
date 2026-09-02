@@ -46,6 +46,12 @@ def test_non_streaming_returns_a_single_json_completion(mock_llm):
 
 def test_streaming_returns_valid_sse_with_role_first_and_done_last(mock_llm):
     _cleanup()
+    # Short and punctuation-free so it passes through the voice pipeline's
+    # shortening/cleanup (ai/llm/audio_script.py, wired in below the SSE
+    # response text is built from) unchanged -- this test is about SSE
+    # mechanics, not about what the shortening step does to the text (see
+    # test_long_response_is_shortened_before_being_spoken for that).
+    mock_llm.set_response("hello there how can I help")
     try:
         with client.stream(
             "POST",
@@ -89,6 +95,37 @@ def test_turn_is_saved_under_the_real_session_id(mock_llm):
         assert len(history) == 1
         assert history[0]["query"] == "what's the weather in Chennai"
         assert history[0]["response"]["response"] == mock_llm.response
+    finally:
+        _cleanup()
+
+
+def test_long_response_is_shortened_before_being_spoken(mock_llm):
+    # The actual bug: this endpoint used to stream the full, raw
+    # response_text straight to Tavus's TTS with no shortening at all,
+    # unlike /api/chat which already ran it through
+    # ai/llm/audio_script.generate_audio_script(). A long answer got read
+    # aloud in full during a real voice call.
+    _cleanup()
+    long_response = "This is a detailed financial explanation with numbers. " * 10  # 90 words
+    mock_llm.set_response(long_response)
+    try:
+        with client.stream(
+            "POST",
+            f"/v1/{_TEST_SESSION}/chat/completions",
+            json={"model": "aria-custom", "messages": [{"role": "user", "content": "what's the weather in Chennai"}], "stream": True},
+        ) as resp:
+            lines = [line for line in resp.iter_lines() if line.startswith("data: ")]
+
+        reassembled = "".join(
+            json.loads(line.removeprefix("data: "))["choices"][0]["delta"].get("content", "")
+            for line in lines[:-1]
+        )
+        assert len(reassembled.split()) < len(long_response.split())
+
+        # The full, unshortened answer is still what's saved to the
+        # text-chat transcript -- only the spoken output is capped.
+        history = get_session(_TEST_SESSION)["history"]
+        assert history[0]["response"]["response"] == long_response
     finally:
         _cleanup()
 
