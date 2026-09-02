@@ -3,7 +3,12 @@
 import re
 from typing import Any
 
-from core.router import is_broad_market_query, is_equity_research_query, route_query
+from core.router import (
+    is_broad_market_query,
+    is_equity_research_query,
+    route_query,
+    wants_stock_suggestions,
+)
 from core.session import save_turn
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
 from modules.finance.pipeline import run_pipeline as finance_pipeline
@@ -102,6 +107,14 @@ Follow-up query: {query}
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
     if is_equity_research_query(query, ticker):
+        response = equity_research_pipeline(query, user_id=session_id)
+    elif wants_stock_suggestions(query):
+        # Checked ahead of the coarse domain bucket for the same reason as
+        # the two checks above -- classify_intent's FINANCE_KEYWORDS
+        # ("invest") is checked before MARKET_KEYWORDS ("stock"), so
+        # "which stock should I invest in" gets domain=="finance" and
+        # would otherwise never reach Module 4's beginner-screener path at
+        # all (found live -- verified against shared/intent_classifier.py).
         response = equity_research_pipeline(query, user_id=session_id)
     elif is_broad_market_query(query):
         response = market_pipeline(query)

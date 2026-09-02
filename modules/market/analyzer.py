@@ -18,6 +18,8 @@ import requests
 import yfinance as yf
 from loguru import logger
 
+from shared.market_math import pct_change as _pct_change
+
 INDEX_TICKERS = {"nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN"}
 
 # Representative large-cap baskets per sector -- equal-weight proxy, not a
@@ -33,12 +35,6 @@ SECTOR_TICKERS = {
 }
 
 ET_MARKETS_RSS = "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
-
-
-def _pct_change(closes: list[float]) -> float | None:
-    if len(closes) < 2 or closes[0] == 0:
-        return None
-    return (closes[-1] - closes[0]) / closes[0] * 100
 
 
 @lru_cache(maxsize=8)
