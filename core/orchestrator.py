@@ -115,7 +115,10 @@ Follow-up query: {query}
         response = equity_research_pipeline(query, user_id=session_id)
     else:
         response = tutor_pipeline(query, user_id=session_id)
-        response["domain"] = "general"
+        # tutor_pipeline may itself return domain "off_topic" (see its
+        # off-topic gate) -- don't clobber that back to "general".
+        if response.get("domain") != "off_topic":
+            response["domain"] = "general"
 
     save_turn(session_id, query, response)
     return response

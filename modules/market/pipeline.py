@@ -3,7 +3,7 @@
 from typing import Any
 
 from ai.llm.groq_client import generate_response
-from ai.llm.prompt_templates import market_prompt
+from ai.llm.prompt_templates import ARIA_SYSTEM_PROMPT, market_prompt
 from modules.market.analyzer import MarketAnalyzer
 
 
@@ -18,7 +18,7 @@ def build_prompt(query: str, context: dict[str, Any] | None = None) -> str:
 def run_pipeline(query: str) -> dict[str, Any]:
     context = build_context(query)
     prompt = build_prompt(query, context)
-    answer = generate_response(prompt)
+    answer = generate_response(prompt, system_prompt=ARIA_SYSTEM_PROMPT)
     return {
         "domain": "market",
         "query": query,

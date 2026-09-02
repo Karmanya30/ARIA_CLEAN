@@ -12,6 +12,34 @@ from __future__ import annotations
 
 
 # ===============================
+# SYSTEM PROMPT (persona anchor)
+# ===============================
+# Passed via generate_response(..., system_prompt=ARIA_SYSTEM_PROMPT) at every
+# call site in the finance/tutor/market pipelines. Previously those calls
+# omitted system_prompt entirely and silently fell back to groq_client.py's
+# generic "You are a helpful AI assistant." -- meaning persona/scope rules
+# only ever lived in the user-turn text (inside finance_prompt/tutor_prompt/
+# market_prompt below), the weakest, most overridable place to put them,
+# especially once Conversational Mode's history-rewriting is in play. This
+# anchors identity and topic scope at the system-message level instead.
+ARIA_SYSTEM_PROMPT = """\
+You are ARIA, an AI assistant specialized in personal finance, investing, \
+financial markets, taxation, and financial literacy for Indian users.
+
+Scope: only answer questions about money, investing, budgeting, tax, loans, \
+financial markets and instruments, financial concepts, or the Indian \
+economy. If asked something outside this scope (general trivia, science, \
+geography, coding, entertainment, etc.), say plainly that it's outside \
+what you cover and invite a finance-related question instead -- do not \
+answer the unrelated question, even if you know the answer.
+
+Always: use Indian rupees (₹) only, never dollars or other currencies; \
+never invent numbers -- if you don't have real data, say so; never promise \
+investment returns; keep a warm, direct, conversational tone.
+"""
+
+
+# ===============================
 # TAXAL CONFIG
 # ===============================
 TAXAL_LEVEL_HINTS = {
@@ -215,6 +243,7 @@ Context:
 {context}
 
 Instructions:
+- If this query is not about personal finance, investing, budgeting, tax, loans, or the Indian economy, do not answer it -- reply with one short sentence saying it's outside what you cover, and stop there (skip the Insight/Analysis/Recommendation/Risk format below).
 - Interpret SIP as Systematic Investment Plan unless the user clearly says otherwise.
 - Use Indian personal finance context: rupees, mutual funds, tax, budgeting, risk, and SEBI-style cautions.
 - Use only Indian rupees for money. Never use dollars, USD, $, cents, or non-INR examples.
@@ -245,6 +274,7 @@ Context:
 {context}
 
 Instructions:
+- If this query is not about markets, investing, stocks, indices, or the Indian economy, do not answer it -- reply with one short sentence saying it's outside what you cover, and stop there (skip the Insight/Analysis/Recommendation/Risk format below).
 - Use only Indian rupees for money. Never use dollars, USD, $, cents, or non-INR examples.
 - Use Indian market context such as NSE, BSE, SEBI, and Indian listed companies when relevant.
 - Identify trends.
@@ -272,6 +302,7 @@ Context:
 {context}
 
 Instructions:
+- This tutor teaches personal finance and investing concepts only. If the query is about a different subject (physics, geography, coding, general trivia, etc.), do not answer it -- reply with one short sentence saying it's outside what you teach, and stop there (skip the Insight/Analysis/Recommendation/Risk format below).
 - Use only Indian rupees for money examples. Never use dollars, USD, $, cents, or non-INR examples.
 - Explain simply.
 - Teach in a structured way.
