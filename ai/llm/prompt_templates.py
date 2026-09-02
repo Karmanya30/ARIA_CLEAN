@@ -203,7 +203,24 @@ Stop after 4 lines.
 """
 
 
-def finance_prompt(query: str, context: dict | None = None) -> str:
+# Appended to finance_prompt/tutor_prompt/market_prompt when
+# shared/finance_knowledge.py's Stage 10 retrieval finds relevant passages
+# -- grounds the generic LLM fallback in curated reference content instead
+# of raw model recall for topics outside their respective KBs (REITs,
+# arbitrage, IPOs, etc.). Empty string when nothing was retrieved, so
+# callers can always embed it without a separate branch.
+def _grounding_block(grounding: str) -> str:
+    if not grounding:
+        return ""
+    return f"""
+REFERENCE PASSAGES (use these where relevant, do not contradict them; you \
+may still use your own knowledge for anything they don't cover, but flag \
+anything you're not fully certain of rather than stating it as fact):
+{grounding}
+"""
+
+
+def finance_prompt(query: str, context: dict | None = None, grounding: str = "") -> str:
     context = context or {}
     return f"""\
 You are ARIA, a personal finance assistant for Indian users.
@@ -213,7 +230,7 @@ User query:
 
 Context:
 {context}
-
+{_grounding_block(grounding)}
 Instructions:
 - Interpret SIP as Systematic Investment Plan unless the user clearly says otherwise.
 - Use Indian personal finance context: rupees, mutual funds, tax, budgeting, risk, and SEBI-style cautions.
@@ -233,7 +250,7 @@ Risk: <Caveat or potential downside>
 """
 
 
-def market_prompt(query: str, context: dict | None = None) -> str:
+def market_prompt(query: str, context: dict | None = None, grounding: str = "") -> str:
     context = context or {}
     return f"""\
 You are ARIA, an Indian market analysis assistant.
@@ -243,7 +260,7 @@ User query:
 
 Context:
 {context}
-
+{_grounding_block(grounding)}
 Instructions:
 - Use only Indian rupees for money. Never use dollars, USD, $, cents, or non-INR examples.
 - Use Indian market context such as NSE, BSE, SEBI, and Indian listed companies when relevant.
@@ -260,7 +277,7 @@ Risk: <Crucial caveat or missing data note>
 """
 
 
-def tutor_prompt(query: str, context: dict | None = None) -> str:
+def tutor_prompt(query: str, context: dict | None = None, grounding: str = "") -> str:
     context = context or {}
     return f"""\
 You are ARIA, an educational tutor for Indian users.
@@ -270,7 +287,7 @@ User query:
 
 Context:
 {context}
-
+{_grounding_block(grounding)}
 Instructions:
 - Use only Indian rupees for money examples. Never use dollars, USD, $, cents, or non-INR examples.
 - Explain simply.

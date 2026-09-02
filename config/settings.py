@@ -81,6 +81,18 @@ RETRIEVAL_K = int(os.getenv("RETRIEVAL_K", "5"))
 # cleanly separates them (0.45 rejected some real misspelled queries).
 RETRIEVAL_THRESHOLD = float(os.getenv("RETRIEVAL_THRESHOLD", "0.40"))
 
+# Threshold for the broader Stage 10 "finance_knowledge" grounding namespace
+# (shared/vector_store.py). Deliberately lower than RETRIEVAL_THRESHOLD --
+# by the time a query reaches this retrieval (finance_prompt/tutor_prompt/
+# market_prompt's generic fallback), it has already been confirmed
+# on-topic (keyword match or the off-topic LLM gate), so this only needs to
+# decide "did we find a genuinely relevant grounding passage", not "is this
+# even finance-related at all".
+FINANCE_KNOWLEDGE_RETRIEVAL_THRESHOLD = float(
+    os.getenv("FINANCE_KNOWLEDGE_RETRIEVAL_THRESHOLD", "0.30")
+)
+FINANCE_KNOWLEDGE_RETRIEVAL_K = int(os.getenv("FINANCE_KNOWLEDGE_RETRIEVAL_K", "3"))
+
 
 # ===============================
 # Database Runtime

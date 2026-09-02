@@ -68,6 +68,9 @@ python -m scripts.build_concept_kb
 python -m scripts.generate_kt_sequences
 python -m modules.tutor.train.train_lstm_kt
 python -m modules.tutor.train.train_dqn_teacher
+
+# Finance-knowledge grounding (used by all 3 modules' generic LLM fallback)
+python -m scripts.build_finance_knowledge_kb
 ```
 
 Each finishes in well under 5 minutes on a laptop CPU — no GPU needed

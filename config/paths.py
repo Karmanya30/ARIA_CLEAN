@@ -49,6 +49,14 @@ KT_SEQUENCES_DIR = RAW_DIR / "kt_sequences"
 CONCEPTS_KB_DIR = RAW_DIR / "concepts_kb"
 CONCEPTS_KB_FILE = CONCEPTS_KB_DIR / "concepts.json"
 
+# Broader finance-knowledge grounding (Stage 10) -- distinct from
+# CONCEPTS_KB_FILE, which is Module 2's 50-concept TAXAL tutor KB. This one
+# grounds the generic LLM fallback in finance_prompt/tutor_prompt/
+# market_prompt for topics outside that 50-concept set (REITs, arbitrage,
+# IPOs, etc.) instead of falling back to raw model recall.
+FINANCE_KNOWLEDGE_KB_DIR = RAW_DIR / "finance_knowledge"
+FINANCE_KNOWLEDGE_KB_FILE = FINANCE_KNOWLEDGE_KB_DIR / "knowledge_base.json"
+
 RAW_TRANSACTIONS_DIR = TRANSACTIONS_DIR  # compatibility alias
 RAW_KT_DIR = KT_SEQUENCES_DIR  # compatibility alias
 
@@ -102,6 +110,7 @@ REQUIRED_DIRS = [
     TRANSACTIONS_DIR,
     KT_SEQUENCES_DIR,
     CONCEPTS_KB_DIR,
+    FINANCE_KNOWLEDGE_KB_DIR,
     MODELS_DIR,
     FINANCE_MODELS_DIR,
     TUTOR_MODELS_DIR,
