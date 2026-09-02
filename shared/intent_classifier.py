@@ -27,6 +27,22 @@ FINANCE_KEYWORDS = (
     "equity",
     "nse",
     "bse",
+    # Widened after live testing showed on-topic phrasing without any of
+    # the terms above (e.g. "is real estate a good investment") fell
+    # through to the ambiguous "general" bucket instead of "finance".
+    "loan",
+    "interest rate",
+    "credit score",
+    "credit card",
+    "insurance",
+    "retirement",
+    "pension",
+    "real estate",
+    "gold investment",
+    "financial plan",
+    "financial goal",
+    "net worth",
+    "emergency fund",
 )
 MARKET_KEYWORDS = (
     "stock",

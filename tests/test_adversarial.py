@@ -39,6 +39,17 @@ def test_off_topic_query_does_not_crash(mock_llm):
     _assert_well_formed(result)
 
 
+def test_off_topic_query_gets_refused_end_to_end(mock_llm):
+    # Same query as above, but with the finance-relatedness classifier
+    # explicitly saying "no" -- confirms handle_query's "general" bucket
+    # (core/orchestrator.py) surfaces tutor_pipeline's off_topic domain
+    # instead of overwriting it back to "general".
+    mock_llm.set_response("NO")
+    result = handle_query("what's the weather in Chennai?", session_id="adv_offtopic_refused")
+    _assert_well_formed(result)
+    assert result["domain"] == "off_topic"
+
+
 def test_ambiguous_query_does_not_crash(mock_llm):
     _assert_well_formed(handle_query("tell me about it", session_id="adv_ambiguous"))
 

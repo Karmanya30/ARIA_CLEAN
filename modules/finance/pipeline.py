@@ -5,9 +5,10 @@ import re
 from typing import Any
 
 from ai.llm.groq_client import generate_response
-from ai.llm.prompt_templates import finance_prompt
+from ai.llm.prompt_templates import ARIA_SYSTEM_PROMPT, finance_prompt
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import Transaction, UserFinancialInput
+from modules.finance.sip_emi_calc import sip_future_value
 from shared import user_store
 from shared.ner import extract_entities
 
@@ -146,14 +147,6 @@ def _parse_return_rate(query: str) -> float | None:
     return float(match.group(1)) if match else None
 
 
-def _future_value_monthly_sip(monthly_sip: float, annual_return_pct: float, years: int) -> float:
-    months = years * 12
-    monthly_rate = annual_return_pct / 100 / 12
-    if monthly_rate == 0:
-        return monthly_sip * months
-    return monthly_sip * (((1 + monthly_rate) ** months - 1) / monthly_rate) * (1 + monthly_rate)
-
-
 def _build_sip_planning_response(query: str) -> str | None:
     text = query.lower()
     if not re.search(r"\bsip\b", text):
@@ -182,8 +175,12 @@ def _build_sip_planning_response(query: str) -> str | None:
     projections = []
     for years in (1, 3, 5):
         invested = monthly_sip * 12 * years
-        target_value = _future_value_monthly_sip(monthly_sip, target_return or realistic_return, years)
-        cautious_value = _future_value_monthly_sip(monthly_sip, realistic_return, years)
+        # sip_future_value's positional order is (monthly, years, annual_return_pct)
+        # -- keyword args here so this doesn't silently swap years/return again.
+        target_value = sip_future_value(
+            monthly=monthly_sip, years=years, annual_return_pct=target_return or realistic_return
+        )
+        cautious_value = sip_future_value(monthly=monthly_sip, years=years, annual_return_pct=realistic_return)
         projections.append(
             f"{years} year: invest ₹{invested:,.0f}; at {requested_return_text} approx ₹{target_value:,.0f}; "
             f"at a more cautious {realistic_return:.0f}% approx ₹{cautious_value:,.0f}"
@@ -354,7 +351,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     # Generic path: no company detected, use LLM with context
     context = build_context(query)
     prompt = finance_prompt(query, context)
-    answer = generate_response(prompt)
+    answer = generate_response(prompt, system_prompt=ARIA_SYSTEM_PROMPT)
     return {
         "domain": "finance",
         "query": query,
