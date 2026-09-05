@@ -10,6 +10,7 @@ import yfinance as yf
 from loguru import logger
 
 from ai.llm.groq_client import generate_response
+from shared.blocks import MetricBlock, TextBlock, dump_blocks, text_or_error_blocks
 
 
 def _clean_company_query(query: str) -> str:
@@ -285,6 +286,20 @@ Risk:
 """
 
 
+def _build_investment_blocks(answer: str, stock_data: dict[str, Any]) -> list[dict]:
+    if answer.startswith("Error"):
+        return text_or_error_blocks(answer)
+
+    blocks: list = [TextBlock(content=answer)]
+    if stock_data.get("current_price"):
+        blocks.append(MetricBlock(label="Current price", value=stock_data["current_price"]))
+    if stock_data.get("pe_ratio") is not None:
+        blocks.append(MetricBlock(label="P/E ratio", value=f"{stock_data['pe_ratio']:.2f}"))
+    if stock_data.get("market_cap"):
+        blocks.append(MetricBlock(label="Market cap", value=stock_data["market_cap"]))
+    return dump_blocks(blocks)
+
+
 def investment_module(query: str) -> dict[str, Any]:
     """Analyze an Indian stock using yfinance, NewsAPI, and Groq."""
     company = detect_company(query)
@@ -295,7 +310,13 @@ def investment_module(query: str) -> dict[str, Any]:
             "Recommendation: Try the listed company name or ticker symbol, for example the NSE or BSE ticker.\n"
             "Risk: If the query uses a brand name, project name, or unlisted business name, live stock data may not be available."
         )
-        return {"domain": "investment", "query": query, "context": {}, "response": response}
+        return {
+            "domain": "investment",
+            "query": query,
+            "context": {},
+            "response": response,
+            "blocks": text_or_error_blocks(response),
+        }
 
     ticker = company["ticker"]
     company_name = company["company_name"]
@@ -322,4 +343,5 @@ def investment_module(query: str) -> dict[str, Any]:
             "extension_note": "Technical indicators can be added from yfinance OHLCV history, e.g. SMA, RSI, MACD.",
         },
         "response": answer,
+        "blocks": _build_investment_blocks(answer, stock_data),
     }

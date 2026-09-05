@@ -54,7 +54,9 @@ def _smalltalk_reply(query: str) -> dict[str, Any]:
         ),
     )
     text = reply if (reply and not reply.lower().startswith("error")) else "Hey! What can I help you with today?"
-    return {"domain": "smalltalk", "query": query, "response": text}
+    from shared.blocks import text_or_error_blocks
+
+    return {"domain": "smalltalk", "query": query, "response": text, "blocks": text_or_error_blocks(text)}
 
 
 def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:

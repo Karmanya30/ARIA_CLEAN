@@ -18,7 +18,21 @@ from typing import Any
 from core.router import is_fundamental_query
 from modules.equity_research.financial_pipeline import process_financial_query
 from modules.equity_research.investment import investment_module
+from shared.blocks import MetricBlock, TextBlock, dump_blocks, text_or_error_blocks
 from shared.company_resolver import resolve_company
+
+
+def _build_fundamental_blocks(result: dict[str, Any]) -> list[dict]:
+    explanation = result.get("explanation") or ""
+    if not explanation or explanation.startswith("Error"):
+        return text_or_error_blocks(explanation or "No explanation available.")
+
+    blocks: list = [TextBlock(content=explanation)]
+    value = result.get("value")
+    if value is not None:
+        metric_label = str(result.get("metric") or "Metric").replace("_", " ").title()
+        blocks.append(MetricBlock(label=metric_label, value=f"{value:,.2f}"))
+    return dump_blocks(blocks)
 
 
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
@@ -34,6 +48,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "value": result.get("value"),
             "response": result.get("explanation", ""),
             "confidence": result.get("confidence", "low"),
+            "blocks": _build_fundamental_blocks(result),
         }
 
     return investment_module(query)
