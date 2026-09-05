@@ -36,7 +36,7 @@ def send_message(req: ChatRequest) -> dict[str, Any]:
         from ai.llm.audio_script import generate_audio_script
         from ai.speech.tts import synthesize
 
-        audio_script = generate_audio_script(response_text)
+        audio_script = generate_audio_script(response_text, blocks=result.get("blocks"))
         audio_path = synthesize(speech_text(audio_script))
         if audio_path:
             audio_token = register(audio_path)
