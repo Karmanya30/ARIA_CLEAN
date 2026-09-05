@@ -37,33 +37,37 @@
   transform: rotate(90deg);
 }
 
-.shap-list {
+.shap-chart {
+  padding: 4px 14px 14px;
+}
+
+.shap-legend {
   list-style: none;
-  margin: 0;
-  padding: 0 14px 14px 36px;
+  margin: 8px 0 0;
+  padding: 0 0 0 22px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   font-size: 13.5px;
   color: var(--ink-muted);
 }
-.shap-list li {
+.shap-legend li {
   position: relative;
 }
-.shap-list li::before {
+.shap-legend li::before {
   content: '•';
   position: absolute;
   left: -14px;
   color: var(--accent);
 }
-.shap-list code {
+.shap-legend code {
   font-family: var(--font-mono);
   background: var(--bg);
   padding: 1px 5px;
   border-radius: 4px;
   color: var(--accent-strong);
 }
-.shap-list em {
+.shap-legend em {
   color: var(--ink);
   font-style: normal;
   font-weight: 600;

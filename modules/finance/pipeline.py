@@ -7,9 +7,77 @@ from typing import Any
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import finance_prompt
 from modules.finance import orchestrator as m1_orchestrator
-from modules.finance.schemas import Transaction, UserFinancialInput
+from modules.finance.schemas import M1Response, Transaction, UserFinancialInput
 from shared import user_store
+from shared.blocks import (
+    AlertBlock,
+    Block,
+    BreakdownBlock,
+    ChartBlock,
+    MetricBlock,
+    RiskBlock,
+    RiskFactor,
+    TextBlock,
+    dump_blocks,
+    text_or_error_blocks,
+)
 from shared.ner import extract_entities
+
+
+def _build_finance_blocks(m1_response: M1Response) -> list[Block]:
+    """Structural blocks built directly from M1Response's already-computed
+    Pydantic fields -- never from an LLM. Order matters for a sensible
+    reading flow: narration, headline number, why (risk), where the money
+    goes (budget), what's ahead (forecast)."""
+    blocks: list[Block] = []
+
+    if m1_response.natural_language.startswith("Error"):
+        blocks.append(
+            AlertBlock(
+                severity="error",
+                message="ARIA's language model is temporarily unavailable. The numbers below are still real and computed locally.",
+            )
+        )
+    else:
+        blocks.append(TextBlock(content=m1_response.natural_language))
+
+    blocks.append(MetricBlock(label="Monthly SIP", value=f"{m1_response.sip_plan.monthly_sip:,.0f}", unit="INR/month"))
+
+    blocks.append(
+        RiskBlock(
+            score=m1_response.risk.confidence,
+            level=m1_response.risk.label,
+            factors=[RiskFactor(name=name, contribution=contribution) for name, contribution in m1_response.risk.top_features],
+        )
+    )
+
+    b = m1_response.budget
+    blocks.append(
+        BreakdownBlock(
+            categories=["Housing", "Food", "Transport", "Utilities", "EMI", "SIP", "Entertainment", "Emergency fund"],
+            amounts=[b.housing, b.food, b.transport, b.utilities, b.emi, b.sip, b.entertainment, b.emergency_fund_add],
+        )
+    )
+
+    if m1_response.forecast:
+        n_months = len(m1_response.forecast[0].forecast)
+        if n_months:
+            totals = [sum(cf.forecast[i] for cf in m1_response.forecast) for i in range(n_months)]
+            lower = [sum(cf.lower_ci[i] for cf in m1_response.forecast) for i in range(n_months)]
+            upper = [sum(cf.upper_ci[i] for cf in m1_response.forecast) for i in range(n_months)]
+            blocks.append(
+                ChartBlock(
+                    chart_type="line",
+                    labels=[f"Month {i + 1}" for i in range(n_months)],
+                    data=totals,
+                    series_name="Forecast spend (total, INR)",
+                    lower_band=lower,
+                    upper_band=upper,
+                )
+            )
+
+    return blocks
+
 
 # Query terms that signal the user wants a *personalized* number (risk
 # profile, budget, "how much can I invest") rather than a general concept
@@ -303,6 +371,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "domain": "finance",
             "query": query,
             "response": m1_response.natural_language,
+            "blocks": dump_blocks(_build_finance_blocks(m1_response)),
             "risk": m1_response.risk.model_dump(),
             "sip_plan": m1_response.sip_plan.model_dump(),
             "budget": m1_response.budget.model_dump(),
@@ -318,6 +387,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "query": query,
             "context": build_context(query),
             "response": sip_planning_response,
+            "blocks": text_or_error_blocks(sip_planning_response),
         }
 
     known_concepts_response = _build_known_concepts_response(query)
@@ -327,6 +397,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "query": query,
             "context": build_context(query),
             "response": known_concepts_response,
+            "blocks": text_or_error_blocks(known_concepts_response),
         }
 
     # Deterministic clarifying question -- fires only when the query signals
@@ -335,20 +406,22 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     # and a full multi-turn elicitation flow -- one targeted question,
     # answerable in the user's next message, no LLM call spent on it.
     if _needs_income_clarification(query):
+        clarification = (
+            "Insight: I can build a personalized risk profile, budget, and SIP plan, "
+            "but I need a starting number first.\n"
+            "Analysis: Tell me your monthly income (optionally your age, any EMI, and "
+            "city tier too) and I'll compute this from real numbers, not a generic guess.\n"
+            'Recommendation: Try something like "I earn 60000 a month with an EMI of 8000" '
+            "and ask again.\n"
+            "Risk: Without income, any budget or SIP number here would be generic, not "
+            "actually computed for you."
+        )
         return {
             "domain": "finance",
             "query": query,
             "context": build_context(query),
-            "response": (
-                "Insight: I can build a personalized risk profile, budget, and SIP plan, "
-                "but I need a starting number first.\n"
-                "Analysis: Tell me your monthly income (optionally your age, any EMI, and "
-                "city tier too) and I'll compute this from real numbers, not a generic guess.\n"
-                'Recommendation: Try something like "I earn 60000 a month with an EMI of 8000" '
-                "and ask again.\n"
-                "Risk: Without income, any budget or SIP number here would be generic, not "
-                "actually computed for you."
-            ),
+            "response": clarification,
+            "blocks": text_or_error_blocks(clarification),
         }
 
     # Generic path: no company detected, use LLM with context
@@ -360,6 +433,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
         "query": query,
         "context": context,
         "response": answer,
+        "blocks": text_or_error_blocks(answer),
     }
 
 

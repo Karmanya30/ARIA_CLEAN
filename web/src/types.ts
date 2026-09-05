@@ -14,10 +14,129 @@ export interface QuizItem {
   concept_id: string
 }
 
+// Stage 13 -- typed structured-output contract, mirroring shared/blocks.py.
+// Replaces web/src/components/chat/ResponseCard.tsx's regex parsing of
+// "Insight:"/"Analysis:"/etc labels out of raw text, which force-fit every
+// response into the same four boxes regardless of shape. `blocks` is the
+// new contract; `response` (the plain string) is still always present too
+// -- not a flag-day break, see BlockRenderer.tsx's fallback.
+export interface TextBlock {
+  type: 'text'
+  content: string
+}
+export interface MetricBlock {
+  type: 'metric'
+  label: string
+  value: string
+  unit?: string | null
+}
+export interface FormulaBlock {
+  type: 'formula'
+  expression: string
+  variables: string[]
+}
+export interface TableBlock {
+  type: 'table'
+  columns: string[]
+  rows: string[][]
+}
+export interface BreakdownBlock {
+  type: 'breakdown'
+  categories: string[]
+  amounts: number[]
+  percentages?: number[] | null
+}
+export interface ChartBlock {
+  type: 'chart'
+  chart_type: 'line' | 'bar' | 'donut'
+  labels: string[]
+  data: number[]
+  series_name?: string | null
+  lower_band?: number[] | null
+  upper_band?: number[] | null
+}
+export interface RiskFactor {
+  name: string
+  contribution: number
+}
+export interface RiskBlock {
+  type: 'risk'
+  score: number
+  level: string
+  factors: RiskFactor[]
+}
+export interface RecommendationBlock {
+  type: 'recommendation'
+  title: string
+  rationale: string
+  actions: string[]
+}
+export interface ComparisonRow {
+  name: string
+  metrics: Record<string, string>
+}
+export interface ComparisonBlock {
+  type: 'comparison'
+  title: string
+  rows: ComparisonRow[]
+}
+export interface AlertBlock {
+  type: 'alert'
+  severity: 'info' | 'warning' | 'error'
+  message: string
+}
+export interface ExplanationBlock {
+  type: 'explanation'
+  label: string
+  content: string
+}
+export interface DefinitionBlock {
+  type: 'definition'
+  term: string
+  definition: string
+}
+export interface MCQBlockData {
+  type: 'mcq'
+  question: string
+  correct_answer: string
+  wrong_answers: string[]
+  explanation: string
+  concept_id: string
+}
+export interface HintBlock {
+  type: 'hint'
+  level: number
+  content: string
+}
+export interface MasteryBlock {
+  type: 'mastery'
+  topic: string
+  concept_id: string
+  score: number
+}
+
+export type Block =
+  | TextBlock
+  | MetricBlock
+  | FormulaBlock
+  | TableBlock
+  | BreakdownBlock
+  | ChartBlock
+  | RiskBlock
+  | RecommendationBlock
+  | ComparisonBlock
+  | AlertBlock
+  | ExplanationBlock
+  | DefinitionBlock
+  | MCQBlockData
+  | HintBlock
+  | MasteryBlock
+
 export interface ChatResponse {
   domain: string
   query: string
   response: string
+  blocks?: Block[]
   company?: string
   risk?: RiskInfo
   quiz?: QuizItem

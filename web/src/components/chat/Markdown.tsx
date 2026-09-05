@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './Markdown.css'
 
 // LLM narration occasionally wraps a whole section in "** text **" -- note
@@ -33,7 +34,7 @@ function normalizeEmphasis(text: string): string {
 export function Markdown({ text }: { text: string }) {
   return (
     <div className="markdown-body">
-      <ReactMarkdown>{normalizeEmphasis(text)}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{normalizeEmphasis(text)}</ReactMarkdown>
     </div>
   )
 }
