@@ -83,6 +83,22 @@ RETRIEVAL_THRESHOLD = float(os.getenv("RETRIEVAL_THRESHOLD", "0.40"))
 
 
 # ===============================
+# Equity-research intelligence layer
+# (modules/equity_research/intelligence)
+# ===============================
+# Macro inputs to the valuation models. These are CONFIGURED ASSUMPTIONS, not
+# live market data: every report lists them as assumptions and the audit layer
+# flags them as such. Update them when the market moves (10-year G-sec yield,
+# an India equity risk premium such as Damodaran's, long-run nominal growth).
+FI_RISK_FREE_RATE = float(os.getenv("FI_RISK_FREE_RATE", "0.0675"))
+FI_EQUITY_RISK_PREMIUM = float(os.getenv("FI_EQUITY_RISK_PREMIUM", "0.07"))
+FI_TERMINAL_GROWTH = float(os.getenv("FI_TERMINAL_GROWTH", "0.05"))
+# Company headlines come from Google News' public RSS search (no API key);
+# set FI_NEWS_RSS=0 to turn that source off.
+FI_NEWS_RSS = _bool_env("FI_NEWS_RSS", True)
+
+
+# ===============================
 # Database Runtime
 # ===============================
 DB_URL = os.getenv("DB_URL", "sqlite:///data/user_profiles/aria.db")

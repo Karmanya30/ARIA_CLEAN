@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 from typing import Dict, Any, List
@@ -25,7 +27,7 @@ class Screener:
               ...
             }
         """
-        section = soup.find('section', id=section_id)
+        section = soup.find(id=section_id)  # a <section> (statements) or a <div> (shareholding tables)
         if not section:
             return {}
         table = section.find('table')
@@ -55,17 +57,30 @@ class Screener:
 
         return result
 
-    def get_company_data(self, company_name: str) -> Dict[str, Any]:
-        company_name = company_name.upper().strip()
-        
-        # Default to standalone data which matches official annual report Schedule 4 figures for banks
-        url = f"https://www.screener.in/company/{company_name}/"
-        res = requests.get(url, headers=self.headers)
+    @staticmethod
+    def _pledged_pct(soup) -> Any:
+        """Percent of the promoters' holding that is pledged, when screener.in's automated remarks flag it
+        ("Promoters have pledged 73.0% of their holding"). They only do so when it is material, so None means
+        "not flagged", not "no pledge"."""
+        for li in soup.select("div.pros li, div.cons li"):
+            m = re.search(r"pledged\s+([\d.]+)\s*%", li.get_text(" ", strip=True))
+            if m:
+                return float(m.group(1))
+        return None
 
+    def get_company_data(self, company_name: str, consolidated: bool = False) -> Dict[str, Any]:
+        company_name = company_name.upper().strip()
+
+        # Default: standalone first (matches official annual report Schedule 4 figures for
+        # banks), consolidated if standalone 404s. ``consolidated=True`` flips the order:
+        # valuation needs the group figures, because market cap and EPS are consolidated
+        # (Reliance: standalone TTM EPS 28.98 vs consolidated 55.22 == Yahoo's 55.21).
+        base = f"https://www.screener.in/company/{company_name}/"
+        urls = [base + "consolidated/", base] if consolidated else [base, base + "consolidated/"]
+
+        res = requests.get(urls[0], headers=self.headers, timeout=20)
         if res.status_code == 404:
-            # Fallback to consolidated if standalone isn't available
-            url = f"https://www.screener.in/company/{company_name}/consolidated/"
-            res = requests.get(url, headers=self.headers)
+            res = requests.get(urls[1], headers=self.headers, timeout=20)
 
         if res.status_code != 200:
             raise Exception(f"Company '{company_name}' not found on Screener.in (status {res.status_code})")
@@ -78,24 +93,33 @@ class Screener:
             "balance_sheet":     self._scrape_table(soup, "balance-sheet"),
             "cash_flow":         self._scrape_table(soup, "cash-flow"),
             "ratios":            self._scrape_table(soup, "ratios"),
+            "shareholding":      self._scrape_table(soup, "quarterly-shp"),  # promoters / FIIs / DIIs / public, last 12 quarters
+            "pledged_pct":       self._pledged_pct(soup),
+            # Screener redirects /consolidated/ to the standalone page when a company has
+            # no group accounts, so the final URL (not the one requested) says which we got.
+            "view": "consolidated" if res.url.rstrip("/").endswith("/consolidated") else "standalone",
         }
 
 
-def get_screener_data(company_name: str) -> Dict[str, Any]:
+def get_screener_data(company_name: str, consolidated: bool = False) -> Dict[str, Any]:
     """
     Fetch financial data for a given company from Screener.in.
 
-    Returns structured year-keyed data or {"error": "..."} on failure.
+    Returns structured year-keyed data (plus ``view``: "standalone"/"consolidated" --
+    which statements these are) or {"error": "..."} on failure.
     """
     try:
         screener = Screener()
-        data = screener.get_company_data(company_name)
+        data = screener.get_company_data(company_name, consolidated=consolidated)
         return {
             "ratios":            data.get("ratios", {}),
             "profit_loss":       data.get("profit_loss", {}),
             "balance_sheet":     data.get("balance_sheet", {}),
             "cash_flow":         data.get("cash_flow", {}),
             "quarterly_results": data.get("quarterly_results", {}),
+            "shareholding":      data.get("shareholding", {}),
+            "pledged_pct":       data.get("pledged_pct"),
+            "view":              data.get("view", "standalone"),
         }
     except Exception as e:
         return {"error": f"Failed to fetch data for '{company_name}': {str(e)}"}

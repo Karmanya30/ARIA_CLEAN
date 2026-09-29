@@ -9,6 +9,8 @@ and modules/market/analyzer.py keep only their actual business logic.
 """
 from __future__ import annotations
 
+import re
+
 from shared.intent_classifier import classify_intent
 
 # Fundamental/balance-sheet keywords -> Module 4 (equity research), the
@@ -47,6 +49,20 @@ _INDIVIDUAL_STOCK_TERMS = (
 )
 
 
+# Full research-report / valuation intent -> Module 4's research layer
+# (modules/equity_research/intelligence). Deliberately conservative so concept
+# questions ("what is a DCF?", "what does an equity research analyst do?") still
+# reach the tutor: report phrases need "on/for/of <something>", and valuation words
+# need a recognised company alongside them.
+_RESEARCH_REPORT_PHRASES = ("research report", "equity research", "initiate coverage", "initiating coverage", "dupont", "financial model",
+                            "valuation report", "financial report", "mutual fund analysis", "mutual fund report", "fund analysis", "fund report")
+_RESEARCH_COMPANY_PHRASES = (
+    "investment thesis", "bull case", "bear case", "bull and bear", "valuation", "dcf", "fair value",
+    "intrinsic value", "target price", "price target", "overvalued", "undervalued", "deep dive", "full analysis",
+)
+_CONCEPT_QUESTION = re.compile(r"^\s*(what is|what's|what are|explain|define|meaning of|how does|how do)\b")
+
+
 def route_query(query: str) -> str:
     """Coarse M1/M2/general bucket -- see shared/intent_classifier.py."""
     return classify_intent(query)
@@ -73,10 +89,23 @@ def is_investment_query(query: str) -> bool:
     return any(word in text for word in _INVESTMENT_INTENT_WORDS)
 
 
+def is_research_report_query(query: str, ticker: str | None) -> bool:
+    """True if the user wants a full equity research report / valuation of a company
+    (Module 4, intelligence layer) rather than a single metric or a live quote."""
+    text = query.lower()
+    if _CONCEPT_QUESTION.match(text) and not ticker:
+        return False
+    if any(p in text for p in _RESEARCH_REPORT_PHRASES) and (ticker or re.search(r"\b(on|for|of)\s+\w", text)):
+        return True
+    return bool(ticker) and any(p in text for p in _RESEARCH_COMPANY_PHRASES)
+
+
 def is_equity_research_query(query: str, ticker: str | None) -> bool:
     """True if this query should go to Module 4 (Equity Research) at all --
-    either a resolved company + fundamental intent, or a live-price/news
-    intent."""
+    a full research/valuation request, a resolved company + fundamental
+    intent, or a live-price/news intent."""
+    if is_research_report_query(query, ticker):
+        return True
     if ticker and is_fundamental_query(query):
         return True
     return is_investment_query(query)

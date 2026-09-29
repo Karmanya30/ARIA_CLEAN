@@ -14,6 +14,109 @@ export interface QuizItem {
   concept_id: string
 }
 
+// ── Equity research report (modules/equity_research/intelligence/report.py) ──
+export interface ReportFact {
+  id: string
+  label: string
+  text: string
+  period: string
+  source: string
+  kind: 'raw' | 'calculated' | 'assumption'
+  method: string
+}
+
+export interface ReportTable {
+  title: string
+  columns: string[]
+  rows: { label: string; unit: string; kind: string; values: Record<string, number | null> }[]
+  source: string
+}
+
+export interface ValuationMethod {
+  key: string
+  label: string
+  low: number
+  mid: number
+  high: number
+  weight: number
+  basis: string
+}
+
+export interface DebateArgument {
+  claim: string
+  evidence: { id: string; label: string; period: string; value: string }[]
+}
+
+export interface ResearchReportData {
+  title: string
+  status: 'publishable' | 'caveated'
+  company: { name: string; symbol: string; sector: string | null; industry: string | null; price: number | null; market_cap_cr: number | null; as_of: string; basis: string }
+  stance: {
+    rating: 'BUY' | 'HOLD' | 'SELL' | null
+    stance: string
+    fair_value: number | null
+    low: number | null
+    high: number | null
+    upside_pct: number | null
+    confidence: string | null
+    withheld: boolean
+    price: number | null
+    notes: string[]
+  }
+  thesis: string[]
+  business: string
+  financials: { text: string; tables: ReportTable[] }
+  valuation: {
+    text: string
+    methods: ValuationMethod[]
+    skipped: Record<string, string>
+    notes: string[]
+    comps: { group: string; peers: { symbol: string; name: string; pe: number | null; pb: number | null; ev_ebitda: number | null; excluded: string[] }[] } | null
+    dcf: {
+      inputs: { growth: number[]; wacc: number; terminal_growth: number }
+      result: { tv_share: number }
+      sensitivity: { wacc_values: number[]; tg_values: number[]; prices: (number | null)[][] } | null
+      margin_swing: [number | null, number | null] | null
+      reverse: { implied_growth: number | null; reason: string; ceiling_price: number | null } | null
+    } | null
+  }
+  risks: { category: string; severity: string; title: string; detail: string; origin: 'rule' | 'llm' }[]
+  catalysts: string[]
+  news: { title: string; source: string; date: string }[]
+  debate: {
+    bull: DebateArgument[]
+    bear: DebateArgument[]
+    judge: { call: string; conviction: number; swing_factor: string; change_my_mind: string } | null
+    aligned: boolean | null
+  }
+  assumptions: ReportFact[]
+  audit: {
+    status: string
+    checks: { name: string; title: string; status: 'pass' | 'info' | 'review' | 'blocked'; findings: string[] }[]
+  }
+  sources: { source: string; count: number }[]
+  disclaimer: string
+  markdown: string
+  meta?: ReportMeta
+}
+
+export interface ReportMeta {
+  id: string
+  kind: string
+  symbol: string
+  company: string
+  version: number
+  status: 'publishable' | 'caveated' | null
+  rating: 'BUY' | 'HOLD' | 'SELL' | null
+  stance: string | null
+  fair_value: number | null
+  price: number | null
+  upside_pct: number | null
+  confidence: string | null
+  data_as_of: string | null
+  created_at: string | null
+}
+
 export interface ChatResponse {
   domain: string
   query: string
@@ -23,6 +126,9 @@ export interface ChatResponse {
   quiz?: QuizItem
   concept_name?: string
   audio_token?: string | null
+  report?: ResearchReportData
+  report_id?: string | null
+  fund_report?: boolean
   [key: string]: unknown
 }
 

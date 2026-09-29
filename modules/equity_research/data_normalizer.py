@@ -112,15 +112,20 @@ def normalize_screener_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
         "Long Term Borrowings",
     )
 
-    # Equity
-    equity_row = _pick_row(
-        balance_sheet,
-        "Share Capital",
-        "Equity Capital",
-        "Shareholders Equity",
-        "Net Worth",
-        "Reserves",
-    )
+    # Equity = net worth (share capital + reserves). Screener's "Equity Capital" row
+    # alone is only the paid-up face value (Reliance: Rs 13,532 Cr against a net
+    # worth of ~Rs 5.66 lakh Cr), which made debt-to-equity come out ~40x too high.
+    # A year missing either component is left out (None) rather than understated.
+    equity_row = _pick_row(balance_sheet, "Shareholders Equity", "Net Worth")
+    if not equity_row:
+        capital = _pick_row(balance_sheet, "Share Capital", "Equity Capital")
+        reserves = _pick_row(balance_sheet, "Reserves")
+        equity_row = {
+            col: _parse_numeric(capital.get(col)) + _parse_numeric(reserves.get(col))
+            for col in bs_cols
+            if _parse_numeric(capital.get(col)) is not None
+            and _parse_numeric(reserves.get(col)) is not None
+        }
 
     def build(row: dict, cols: List[str]) -> Dict[str, Any]:
         series = _row_to_series(row, cols)

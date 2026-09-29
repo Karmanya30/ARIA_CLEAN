@@ -7,6 +7,8 @@ Tables:
 
 - FinancialProfile — Module 1's risk label + financial inputs.
 - LearningState    — Module 2's per-concept mastery vector + interaction history.
+- ResearchReportRecord — Module 4's saved equity research reports (one row per
+  generated version, full report JSON included), keyed by a device-level owner id.
 
 Both modules import this module directly; there is no ORM session object
 exposed to callers, only plain dict-in/dict-out functions so callers never
@@ -16,6 +18,8 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Any
 
@@ -89,6 +93,37 @@ class LearningState(Base):
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class ResearchReportRecord(Base):
+    """Module 4 -- a persisted equity research report. Every generation is a new
+    row (version 1, 2, ... per owner + company), so history and "what changed since
+    last time" survive; the full structured report is stored as JSON."""
+
+    __tablename__ = "research_reports"
+
+    id = Column(String, primary_key=True)  # uuid4 hex
+    owner_id = Column(String, index=True, nullable=False)
+    symbol = Column(String, index=True, nullable=False)
+    company = Column(String, nullable=False)
+    version = Column(Integer, nullable=False)
+    status = Column(String, nullable=True)  # publishable | caveated (verification result)
+    rating = Column(String, nullable=True)
+    stance = Column(String, nullable=True)
+    fair_value = Column(Float, nullable=True)
+    price = Column(Float, nullable=True)
+    upside_pct = Column(Float, nullable=True)
+    confidence = Column(String, nullable=True)
+    data_as_of = Column(String, nullable=True)  # ISO date the underlying data was fetched
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    report_json = Column(Text, nullable=False)
+    kind = Column(String, nullable=True, default="equity_research")  # equity_research | financial_model | valuation | dupont | fund_analysis
+
+
+# Who a saved report belongs to. ARIA has no accounts, and the chat session id resets per
+# browser tab, so history is keyed by a device-level id the frontend keeps in localStorage.
+# The chat route sets it for the duration of a request; anything that doesn't falls back to
+# the session id it was given. (A ContextVar keeps core/orchestrator.py untouched.)
+current_owner: ContextVar[str | None] = ContextVar("aria_report_owner", default=None)
+
 _engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 _SessionLocal = sessionmaker(bind=_engine)
 Base.metadata.create_all(_engine)  # creates missing tables only, never columns
@@ -103,6 +138,7 @@ def _migrate_add_missing_columns() -> None:
     with _engine.begin() as conn:
         for statement in (
             "ALTER TABLE financial_profiles ADD COLUMN risk_top_features TEXT DEFAULT '[]'",
+            "ALTER TABLE research_reports ADD COLUMN kind VARCHAR DEFAULT 'equity_research'",
         ):
             try:
                 conn.exec_driver_sql(statement)
@@ -246,3 +282,69 @@ def append_learning_interaction(
         }
     )
     save_learning_state(user_id, mastery, state["history"])
+
+
+# ── Module 4: saved equity research reports ─────────────────────────────
+def _report_meta(row: ResearchReportRecord) -> dict[str, Any]:
+    return {
+        "id": row.id, "kind": row.kind or "equity_research", "symbol": row.symbol, "company": row.company, "version": row.version, "status": row.status,
+        "rating": row.rating, "stance": row.stance, "fair_value": row.fair_value, "price": row.price,
+        "upside_pct": row.upside_pct, "confidence": row.confidence, "data_as_of": row.data_as_of,
+        "created_at": row.created_at.replace(tzinfo=timezone.utc).isoformat() if row.created_at else None,
+    }
+
+
+def save_research_report(owner_id: str, report: dict[str, Any]) -> dict[str, Any]:
+    """Persist one generated report as the next version for (owner, company). Stamps ``report["meta"]``
+    with the id/version and returns that meta dict."""
+    owner_id = current_owner.get() or owner_id
+    symbol, stance = report["company"]["symbol"], report["stance"]
+    with _SessionLocal() as session:
+        last = (
+            session.query(ResearchReportRecord.version)
+            .filter(ResearchReportRecord.owner_id == owner_id, ResearchReportRecord.symbol == symbol)
+            .order_by(ResearchReportRecord.version.desc())
+            .first()
+        )
+        row = ResearchReportRecord(
+            id=uuid.uuid4().hex, owner_id=owner_id, symbol=symbol, company=report["company"]["name"],
+            version=(last[0] + 1) if last else 1, kind=report.get("kind") or "equity_research", status=report.get("status"), rating=stance.get("rating"),
+            stance=stance.get("stance"), fair_value=stance.get("fair_value"), price=stance.get("price"),
+            upside_pct=stance.get("upside_pct"), confidence=stance.get("confidence"),
+            data_as_of=report["company"].get("as_of"), created_at=datetime.now(timezone.utc), report_json="",
+        )
+        meta = _report_meta(row)
+        report["meta"] = meta
+        row.report_json = json.dumps(report)
+        session.add(row)
+        session.commit()
+    return meta
+
+
+def list_research_reports(owner_id: str, symbol: str | None = None) -> list[dict[str, Any]]:
+    """Saved reports for this owner, newest first (metadata only -- no report body)."""
+    with _SessionLocal() as session:
+        query = session.query(ResearchReportRecord).filter(ResearchReportRecord.owner_id == owner_id)
+        if symbol:
+            query = query.filter(ResearchReportRecord.symbol == symbol)
+        return [_report_meta(r) for r in query.order_by(ResearchReportRecord.created_at.desc(), ResearchReportRecord.version.desc()).all()]
+
+
+def get_research_report(owner_id: str, report_id: str) -> dict[str, Any] | None:
+    with _SessionLocal() as session:
+        row = session.get(ResearchReportRecord, report_id)
+        if row is None or row.owner_id != owner_id:
+            return None
+        report = json.loads(row.report_json)
+        report["meta"] = _report_meta(row)
+        return report
+
+
+def delete_research_report(owner_id: str, report_id: str) -> bool:
+    with _SessionLocal() as session:
+        row = session.get(ResearchReportRecord, report_id)
+        if row is None or row.owner_id != owner_id:
+            return False
+        session.delete(row)
+        session.commit()
+        return True

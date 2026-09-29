@@ -11,6 +11,7 @@ import pytest
 _IMPORTERS = [
     "core.orchestrator",
     "modules.equity_research.financial_pipeline",
+    "modules.equity_research.intelligence.agents",
     "modules.equity_research.investment",
     "modules.finance.orchestrator",
     "modules.finance.pipeline",

@@ -18,13 +18,21 @@ class ChatRequest(BaseModel):
     query: str
     session_id: str
     mode: str = "Normal Mode"
+    # Device-level id the frontend keeps in localStorage: saved research reports belong to it, not to
+    # the per-tab session, so they survive closing the tab.
+    owner_id: str | None = None
 
 
 @router.post("")
 def send_message(req: ChatRequest) -> dict[str, Any]:
     from core.orchestrator import handle_query
+    from shared.user_store import current_owner
 
-    result = handle_query(req.query.strip(), session_id=req.session_id, mode=req.mode)
+    token = current_owner.set(req.owner_id)
+    try:
+        result = handle_query(req.query.strip(), session_id=req.session_id, mode=req.mode)
+    finally:
+        current_owner.reset(token)
     response_text = result.get("response", "No response generated.")
 
     # TTS runs for every response regardless of mode (matches the original

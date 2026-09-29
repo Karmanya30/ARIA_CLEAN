@@ -1,6 +1,7 @@
 import { User, Sparkles } from 'lucide-react'
 import type { HistoryTurn } from '../../types'
 import { ResponseCard } from './ResponseCard'
+import { ResearchReport } from './ResearchReport'
 import { ShapExplainer } from './ShapExplainer'
 import { QuizWidget } from './QuizWidget'
 import { api } from '../../api'
@@ -34,6 +35,14 @@ export function MessageBubble({
         <div className="bubble-content">
           <ResponseCard text={response.response} />
           <p className="bubble-caption">{badge}</p>
+
+          {response.report && <ResearchReport report={response.report} reportId={response.report_id} />}
+          {response.fund_report && response.report_id && (
+            <p className="bubble-caption">
+              <a href={api.reportHtmlUrl(response.report_id)} target="_blank" rel="noreferrer">Open the full fund report</a> ·{' '}
+              <a href={api.reportDownloadUrl(response.report_id, 'pdf')}>PDF</a> · <a href={api.reportDownloadUrl(response.report_id, 'html')}>HTML</a>
+            </p>
+          )}
 
           {response.risk?.top_features?.length ? (
             <ShapExplainer label={response.risk.label} topFeatures={response.risk.top_features} />

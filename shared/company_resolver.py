@@ -5,6 +5,8 @@ Maps natural language company names / aliases to screener.in URL slugs.
 """
 from __future__ import annotations
 
+import re
+
 # Map of lowercase aliases → screener.in slug
 _COMPANY_MAP: dict[str, str] = {
     # ICICI
@@ -94,7 +96,7 @@ def resolve_company(text: str) -> str | None:
 
     Priority:
     1. Exact alias match (case-insensitive)
-    2. Longest substring alias match
+    2. Longest whole-word alias match
     3. None if no match found
     """
     text_lower = text.lower()
@@ -103,11 +105,12 @@ def resolve_company(text: str) -> str | None:
     if text_lower in _COMPANY_MAP:
         return _COMPANY_MAP[text_lower]
 
-    # Longest substring match — avoids short aliases like "sbi" matching "sbi life"
+    # Longest whole-word match. Plain substring matching resolved "switch" -> ITC and
+    # "april"/"brilliant" -> RELIANCE ("itc"/"ril" hide inside ordinary words).
     best_match: str | None = None
     best_len = 0
     for alias, ticker in _COMPANY_MAP.items():
-        if alias in text_lower and len(alias) > best_len:
+        if len(alias) > best_len and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", text_lower):
             best_match = ticker
             best_len = len(alias)
 

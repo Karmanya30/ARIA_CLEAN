@@ -15,7 +15,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.router import is_fundamental_query
+from loguru import logger
+
+from core.router import is_fundamental_query, is_research_report_query
 from modules.equity_research.financial_pipeline import process_financial_query
 from modules.equity_research.investment import investment_module
 from shared.company_resolver import resolve_company
@@ -23,6 +25,21 @@ from shared.company_resolver import resolve_company
 
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     ticker = resolve_company(query)
+
+    # Full research report / valuation request -> the financial-intelligence layer.
+    # Any failure there falls through to the standard paths below, so the existing
+    # Module 4 behaviour is always the safety net.
+    if is_research_report_query(query, ticker):
+        try:
+            from modules.equity_research.intelligence.fund import is_fund_query, run_fund_report
+
+            if is_fund_query(query):
+                return run_fund_report(query, user_id=user_id)
+            from modules.equity_research.intelligence.pipeline import run_research
+
+            return run_research(query, user_id=user_id)
+        except Exception:
+            logger.exception("research layer failed; falling back to the standard Module 4 path")
 
     if ticker and is_fundamental_query(query):
         result = process_financial_query(query, ticker)

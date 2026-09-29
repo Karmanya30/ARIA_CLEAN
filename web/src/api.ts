@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinancialProfile, ProgressState, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinancialProfile, ProgressState, ReportMeta, Transaction } from './types'
 
 const BASE = ''
 
@@ -17,6 +17,23 @@ async function extractErrorDetail(res: Response): Promise<string> {
   return raw || res.statusText
 }
 
+const OWNER_KEY = 'aria_owner_id'
+
+/** Device-level id that owns saved research reports. The chat session id resets per browser tab, so
+ * reports are keyed by this instead (ARIA has no accounts). Falls back to a per-page id if storage is blocked. */
+let memoryOwner: string | null = null
+export function ownerId(): string {
+  try {
+    const existing = localStorage.getItem(OWNER_KEY)
+    if (existing) return existing
+    const fresh = crypto.randomUUID()
+    localStorage.setItem(OWNER_KEY, fresh)
+    return fresh
+  } catch {
+    return (memoryOwner ??= crypto.randomUUID())
+  }
+}
+
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, {
     ...init,
@@ -32,7 +49,7 @@ export const api = {
   sendMessage: (query: string, sessionId: string, mode: ChatMode) =>
     j<ChatResponse>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ query, session_id: sessionId, mode }),
+      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId() }),
     }),
 
   getHistory: (sessionId: string) =>
@@ -94,6 +111,23 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId, concept_id: conceptId, is_correct: isCorrect }),
     }),
+
+  listReports: () => j<ReportMeta[]>(`/api/research/reports?owner_id=${encodeURIComponent(ownerId())}`),
+
+  reportHtmlUrl: (id: string, kind = '', print = false) =>
+    `/api/research/reports/${id}/html?owner_id=${encodeURIComponent(ownerId())}${kind ? `&kind=${kind}` : ''}${print ? '&print=true' : ''}`,
+
+  reportDownloadUrl: (id: string, format: 'html' | 'md' | 'json' | 'pdf', kind = '') =>
+    `/api/research/reports/${id}/download?format=${format}&owner_id=${encodeURIComponent(ownerId())}${kind ? `&kind=${kind}` : ''}`,
+
+  regenerateReport: (id: string) =>
+    j<{ report_id: string; meta: ReportMeta }>(`/api/research/reports/${id}/regenerate`, {
+      method: 'POST',
+      body: JSON.stringify({ owner_id: ownerId() }),
+    }),
+
+  deleteReport: (id: string) =>
+    j<{ status: string }>(`/api/research/reports/${id}?owner_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
   startTavus: (sessionId: string) =>
     j<{ conversation_url: string; embed_url: string }>('/api/tavus/start', {

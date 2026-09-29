@@ -2,10 +2,20 @@ from typing import Dict, Any, Optional, List
 
 
 def _get_field_series(data: Dict[str, Any], field: str) -> List[Optional[float]]:
-    """Extract the ordered series from a normalized field."""
+    """Extract the ordered series from a normalized field.
+
+    The screener P&L's trailing-twelve-months column overlaps the last fiscal
+    year, so it is dropped here: "latest two periods" must be two fiscal
+    years, not FY vs TTM (that reported Reliance revenue growth of +9.7% when
+    FY25->FY26 was -2.2%).
+    """
     field_data = data.get(field, {})
     if isinstance(field_data, dict):
-        return field_data.get("series", [])
+        series = field_data.get("series", [])
+        columns = field_data.get("columns", [])
+        if len(columns) == len(series):
+            return [v for col, v in zip(columns, series) if col != "TTM"]
+        return series
     # Legacy: plain list
     return field_data if isinstance(field_data, list) else []
 
