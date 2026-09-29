@@ -150,7 +150,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
           <div className="chat-chat-col">
             <div className="chat-scroll-region" ref={scrollRef}>
               {isTavus ? (
-                <TavusTranscript session={tavusSession} />
+                <TavusTranscript session={tavusSession} sessionId={sessionId} />
               ) : (
                 <div className="chat-thread">
                   {history.length === 0 && <p className="chat-empty-hint">Ask ARIA something to get started.</p>}

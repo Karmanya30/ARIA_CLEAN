@@ -40,7 +40,7 @@ _BROAD_MARKET_TERMS = (
     "stock market", "market respond", "market react", "nifty", "sensex",
     "index", "indices", "sector", "sectors", "election", "government",
     "rbi", "inflation", "gdp", "bjp", "congress",
-    "west bengal",
+    "west bengal", "ipo", "ipos",
 )
 _INDIVIDUAL_STOCK_TERMS = (
     "stock price", "share price", "market cap", "pe ratio", "p/e", "ticker",
