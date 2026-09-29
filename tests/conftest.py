@@ -27,9 +27,11 @@ class _MockLLM:
     def __init__(self):
         self.response = DEFAULT_MOCK_RESPONSE
         self.calls: list[str] = []
+        self.models: list[str | None] = []
 
-    def __call__(self, prompt, system_prompt=None):
+    def __call__(self, prompt, system_prompt=None, model=None):
         self.calls.append(prompt)
+        self.models.append(model)
         return self.response
 
     def set_response(self, text: str) -> None:

@@ -10,6 +10,12 @@ from modules.finance.pipeline import run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
+from shared.domain_guard import (
+    CONFIDENCE_THRESHOLD,
+    build_refusal_response,
+    classify_domain,
+    validate_output,
+)
 
 # Casual greetings/small-talk with no real question in them -- found live:
 # these fell through to modules/tutor/pipeline.py's generic fallback, whose
@@ -114,8 +120,39 @@ Follow-up query: {query}
         # equity research is the closer fallback of the two.
         response = equity_research_pipeline(query, user_id=session_id)
     else:
+        # Nothing above matched -- the query didn't hit any finance/market
+        # keyword or precise company/ticker check. This is exactly the
+        # "could be genuinely off-topic" tier, so it's where
+        # shared/domain_guard.py's pre-check applies: a confidently
+        # non-finance query (e.g. "write me a Python program", "who won
+        # the cricket match") is refused here, before spending a real LLM
+        # call on it. An ambiguous or guard-unavailable query (including
+        # every existing test, whose mocked LLM doesn't return classifier
+        # JSON) falls through unchanged to tutor_pipeline's general
+        # fallback, whose prompt (ai/llm/prompt_templates.py's
+        # tutor_prompt) already answers while pivoting toward a finance/
+        # business/company/management angle instead of hard-refusing every
+        # borderline question -- see shared/domain_guard.py's docstring for
+        # the full three-tier rationale.
+        guard = classify_domain(query)
+        if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
+            response = build_refusal_response(query, guard)
+            save_turn(session_id, query, response)
+            return response
+
         response = tutor_pipeline(query, user_id=session_id)
         response["domain"] = "general"
+        if guard["available"]:
+            response["domain_guard"] = guard
+
+    # Output Guard -- runs for every response that wasn't already a refusal
+    # (that path returned early above), regardless of which branch produced
+    # it. Non-blocking: attaches metadata for transparency/demo purposes,
+    # never rewrites or discards the answer -- see shared/domain_guard.py's
+    # validate_output docstring for why.
+    output_guard = validate_output(query, response.get("response", ""))
+    if output_guard["available"]:
+        response["domain_guard_output"] = output_guard
 
     save_turn(session_id, query, response)
     return response

@@ -50,7 +50,16 @@ MARKET_KEYWORDS = (
     "asian paints",
     "axis bank",
 )
-TUTOR_KEYWORDS = ("learn", "explain", "what is")
+TUTOR_KEYWORDS = (
+    "learn", "explain", "what is",
+    # Company/business/management/consultancy terms -- in-scope for ARIA
+    # even when they don't hit a finance/market keyword above, so they get
+    # the finance/business-framed prompt path rather than being misrouted.
+    "company", "companies", "business", "management", "consultancy",
+    "consulting", "corporate", "startup", "start-up", "entrepreneur",
+    "entrepreneurship", "merger", "acquisition", "strategy", "ceo", "cfo",
+    "industry", "enterprise", "firm",
+)
 
 # Unambiguous "teach/test me" phrasing -- checked before FINANCE_KEYWORDS
 # because the tutor module's own subject matter (SIP, mutual funds, tax,

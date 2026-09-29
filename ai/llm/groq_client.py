@@ -77,7 +77,7 @@ def _extract_groq_text(response) -> str:
         return str(response)
 
 
-def _call_groq(prompt: str, system_prompt: str) -> str:
+def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str:
     """Raises on any failure — caller decides how to handle it."""
     client = _make_groq_client()
     messages = [
@@ -85,7 +85,7 @@ def _call_groq(prompt: str, system_prompt: str) -> str:
         {"role": "user", "content": prompt},
     ]
     response = client.chat.completions.create(
-        model=MODEL_NAME,
+        model=model or MODEL_NAME,
         messages=messages,
         temperature=0.6,
         top_p=0.9,
@@ -96,7 +96,7 @@ def _call_groq(prompt: str, system_prompt: str) -> str:
     return text
 
 
-def _call_gemini(prompt: str, system_prompt: str) -> str:
+def _call_gemini(prompt: str, system_prompt: str, model: str | None = None) -> str:
     """Raises on any failure — caller decides how to handle it.
 
     Uses the current `google-genai` SDK (`from google import genai`), not the
@@ -116,7 +116,7 @@ def _call_gemini(prompt: str, system_prompt: str) -> str:
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
-        model=GEMINI_MODEL_NAME,
+        model=model or GEMINI_MODEL_NAME,
         contents=prompt,
         config=types.GenerateContentConfig(system_instruction=system_prompt),
     )
@@ -130,11 +130,17 @@ _BACKENDS = (("groq", _call_groq), ("gemini", _call_gemini))
 
 
 # ── CORE GENERATION ────────────────────────────────────────────────────
-def generate_response(prompt: str, system_prompt: str | None = None) -> str:
+def generate_response(prompt: str, system_prompt: str | None = None, model: str | None = None) -> str:
     """
     Generate a response, trying Groq first and automatically falling back to
     Gemini if Groq errors out or is rate-limited. Safe wrapper — never
     crashes, always returns a string.
+
+    `model` overrides the default MODEL_NAME/GEMINI_MODEL_NAME for this call
+    only -- used by shared/domain_guard.py to route its classification calls
+    to a smaller/cheaper model than the main narration model, without
+    changing behavior for any other caller (default None preserves the
+    exact prior behavior).
     """
     if system_prompt is None:
         system_prompt = "You are a helpful AI assistant."
@@ -144,7 +150,7 @@ def generate_response(prompt: str, system_prompt: str | None = None) -> str:
 
     for name, backend in _BACKENDS:
         try:
-            text = backend(prompt, system_prompt)
+            text = backend(prompt, system_prompt, model)
             break
         except Exception as e:
             last_error = e
