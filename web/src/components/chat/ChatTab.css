@@ -1,7 +1,8 @@
 .chat-page {
   max-width: 780px;
   margin: 0 auto;
-  height: calc(100vh - 120px); /* matches .app-main's 40px + 80px vertical padding */
+  /* matches .app-main's 40px + 80px vertical padding, plus the top bar of themes that have one */
+  height: calc(100vh - 120px - var(--topbar-h, 0px));
   display: flex;
   flex-direction: column;
   overflow: hidden;

@@ -4,6 +4,7 @@ import { ChatTab } from './components/chat/ChatTab'
 import { ProfileTab } from './components/profile/ProfileTab'
 import { ResearchTab } from './components/research/ResearchTab'
 import { ProgressTab } from './components/progress/ProgressTab'
+import { SettingsTab } from './components/settings/SettingsTab'
 import { useSessionId } from './hooks/useSessionId'
 import './App.css'
 
@@ -30,6 +31,11 @@ export default function App() {
         {tab === 'progress' && (
           <div className="page-wrap">
             <ProgressTab sessionId={sessionId} />
+          </div>
+        )}
+        {tab === 'settings' && (
+          <div className="page-wrap">
+            <SettingsTab />
           </div>
         )}
       </main>

@@ -139,11 +139,21 @@ Open the URL Vite prints (`http://localhost:5173`). The dev server
 proxies `/api`, `/avatar`, and `/embed` through to the backend on
 `:8000`, so both must be running.
 
-Four tabs: **Chat** (all 4 modules, auto-routed, plus a mode selector
+Five tabs: **Chat** (all 4 modules, auto-routed, plus a mode selector
 for Normal / Conversational (free avatar) / Tavus CVI (paid video call)
 — try the example queries if unsure what to ask), **Research reports**
-(saved equity research, see above), **Your Profile** (Module 1 inputs)
-and **Your Progress** (Module 2 mastery).
+(saved equity research, see above), **Your Profile** (Module 1 inputs),
+**Your Progress** (Module 2 mastery) and **Settings**.
+
+**Settings → Appearance** switches between two UI themes, applied
+instantly and remembered per browser (`localStorage`, key `aria_theme`):
+*Classic* (default: left sidebar, cool blue) and *Vitara* (warm ivory,
+top navigation bar, pill controls, deep-green accent). A theme is just a
+`[data-theme='…']` block of the design tokens in `web/src/styles/`
+(`tokens.css`, `theme-vitara.css`) plus a few layout rules, so adding or
+tuning one means editing that one CSS file and listing it in
+`web/src/theme.ts`. Generated report documents carry their own styling
+and look the same in every theme.
 
 ### Production build
 

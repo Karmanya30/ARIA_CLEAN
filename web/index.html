@@ -10,6 +10,13 @@
          desaturated dark render on top of our own light CSS. -->
     <meta name="color-scheme" content="light" />
     <title>ARIA</title>
+    <!-- Apply the saved UI theme before first paint so there is no flash of the
+         default one. Same key as src/theme.ts; unknown values fall back to Classic. -->
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('aria_theme') || 'classic'
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

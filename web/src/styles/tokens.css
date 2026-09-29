@@ -7,7 +7,10 @@
 @import '@fontsource/manrope/600.css';
 @import '@fontsource/manrope/700.css';
 
-:root {
+/* "Classic" theme (the default). Alternative themes override these tokens under
+ * [data-theme='<id>'] -- see theme-vitara.css and src/theme.ts. */
+:root,
+[data-theme='classic'] {
   /* Light, professional palette -- cool near-white ground (not stark
    * #fff, which reads flat under long reading sessions), deep navy ink
    * for contrast, and a restrained corporate blue as the single accent

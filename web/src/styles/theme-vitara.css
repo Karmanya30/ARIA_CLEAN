@@ -1,0 +1,225 @@
+/* "Vitara" theme -- warm ivory canvas, top navigation bar, pill controls, deep-green accent.
+ * Picked in Settings -> Appearance (src/theme.ts sets data-theme on <html>); Classic stays the
+ * default in tokens.css. The token block matches any element carrying data-theme="vitara" (<html>
+ * and the Settings preview swatch); the layout rules below only match real app classes. */
+[data-theme='vitara'] {
+  --bg: #f8f5ee;
+  --bg-elevated: #ffffff;
+  --bg-inset: #f1ece1;
+  --border: #e7e0d1;
+  --border-strong: #d5cbb6;
+  --ink: #1a1a17;
+  --ink-muted: #56544b;
+  --ink-faint: #8b8879;
+
+  --accent: #1f6f54;
+  --accent-strong: #154f3c;
+  --accent-soft: rgba(31, 111, 84, 0.1);
+  --accent-ink: #ffffff;
+
+  /* Second stop of the brand gradients (avatar mark, orb): a lighter green, not a second hue. */
+  --violet: #58a381;
+  --violet-soft: rgba(88, 163, 129, 0.12);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(58, 46, 20, 0.06);
+  --shadow-md: 0 6px 20px rgba(58, 46, 20, 0.07), 0 1px 2px rgba(58, 46, 20, 0.04);
+  --shadow-lg: 0 18px 44px rgba(58, 46, 20, 0.12);
+  --shadow-glow: 0 6px 18px rgba(31, 111, 84, 0.28);
+
+  /* Height of the fixed top bar; pages that fill the viewport subtract it (0 in Classic). */
+  --topbar-h: 72px;
+}
+
+[data-theme='vitara'] ::selection {
+  background: rgba(31, 111, 84, 0.22);
+  color: var(--ink);
+}
+
+/* ── Top navigation bar (replaces the left sidebar) ─────────────────────────────── */
+[data-theme='vitara'] .app-sidebar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  width: auto;
+  height: var(--topbar-h);
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 0 32px;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  overflow: visible;
+}
+[data-theme='vitara'] .sidebar-brand {
+  order: 1;
+}
+[data-theme='vitara'] .app-mark {
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(31, 111, 84, 0.3);
+}
+[data-theme='vitara'] .sidebar-nav {
+  order: 2;
+  flex-direction: row;
+  gap: 2px;
+  margin: 0 auto;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme='vitara'] .sidebar-nav-item {
+  width: auto;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+[data-theme='vitara'] .sidebar-nav-item.active {
+  background: var(--ink);
+  color: #ffffff;
+}
+[data-theme='vitara'] .sidebar-new-btn {
+  order: 3;
+  width: auto;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-glow);
+}
+[data-theme='vitara'] .sidebar-new-btn:hover {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+[data-theme='vitara'] .sidebar-footer {
+  display: none;
+}
+
+[data-theme='vitara'] .app-main {
+  padding-top: calc(var(--topbar-h) + 40px);
+  background:
+    radial-gradient(ellipse 900px 420px at 50% 0, rgba(31, 111, 84, 0.07), transparent 65%),
+    var(--bg);
+}
+
+/* Room for the labels stops around here: keep icons, hide the text visually (still read aloud). */
+@media (max-width: 1100px) {
+  [data-theme='vitara'] .sidebar-nav-item {
+    padding: 9px 13px;
+  }
+  [data-theme='vitara'] .sidebar-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+/* Narrow screens: the bar goes back to a normal (scrolling) header row, labels included. */
+@media (max-width: 880px) {
+  [data-theme='vitara'] {
+    --topbar-h: 0px;
+  }
+  [data-theme='vitara'] .app-sidebar {
+    position: static;
+    height: auto;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+  }
+  [data-theme='vitara'] .sidebar-nav {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+  }
+  [data-theme='vitara'] .sidebar-nav-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+  [data-theme='vitara'] .sidebar-new-btn {
+    margin-left: auto;
+  }
+  [data-theme='vitara'] .app-main {
+    padding-top: 24px;
+  }
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────────────── */
+[data-theme='vitara'] .btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  box-shadow: none;
+}
+[data-theme='vitara'] .btn:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: none;
+}
+[data-theme='vitara'] .btn-primary {
+  background: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+[data-theme='vitara'] .btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  box-shadow: 0 8px 22px rgba(31, 111, 84, 0.34);
+}
+[data-theme='vitara'] .input:not(.composer-input) {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+/* ── Chat ──────────────────────────────────────────────────────────────────────── */
+[data-theme='vitara'] .composer {
+  padding: 8px 8px 8px 22px;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+}
+[data-theme='vitara'] .composer-submit {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+}
+[data-theme='vitara'] .chat-hero-text h2 {
+  font-size: clamp(28px, 3.6vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+[data-theme='vitara'] .chat-hero-text p {
+  font-size: 15.5px;
+}
+[data-theme='vitara'] .hero-orb {
+  box-shadow:
+    0 0 44px rgba(31, 111, 84, 0.22),
+    0 0 80px rgba(88, 163, 129, 0.14);
+}
+[data-theme='vitara'] .template-card {
+  border-color: transparent;
+}
+[data-theme='vitara'] .template-card:hover {
+  border-color: var(--accent);
+}
+[data-theme='vitara'] .template-card-icon {
+  border-radius: 50%;
+}
+[data-theme='vitara'] .bubble-user {
+  background: var(--bg-inset);
+  border-color: transparent;
+  box-shadow: none;
+}

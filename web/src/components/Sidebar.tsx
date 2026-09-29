@@ -1,4 +1,4 @@
-import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText } from 'lucide-react'
+import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Settings } from 'lucide-react'
 import './Sidebar.css'
 
 export interface NavDef {
@@ -49,7 +49,7 @@ export function Sidebar({
             type="button"
           >
             {tab.icon}
-            {tab.label}
+            <span className="sidebar-nav-label">{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -69,4 +69,5 @@ export const SIDEBAR_TABS: NavDef[] = [
   { id: 'research', label: 'Research reports', icon: <FileText size={16} /> },
   { id: 'profile', label: 'Your Profile', icon: <User size={16} /> },
   { id: 'progress', label: 'Your Progress', icon: <TrendingUp size={16} /> },
+  { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
 ]
