@@ -10,9 +10,13 @@ old Streamlit-subprocess split.
 """
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor
+from typing import Callable
 from uuid import uuid4
 
-_STORE: dict[str, str] = {}
+_STORE: dict[str, str | Future] = {}
+_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="tts")
+AUDIO_WAIT_SECONDS = 90
 
 
 def register(path: str) -> str:
@@ -21,5 +25,20 @@ def register(path: str) -> str:
     return token
 
 
+def register_later(make_audio: Callable[[], str | None]) -> str:
+    """Hand out a token now and make the audio in the background. The chat reply no longer waits for the
+    spoken-script LLM call and speech synthesis (several seconds); whoever fetches the audio waits instead."""
+    token = uuid4().hex
+    _STORE[token] = _POOL.submit(make_audio)
+    return token
+
+
 def resolve(token: str) -> str | None:
-    return _STORE.get(token)
+    value = _STORE.get(token)
+    if isinstance(value, Future):
+        try:
+            value = value.result(timeout=AUDIO_WAIT_SECONDS)
+        except Exception:
+            return None
+        _STORE[token] = value
+    return value

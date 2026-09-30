@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from loguru import logger
 from pydantic import BaseModel
 
-from api.audio_store import register
+from api.audio_store import register_later
 from api.text_utils import speech_text
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -39,19 +39,19 @@ def send_message(req: ChatRequest) -> dict[str, Any]:
     # Streamlit app's behavior -- Normal Mode also got a playable audio
     # clip, not just Conversational Mode; only the 3D avatar overlay was
     # mode-gated).
-    audio_token = None
-    try:
-        from ai.llm.audio_script import generate_audio_script
-        from ai.speech.tts import synthesize
+    # Made in the background (api/audio_store.register_later): the reply returns as soon as the text is
+    # ready, and /api/audio/{token} or the avatar waits for the clip.
+    def make_audio() -> str | None:
+        try:
+            from ai.llm.audio_script import generate_audio_script
+            from ai.speech.tts import synthesize
 
-        audio_script = generate_audio_script(response_text)
-        audio_path = synthesize(speech_text(audio_script))
-        if audio_path:
-            audio_token = register(audio_path)
-    except Exception as exc:
-        logger.warning(f"TTS generation failed; returning text-only response: {exc}")
+            return synthesize(speech_text(generate_audio_script(response_text)))
+        except Exception as exc:
+            logger.warning(f"TTS generation failed; the reply stays text-only: {exc}")
+            return None
 
-    result["audio_token"] = audio_token
+    result["audio_token"] = register_later(make_audio)
     return result
 
 

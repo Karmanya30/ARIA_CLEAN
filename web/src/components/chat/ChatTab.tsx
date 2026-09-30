@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
 import { useTavusSession } from '../../hooks/useTavusSession'
@@ -11,7 +11,7 @@ import { TavusTranscript } from './TavusTranscript'
 import { ConversationalAvatar } from './ConversationalAvatar'
 import './ChatTab.css'
 
-const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Tavus CVI Mode (WebRTC)']
+const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)']
 
 function greeting(): string {
   const hour = new Date().getHours()
@@ -57,11 +57,17 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
   const [sending, setSending] = useState(false)
+  // The message being answered: shown at once, so pressing Send visibly does something even on the first
+  // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
+  const [pending, setPending] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
-  const showHero = history.length === 0 && !isTavus
+  // Free streaming voice mode (api/routes/live.py + interface/avatar/live.html): the call UI lives in the iframe,
+  // and its turns are saved to the same session history this column shows.
+  const isLive = mode === 'Live Avatar (Free)'
+  const showHero = history.length === 0 && !isTavus && !pending
   // Hooks can't be called conditionally, so this always runs -- `enabled`
   // is what actually gates starting/ending the paid call.
   const tavusSession = useTavusSession(sessionId, isTavus)
@@ -69,6 +75,20 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     api.getHistory(sessionId).then((res) => setHistory(res.history as HistoryTurn[]))
   }, [sessionId])
+
+  useEffect(() => {
+    if (!isLive) return
+    const refresh = () => api.getHistory(sessionId).then((res) => setHistory(res.history as HistoryTurn[])).catch(() => {})
+    const onMessage = (ev: MessageEvent) => {
+      if (ev.data?.source === 'aria-live' && ev.data.type === 'done') refresh()
+    }
+    window.addEventListener('message', onMessage)
+    const poll = setInterval(refresh, 4000)
+    return () => {
+      window.removeEventListener('message', onMessage)
+      clearInterval(poll)
+    }
+  }, [isLive, sessionId])
 
   // The message list is the only part of the page that scrolls (the
   // avatar/video stage above it stays fixed in place) -- so unlike a
@@ -82,6 +102,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
     const trimmed = text.trim()
     if (!trimmed || sending) return
     setSending(true)
+    setPending(trimmed)
     setQuery('')
     try {
       const response = await api.sendMessage(trimmed, sessionId, mode)
@@ -96,6 +117,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
       ])
     } finally {
       setSending(false)
+      setPending(null)
     }
   }
 
@@ -116,7 +138,21 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
   // small decorative orb during its own idle state), so it keeps the
   // simpler single centered column instead of wasting half the screen
   // on empty space.
-  const isSplitLayout = isTavus || isConversational
+  const isSplitLayout = isTavus || isConversational || isLive
+
+  const pendingTurn = pending && (
+    <div className="message-pair">
+      <div className="bubble bubble-user">
+        <span className="bubble-avatar">
+          <User size={15} />
+        </span>
+        <p>{pending}</p>
+      </div>
+      <p className="chat-status" role="status">
+        Analyzing… full research reports can take up to a minute.
+      </p>
+    </div>
+  )
 
   const topbar = (
     <div className="chat-topbar">
@@ -146,6 +182,14 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
           <div className="chat-avatar-col">
             {isTavus && <TavusVideo session={tavusSession} />}
             {isConversational && <ConversationalAvatar audioToken={latestAudioToken} />}
+            {isLive && (
+              <iframe
+                className="live-avatar-frame"
+                src={`/avatar/live?session_id=${encodeURIComponent(sessionId)}`}
+                allow="microphone; autoplay"
+                title="ARIA live avatar"
+              />
+            )}
           </div>
           <div className="chat-chat-col">
             <div className="chat-scroll-region" ref={scrollRef}>
@@ -153,7 +197,11 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                 <TavusTranscript session={tavusSession} />
               ) : (
                 <div className="chat-thread">
-                  {history.length === 0 && <p className="chat-empty-hint">Ask ARIA something to get started.</p>}
+                  {history.length === 0 && (
+                    <p className="chat-empty-hint">
+                      {isLive ? 'Press “Start conversation” on the avatar, then speak or type. The conversation appears here.' : 'Ask ARIA something to get started.'}
+                    </p>
+                  )}
                   {history.map((turn, i) => (
                     <MessageBubble
                       key={i}
@@ -162,11 +210,11 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                     />
                   ))}
-                  {sending && <p className="chat-status">Analyzing…</p>}
+                  {pendingTurn}
                 </div>
               )}
             </div>
-            {!isTavus && (
+            {!isTavus && !isLive && (
               <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             )}
           </div>
@@ -208,7 +256,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                   onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                 />
               ))}
-              {sending && <p className="chat-status">Analyzing…</p>}
+              {pendingTurn}
             </div>
           </div>
           <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />

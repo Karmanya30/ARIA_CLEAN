@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/api': { target: 'http://localhost:8000', ws: true }, // ws: the Live Avatar's /api/live/ws
       '/avatar': 'http://localhost:8000',
       '/embed': 'http://localhost:8000',
     },

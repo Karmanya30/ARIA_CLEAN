@@ -35,7 +35,8 @@
  * fixed-size + margin:auto centered below) -- giving it flex:1 too would
  * stretch its 220px circle into a tall oval filling the whole column. */
 .chat-avatar-col > .tavus-video-panel,
-.chat-avatar-col > .avatar-embed {
+.chat-avatar-col > .avatar-embed,
+.chat-avatar-col > .live-avatar-frame {
   flex: 1;
   min-height: 0;
 }
@@ -201,4 +202,12 @@
   .chat-mode-select {
     width: 100%;
   }
+}
+
+.live-avatar-frame {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: #0f1720;
+  box-shadow: var(--shadow-md);
 }

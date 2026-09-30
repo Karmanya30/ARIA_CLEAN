@@ -130,10 +130,12 @@ export const api = {
     j<{ status: string }>(`/api/research/reports/${id}?owner_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
   startTavus: (sessionId: string) =>
-    j<{ conversation_url: string; embed_url: string }>('/api/tavus/start', {
+    j<{ conversation_id: string; conversation_url: string; embed_url: string }>('/api/tavus/start', {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId }),
     }),
 
-  endTavus: () => j<{ status: string }>('/api/tavus/end', { method: 'POST' }),
+  // Pass the id you started: a bare end would stop whichever call is active now, possibly a newer one.
+  endTavus: (conversationId?: string) =>
+    j<{ status: string }>('/api/tavus/end', { method: 'POST', body: JSON.stringify({ conversation_id: conversationId ?? null }) }),
 }

@@ -6,6 +6,7 @@ Run: python -m api.main   (or: uvicorn api.main:app --reload)
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -20,7 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import avatar, chat, profile, progress, research, transactions, voice
+from api.routes import avatar, chat, live, profile, progress, research, transactions, voice
 
 app = FastAPI(title="ARIA API")
 
@@ -36,6 +37,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def _warm_up() -> None:
+    """Load the heavy pieces (orchestrator imports, the Sentence-BERT encoder, NER) in the background at
+    startup. Otherwise the first chat message after a restart pays for all of it (~45 s against ~3 s)."""
+    import time
+
+    from loguru import logger
+
+    t = time.time()
+    try:
+        import core.orchestrator  # noqa: F401  (imports every module pipeline)
+        from shared.ner import extract_entities
+        from shared.vector_store import _get_encoder
+
+        _get_encoder().encode(["warm up"])
+        extract_entities("warm up")
+        from ai.speech.live_tts import warm_up as warm_live_voice
+
+        warm_live_voice()
+        logger.info(f"Warm-up finished in {time.time() - t:.1f}s")
+    except Exception as exc:  # a failed warm-up only means the first request loads them instead
+        logger.warning(f"Warm-up skipped: {exc}")
+
+
+@app.on_event("startup")
+def _start_warm_up() -> None:
+    if os.environ.get("ARIA_WARMUP", "1") != "0":
+        import threading
+
+        threading.Thread(target=_warm_up, name="warm-up", daemon=True).start()
+
+
 app.include_router(chat.router)
 app.include_router(voice.router)
 app.include_router(profile.router)
@@ -43,6 +75,7 @@ app.include_router(transactions.router)
 app.include_router(progress.router)
 app.include_router(avatar.router)
 app.include_router(research.router)
+app.include_router(live.router)
 
 
 @app.get("/api/health")

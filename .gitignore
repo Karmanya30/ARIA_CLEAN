@@ -18,6 +18,7 @@ models/**/*.json
 models/**/*.pt
 models/**/*.joblib
 models/**/*.zip
+models/tts/
 !models/.gitkeep
 
 # synthetic training data — deterministic (RANDOM_STATE=42), regenerate via

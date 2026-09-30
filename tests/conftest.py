@@ -4,7 +4,11 @@ mock_llm below, which patches every module that imported
 `from x import y`, so the source module alone isn't enough to patch)."""
 from __future__ import annotations
 
+import os
+
 import pytest
+
+os.environ.setdefault("ARIA_WARMUP", "0")  # no model loading in the API's startup hook during tests
 
 # Every module found (via grep) doing `from ai.llm.groq_client import
 # generate_response` -- each needs its own patch target.

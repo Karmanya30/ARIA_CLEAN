@@ -145,6 +145,41 @@ for Normal / Conversational (free avatar) / Tavus CVI (paid video call)
 (saved equity research, see above), **Your Profile** (Module 1 inputs),
 **Your Progress** (Module 2 mastery) and **Settings**.
 
+**Live Avatar (Free)** is a fourth chat mode beside Tavus: a real-time voice conversation with a
+lip-synced 3D ARIA that costs nothing to run. The browser recognises speech (Chrome/Edge built-in
+speech recognition), the reply is streamed from Groq and cut into short phrases, each phrase is voiced
+locally by Piper (MIT, runs on the CPU in ~0.2 s), and TalkingHead animates the avatar's mouth from the
+audio itself. The first word is typically heard ~1-2 s after you stop talking (0.75-1.8 s measured from a
+typed question), against ~15 s+ for Tavus, which renders video in the cloud from a full non-streamed
+answer. One-time setup: `python -m ai.speech.live_tts --download` (63 MB voice). Trade-offs: the
+microphone listens hands-free while the mode is on (pause it with the Mic button), it pauses while ARIA
+talks (interrupt with Stop), and this mode answers from ARIA's persona directly, without the module
+router's live market data or saved profile.
+The avatar is a **talking photo** when `interface/avatar/face.png` exists: MediaPipe finds the face once in the
+browser, then the jaw and lips follow the loudness of ARIA's voice (mesh warp), with blinks and a slight head
+sway. Replace that file to change the face (a sharp, front-facing head-and-shoulders photo of at least ~512 px
+works best, and use one you have the rights to); delete it, or open `/avatar/live?avatar=3d`, for the 3D model.
+
+**Photoreal lip-sync (MuseTalk, optional, NVIDIA GPU).** When a MuseTalk v1.5 server is running on port 8010 the
+Live Avatar uses it instead: each spoken phrase is sent to MuseTalk, which redraws the mouth on the same photo at
+25 fps, and the page keeps the blinks, breathing and head movement on top. It needs its own Python 3.10
+environment (~10 GB incl. models), kept outside this repo:
+
+```bash
+conda create -p E:\musetalk\env python=3.10 -y
+git clone https://github.com/TMElyralab/MuseTalk E:\musetalk\MuseTalk
+E:\musetalk\env\python -m pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+E:\musetalk\env\python -m pip install diffusers==0.30.2 accelerate==0.28.0 numpy==1.23.5 opencv-python==4.9.0.80 soundfile==0.12.1 transformers==4.39.2 huggingface_hub==0.30.2 librosa==0.11.0 einops==0.8.1 omegaconf fastapi uvicorn mmengine
+E:\musetalk\env\python -m pip install mmcv==2.0.1 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0/index.html
+E:\musetalk\env\python -m pip install mmdet==3.1.0 json_tricks munkres xtcocotools scipy && E:\musetalk\env\python -m pip install --no-deps mmpose==1.1.0
+# models (musetalkV15, sd-vae, whisper-tiny, dwpose, face-parse-bisent): see MuseTalk's download_weights script
+cd E:\musetalk\MuseTalk && E:\musetalk\env\python aria_server.py --source E:\ARIA\interface\avatar\face.png --port 8010
+```
+
+The first start prepares the face (~3 min) and caches it. MuseTalk needs the GPU to itself: another GPU job running
+at the same time slows it from real time to ~1 frame per second. Without the server the page falls back to the
+talking photo, so the mode always works; reload the page after starting MuseTalk to switch to it.
+
 **Settings → Appearance** switches between two UI themes, applied
 instantly and remembered per browser (`localStorage`, key `aria_theme`):
 *Classic* (default: left sidebar, cool blue) and *Vitara* (warm ivory,

@@ -45,9 +45,21 @@ export function useTavusSession(sessionId: string, enabled: boolean) {
     setLoading(true)
     setEnded(false)
     setError(null)
+    // The id of THIS attempt's call. The cleanup below ends exactly this one, so a slow "end" from a
+    // previous attempt can never hang up a call that has just started. `cancelled` covers a start that
+    // resolves after cleanup already ran: that call is ended as soon as its id is known.
+    let conversationId: string | undefined
+    let cancelled = false
     api
       .startTavus(sessionId)
-      .then((res) => setEmbedUrl(res.embed_url))
+      .then((res) => {
+        conversationId = res.conversation_id
+        if (cancelled) {
+          api.endTavus(conversationId).catch(() => {})
+          return
+        }
+        setEmbedUrl(res.embed_url)
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to start Tavus.'))
       .finally(() => setLoading(false))
 
@@ -55,7 +67,8 @@ export function useTavusSession(sessionId: string, enabled: boolean) {
     // restart), sessionId changes, or ChatTab unmounts -- always ends
     // the paid conversation before any new one starts.
     return () => {
-      api.endTavus().catch(() => {})
+      cancelled = true
+      if (conversationId) api.endTavus(conversationId).catch(() => {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, sessionId, attempt])

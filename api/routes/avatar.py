@@ -127,6 +127,39 @@ def _get_ngrok_url(port: int) -> str:
     return _NGROK_URL
 
 
+def _forget_persona() -> None:
+    try:
+        _PERSONA_CACHE_FILE.unlink()
+    except OSError:
+        pass
+
+
+def _delete_persona(persona_id: str) -> None:
+    """Best-effort: personas count against the Tavus account's limit, so a replaced one is removed."""
+    try:
+        requests.delete(f"{TAVUS_API_URL}/personas/{persona_id}", headers={"x-api-key": TAVUS_API_KEY}, timeout=REQUEST_TIMEOUT)
+        logger.info(f"Deleted old Tavus persona: {persona_id}")
+    except requests.RequestException as e:
+        logger.warning(f"Failed to delete old Tavus persona {persona_id}: {e}")
+
+
+def _end_orphaned_conversations() -> None:
+    """End every conversation Tavus still reports as active. One left behind by a crashed or restarted API
+    process (whose id this process never knew) keeps counting against the account's concurrent-conversation
+    limit, so every new start fails even with credits left."""
+    try:
+        resp = requests.get(f"{TAVUS_API_URL}/conversations", params={"status": "active", "limit": 50},
+                            headers={"x-api-key": TAVUS_API_KEY}, timeout=REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        active = [c["conversation_id"] for c in resp.json().get("data", []) if c.get("status") == "active"]
+    except (requests.RequestException, ValueError, KeyError) as e:
+        logger.warning(f"Could not list active Tavus conversations: {e}")
+        return
+    for cid in active:
+        logger.warning(f"Ending orphaned Tavus conversation {cid} before starting a new one")
+        _end_conversation(cid)
+
+
 def _get_or_create_persona(base_url: str) -> str:
     """Reuse a cached persona across conversations instead of creating a
     fresh one via the API every time a user opens Tavus CVI Mode -- Tavus's
@@ -137,12 +170,14 @@ def _get_or_create_persona(base_url: str) -> str:
     it."""
     headers = {"x-api-key": TAVUS_API_KEY, "Content-Type": "application/json"}
 
+    old = None
     if _PERSONA_CACHE_FILE.exists():
         try:
             cached = json.loads(_PERSONA_CACHE_FILE.read_text())
             if cached.get("base_url") == base_url and cached.get("persona_id"):
                 logger.info(f"Reusing cached Tavus persona: {cached['persona_id']}")
                 return cached["persona_id"]
+            old = cached.get("persona_id")
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -168,6 +203,8 @@ def _get_or_create_persona(base_url: str) -> str:
     persona_id = resp.json()["persona_id"]
     logger.info(f"Created Tavus persona: {persona_id}")
     _PERSONA_CACHE_FILE.write_text(json.dumps({"base_url": base_url, "persona_id": persona_id}))
+    if old and old != persona_id:
+        _delete_persona(old)
     return persona_id
 
 
@@ -188,20 +225,28 @@ def start_tavus(req: TavusStartRequest, port: int = 8000) -> dict[str, str]:
     logger.info(f"Using Custom LLM Base URL: {base_url}")
 
     headers = {"x-api-key": TAVUS_API_KEY, "Content-Type": "application/json"}
-    persona_id = _get_or_create_persona(base_url)
+    _end_orphaned_conversations()
 
-    conv_payload = {
-        "replica_id": TAVUS_REPLICA_ID,
-        "persona_id": persona_id,
-        "conversation_name": "ARIA Session",
-        # Belt-and-braces cost guard: end the call automatically if nobody
-        # is on it or it runs unexpectedly long, rather than relying on
-        # /api/tavus/end always being called from the frontend.
-        "properties": {"max_call_duration": 900, "participant_left_timeout": 30},
-    }
-    resp = requests.post(
-        f"{TAVUS_API_URL}/conversations", json=conv_payload, headers=headers, timeout=REQUEST_TIMEOUT
-    )
+    def create(persona_id: str) -> requests.Response:
+        return requests.post(f"{TAVUS_API_URL}/conversations", headers=headers, timeout=REQUEST_TIMEOUT, json={
+            "replica_id": TAVUS_REPLICA_ID,
+            "persona_id": persona_id,
+            "conversation_name": "ARIA Session",
+            # Belt-and-braces cost guard: end the call automatically if nobody
+            # is on it or it runs unexpectedly long, rather than relying on
+            # /api/tavus/end always being called from the frontend.
+            "properties": {"max_call_duration": 900, "participant_left_timeout": 30},
+        })
+
+    try:
+        resp = create(_get_or_create_persona(base_url))
+        if 400 <= resp.status_code < 500:
+            # The cached persona may have been deleted or changed on Tavus's side: start over with a fresh one.
+            logger.warning(f"Tavus rejected the conversation ({resp.status_code}: {resp.text[:200]}); retrying with a new persona")
+            _forget_persona()
+            resp = create(_get_or_create_persona(base_url))
+    except (RuntimeError, requests.RequestException) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
     if resp.status_code != 200:
         raise HTTPException(status_code=502, detail=f"Failed to create Tavus Conversation: {resp.text}")
 
@@ -210,7 +255,7 @@ def start_tavus(req: TavusStartRequest, port: int = 8000) -> dict[str, str]:
     logger.info(f"Created Tavus Conversation: {_ACTIVE_CONVERSATION_ID}")
 
     embed_url = f"/embed?conversation_url={quote(data['conversation_url'], safe='')}"
-    return {"conversation_url": data["conversation_url"], "embed_url": embed_url}
+    return {"conversation_id": data["conversation_id"], "conversation_url": data["conversation_url"], "embed_url": embed_url}
 
 
 def _end_conversation(conversation_id: str | None = None) -> None:
@@ -240,9 +285,14 @@ def end_tavus_for_session(session_id: str) -> None:
     _end_conversation()
 
 
+class TavusEndRequest(BaseModel):
+    conversation_id: str | None = None
+
+
 @router.post("/api/tavus/end")
-def end_tavus() -> dict[str, str]:
-    _end_conversation()
+def end_tavus(req: TavusEndRequest | None = None) -> dict[str, str]:
+    # With an id, only that call ends: a late "end" from a restarted frontend must not kill the new call.
+    _end_conversation(req.conversation_id if req else None)
     return {"status": "ended"}
 
 

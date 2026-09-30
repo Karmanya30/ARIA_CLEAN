@@ -22,6 +22,7 @@ beautifulsoup4==4.14.3
 openai-whisper==20250625
 imageio-ffmpeg==0.6.0
 edge-tts==7.2.8
+piper-tts==1.8.0  # Live Avatar voice (local, free); voice files: python -m ai.speech.live_tts --download
 pyttsx3==2.99
 loguru==0.7.3
 fastapi==0.115.8

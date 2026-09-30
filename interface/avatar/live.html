@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARIA Live Avatar</title>
+<style>
+  :root { --bg:#0f1720; --panel:rgba(15,23,32,.72); --ink:#f3f5f8; --muted:#a9b3c1; --accent:#4ade80; --warn:#fbbf24; --err:#f87171; }
+  html, body { margin:0; height:100%; background:radial-gradient(ellipse at 50% 30%, #243447 0%, var(--bg) 70%); color:var(--ink);
+    font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow:hidden; }
+  #avatar { position:absolute; inset:0; }
+  .chip { position:absolute; top:12px; padding:5px 10px; border-radius:99px; background:var(--panel); font-size:12px; backdrop-filter:blur(6px); }
+  #state { left:12px; } #state::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--muted); vertical-align:1px; }
+  #state[data-s="listening"]::before { background:var(--accent); animation:pulse 1.2s infinite; }
+  #state[data-s="thinking"]::before { background:var(--warn); } #state[data-s="speaking"]::before { background:#60a5fa; }
+  #state[data-s="error"]::before { background:var(--err); }
+  #latency { right:12px; color:var(--muted); }
+  @keyframes pulse { 50% { opacity:.3; } }
+  #caption { position:absolute; left:50%; bottom:86px; transform:translateX(-50%); width:min(92%, 620px); text-align:center;
+    font-size:15px; text-shadow:0 1px 3px #000; min-height:22px; }
+  #caption .you { color:var(--muted); display:block; font-size:13px; }
+  #bar { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); width:min(94%, 640px); display:flex; gap:8px;
+    padding:8px; border-radius:99px; background:var(--panel); backdrop-filter:blur(8px); }
+  #bar input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; padding:0 10px; }
+  button { border:0; border-radius:99px; padding:9px 14px; font:600 13px system-ui, sans-serif; cursor:pointer; background:#2b3a4d; color:var(--ink); }
+  button:disabled { opacity:.45; cursor:default; }
+  #mic.on { background:var(--accent); color:#0b1b10; }
+  #start { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    background:rgba(8,12,18,.55); backdrop-filter:blur(3px); text-align:center; padding:20px; }
+  #start button { background:var(--accent); color:#0b1b10; padding:13px 26px; font-size:15px; }
+  #start p { margin:0; max-width:420px; color:var(--muted); }
+  #note { color:var(--warn) !important; }
+</style>
+<!-- Same pinned TalkingHead build as avatar.html (see the note there on why a commit, not a tag). MIT licensed, loaded from jsdelivr. -->
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+} }
+</script>
+</head>
+<body>
+<div id="avatar"></div>
+<div id="state" class="chip" data-s="idle">Loading avatar…</div>
+<div id="latency" class="chip" title="Time from the end of your question to ARIA's first word">—</div>
+<div id="caption"></div>
+<div id="bar">
+  <button id="mic" type="button" disabled title="Talk to ARIA">🎤 Mic</button>
+  <input id="text" placeholder="…or type and press Enter" autocomplete="off" disabled>
+  <button id="stop" type="button" disabled title="Interrupt ARIA">Stop</button>
+</div>
+<div id="start">
+  <button id="startBtn" type="button" disabled>Loading…</button>
+  <p>Free live mode: your voice is recognised by the browser, ARIA answers by streaming, and the avatar lip-syncs to its own voice.</p>
+  <p id="note"></p>
+</div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const stateEl = $("state"), latencyEl = $("latency"), captionEl = $("caption"), micBtn = $("mic"), textEl = $("text"), stopBtn = $("stop");
+const params = new URLSearchParams(location.search);
+const SESSION = params.get("session_id") || "live";
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const HEADAUDIO = "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/";
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+let speaker = null, ws = null, rec = null;
+let micOn = false, speaking = false, awaitingEnd = false, turn = 0, tAsked = 0, firstAudioSeen = false, answer = "", quietSince = 0;
+
+function setState(s, label) { stateEl.dataset.s = s; stateEl.textContent = label; }
+function caption(you, ariaText) {
+  captionEl.innerHTML = "";
+  if (you) { const y = document.createElement("span"); y.className = "you"; y.textContent = "You: " + you; captionEl.appendChild(y); }
+  if (ariaText) captionEl.appendChild(document.createTextNode(ariaText));
+}
+function tellParent(msg) { try { parent.postMessage({ source: "aria-live", ...msg }, "*"); } catch (e) {} }
+
+// ── speakers: one interface, two looks ────────────────────────────────────
+// { ctx, play(buffer, text), stop(), busy() }. Both queue clips back to back in arrival order.
+
+async function threeDSpeaker() {
+  const { TalkingHead } = await import("talkinghead");
+  const head = new TalkingHead($("avatar"), { cameraView: "upper", lipsyncModules: ["en"], cameraRotateEnable: false });
+  await head.showAvatar({ url: "/avatar/model.glb", body: "F", avatarMood: "happy", lipsyncLang: "en" }, (ev) => {
+    if (ev.lengthComputable) setState("idle", "Loading avatar " + Math.round((ev.loaded / ev.total) * 100) + "%");
+  });
+  let visemes = false;
+  try {  // mouth driven by the actual voice
+    const { HeadAudio } = await import(HEADAUDIO + "headaudio.min.mjs");
+    await head.audioCtx.audioWorklet.addModule(HEADAUDIO + "headworklet.min.mjs");
+    const ha = new HeadAudio(head.audioCtx, {});
+    await ha.loadModel(HEADAUDIO + "model-en-mixed.bin");
+    head.audioSpeechGainNode.connect(ha);
+    ha.onvalue = (key, value) => { if (head.mtAvatar && head.mtAvatar[key]) Object.assign(head.mtAvatar[key], { newvalue: value, needsUpdate: true }); };
+    head.opt.update = ha.update.bind(ha);
+    visemes = true;
+  } catch (err) { console.warn("HeadAudio unavailable; using text-timed lip-sync", err); }
+  document.addEventListener("visibilitychange", () => (document.visibilityState === "visible" ? head.start() : head.stop()));
+  return {
+    kind: "3d", ctx: head.audioCtx,
+    play(buffer, text) {
+      const clip = { audio: buffer };
+      const words = text.split(/\s+/).filter(Boolean);
+      if (!visemes && words.length) {
+        const total = buffer.duration * 1000, chars = words.reduce((n, w) => n + w.length + 1, 0);
+        let t = 0; clip.words = words; clip.wtimes = []; clip.wdurations = [];
+        for (const w of words) { const d = total * (w.length + 1) / chars; clip.wtimes.push(t); clip.wdurations.push(d); t += d; }
+      }
+      head.lookAtCamera(500);
+      head.speakAudio(clip);
+    },
+    stop() { head.stopSpeaking(); },
+    busy() { return !!head.isSpeaking; },
+  };
+}
+
+// Talking photo: face landmarks are found once (MediaPipe, in the browser), then every frame the jaw and lower lip are
+// pushed down by the loudness of ARIA's voice with a mesh warp, a mouth opening is painted between the lips, the eyes
+// blink and the head breathes. No server, no GPU model.
+// opts.frame: a function returning the current frame to show (MuseTalk's) instead of the still photo; opts.jaw=false
+// leaves the mouth to that frame and keeps only the blinks, breathing, sway and nods.
+async function photoSpeaker(opts = {}) {
+  const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = "/avatar/face.png?" + Date.now(); });
+  setState("idle", "Finding the face…");
+  const { FaceLandmarker, FilesetResolver } = await import(VISION + "/vision_bundle.mjs");
+  const fileset = await FilesetResolver.forVisionTasks(VISION + "/wasm");
+  const detector = await FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" },
+    runningMode: "IMAGE", numFaces: 1,
+  });
+  // small photos detect better enlarged
+  const up = Math.max(1, Math.ceil(640 / Math.max(img.width, img.height)));
+  const big = document.createElement("canvas"); big.width = img.width * up; big.height = img.height * up;
+  const bctx = big.getContext("2d"); bctx.imageSmoothingQuality = "high"; bctx.drawImage(img, 0, 0, big.width, big.height);
+  const found = detector.detect(big).faceLandmarks[0];
+  if (!found) throw new Error("no face found in the photo");
+  const P = (i) => ({ x: found[i].x * img.width, y: found[i].y * img.height });  // source-pixel coordinates
+  const L = { upperIn: P(13), lowerIn: P(14), lowerOut: P(17), chin: P(152), left: P(61), right: P(291), nose: P(1),
+    eyes: [[P(33), P(133), P(159), P(145)], [P(362), P(263), P(386), P(374)]] };
+  const xs = found.map((p) => p.x * img.width), ys = found.map((p) => p.y * img.height);
+  const face = { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+  const faceW = face.x1 - face.x0, faceH = face.y1 - face.y0, mouthW = Math.hypot(L.right.x - L.left.x, L.right.y - L.left.y);
+  const mouth = { x: (L.upperIn.x + L.lowerIn.x) / 2, y: (L.upperIn.y + L.lowerIn.y) / 2 };
+  const lipLine = mouth.y;
+  // frame: head and shoulders, the face a little above the middle
+  const cw = Math.min(img.width, faceW * 2.6), ch = Math.min(img.height, faceH * 2.4);
+  const crop = { x: Math.max(0, Math.min(img.width - cw, (face.x0 + face.x1) / 2 - cw / 2)), y: Math.max(0, Math.min(img.height - ch, face.y0 - faceH * 0.55)), w: cw, h: ch };
+
+  const canvas = document.createElement("canvas"); canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
+  $("avatar").appendChild(canvas);
+  const g = canvas.getContext("2d");
+  const src = document.createElement("canvas"); src.width = img.width; src.height = img.height;  // this frame's picture, photo-sized
+  const sctx = src.getContext("2d");
+  const ctx = new AudioContext();
+  const analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination);
+  const wave = new Float32Array(analyser.fftSize);
+  let sources = [], endAt = 0, open = 0, blinkAt = performance.now() + 2500;
+
+  // mesh over the lower face and the eyes; everything else is drawn once, unwarped
+  const N = 14, gx0 = face.x0 - faceW * 0.15, gx1 = face.x1 + faceW * 0.15, gy0 = face.y0 + faceH * 0.15, gy1 = Math.min(img.height, face.y1 + faceH * 0.25);
+  const grid = []; for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) grid.push({ x: gx0 + (gx1 - gx0) * i / N, y: gy0 + (gy1 - gy0) * j / N });
+  const smooth = (t) => Math.max(0, Math.min(1, t)) ** 2 * (3 - 2 * Math.max(0, Math.min(1, t)));
+  function displaced(p, A, blink) {
+    let dx = 0, dy = 0;
+    const wx = Math.exp(-(((p.x - mouth.x) / (faceW * 0.42)) ** 2));
+    // jaw and lower lip: 0 above the lip line, full from the lower lip to the chin, fading out below the chin
+    // the photo's lips are usually closed, so the split is a narrow band at the lip line, not upper-to-lower lip
+    const below = smooth((p.y - (lipLine - mouthW * 0.03)) / (mouthW * 0.09));
+    const fade = 1 - smooth((p.y - L.chin.y) / (faceH * 0.22));
+    dy += A * wx * below * fade;
+    // upper lip lifts a little
+    const upper = Math.exp(-(((p.y - L.upperIn.y) / (faceH * 0.07)) ** 2)) * Math.exp(-(((p.x - mouth.x) / (mouthW * 0.7)) ** 2));
+    dy -= A * 0.18 * upper;
+    for (const [a, b, top, bot] of L.eyes) {  // lids close toward the eye's middle line
+      const cx = (a.x + b.x) / 2, cy = (top.y + bot.y) / 2, ew = Math.abs(b.x - a.x), eh = Math.max(2, (bot.y - top.y) * 2.2);
+      const w = Math.exp(-(((p.x - cx) / (ew * 0.7)) ** 2) - (((p.y - cy) / eh) ** 2));
+      dy += (cy - p.y) * blink * w * 0.9;
+    }
+    return { x: p.x + dx, y: p.y + dy };
+  }
+  function tri(s0, s1, s2, d0, d1, d2) {  // draw source triangle s -> destination triangle d (affine)
+    const den = s0.x * (s1.y - s2.y) + s1.x * (s2.y - s0.y) + s2.x * (s0.y - s1.y);
+    if (!den) return;
+    const a = (d0.x * (s1.y - s2.y) + d1.x * (s2.y - s0.y) + d2.x * (s0.y - s1.y)) / den;
+    const b = (d0.y * (s1.y - s2.y) + d1.y * (s2.y - s0.y) + d2.y * (s0.y - s1.y)) / den;
+    const c = (d0.x * (s2.x - s1.x) + d1.x * (s0.x - s2.x) + d2.x * (s1.x - s0.x)) / den;
+    const d = (d0.y * (s2.x - s1.x) + d1.y * (s0.x - s2.x) + d2.y * (s1.x - s0.x)) / den;
+    const e = (d0.x * (s1.x * s2.y - s2.x * s1.y) + d1.x * (s2.x * s0.y - s0.x * s2.y) + d2.x * (s0.x * s1.y - s1.x * s0.y)) / den;
+    const f = (d0.y * (s1.x * s2.y - s2.x * s1.y) + d1.y * (s2.x * s0.y - s0.x * s2.y) + d2.y * (s0.x * s1.y - s1.x * s0.y)) / den;
+    const cx = (d0.x + d1.x + d2.x) / 3, cy = (d0.y + d1.y + d2.y) / 3, grow = (p) => ({ x: p.x + (p.x - cx) * 0.04, y: p.y + (p.y - cy) * 0.04 });
+    const [q0, q1, q2] = [grow(d0), grow(d1), grow(d2)];  // a hair larger, so no seams show between triangles
+    g.save(); g.beginPath(); g.moveTo(q0.x, q0.y); g.lineTo(q1.x, q1.y); g.lineTo(q2.x, q2.y); g.closePath(); g.clip();
+    g.transform(a, b, c, d, e, f); g.drawImage(src, 0, 0); g.restore();
+  }
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    if (canvas.width !== W * devicePixelRatio) { canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio; }
+    analyser.getFloatTimeDomainData(wave);
+    let rms = 0; for (const v of wave) rms += v * v; rms = Math.sqrt(rms / wave.length);
+    const target = Math.min(1, Math.max(0, (rms - 0.01) * 11));
+    open += (target - open) * (target > open ? 0.55 : 0.25);  // quick to open, a little slower to close
+    let blink = 0;
+    if (now > blinkAt) { const t = (now - blinkAt) / 140; blink = t < 1 ? t : t < 2 ? 2 - t : 0; if (t >= 2) blinkAt = now + 2200 + Math.random() * 3500; }
+    const A = opts.jaw === false ? 0 : open * mouthW * 0.15;  // jaw drop in source pixels (real speech rarely opens past ~15% of mouth width)
+    sctx.drawImage((opts.frame && opts.frame()) || img, 0, 0, src.width, src.height);
+    // cover the canvas with the crop, then breathe/sway and nod a touch while talking
+    const s = Math.max(canvas.width / crop.w, canvas.height / crop.h);
+    const t = now / 1000, rot = Math.sin(t * 0.7) * 0.012 + open * 0.01 * Math.sin(t * 9), bob = Math.sin(t * 1.3) * crop.h * 0.004;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#0f1720"; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.imageSmoothingQuality = "high";
+    g.setTransform(s, 0, 0, s, (canvas.width - crop.w * s) / 2 - crop.x * s, (canvas.height - crop.h * s) / 2 - crop.y * s);
+    g.translate(mouth.x, face.y1); g.rotate(rot); g.translate(-mouth.x, -face.y1 + bob);
+    g.drawImage(src, 0, 0);
+    if (A > 0.05 || blink > 0) {
+      const d = grid.map((p) => displaced(p, A, blink));
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const k = j * (N + 1) + i, a = k, b = k + 1, c = k + N + 1, e = k + N + 2;
+        const moved = [a, b, c, e].some((q) => Math.abs(d[q].y - grid[q].y) > 0.02);
+        if (!moved) continue;
+        tri(grid[a], grid[b], grid[e], d[a], d[b], d[e]);
+        tri(grid[a], grid[e], grid[c], d[a], d[e], d[c]);
+      }
+      const top = displaced({ x: mouth.x, y: lipLine - mouthW * 0.04 }, A, 0), bot = displaced({ x: mouth.x, y: lipLine + mouthW * 0.07 }, A, 0);
+      const gap = bot.y - top.y - mouthW * 0.11;
+      if (gap > 0.4) {  // the opening between the lips: dark, soft-edged, with a hint of upper teeth
+        const cx = (top.x + bot.x) / 2, cy = (top.y + bot.y) / 2, rx = mouthW * 0.3, ry = gap * 0.42 + 0.25;
+        g.save(); g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.clip();
+        g.filter = "blur(" + Math.max(0.35, ry * 0.12) + "px)"; g.globalAlpha = 0.9;
+        const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rx); grad.addColorStop(0, "rgb(30,8,10)"); grad.addColorStop(1, "rgb(70,26,28)");
+        g.fillStyle = grad; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+        if (ry > 1.4) { g.fillStyle = "rgba(225,218,208,.55)"; g.fillRect(cx - rx * 0.5, cy - ry, rx * 1.0, ry * 0.3); }
+        g.restore();
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+  return {
+    kind: "photo", ctx, analyser,
+    play(buffer) {
+      const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
+      const at = Math.max(ctx.currentTime + 0.02, endAt);
+      src.start(at); endAt = at + buffer.duration;
+      sources.push(src); src.onended = () => { sources = sources.filter((x) => x !== src); };
+    },
+    stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; },
+    busy() { return ctx.currentTime < endAt - 0.01; },
+  };
+}
+
+// MuseTalk v1.5 (photoreal lip-sync, local GPU): each phrase's WAV goes to the MuseTalk server, which streams back
+// 25 fps frames; the clip starts once its first frames are in and stays in step with the audio clock.
+async function museTalkSpeaker() {
+  const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
+  const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1500) }).then((r) => r.json());
+  if (!health.ready) throw new Error("server still loading");
+  // MuseTalk draws the mouth; the photo renderer adds blinks, breathing, sway and nods on top (same face file)
+  let current = null;
+  const rig = await photoSpeaker({ jaw: false, frame: () => current });
+  const ctx = rig.ctx;
+  let clips = [], sources = [], endAt = 0, pending = 0, chain = Promise.resolve(), gen = 0;
+
+  async function playClip(buffer, raw, myGen) {
+    const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw });
+    const reader = res.body.getReader();
+    let buf = new Uint8Array(0), total = null, started = false;
+    const clip = { frames: [], start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 25) };
+    const need = () => Math.min(total, 8);  // the first GPU batch
+    const begin = () => {
+      if (started || myGen !== gen) return;
+      started = true;
+      const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser);  // analyser: nods follow the voice
+      clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
+      sources.push(src); clips.push(clip);
+    };
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done || myGen !== gen) break;
+      const merged = new Uint8Array(buf.length + value.length); merged.set(buf); merged.set(value, buf.length); buf = merged;
+      for (;;) {
+        if (total === null) { if (buf.length < 4) break; total = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
+        if (buf.length < 4) break;
+        const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
+        if (buf.length < 4 + n) break;
+        clip.frames.push(await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" })));
+        buf = buf.slice(4 + n);
+        if (clip.frames.length >= need()) begin();
+      }
+    }
+    begin();  // short clip or stream ended early: play what we have
+  }
+  function frame() {  // pick the MuseTalk frame for this instant of the audio clock; null = the still photo
+    requestAnimationFrame(frame);
+    const t = ctx.currentTime;
+    const clip = clips.find((c) => t >= c.start && t < c.start + c.dur);
+    current = clip ? clip.frames[Math.min(clip.frames.length - 1, Math.floor((t - clip.start) * clip.fps))] || null : null;
+    clips = clips.filter((c) => c.start + c.dur > t - 1);
+  }
+  requestAnimationFrame(frame);
+  return {
+    kind: "musetalk", ctx,
+    play(buffer, text, raw) {
+      const myGen = gen; pending += 1;
+      chain = chain.then(() => playClip(buffer, raw, myGen)).catch((e) => console.error(e)).finally(() => { pending -= 1; });
+    },
+    stop() { gen += 1; for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; clips = []; endAt = 0; },
+    busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
+  };
+}
+
+// ── conversation ──────────────────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/api/live/ws");
+  let chain = Promise.resolve();
+  // One message at a time, in arrival order: decoding a clip is asynchronous, and letting "done" or a later clip
+  // overtake an earlier one reopened the mic too early and then left it closed for good.
+  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); chain = chain.then(() => onServer(m)).catch((e) => console.error(e)); };
+  ws.onclose = () => { setState("error", "Disconnected — reconnecting…"); setTimeout(connect, 1500); };
+  ws.onopen = () => { if (stateEl.dataset.s === "error") setState("idle", micOn ? "Listening…" : "Ready"); };
+}
+
+function ask(text) {
+  text = text.trim();
+  if (!text || !ws || ws.readyState !== 1) return;
+  if (speaking) interrupt(false);
+  turn += 1; tAsked = performance.now(); firstAudioSeen = false; answer = ""; awaitingEnd = false;
+  caption(text, "");
+  setState("thinking", "Thinking…");
+  stopBtn.disabled = false;
+  // ARIA's turn starts now, not at her first word: listening on through the thinking gap let a trailing word
+  // ("…please") become a new question that cancelled the real one.
+  speaking = true; quietSince = 0;
+  stopRec();
+  ws.send(JSON.stringify({ type: "user", text, session_id: SESSION, turn }));
+}
+
+function finishSpeaking() {
+  speaking = false; awaitingEnd = false; stopBtn.disabled = true;
+  resumeListening();
+}
+
+function interrupt(send = true) {
+  speaker.stop();
+  if (send && ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "interrupt" }));
+  turn += 1;  // drop any chunks still in flight for the old turn
+  finishSpeaking();
+}
+
+function b64ToBuffer(b64) { const bin = atob(b64); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out.buffer; }
+
+async function onServer(m) {
+  if (m.turn && m.turn !== turn) return;
+  if (m.type === "text") { answer += m.delta; caption(null, answer); }
+  else if (m.type === "audio") {
+    const raw = b64ToBuffer(m.audio);
+    const buffer = await speaker.ctx.decodeAudioData(raw.slice(0));  // decoding detaches its input
+    if (m.turn !== turn) return;
+    if (!firstAudioSeen) {
+      firstAudioSeen = true;
+      const secs = (performance.now() - tAsked) / 1000;
+      latencyEl.textContent = "Replied in " + secs.toFixed(1) + " s";
+      latencyEl.style.color = secs <= 3 ? "var(--accent)" : "var(--warn)";
+      tellParent({ type: "first_audio", seconds: secs, server_ms: m.server_ms });
+    }
+    pauseListening();
+    speaking = true;
+    setState("speaking", "Speaking…");
+    speaker.play(buffer, m.text, raw);
+  } else if (m.type === "done") {
+    caption(null, m.text);
+    awaitingEnd = true;  // the watchdog below hands the mic back once the last clip has actually finished
+    if (!firstAudioSeen) finishSpeaking();
+    tellParent({ type: "done", timings: m.timings });
+  }
+}
+
+// Whoever is speaking, the mic comes back when ARIA has really gone quiet: the reply is complete and no audio has
+// been playing for a moment. Also recovers from a reply that never completes.
+setInterval(() => {
+  if (!speaking || !speaker) return;
+  if (speaker.busy()) { quietSince = 0; return; }
+  quietSince = quietSince || performance.now();
+  const quiet = performance.now() - quietSince;
+  if ((awaitingEnd && quiet > 350) || quiet > 12000) finishSpeaking();
+}, 150);
+
+// ── speech recognition (free, in the browser) ─────────────────────────────
+// One fresh recognizer per question (continuous sessions in Chrome can stall silently), and a start is only trusted
+// once the browser confirms it: a start() refused while the previous session was still closing used to leave the mic
+// dead with no error anyone saw.
+function makeRecognizer() {
+  const r = new SR();
+  r.lang = "en-IN"; r.continuous = false; r.interimResults = true;
+  r.onstart = () => { if (r === rec) listening = true; };
+  r.onresult = (ev) => {
+    if (r !== rec || speaking) return;  // a stale session, or ARIA's own voice
+    let interim = "", final = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const t = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) final += t; else interim += t;
+    }
+    if (interim) caption(interim + "…", "");
+    if (final.trim()) ask(final);
+  };
+  r.onerror = (ev) => {
+    if (r === rec && (ev.error === "not-allowed" || ev.error === "service-not-allowed")) { micOn = false; micBtn.classList.remove("on"); setState("error", "Microphone blocked"); }
+  };
+  // a session ends after each utterance or on silence: open the next one whenever it's the user's turn
+  r.onend = () => { if (r !== rec) return; rec = null; listening = false; if (micOn && !speaking) setTimeout(startRec, 60); };
+  return r;
+}
+let listening = false, startTimer = 0;
+function startRec() {
+  if (!micOn || speaking || rec) return;
+  rec = makeRecognizer();
+  try { rec.start(); } catch (e) { rec = null; }
+  clearTimeout(startTimer);
+  startTimer = setTimeout(() => { if (micOn && !speaking && !listening) { stopRec(); startRec(); } }, 1200);  // not confirmed: retry
+}
+function stopRec() { const r = rec; rec = null; listening = false; clearTimeout(startTimer); if (r) { try { r.abort(); } catch (e) {} } }
+// Half-duplex on purpose: the mic is off while ARIA thinks and talks, so her own voice is never transcribed as a question.
+function pauseListening() { stopRec(); }
+function resumeListening() {
+  if (micOn) { startRec(); setState("listening", "Listening…"); }
+  else setState("idle", "Ready — type or turn on the mic");
+}
+micBtn.onclick = () => {
+  micOn = !micOn; micBtn.classList.toggle("on", micOn);
+  if (micOn) { if (!speaking) resumeListening(); }
+  else { stopRec(); if (!speaking) setState("idle", "Ready — type or turn on the mic"); }
+};
+textEl.onkeydown = (e) => { if (e.key === "Enter") { ask(textEl.value); textEl.value = ""; } };
+stopBtn.onclick = () => interrupt(true);
+
+// ── start ─────────────────────────────────────────────────────────────────
+$("startBtn").onclick = async () => {
+  await speaker.ctx.resume();  // browsers only allow sound after a click inside this page
+  $("start").remove();
+  textEl.disabled = false; textEl.focus();
+  if (SR) { micBtn.disabled = false; micBtn.click(); } else setState("idle", "Ready — type your question");
+};
+
+async function loadSpeaker() {
+  // MuseTalk when its GPU server is running (E:\musetalk), else the photo (interface/avatar/face.png), else 3D.
+  // ?avatar=photo or ?avatar=3d forces one.
+  if (!params.get("avatar")) {
+    try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
+  }
+  const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/face.png", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
+  if (photo) {
+    try { return await photoSpeaker(); } catch (err) { console.warn("Talking photo unavailable, using the 3D avatar", err); $("note").textContent = "Couldn't animate the photo (" + err.message + "); showing the 3D avatar."; }
+  }
+  return threeDSpeaker();
+}
+
+loadSpeaker().then((s) => {
+  speaker = s;
+  connect();
+  setState("idle", "Ready");
+  $("startBtn").disabled = false; $("startBtn").textContent = "Start conversation";
+  if (!SR) $("note").textContent = "Voice input needs Chrome or Edge. You can still type.";
+}).catch((err) => { setState("error", "Avatar failed to load"); $("note").textContent = String(err); console.error(err); });
+
+window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind };  // used by the automated checks
+</script>
+</body>
+</html>
