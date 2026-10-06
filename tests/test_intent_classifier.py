@@ -32,3 +32,8 @@ def test_plain_concept_question_still_routes_to_tutor():
 
 def test_plain_finance_query_still_routes_to_finance():
     assert classify_intent("I earn 60000 a month, what SIP should I start") == "finance"
+
+
+def test_personal_affordability_query_routes_to_finance():
+    assert classify_intent("How much can I afford?") == "finance"
+    assert classify_intent("Can I afford a new car?") == "finance"

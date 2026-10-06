@@ -25,3 +25,7 @@ def test_comma_grouping_with_keyword():
 
 def test_lakh_suffix_still_works():
     assert _parse_indian_amount("I earn 12 lakh a year", "earn") == 1_200_000.0
+
+
+def test_plural_crore_suffix_works():
+    assert _parse_indian_amount("my income is 2 crores a year", "income") == 20_000_000.0
