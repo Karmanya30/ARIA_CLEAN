@@ -18,6 +18,7 @@ export function MessageBubble({
 }) {
   const { response } = turn
   const badge = `Domain: ${response.domain}${response.company ? ` · Company: ${response.company}` : ''}`
+  const headlines = response.context?.news_headlines ?? []
 
   return (
     <div className="message-pair">
@@ -35,6 +36,16 @@ export function MessageBubble({
         <div className="bubble-content">
           <ResponseCard text={response.response} />
           <p className="bubble-caption">{badge}</p>
+          {headlines.length > 0 && (
+            <details className="bubble-news">
+              <summary>Based on {headlines.length} live headlines</summary>
+              <ul>
+                {headlines.map((h) => (
+                  <li key={h}>{h}</li>
+                ))}
+              </ul>
+            </details>
+          )}
 
           {response.report && <ResearchReport report={response.report} reportId={response.report_id} />}
           {response.fund_report && response.report_id && (

@@ -129,6 +129,7 @@ export interface ChatResponse {
   report?: ResearchReportData
   report_id?: string | null
   fund_report?: boolean
+  context?: { news_headlines?: string[] } & Record<string, unknown>
   [key: string]: unknown
 }
 

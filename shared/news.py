@@ -12,12 +12,14 @@ from its last good copy), so one dead publisher never breaks or slows an answer.
 """
 from __future__ import annotations
 
+import contextvars
 import math
 import re
 import threading
 import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import quote
@@ -261,7 +263,7 @@ def fetch_news(query: str = "", limit: int = 10, max_age_hours: int = 72, region
     for it in fresh_items:
         it["words"] = _norm_title(it["title"])
     # a word in many headlines ("results", "industries") says little; a rare one ("reliance") says a lot
-    weight = {k: math.log((len(fresh_items) + 1) / (1 + sum(1 for it in fresh_items if _has(it["words"], k)))) for k in keys}
+    weight = {k: max(0.05, math.log((len(fresh_items) + 1) / (1 + sum(1 for it in fresh_items if _has(it["words"], k))))) for k in keys}  # floor: a word in every headline still counts as a match
     scored = []
     for it in fresh_items:
         age = max(0.0, (now - it["published"]).total_seconds() / 3600)
@@ -305,6 +307,37 @@ def format_headlines(items: list[dict]) -> list[str]:
     def ago(h: float) -> str:
         return f"{h:.0f}h ago" if h < 48 else f"{h / 24:.0f}d ago"
     return [f"{i['title']} ({i['source']}, {ago(i['age_hours'])}{', ' + str(i['sources']) + ' sources' if i['sources'] > 1 else ''})" for i in items]
+
+
+# Questions that are about now, or that ask whether to act: worth a look at the headlines. A concept question
+# ("what is a mutual fund?") or a personal calculation ("I earn 60000 a month...") is not, and skips the fetch.
+_TIME_SENSITIVE = re.compile(
+    r"\b(news|headlines?|latest|today|tonight|now|current(?:ly)?|recent(?:ly)?|this (?:week|month|year|quarter)|right now|"
+    r"happening|going on|update|outlook|forecast|trend(?:ing)?|should i (?:buy|sell|invest|wait|hold)|good time|worth buying)\b", re.I)
+_live_news: contextvars.ContextVar[str | None] = contextvars.ContextVar("aria_live_news", default=None)
+
+
+def wants_news(query: str) -> bool:
+    return bool(_TIME_SENSITIVE.search(query or ""))
+
+
+def current_news_block() -> str | None:
+    """The headlines the running module may use, as a prompt paragraph (or None). Read by ai/llm/groq_client.py."""
+    return _live_news.get()
+
+
+@contextmanager
+def news_context(query: str):
+    """Within this block every LLM call a module makes gets the freshest headlines about the question appended to its
+    system prompt (when the question is time-sensitive). Yields the headline items so the caller can show them."""
+    items = fetch_news(query, limit=8) if wants_news(query) else []
+    token = _live_news.set(
+        "Fresh headlines from Indian and global news feeds (use only what is relevant, name the outlet and how recent it is, "
+        "never invent news that is not listed):\n" + "\n".join("- " + h for h in format_headlines(items)) if items else None)
+    try:
+        yield items
+    finally:
+        _live_news.reset(token)
 
 
 def warm_up() -> None:

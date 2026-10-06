@@ -40,9 +40,18 @@ GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────
+# Exchange-rate talk is *about* the dollar ("the rupee at 83 per dollar", "against the US dollar", "dollar index"): turning
+# its dollars into rupees destroys the sentence, so text like that is left exactly as written.
+_FX_TALK = re.compile(
+    r"(?:\bper|\bagainst|\bversus|\bvs\.?|\bto)\s+(?:the\s+)?(?:US\s+|U\.S\.\s+)?dollars?\b|dollar\s+index|dollar[- ]rupee|"
+    r"rupee[- ](?:dollar|vs)|USD\s*/\s*INR|\bUS\s+dollars?\s+(?:at|to|index)\b|\bgreenback\b", re.IGNORECASE)
+
+
 def normalize_currency(text: str) -> str:
     """Convert dollar references to INR-style for consistency."""
     normalized = str(text or "")
+    if _FX_TALK.search(normalized):
+        return normalized
     normalized = re.sub(r"\bUSD\s*([0-9][0-9,]*(?:\.\d+)?)", r"₹\1", normalized, flags=re.IGNORECASE)
     normalized = re.sub(r"\$\s*([0-9][0-9,]*(?:\.\d+)?)", r"₹\1", normalized)
     normalized = re.sub(r"\bUS dollars?\b", "rupees", normalized, flags=re.IGNORECASE)
@@ -144,6 +153,10 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
     """
     if system_prompt is None:
         system_prompt = "You are a helpful AI assistant."
+    from shared.news import current_news_block  # set by core.orchestrator for time-sensitive questions
+
+    if news := current_news_block():
+        system_prompt = f"{system_prompt}\n\n{news}"
 
     text: str | None = None
     last_error: Exception | None = None

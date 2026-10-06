@@ -54,3 +54,21 @@
   height: 36px;
   border-radius: var(--radius-pill);
 }
+
+.bubble-news {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.bubble-news summary {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.bubble-news ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}

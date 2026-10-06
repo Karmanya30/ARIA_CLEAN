@@ -4,16 +4,17 @@
       -> WebSocket /api/live/ws -> Groq, streamed -> speakable chunks -> Kokoro TTS (local) -> audio chunks
       -> browser: TalkingHead 3D avatar, lip-synced from the audio itself (HeadAudio)
 
-Nothing is rendered on a server GPU and nothing is paid for. Speech starts as soon as the first short chunk
-of the reply exists (~1-2 s after the user stops talking), instead of after the whole answer, the whole
-audio clip and a video render. The trade-off: this path talks to the LLM directly with ARIA's persona, not
-through the full module router, so it has no live market data or saved-profile context.
+Nothing is rendered on a server GPU and nothing is paid for. Plain small talk is streamed straight from the LLM
+(first word in ~1 s). Every other question goes through the real orchestrator (finance, tutor, market with live news,
+equity research, domain guard), exactly like the text chat; ARIA says a short "let me check" line at once while the
+module works, then speaks a short natural version of its written answer, streamed sentence by sentence.
 """
 from __future__ import annotations
 
 import asyncio
 import base64
 import os
+import random
 import re
 import threading
 import time
@@ -22,6 +23,8 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from loguru import logger
+
+from ai.llm.spoken import SPOKEN_SYSTEM, needs_rewrite, spoken_prompt
 
 router = APIRouter(tags=["live-avatar"])
 
@@ -34,9 +37,13 @@ SYSTEM = (
     "consultancy, speaking out loud in a live video call. Answer in plain spoken English: short sentences, no "
     "markdown, lists, emojis, tables or symbols, and write numbers the way they are said. Use rupees, never "
     "dollars. Keep it under 70 words unless the user asks for more, then offer to go deeper. If a question is "
-    "off-topic, answer briefly and bring it back to money, business or careers. Never claim to see live "
-    "market prices; for those, suggest the text chat."
+    "off-topic, answer briefly and bring it back to money, business or careers. If you do not have fresh data "
+    "for a question, say so plainly instead of guessing."
 )
+
+# Said at once while a module works, so the user hears a response well inside 3 seconds.
+FILLERS = ("Let me check that for you.", "Good question, give me a second.", "Sure, let me pull that up.")
+FILLERS_LATER = ("Still putting that together.", "Almost there.", "This one has a lot of detail, bear with me.", "Nearly done.")
 
 # First chunk: speak as soon as there is a natural pause after a few words. Later chunks: whole sentences.
 _SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
@@ -76,6 +83,39 @@ def _messages(session_id: str, text: str) -> list[dict]:
     return msgs
 
 
+TROUBLE = "Sorry, I'm having trouble reaching my thinking service right now. Please ask me again in a moment."
+
+
+def _failed(text: str | None) -> bool:
+    """generate_response() returns the text 'Error: ...' when every LLM backend is down; never read that out loud."""
+    return not text or text.lstrip().lower().startswith("error")
+
+
+async def _ask_modules(text: str, session_id: str, chunks: asyncio.Queue, on_wait) -> str | None:
+    """Runs the real orchestrator in a thread, saying a short line now (and again every few seconds if it takes long) so
+    the call never goes quiet; ``on_wait`` tells the page it is waiting. Returns the written answer, or None if the
+    modules failed (the caller then answers directly)."""
+    from core.orchestrator import handle_query
+
+    job = asyncio.create_task(asyncio.to_thread(handle_query, text, session_id, "Live Avatar"))
+    try:
+        await chunks.put(random.choice(FILLERS))
+        await on_wait()
+        for later in FILLERS_LATER * 2:  # a long equity report can take a minute: a line every 7 s, never a long silence
+            done, _pending = await asyncio.wait({job}, timeout=7)
+            if done:
+                break
+            await chunks.put(later)
+        written = str((await job).get("response") or "").strip()
+        return None if written.lower().startswith("error") else written or None
+    except asyncio.CancelledError:
+        job.cancel()
+        raise
+    except Exception as exc:
+        logger.warning(f"Live avatar: the modules failed ({exc}); answering directly")
+        return None
+
+
 def _stream_llm(messages: list[dict], put, stop: threading.Event) -> None:
     """Runs in a thread: pushes text deltas, then None. Falls back to one non-streamed answer."""
     try:
@@ -94,7 +134,8 @@ def _stream_llm(messages: list[dict], put, stop: threading.Event) -> None:
         if not stop.is_set():
             from ai.llm.groq_client import generate_response
 
-            put(generate_response(messages[-1]["content"], system_prompt=SYSTEM))
+            answer = generate_response(messages[-1]["content"], system_prompt=SYSTEM)
+            put(TROUBLE if _failed(answer) else answer)
     finally:
         put(None)
 
@@ -109,9 +150,8 @@ async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asy
     deltas: asyncio.Queue = asyncio.Queue()
     chunks: asyncio.Queue = asyncio.Queue()
     stop = threading.Event()
-    threading.Thread(target=_stream_llm, args=(_messages(session_id, text), lambda d: loop.call_soon_threadsafe(deltas.put_nowait, d), stop),
-                     daemon=True).start()
     timings: dict[str, int] = {}
+    put = lambda d: loop.call_soon_threadsafe(deltas.put_nowait, d)  # noqa: E731
 
     async def send(obj: dict) -> None:  # text deltas and audio chunks go out from two coroutines
         async with lock:
@@ -130,6 +170,24 @@ async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asy
     speaker = asyncio.create_task(speak())
     full, buf, first = "", "", True
     try:
+        messages, direct, from_modules = _messages(session_id, text), None, False
+        from core.orchestrator import is_smalltalk
+
+        if not is_smalltalk(text):  # everything else is answered by the real modules, with live news where it matters
+            written = await _ask_modules(text, session_id, chunks, lambda: send({"type": "thinking", "turn": turn}))
+            timings["modules_ms"] = ms()
+            if written:
+                from_modules = True  # the orchestrator already saved the written answer to the history
+                if needs_rewrite(written):
+                    messages = [{"role": "system", "content": SPOKEN_SYSTEM},
+                                {"role": "user", "content": spoken_prompt(text, written)}]
+                else:
+                    direct = written
+        if direct is not None:
+            deltas.put_nowait(direct)
+            deltas.put_nowait(None)
+        else:
+            threading.Thread(target=_stream_llm, args=(messages, put, stop), daemon=True).start()
         while (delta := await deltas.get()) is not None:
             if not full:
                 timings["first_token_ms"] = ms()
@@ -143,13 +201,17 @@ async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asy
                 if said := speakable(chunk):
                     await chunks.put(said)
                     first = False
+        if not full.strip():  # nothing came back at all (network down): say so instead of going quiet
+            full = buf = TROUBLE
+            await send({"type": "text", "turn": turn, "delta": TROUBLE})
         if said := speakable(buf):
             await chunks.put(said)
         await chunks.put(None)
         await speaker
         timings["total_ms"] = ms()
         answer = speakable(full)
-        save_turn(session_id, text, {"domain": "live_avatar", "query": text, "response": answer})
+        if not from_modules:
+            save_turn(session_id, text, {"domain": "live_avatar", "query": text, "response": answer})
         await send({"type": "done", "turn": turn, "text": answer, "timings": timings})
         logger.info(f"Live avatar turn: {timings}")
     except asyncio.CancelledError:

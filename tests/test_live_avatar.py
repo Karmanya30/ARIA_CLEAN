@@ -32,9 +32,9 @@ def fake_pipeline(monkeypatch):
     clear_session("live-test")
 
 
-def test_a_turn_streams_text_then_audio_chunks_then_done_and_is_saved(fake_pipeline):
-    with TestClient(app).websocket_connect("/api/live/ws") as ws:
-        ws.send_json({"type": "user", "text": "What is a SIP?", "session_id": "live-test"})
+def test_small_talk_streams_text_then_audio_chunks_then_done_and_is_saved(fake_pipeline):
+    with TestClient(app).websocket_connect("/api/live/ws") as ws:  # small talk skips the modules: straight from the LLM, fastest
+        ws.send_json({"type": "user", "text": "Hi there", "session_id": "live-test"})
         msgs = []
         while not msgs or msgs[-1]["type"] != "done":
             msgs.append(ws.receive_json())
@@ -45,7 +45,7 @@ def test_a_turn_streams_text_then_audio_chunks_then_done_and_is_saved(fake_pipel
     assert done["text"] == "A SIP lets you invest a fixed amount, every month. It builds discipline."
     assert {"first_token_ms", "first_audio_ms", "total_ms"} <= set(done["timings"])
     turn = get_session("live-test")["history"][-1]
-    assert turn["query"] == "What is a SIP?" and turn["response"]["domain"] == "live_avatar"
+    assert turn["query"] == "Hi there" and turn["response"]["domain"] == "live_avatar"
 
 
 def test_live_page_and_model_are_served():
@@ -85,3 +85,58 @@ def test_glasses_overlay_is_served_when_present_and_404_otherwise(monkeypatch, t
     (tmp_path / "glasses.png").write_bytes(b"PNG fake")
     r = client.get("/avatar/glasses.png")
     assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+
+
+def _turn(text, session="live-mod"):
+    with TestClient(app).websocket_connect("/api/live/ws") as ws:
+        ws.send_json({"type": "user", "text": text, "session_id": session, "turn": 1})
+        msgs = []
+        while not msgs or msgs[-1]["type"] != "done":
+            msgs.append(ws.receive_json())
+    return msgs
+
+
+def test_a_real_question_goes_through_the_orchestrator_with_a_spoken_acknowledgement(monkeypatch):
+    calls = []
+
+    def fake_handle(query, session_id="default", mode="Normal Mode"):
+        calls.append((query, mode))
+        return {"domain": "market", "query": query, "response": "Insight: Nifty is up.\n- Banks led.\nRisk: volatility."}
+
+    monkeypatch.setattr("core.orchestrator.handle_query", fake_handle)
+    seen = []
+    monkeypatch.setattr(live, "_stream_llm", lambda messages, put, stop: (seen.append(messages), put("Nifty is up today, led by banks."), put(None)))
+    monkeypatch.setattr(live_tts, "synthesize", lambda text: (b"RIFFfake", "audio/wav"))
+    msgs = _turn("How is the market today?")
+    assert calls == [("How is the market today?", "Live Avatar")]
+    audio = [m["text"] for m in msgs if m["type"] == "audio"]
+    assert audio[0] in live.FILLERS and audio[-1] == "Nifty is up today, led by banks."  # a line at once, then the answer
+    assert any(m["type"] == "thinking" for m in msgs)
+    assert "Insight: Nifty is up." in seen[0][1]["content"]  # the written answer is what gets rewritten for the ear
+    assert msgs[-1]["text"] == "Nifty is up today, led by banks."
+
+
+def test_a_short_plain_module_answer_is_spoken_as_it_is(monkeypatch):
+    monkeypatch.setattr("core.orchestrator.handle_query", lambda *a, **k: {"domain": "finance", "response": "Start with fifteen thousand rupees a month."})
+    monkeypatch.setattr(live, "_stream_llm", lambda *a: pytest.fail("a short plain answer needs no rewrite"))
+    monkeypatch.setattr(live_tts, "synthesize", lambda text: (b"RIFFfake", "audio/wav"))
+    assert _turn("What SIP should I start?")[-1]["text"] == "Start with fifteen thousand rupees a month."
+
+
+def test_if_the_modules_fail_she_still_answers_directly(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("module down")
+
+    monkeypatch.setattr("core.orchestrator.handle_query", boom)
+    monkeypatch.setattr(live, "_stream_llm", lambda messages, put, stop: (put("Here is a direct answer."), put(None)))
+    monkeypatch.setattr(live_tts, "synthesize", lambda text: (b"RIFFfake", "audio/wav"))
+    assert _turn("What is a SIP?")[-1]["text"] == "Here is a direct answer."
+
+
+def test_when_every_llm_backend_is_down_she_apologises_instead_of_reading_out_an_error(monkeypatch):
+    monkeypatch.setattr("core.orchestrator.handle_query", lambda *a, **k: {"domain": "finance", "response": "Error: [Errno 11001] getaddrinfo failed."})
+    monkeypatch.setattr(live, "_stream_llm", lambda messages, put, stop: put(None))  # the direct fallback returns nothing either
+    monkeypatch.setattr(live_tts, "synthesize", lambda text: (b"RIFFfake", "audio/wav"))
+    msgs = _turn("What SIP should I start?")
+    assert msgs[-1]["text"] == live.TROUBLE
+    assert not any("Errno" in m.get("text", "") for m in msgs)

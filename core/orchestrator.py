@@ -10,6 +10,7 @@ from modules.finance.pipeline import run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
+from shared.news import format_headlines, news_context
 from shared.domain_guard import (
     CONFIDENCE_THRESHOLD,
     build_refusal_response,
@@ -34,14 +35,29 @@ _SMALLTALK_PHRASES = (
     "who are you", "what are you", "what's your name", "whats your name",
     "what can you do", "what can you help with", "help",
 )
+# "hi there", "hello aria", "thanks again": a greeting plus a vocative is still just a greeting. (Without this they fell
+# through to the domain guard and were refused as off-topic.)
 _SMALLTALK_RE = re.compile(
-    r"^(" + "|".join(re.escape(p) for p in _SMALLTALK_PHRASES) + r")[\s!.,?]*$"
+    r"^(" + "|".join(re.escape(p) for p in _SMALLTALK_PHRASES) + r")(?:\s+(?:there|aria|everyone|all|again|friend|buddy|mate|sir|madam|team|guys))*[\s!.,?]*$"
 )
 
 
 def _is_smalltalk(query: str) -> bool:
     text = query.strip().lower()
     return bool(text) and bool(_SMALLTALK_RE.match(text))
+
+
+is_smalltalk = _is_smalltalk  # public name for the Live Avatar, which answers small talk itself, faster
+
+
+def _with_news(query: str, pipeline, *args, **kwargs) -> dict[str, Any]:
+    """Run a module pipeline with fresh headlines available to its LLM calls (time-sensitive questions only), and
+    record the headlines on the response so the UI can show what the answer was based on."""
+    with news_context(query) as items:
+        response = pipeline(query, *args, **kwargs)
+    if items:
+        response.setdefault("context", {}).setdefault("news_headlines", format_headlines(items))
+    return response
 
 
 def _smalltalk_reply(query: str) -> dict[str, Any]:
@@ -66,7 +82,7 @@ def _smalltalk_reply(query: str) -> dict[str, Any]:
 def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
     """Route a user query to the correct module pipeline."""
 
-    if mode == "Conversational Mode":
+    if mode in ("Conversational Mode", "Live Avatar"):  # spoken follow-ups ("what about taxes on it?") need their subject back
         from core.session import get_session
         from ai.llm.groq_client import generate_response
 
@@ -112,9 +128,9 @@ Follow-up query: {query}
     elif is_broad_market_query(query):
         response = market_pipeline(query)
     elif domain == "finance":
-        response = finance_pipeline(query, user_id=session_id)
+        response = _with_news(query, finance_pipeline, user_id=session_id)
     elif domain == "tutor":
-        response = tutor_pipeline(query, user_id=session_id)
+        response = _with_news(query, tutor_pipeline, user_id=session_id)
     elif domain == "market":
         # domain says market but neither precise check matched (rare) --
         # equity research is the closer fallback of the two.
@@ -140,7 +156,7 @@ Follow-up query: {query}
             save_turn(session_id, query, response)
             return response
 
-        response = tutor_pipeline(query, user_id=session_id)
+        response = _with_news(query, tutor_pipeline, user_id=session_id)
         response["domain"] = "general"
         if guard["available"]:
             response["domain_guard"] = guard
@@ -150,7 +166,8 @@ Follow-up query: {query}
     # it. Non-blocking: attaches metadata for transparency/demo purposes,
     # never rewrites or discards the answer -- see shared/domain_guard.py's
     # validate_output docstring for why.
-    output_guard = validate_output(query, response.get("response", ""))
+    # (skipped in the Live Avatar: it is a transparency extra that costs a model call, and a spoken reply is already late)
+    output_guard = validate_output(query, response.get("response", "")) if mode != "Live Avatar" else {"available": False}
     if output_guard["available"]:
         response["domain_guard_output"] = output_guard
 

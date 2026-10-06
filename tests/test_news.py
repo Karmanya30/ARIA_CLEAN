@@ -106,3 +106,35 @@ def test_scope_words_do_not_narrow_a_briefing():
     assert news._keywords("Give me the latest news from India and abroad") == []
     assert news._keywords("any top headlines this morning?") == []
     assert news._keywords("What is the latest on Reliance Industries abroad?") == ["reliance", "industries"]
+
+
+def test_only_time_sensitive_questions_want_news():
+    for q in ["What is the latest on gold?", "Should I buy Reliance now?", "How is the market today?", "any news on the rupee"]:
+        assert news.wants_news(q), q
+    for q in ["What is a mutual fund?", "I earn 60000 a month, what SIP should I start?", "Explain compound interest"]:
+        assert not news.wants_news(q), q
+
+
+def test_headlines_reach_every_llm_call_inside_a_module_and_only_there(feeds, monkeypatch):
+    feeds(A=_rss(("Gold slips as the dollar firms", ago(1), "")))
+    from ai.llm import groq_client
+
+    prompts = []
+    monkeypatch.setattr(groq_client, "_BACKENDS", (("fake", lambda prompt, system, model: prompts.append(system) or "ok."),))
+    with news.news_context("What is the latest on gold?") as items:
+        groq_client.generate_response("question", system_prompt="You are ARIA.")
+    groq_client.generate_response("question", system_prompt="You are ARIA.")  # outside the block: untouched
+    assert len(items) == 1
+    assert "Gold slips as the dollar firms" in prompts[0] and prompts[0].startswith("You are ARIA.")
+    assert prompts[1] == "You are ARIA."
+    with news.news_context("What is a mutual fund?") as none:  # not time-sensitive: nothing fetched, nothing added
+        assert none == [] and news.current_news_block() is None
+
+
+def test_exchange_rate_sentences_keep_their_dollars_but_plain_amounts_still_become_rupees():
+    from ai.llm.groq_client import normalize_currency
+
+    fx = "The rupee slipped to 83.4 per dollar, weakest against the US dollar in two months."
+    assert normalize_currency(fx) == fx
+    assert normalize_currency("The dollar index rose.") == "The dollar index rose."
+    assert normalize_currency("You could invest $5,000 or 200 dollars.") == "You could invest ₹5,000 or 200 rupees."

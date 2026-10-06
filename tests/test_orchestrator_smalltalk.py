@@ -48,3 +48,12 @@ def test_real_tutor_question_still_gets_routed_normally(mock_llm):
         assert response["domain"] != "smalltalk"
     finally:
         clear_session(session_id)
+
+
+def test_a_greeting_with_a_vocative_is_still_small_talk():
+    from core.orchestrator import is_smalltalk
+
+    for q in ["Hi there", "hello aria!", "Hey everyone", "thanks again", "good morning team", "Hi"]:
+        assert is_smalltalk(q), q
+    for q in ["hi, what is a SIP?", "hello what should I invest in", "thanks for the SIP advice, what about tax"]:
+        assert not is_smalltalk(q), q

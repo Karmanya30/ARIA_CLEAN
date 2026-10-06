@@ -151,10 +151,21 @@ speech recognition), the reply is streamed from Groq and cut into short phrases,
 locally by Piper (MIT, runs on the CPU in ~0.2 s), and TalkingHead animates the avatar's mouth from the
 audio itself. The first word is typically heard ~1-2 s after you stop talking (0.75-1.8 s measured from a
 typed question), against ~15 s+ for Tavus, which renders video in the cloud from a full non-streamed
-answer. One-time setup: `python -m ai.speech.live_tts --download` (63 MB voice). Trade-offs: the
-microphone listens hands-free while the mode is on (pause it with the Mic button), it pauses while ARIA
-talks (interrupt with Stop), and this mode answers from ARIA's persona directly, without the module
-router's live market data or saved profile.
+answer. One-time setup: `python -m ai.speech.live_tts --download` (63 MB voice). The microphone listens
+hands-free while the mode is on (pause it with the Mic button) and pauses while ARIA talks (interrupt with Stop).
+
+**Every voice and avatar mode answers from the same modules.** Conversational Mode, Tavus and the Live Avatar all go
+through `core/orchestrator.py` (personal finance, tutor, market analysis, equity research, domain guard, saved
+profile and history). In the Live Avatar plain small talk is streamed straight from the LLM (first word ~1 s); any
+other question is sent to the real modules while ARIA says a short "let me check that" line at once (so she responds
+in well under 3 s), then speaks a short, natural version of the module's written answer, sentence by sentence
+(`ai/llm/spoken.py`, shared with Tavus). If the modules are unreachable she still answers directly, and if the LLM
+itself is down she says so instead of reading out an error.
+
+**Live news reaches every module** (`shared/news.py`: ~84 free RSS feeds, India and abroad, merged, de-duplicated and
+ranked). Market analysis always includes headlines; for any other module (finance, tutor, general) the freshest
+headlines about the question are added to the LLM prompt whenever the question is time-sensitive ("latest",
+"today", "should I buy now", ...). The text chat shows them under the answer ("Based on N live headlines").
 The avatar is a **talking photo** when `interface/avatar/face.png` exists: MediaPipe finds the face once in the
 browser, then the jaw and lips follow the loudness of ARIA's voice (mesh warp), with blinks and a slight head
 sway. Replace that file to change the face (a sharp, front-facing head-and-shoulders photo of at least ~512 px

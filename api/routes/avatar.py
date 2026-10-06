@@ -351,8 +351,11 @@ async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest):
     logger.info(f"Tavus queried ARIA [{session_id}]: {query}")
 
     try:
+        from ai.llm.spoken import spoken_version
+
         result = handle_query(query, session_id=session_id, mode="Normal Mode")
-        response_text = result.get("response", "I could not generate a response.")
+        # the replica reads this aloud: labelled sections and bullets become a few natural sentences
+        response_text = spoken_version(query, result.get("response", "I could not generate a response."))
     except Exception:
         logger.exception("Error in orchestrator while handling Tavus query")
         response_text = "I'm sorry, I encountered an internal error while processing that."
