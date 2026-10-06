@@ -9,6 +9,7 @@ import os
 import pytest
 
 os.environ.setdefault("ARIA_WARMUP", "0")  # no model loading in the API's startup hook during tests
+os.environ.setdefault("FI_NEWS_RSS", "0")  # tests never call live news feeds (tests/test_news.py turns them on with canned XML)
 
 # Every module found (via grep) doing `from ai.llm.groq_client import
 # generate_response` -- each needs its own patch target.

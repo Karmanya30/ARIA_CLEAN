@@ -1,8 +1,9 @@
 """
 Real broad-market data — Nifty/Sensex index levels + sector-basket
 aggregates via yfinance, plus market-wide headlines via Economic Times'
-public markets RSS feed (no API key, no ToS issue — RSS is meant for
-public syndication; NewsAPI's free tier explicitly forbids this use).
+dozens of public RSS feeds, India and abroad (shared/news.py: no API key,
+no ToS issue — RSS is meant for public syndication; NewsAPI's free tier
+explicitly forbids this use).
 
 No trained model here by design: this module's value is real current
 data + LLM synthesis, the same pattern as the equity-research module,
@@ -10,13 +11,13 @@ not another model to train.
 """
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
-from functools import lru_cache
 from typing import Any
 
-import requests
 import yfinance as yf
 from loguru import logger
+
+from modules.equity_research.intelligence.data import _ttl_cache
+from shared.news import fetch_news, format_headlines
 
 INDEX_TICKERS = {"nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN"}
 
@@ -32,16 +33,13 @@ SECTOR_TICKERS = {
     "fmcg": ["HINDUNILVR.NS", "ITC.NS", "NESTLEIND.NS", "BRITANNIA.NS"],
 }
 
-ET_MARKETS_RSS = "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
-
-
 def _pct_change(closes: list[float]) -> float | None:
     if len(closes) < 2 or closes[0] == 0:
         return None
     return (closes[-1] - closes[0]) / closes[0] * 100
 
 
-@lru_cache(maxsize=8)
+@_ttl_cache(300)  # was lru_cache: index levels never refreshed until a restart
 def get_index_snapshot(name: str) -> dict[str, Any]:
     """Nifty/Sensex snapshot: current level, 5-day % change, trend."""
     ticker = INDEX_TICKERS.get(name.lower())
@@ -64,7 +62,7 @@ def get_index_snapshot(name: str) -> dict[str, Any]:
         return {"error": str(exc)}
 
 
-@lru_cache(maxsize=16)
+@_ttl_cache(300)
 def get_sector_snapshot(sector: str) -> dict[str, Any]:
     """Equal-weight snapshot of a representative sector basket."""
     tickers = SECTOR_TICKERS.get(sector.lower())
@@ -99,21 +97,10 @@ def get_sector_snapshot(sector: str) -> dict[str, Any]:
     }
 
 
-@lru_cache(maxsize=4)
-def get_market_news(limit: int = 6) -> list[str]:
-    """Market-wide headlines via Economic Times' public RSS feed. Returns
-    an empty list (never raises) if the feed is unreachable."""
-    try:
-        response = requests.get(
-            ET_MARKETS_RSS, timeout=8, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        response.raise_for_status()
-        root = ET.fromstring(response.content)
-        titles = [item.findtext("title", "").strip() for item in root.iter("item")]
-        return [t for t in titles if t][:limit]
-    except Exception as exc:
-        logger.warning(f"Economic Times RSS feed unreachable: {exc}")
-        return []
+def get_market_news(query: str = "", limit: int = 12) -> list[str]:
+    """Fresh headlines for the question (or a broad market + world briefing when it names nothing specific), merged
+    from many Indian and international feeds, each tagged with its source and age. Empty list, never an error."""
+    return format_headlines(fetch_news(query, limit=limit))
 
 
 def _detect_sector(query: str) -> str | None:
@@ -137,7 +124,7 @@ class MarketAnalyzer:
         sector = _detect_sector(query)
         index_name = _detect_index(query)
 
-        context: dict[str, Any] = {"query": query, "news_headlines": get_market_news()}
+        context: dict[str, Any] = {"query": query, "news_headlines": get_market_news(query)}
 
         if sector:
             context["sector"] = get_sector_snapshot(sector)

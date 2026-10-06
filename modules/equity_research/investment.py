@@ -10,6 +10,7 @@ import yfinance as yf
 from loguru import logger
 
 from ai.llm.groq_client import generate_response
+from shared.news import fetch_news, format_headlines
 
 
 def _clean_company_query(query: str) -> str:
@@ -202,21 +203,20 @@ def get_stock_data(ticker: str) -> dict[str, Any]:
         }
 
 
-@lru_cache(maxsize=64)
-def get_news(ticker: str, limit: int = 5) -> list[str]:
-    """Fetch recent news headlines using yfinance."""
+def get_news(ticker: str, limit: int = 8, company_name: str = "") -> list[str]:
+    """Recent headlines for a stock: yfinance's own list (usually empty for NSE tickers) topped up from the Indian and
+    global news feeds by company name. Not cached here: the feeds carry their own 10-minute cache."""
+    articles: list[str] = []
     try:
-        stock = yf.Ticker(ticker)
-        news_items = stock.news or []
-        articles = [
-            str(item.get("content", {}).get("title", "")).strip()
-            for item in news_items
-            if str(item.get("content", {}).get("title", "")).strip()
-        ]
-        return articles[:limit]
+        for item in yf.Ticker(ticker).news or []:
+            title = str(item.get("content", {}).get("title", "")).strip()
+            if title:
+                articles.append(title)
     except Exception as exc:
         logger.warning(f"yfinance news fetch failed for {ticker}: {exc}")
-        return []
+    if len(articles) < limit:
+        articles += format_headlines(fetch_news(company_name or ticker.split(".")[0], limit=limit - len(articles)))
+    return articles[:limit]
 
 
 def analyze_sentiment(headlines: list[str]) -> str:
@@ -300,7 +300,7 @@ def investment_module(query: str) -> dict[str, Any]:
     ticker = company["ticker"]
     company_name = company["company_name"]
     stock_data = get_stock_data(ticker)
-    headlines = get_news(ticker)
+    headlines = get_news(ticker, company_name=company_name)
     sentiment = analyze_sentiment(headlines)
 
     prompt = _analysis_prompt(query, company_name, stock_data, headlines, sentiment)
@@ -318,7 +318,6 @@ def investment_module(query: str) -> dict[str, Any]:
             "stock_data": stock_data,
             "news_headlines": headlines,
             "sentiment": sentiment,
-            "cache_note": "Use lru_cache now; replace with TTL cache for production freshness.",
             "extension_note": "Technical indicators can be added from yfinance OHLCV history, e.g. SMA, RSI, MACD.",
         },
         "response": answer,

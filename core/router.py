@@ -43,6 +43,14 @@ _BROAD_MARKET_TERMS = (
     "index", "indices", "sector", "sectors", "election", "government",
     "rbi", "inflation", "gdp", "bjp", "congress",
     "west bengal",
+    # global / commodity / currency macro that moves Indian markets. Phrases rather than bare words on purpose: bare
+    # "rupee" would capture "invest 5000 rupees a month", bare "war" would capture "software".
+    "crude", "brent", "oil price", "opec", "gold price", "silver price", "federal reserve", "fed rate", "wall street",
+    "tariff", "sanctions", "geopolit", "bond yield", "recession", "global market", "us market", "usd inr", "dollar index",
+    "rupee against", "rupee vs", "rupee fall", "rupee slip", "rupee weak", "rupee deprec", "rupee record",
+    # everyday "what's going on" phrasing, India and abroad. Still no bare "news": "Reliance news" is a single-stock question.
+    "market today", "markets today", "indian market", "share market", "market outlook", "market news", "market update",
+    "news today", "latest news", "world news", "top news", "top headlines", "headlines",
 )
 _INDIVIDUAL_STOCK_TERMS = (
     "stock price", "share price", "market cap", "pe ratio", "p/e", "ticker",
