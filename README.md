@@ -167,9 +167,12 @@ models), kept outside this repo. Install MuseTalk's inference requirements, its 
 whisper-tiny, dwpose, face-parse-bisent) and `mmpose`, following https://github.com/TMElyralab/MuseTalk, then:
 
 ```bat
-set MUSETALK_DIR=E:\musetalk\MuseTalk
-E:\musetalk\env\python scripts\musetalk_server.py --source interface\avatar\face.png --port 8010
+scripts\start_musetalk.bat
 ```
+
+(It runs `scripts/musetalk_server.py` with the Python environment in `..\env` next to your MuseTalk checkout; set
+`MUSETALK_DIR` first if that is not `E:\musetalk\MuseTalk`. To change the face, replace
+`interface/avatar/face.png` and restart: the face is re-prepared automatically.)
 
 The first start prepares the face (~3 min) and caches it. On an RTX 4060 laptop the first mouth frame arrives after
 about 0.8 s and generation runs just above real time (~1.05x) at the default `--fps 15`; a faster GPU can use `--fps 25`.
