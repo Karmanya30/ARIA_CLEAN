@@ -161,24 +161,21 @@ sway. Replace that file to change the face (a sharp, front-facing head-and-shoul
 works best, and use one you have the rights to); delete it, or open `/avatar/live?avatar=3d`, for the 3D model.
 
 **Photoreal lip-sync (MuseTalk, optional, NVIDIA GPU).** When a MuseTalk v1.5 server is running on port 8010 the
-Live Avatar uses it instead: each spoken phrase is sent to MuseTalk, which redraws the mouth on the same photo at
-25 fps, and the page keeps the blinks, breathing and head movement on top. It needs its own Python 3.10
-environment (~10 GB incl. models), kept outside this repo:
+Live Avatar uses it instead: each spoken phrase is sent to MuseTalk, which redraws the mouth on the same photo, and the
+page keeps the blinks, breathing and head movement on top. It needs its own Python 3.10 environment (~10 GB including
+models), kept outside this repo. Install MuseTalk's inference requirements, its models (musetalkV15, sd-vae,
+whisper-tiny, dwpose, face-parse-bisent) and `mmpose`, following https://github.com/TMElyralab/MuseTalk, then:
 
-```bash
-conda create -p E:\musetalk\env python=3.10 -y
-git clone https://github.com/TMElyralab/MuseTalk E:\musetalk\MuseTalk
-E:\musetalk\env\python -m pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
-E:\musetalk\env\python -m pip install diffusers==0.30.2 accelerate==0.28.0 numpy==1.23.5 opencv-python==4.9.0.80 soundfile==0.12.1 transformers==4.39.2 huggingface_hub==0.30.2 librosa==0.11.0 einops==0.8.1 omegaconf fastapi uvicorn mmengine
-E:\musetalk\env\python -m pip install mmcv==2.0.1 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0/index.html
-E:\musetalk\env\python -m pip install mmdet==3.1.0 json_tricks munkres xtcocotools scipy && E:\musetalk\env\python -m pip install --no-deps mmpose==1.1.0
-# models (musetalkV15, sd-vae, whisper-tiny, dwpose, face-parse-bisent): see MuseTalk's download_weights script
-cd E:\musetalk\MuseTalk && E:\musetalk\env\python aria_server.py --source E:\ARIA\interface\avatar\face.png --port 8010
+```bat
+set MUSETALK_DIR=E:\musetalk\MuseTalk
+E:\musetalk\env\python scripts\musetalk_server.py --source interface\avatar\face.png --port 8010
 ```
 
-The first start prepares the face (~3 min) and caches it. MuseTalk needs the GPU to itself: another GPU job running
-at the same time slows it from real time to ~1 frame per second. Without the server the page falls back to the
-talking photo, so the mode always works; reload the page after starting MuseTalk to switch to it.
+The first start prepares the face (~3 min) and caches it. On an RTX 4060 laptop the first mouth frame arrives after
+about 0.8 s and generation runs just above real time (~1.05x) at the default `--fps 15`; a faster GPU can use `--fps 25`.
+It needs the GPU to itself: another GPU job running at the same time slows it below real time, and the page then
+lags behind the voice. Without the server the page falls back to the talking photo, so the mode always works; reload the
+page after starting MuseTalk to switch to it.
 
 **Settings → Appearance** switches between two UI themes, applied
 instantly and remembered per browser (`localStorage`, key `aria_theme`):
