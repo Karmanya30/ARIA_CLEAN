@@ -198,6 +198,15 @@ def avatar_face() -> FileResponse:
     return FileResponse(path, media_type="image/png" if path.suffix == ".png" else "image/jpeg", headers={"Cache-Control": "no-cache"})
 
 
+@router.get("/avatar/glasses.png")
+def avatar_glasses() -> FileResponse:
+    """Optional transparent overlay drawn over the photo (scripts/make_glasses.py). 404 means: no glasses."""
+    path = _AVATAR_DIR / "glasses.png"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="No glasses overlay configured.")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "no-cache"})
+
+
 @router.get("/avatar/model.glb")
 def avatar_model() -> FileResponse:
     return FileResponse(_AVATAR_DIR / "model.glb", media_type="model/gltf-binary", headers={"Cache-Control": "max-age=86400"})

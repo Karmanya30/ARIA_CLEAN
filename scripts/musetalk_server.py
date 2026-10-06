@@ -8,14 +8,14 @@ Models stay loaded on the GPU and the avatar (face box, latents, blend masks) is
 request only runs Whisper features + UNet + VAE decode, exactly MuseTalk's own realtime path. Requests are served in
 arrival order, and a client that leaves mid-stream releases the GPU at once.
 
-POST /lipsync   body: a WAV clip  ->  stream: u32 frame count, then per frame u32 length + JPEG (header X-Fps)
+POST /lipsync   body: a WAV clip  ->  stream: u32 frame count, then per frame u32 length + JPEG of the face patch
+                (header X-Fps; /health.patch says where the patch goes, as fractions of the photo)
 GET  /idle.jpg  the resting frame
 GET  /health    {"ready": bool, "fps": N, "size": [w, h]}
 """
 from __future__ import annotations
 
 import argparse
-import copy
 import hashlib
 import itertools
 import os
@@ -41,11 +41,11 @@ LAUNCH_DIR = os.getcwd()  # --source is relative to where this was started, not 
 os.chdir(ROOT)
 sys.path.insert(0, ROOT)
 from musetalk.utils.audio_processor import AudioProcessor  # noqa: E402
-from musetalk.utils.blending import get_image_blending, get_image_prepare_material  # noqa: E402
+from musetalk.utils.blending import get_image_prepare_material  # noqa: E402
 from musetalk.utils.face_parsing import FaceParsing  # noqa: E402
 from musetalk.utils.utils import datagen, load_all_model  # noqa: E402
 
-FPS, EXTRA_MARGIN, MIN_SIDE, MAX_OUT = 25, 10, 640, 720
+FPS, EXTRA_MARGIN, MIN_SIDE, MAX_OUT = 25, 10, 640, 1440
 torch.backends.cudnn.benchmark = True  # fixed-size batches: let cuDNN pick the fastest kernels once
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps"])
@@ -128,6 +128,11 @@ def _prepare(source: str) -> None:
             pickle.dump({**A, "latents": [t.cpu() for t in A["latents"]]}, f)
     h, w = A["frames"][0].shape[:2]
     A["scale"] = min(1.0, MAX_OUT / max(h, w))
+    for (xs, ys, xe, ye), m in zip(A["mask_boxes"], A["masks"]):
+        assert 0 <= xs < xe <= w and 0 <= ys < ye <= h, "face crop leaves the photo: use a photo with more room around the face"
+    A["alpha"] = [(np.asarray(m.convert("L") if hasattr(m, "convert") else m, dtype=np.float32) / 255.0)[..., None] for m in A["masks"]]
+    xs, ys, xe, ye = A["mask_boxes"][0]
+    A["patch"] = [xs / w, ys / h, xe / w, ye / h]  # where the patch goes, as fractions of the photo (resolution independent)
     S["avatar"] = A
 
 
@@ -135,15 +140,21 @@ def _jpeg(frame: np.ndarray) -> bytes:
     s = S["avatar"]["scale"]
     if s < 1:
         frame = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
-    return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tobytes()
+    return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 92])[1].tobytes()
 
 
 def _blend(k: int, face: np.ndarray) -> bytes:
+    """MuseTalk's own blend (generated face pasted through a soft mask), but only for the rectangle it can change.
+    The page draws this patch over the full-size photo, so nothing outside the face is ever re-encoded or altered."""
     A = S["avatar"]
     x1, y1, x2, y2 = A["coords"][k]
-    face = cv2.resize(face.astype(np.uint8), (x2 - x1, y2 - y1))
-    out = get_image_blending(copy.deepcopy(A["frames"][k]), face, [x1, y1, x2, y2], A["masks"][k], A["mask_boxes"][k])
-    return _jpeg(out)
+    xs, ys, xe, ye = A["mask_boxes"][k]
+    base = A["frames"][k][ys:ye, xs:xe]
+    patch = base.copy()
+    patch[y1 - ys:y2 - ys, x1 - xs:x2 - xs] = cv2.resize(face.astype(np.uint8), (x2 - x1, y2 - y1))
+    alpha = A["alpha"][k]
+    out = (patch.astype(np.float32) * alpha + base.astype(np.float32) * (1 - alpha)).astype(np.uint8)
+    return cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 94])[1].tobytes()
 
 
 def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) -> None:
@@ -248,7 +259,7 @@ def health():
     if A:
         h, w = A["frames"][0].shape[:2]
         size = [round(w * A["scale"]), round(h * A["scale"])]
-    return {"ready": S["ready"], "fps": FPS, "size": size}
+    return {"ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None}
 
 
 if __name__ == "__main__":

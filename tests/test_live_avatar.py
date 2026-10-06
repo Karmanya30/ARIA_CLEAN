@@ -76,3 +76,12 @@ def test_avatar_photo_is_served_when_configured_and_404_otherwise(monkeypatch, t
     (tmp_path / "face.png").write_bytes(b"\x89PNG fake")
     r = client.get("/avatar/face.png")
     assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+
+
+def test_glasses_overlay_is_served_when_present_and_404_otherwise(monkeypatch, tmp_path):
+    client = TestClient(app)
+    monkeypatch.setattr(live, "_AVATAR_DIR", tmp_path)
+    assert client.get("/avatar/glasses.png").status_code == 404  # no overlay: the page just shows the photo
+    (tmp_path / "glasses.png").write_bytes(b"PNG fake")
+    r = client.get("/avatar/glasses.png")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"

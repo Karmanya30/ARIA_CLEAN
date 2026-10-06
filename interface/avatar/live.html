@@ -122,6 +122,8 @@ async function threeDSpeaker() {
 // leaves the mouth to that frame and keeps only the blinks, breathing, sway and nods.
 async function photoSpeaker(opts = {}) {
   const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = "/avatar/face.png?" + Date.now(); });
+  // optional glasses overlay (scripts/make_glasses.py): drawn last, so blinks and lip-sync never distort it
+  const glasses = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.width === img.width && i.height === img.height ? i : null); i.onerror = () => ok(null); i.src = "/avatar/glasses.png?" + Date.now(); });
   setState("idle", "Finding the face…");
   const { FaceLandmarker, FilesetResolver } = await import(VISION + "/vision_bundle.mjs");
   const fileset = await FilesetResolver.forVisionTasks(VISION + "/wasm");
@@ -204,10 +206,14 @@ async function photoSpeaker(opts = {}) {
     let blink = 0;
     if (now > blinkAt) { const t = (now - blinkAt) / 140; blink = t < 1 ? t : t < 2 ? 2 - t : 0; if (t >= 2) blinkAt = now + 2200 + Math.random() * 3500; }
     const A = opts.jaw === false ? 0 : open * mouthW * 0.15;  // jaw drop in source pixels (real speech rarely opens past ~15% of mouth width)
-    sctx.drawImage((opts.frame && opts.frame()) || img, 0, 0, src.width, src.height);
+    sctx.drawImage(img, 0, 0, src.width, src.height);
+    const patch = opts.frame && opts.frame();  // MuseTalk: only the face rectangle changes, laid over the sharp original photo
+    if (patch) sctx.drawImage(patch, opts.patch[0] * src.width, opts.patch[1] * src.height, (opts.patch[2] - opts.patch[0]) * src.width, (opts.patch[3] - opts.patch[1]) * src.height);
     // cover the canvas with the crop, then breathe/sway and nod a touch while talking
     const s = Math.max(canvas.width / crop.w, canvas.height / crop.h);
-    const t = now / 1000, rot = Math.sin(t * 0.7) * 0.012 + open * 0.01 * Math.sin(t * 9), bob = Math.sin(t * 1.3) * crop.h * 0.004;
+    // Only a slow sway, and none at all with MuseTalk (its frames are rock steady; any motion makes thin glasses shimmer).
+    // The old loudness-driven nod (a 1.4 Hz wobble about the chin) was the visible "shake".
+    const t = now / 1000, still = opts.jaw === false, rot = still ? 0 : Math.sin(t * 0.7) * 0.012, bob = still ? 0 : Math.sin(t * 1.3) * crop.h * 0.004;
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#0f1720"; g.fillRect(0, 0, canvas.width, canvas.height);
     g.imageSmoothingQuality = "high";
     g.setTransform(s, 0, 0, s, (canvas.width - crop.w * s) / 2 - crop.x * s, (canvas.height - crop.h * s) / 2 - crop.y * s);
@@ -234,6 +240,7 @@ async function photoSpeaker(opts = {}) {
         g.restore();
       }
     }
+    if (glasses) g.drawImage(glasses, 0, 0);
   }
   requestAnimationFrame(frame);
   return {
@@ -256,8 +263,8 @@ async function museTalkSpeaker() {
   const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1500) }).then((r) => r.json());
   if (!health.ready) throw new Error("server still loading");
   // MuseTalk draws the mouth; the photo renderer adds blinks, breathing, sway and nods on top (same face file)
-  let current = null;
-  const rig = await photoSpeaker({ jaw: false, frame: () => current });
+  let current = null;  // the MuseTalk face patch for this instant, or null (the photo as it is)
+  const rig = await photoSpeaker({ jaw: false, frame: () => current, patch: health.patch });
   const ctx = rig.ctx;
   let clips = [], sources = [], endAt = 0, pending = 0, gen = 0, ctl = new AbortController(), prevBegun = Promise.resolve();
 
