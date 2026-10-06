@@ -23,7 +23,7 @@ import numpy as np
 from config.paths import CONCEPTS_KB_FILE, KT_SEQUENCES_DIR
 
 RANDOM_STATE = 42
-N_LEARNERS = 200
+N_LEARNERS = 1500  # 200 was too few: held-out AUC 0.715 against the 0.80 target
 MIN_INTERACTIONS = 50
 MAX_INTERACTIONS = 90
 PREREQ_BOOST = 0.8  # ability boost per already-mastered prerequisite
