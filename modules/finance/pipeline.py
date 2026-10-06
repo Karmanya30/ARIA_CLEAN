@@ -108,7 +108,7 @@ def _parse_indian_amount(text: str, keyword: str | None = None) -> float | None:
     # stating a real income produced an "EMI (₹5) ... income (₹60)"
     # budget-infeasible error from figures that had been quietly divided
     # by 1000. Commas are stripped below before the float conversion.
-    pattern = r"(\d[\d,]*(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|crore|cr|k|thousand)?\b"
+    pattern = r"(\d[\d,]*(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|crores?|cr|k|thousand)?\b"
     search_area = text.lower()
 
     if keyword:
@@ -243,6 +243,18 @@ def _try_build_financial_profile(query: str, user_id: str) -> UserFinancialInput
     monthly_income = _parse_indian_amount(query, "earn")
     if monthly_income is None:
         monthly_income = _parse_indian_amount(query, "income")
+
+    # The financial models consume monthly income. Conversational queries
+    # often state annual compensation explicitly, so normalize that value
+    # before saving it as the user's monthly profile income.
+    query_lower = query.lower()
+    annual_income = bool(
+        re.search(r"\b(?:a|per)\s+(?:year|annum)\b|\bannual(?:ly)?\b|\byearly\b", query_lower)
+        or re.search(r"\blpa\b", query_lower)
+    )
+    monthly_wording = bool(re.search(r"\b(?:a|per)\s+month\b|\bmonthly\b", query_lower))
+    if monthly_income is not None and annual_income and not monthly_wording:
+        monthly_income /= 12
     existing_emi = _parse_indian_amount(query, "emi")
     age = _extract_age(query)
 

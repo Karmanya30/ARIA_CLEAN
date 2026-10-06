@@ -38,3 +38,13 @@ def test_profile_carries_real_transactions_once_entered():
         assert {t.category for t in profile.transactions} == {"food"}
     finally:
         _cleanup()
+
+
+def test_annual_income_is_normalized_to_monthly_profile_income():
+    _cleanup()
+    try:
+        profile = _try_build_financial_profile("My income is 2 crores a year", _TEST_USER)
+        assert profile is not None
+        assert profile.monthly_income == 20_000_000 / 12
+    finally:
+        _cleanup()
