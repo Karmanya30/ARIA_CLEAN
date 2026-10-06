@@ -173,7 +173,7 @@ async function photoSpeaker(opts = {}) {
     const upper = Math.exp(-(((p.y - L.upperIn.y) / (faceH * 0.07)) ** 2)) * Math.exp(-(((p.x - mouth.x) / (mouthW * 0.7)) ** 2));
     dy -= A * 0.18 * upper;
     for (const [a, b, top, bot] of L.eyes) {  // lids close toward the eye's middle line
-      const cx = (a.x + b.x) / 2, cy = (top.y + bot.y) / 2, ew = Math.abs(b.x - a.x), eh = Math.max(2, (bot.y - top.y) * 2.2);
+      const cx = (a.x + b.x) / 2, cy = (top.y + bot.y) / 2, ew = Math.abs(b.x - a.x), eh = Math.max(2, (bot.y - top.y) * 1.2);
       const w = Math.exp(-(((p.x - cx) / (ew * 0.7)) ** 2) - (((p.y - cy) / eh) ** 2));
       dy += (cy - p.y) * blink * w * 0.9;
     }
@@ -237,7 +237,7 @@ async function photoSpeaker(opts = {}) {
   }
   requestAnimationFrame(frame);
   return {
-    kind: "photo", ctx, analyser,
+    kind: "photo", ctx, analyser, blinkNow() { blinkAt = performance.now(); },
     play(buffer) {
       const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
       const at = Math.max(ctx.currentTime + 0.02, endAt);
@@ -259,36 +259,61 @@ async function museTalkSpeaker() {
   let current = null;
   const rig = await photoSpeaker({ jaw: false, frame: () => current });
   const ctx = rig.ctx;
-  let clips = [], sources = [], endAt = 0, pending = 0, chain = Promise.resolve(), gen = 0;
+  let clips = [], sources = [], endAt = 0, pending = 0, gen = 0, ctl = new AbortController(), prevBegun = Promise.resolve();
 
-  async function playClip(buffer, raw, myGen) {
-    const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw });
-    const reader = res.body.getReader();
-    let buf = new Uint8Array(0), total = null, started = false;
-    const clip = { frames: [], start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 25) };
-    const need = () => Math.min(total, 8);  // the first GPU batch
-    const begin = () => {
-      if (started || myGen !== gen) return;
-      started = true;
-      const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser);  // analyser: nods follow the voice
-      clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
-      sources.push(src); clips.push(clip);
-    };
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done || myGen !== gen) break;
-      const merged = new Uint8Array(buf.length + value.length); merged.set(buf); merged.set(value, buf.length); buf = merged;
-      for (;;) {
-        if (total === null) { if (buf.length < 4) break; total = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
-        if (buf.length < 4) break;
-        const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
-        if (buf.length < 4 + n) break;
-        clip.frames.push(await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" })));
-        buf = buf.slice(4 + n);
-        if (clip.frames.length >= need()) begin();
+  // Each sentence is requested the moment it arrives (the server queues them in order) and read concurrently, so the next
+  // sentence is already rendering while the current one plays. Playback of a sentence starts once enough frames are
+  // buffered that the stream cannot fall behind the voice: none extra when the GPU is quicker than the speech.
+  function playClip(buffer, raw) {
+    const myGen = gen, signal = ctl.signal, tAsk = performance.now();
+    const before = prevBegun;
+    let markBegun;
+    prevBegun = new Promise((ok) => (markBegun = ok));
+    pending += 1;
+    (async () => {
+      try {
+        const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw, signal });
+        const reader = res.body.getReader();
+        let buf = new Uint8Array(0), total = null, started = false, tFirst = 0;
+        const clip = { frames: [], start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 25) };
+        const need = () => {
+          if (clip.frames.length < 4) return 6;
+          const rate = (clip.frames.length - 1) / Math.max((performance.now() - tFirst) / 1000, 0.05);
+          return Math.min(total, 6 + (rate < clip.fps ? Math.ceil((clip.fps - rate) * clip.dur * 1.15) + 2 : 0));
+        };
+        const begin = async () => {
+          if (started) return;
+          started = true;
+          await before;  // earlier sentences are scheduled first, so this one starts right after them
+          if (myGen !== gen) return;
+          const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser);  // analyser: nods follow the voice
+          clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
+          sources.push(src); clips.push(clip);
+        };
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done || myGen !== gen) break;
+          const merged = new Uint8Array(buf.length + value.length); merged.set(buf); merged.set(value, buf.length); buf = merged;
+          for (;;) {
+            if (total === null) { if (buf.length < 4) break; total = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
+            if (buf.length < 4) break;
+            const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
+            if (buf.length < 4 + n) break;
+            clip.frames.push(await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" })));
+            if (clip.frames.length === 1) tFirst = performance.now();
+            buf = buf.slice(4 + n);
+            if (!started && clip.frames.length >= need()) begin();
+          }
+        }
+        await begin();  // short clip or stream ended early: play what we have
+      } catch (e) {
+        if (e.name !== "AbortError") console.error(e);
+        // the server failed for this sentence: still say it, the still photo (and the page's blinks) stay on screen
+        if (myGen === gen && !sources.length && endAt < ctx.currentTime) { await before; const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser); src.start(Math.max(ctx.currentTime + 0.03, endAt)); endAt = Math.max(ctx.currentTime + 0.03, endAt) + buffer.duration; sources.push(src); }
+      } finally {
+        markBegun(); pending -= 1;
       }
-    }
-    begin();  // short clip or stream ended early: play what we have
+    })();
   }
   function frame() {  // pick the MuseTalk frame for this instant of the audio clock; null = the still photo
     requestAnimationFrame(frame);
@@ -299,12 +324,13 @@ async function museTalkSpeaker() {
   }
   requestAnimationFrame(frame);
   return {
-    kind: "musetalk", ctx,
-    play(buffer, text, raw) {
-      const myGen = gen; pending += 1;
-      chain = chain.then(() => playClip(buffer, raw, myGen)).catch((e) => console.error(e)).finally(() => { pending -= 1; });
+    kind: "musetalk", ctx, blinkNow: rig.blinkNow,
+    play(buffer, text, raw) { playClip(buffer, raw); },
+    stop() {
+      gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
+      for (const s of sources) { try { s.stop(); } catch (e) {} }
+      sources = []; clips = []; endAt = 0;
     },
-    stop() { gen += 1; for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; clips = []; endAt = 0; },
     busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
   };
 }
@@ -462,7 +488,7 @@ loadSpeaker().then((s) => {
   if (!SR) $("note").textContent = "Voice input needs Chrome or Edge. You can still type.";
 }).catch((err) => { setState("error", "Avatar failed to load"); $("note").textContent = String(err); console.error(err); });
 
-window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind };  // used by the automated checks
+window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow() };  // used by the automated checks
 </script>
 </body>
 </html>
