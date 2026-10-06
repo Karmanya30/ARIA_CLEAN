@@ -27,7 +27,7 @@ D = float(np.hypot(*(eyes[1] - eyes[0])))
 R = 0.42 * D                      # half the lens width
 AX, AY = R, 0.90 * R              # slightly oval: a little wider than tall
 T = 0.040 * R                     # thin wire rim
-centers = [e + np.array([0, -0.03 * R]) for e in eyes]
+centers = [e + np.array([0, 0.17 * R]) for e in eyes]  # sat a little below the eyes, so the bridge rests on the nose
 S = 3  # draw at 3x and shrink: clean edges
 big = lambda v: tuple(int(round(x)) for x in np.asarray(v, np.float32) * S)
 blank = lambda: np.zeros((h * S, w * S), np.float32)
@@ -39,7 +39,7 @@ for c in centers:
     cv2.ellipse(lens, big(c), (int(AX * S), int(AY * S)), 0, 0, 360, 1.0, -1, cv2.LINE_AA)
     cv2.ellipse(rim, big(c), (int((AX + T / 2) * S), int((AY + T / 2) * S)), 0, 0, 360, 1.0, int(T * S), cv2.LINE_AA)
 # bridge: a slim arch at the upper third of the lenses
-a, b = centers[0] + np.array([AX, -0.22 * AY]), centers[1] - np.array([AX, 0.22 * AY])
+a, b = centers[0] + np.array([AX, -0.18 * AY]), centers[1] - np.array([AX, 0.18 * AY])
 mid, half = (a + b) / 2, float(np.hypot(*(b - a))) / 2
 cv2.ellipse(bridge, big(mid + np.array([0, 0.10 * R])), (int((half + T) * S), int(0.17 * R * S)), 0, 196, 344, 1.0, int(0.9 * T * S), cv2.LINE_AA)
 fade = np.ones((h, w), np.float32)

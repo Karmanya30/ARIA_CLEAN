@@ -9,6 +9,10 @@
   html, body { margin:0; height:100%; background:radial-gradient(ellipse at 50% 30%, #243447 0%, var(--bg) 70%); color:var(--ink);
     font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow:hidden; }
   #avatar { position:absolute; inset:0; }
+  #avatar canvas { filter:contrast(1.03) saturate(1.04); }  /* a light studio grade */
+  /* a soft vignette and a darker foot: the face is the focus and the captions are always legible */
+  #avatar::after { content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(6,10,16,.34) 100%), linear-gradient(transparent 62%, rgba(6,10,16,.42)); }
   .chip { position:absolute; top:12px; padding:5px 10px; border-radius:99px; background:var(--panel); font-size:12px; backdrop-filter:blur(6px); }
   #state { left:12px; } #state::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--muted); vertical-align:1px; }
   #state[data-s="listening"]::before { background:var(--accent); animation:pulse 1.2s infinite; }
@@ -19,6 +23,8 @@
   #caption { position:absolute; left:50%; bottom:86px; transform:translateX(-50%); width:min(92%, 620px); text-align:center;
     font-size:15px; text-shadow:0 1px 3px #000; min-height:22px; }
   #caption .you { color:var(--muted); display:block; font-size:13px; }
+  /* phones: a short frame, so keep the caption to a few small lines low down (the full reply is in the transcript) */
+  @media (max-width:600px) { #caption { bottom:74px; font-size:13px; max-height:5.2em; overflow:hidden; -webkit-mask-image:linear-gradient(#000 70%, transparent); mask-image:linear-gradient(#000 70%, transparent); } }
   #bar { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); width:min(94%, 640px); display:flex; gap:8px;
     padding:8px; border-radius:99px; background:var(--panel); backdrop-filter:blur(8px); }
   #bar input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; padding:0 10px; }
@@ -72,7 +78,10 @@ function setState(s, label) { stateEl.dataset.s = s; stateEl.textContent = label
 function caption(you, ariaText) {
   captionEl.innerHTML = "";
   if (you) { const y = document.createElement("span"); y.className = "you"; y.textContent = "You: " + you; captionEl.appendChild(y); }
-  if (ariaText) captionEl.appendChild(document.createTextNode(ariaText));
+  if (ariaText) {  // subtitles show the latest words only, cut at a word boundary; the full reply is in the transcript
+    const tail = ariaText.length > 150 ? "…" + ariaText.slice(-150).replace(/^\S*\s/, "") : ariaText;
+    captionEl.appendChild(document.createTextNode(tail));
+  }
 }
 function tellParent(msg) { try { parent.postMessage({ source: "aria-live", ...msg }, "*"); } catch (e) {} }
 
@@ -145,6 +154,8 @@ async function photoSpeaker(opts = {}) {
   const faceW = face.x1 - face.x0, faceH = face.y1 - face.y0, mouthW = Math.hypot(L.right.x - L.left.x, L.right.y - L.left.y);
   const mouth = { x: (L.upperIn.x + L.lowerIn.x) / 2, y: (L.upperIn.y + L.lowerIn.y) / 2 };
   const lipLine = mouth.y;
+  const mid3 = (a, b, c) => ({ x: (P(a).x + P(b).x + P(c).x) / 3, y: (P(a).y + P(b).y + P(c).y) / 3 });
+  const browC = [mid3(63, 105, 66), mid3(296, 334, 293)], browInner = [P(107), P(336)], corners = [L.left, L.right];  // image-left first
   // frame: head and shoulders, the face a little above the middle
   const cw = Math.min(img.width, faceW * 2.6), ch = Math.min(img.height, faceH * 2.4);
   const crop = { x: Math.max(0, Math.min(img.width - cw, (face.x0 + face.x1) / 2 - cw / 2)), y: Math.max(0, Math.min(img.height - ch, face.y0 - faceH * 0.55)), w: cw, h: ch };
@@ -158,6 +169,43 @@ async function photoSpeaker(opts = {}) {
   const analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination);
   const wave = new Float32Array(analyser.fftSize);
   let sources = [], endAt = 0, open = 0, blinkAt = performance.now() + 2500;
+
+  // ── lifelike behaviour: small expressions and head movement, always slow and smooth ──────────────────────────────
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;  // accessibility: no movement at all
+  const expr = { browL: 0, browR: 0, furrow: 0, smile: 0.1, squint: 0, tilt: 0, nod: 0, pan: 0 };
+  // seconds to settle: eyebrows are quick, the head and a smile unhurried
+  const TAU = { browL: 0.10, browR: 0.10, furrow: 0.20, smile: 0.32, squint: 0.22, tilt: 0.6, nod: 0.16, pan: 0.40 };
+  const baseline = { speaking: { smile: 0.22 }, listening: { tilt: 0.004, browL: 0.12, browR: 0.12 }, thinking: { tilt: -0.007, browL: 0.5, browR: 0.12, pan: 0.5 } };
+  let pose = { rot: 0, bob: 0, sway: 0, s: 1, half: 0 }, lastNod = 0, events = [], nextIdle = performance.now() + 2500, lastOnset = 0, avgLevel = 0, lastState = "idle", prevNow = performance.now();
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = (...fns) => fns[Math.floor(Math.random() * fns.length)];
+  const fire = (now, ms, vals) => events.push({ until: now + ms, vals });
+  const moves = {
+    brows: (n) => fire(n, rnd(350, 600), { browL: rnd(0.5, 0.9), browR: rnd(0.5, 0.9) }),
+    oneBrow: (n) => fire(n, rnd(500, 800), Math.random() < 0.5 ? { browL: 0.8 } : { browR: 0.8 }),
+    smile: (n) => fire(n, rnd(1400, 2400), { smile: rnd(0.5, 0.8), squint: 0.35 }),
+    tilt: (n) => fire(n, rnd(1800, 3000), { tilt: (Math.random() < 0.5 ? -1 : 1) * rnd(0.006, 0.010) }),
+    nod: (n) => { if (n - lastNod > 2500) { lastNod = n; fire(n, 300, { nod: rnd(0.25, 0.45) }); } },  // rare and small: frequent nods read as bobbing
+    furrow: (n) => fire(n, rnd(500, 900), { furrow: rnd(0.4, 0.7) }),
+    squint: (n) => fire(n, 900, { squint: 0.5 }),
+  };
+  function behave(now, dt, level) {
+    events = events.filter((e) => e.until > now);
+    const st = stateEl.dataset.s;
+    if (st !== lastState) {
+      if (lastState === "speaking") moves.smile(now);                                  // a friendly smile when she finishes
+      if (st === "speaking") fire(now, 1200, { smile: 0.55, browL: 0.35, browR: 0.35 });  // and a bright start
+      lastState = st;
+    }
+    avgLevel += (level - avgLevel) * 0.03;  // emphasis: a word clearly louder than the recent average lifts the brows / nods
+    if (st === "speaking" && level > 0.03 && level > avgLevel * 1.8 && now - lastOnset > 700) { lastOnset = now; pick(moves.brows, moves.brows, moves.nod)(now); }
+    if (now > nextIdle) { nextIdle = now + rnd(2600, 6200); (st === "speaking" ? pick(moves.tilt, moves.squint, moves.smile) : pick(moves.brows, moves.oneBrow, moves.smile, moves.tilt, moves.tilt, moves.nod))(now); }
+    const base = baseline[st] || {};
+    for (const k in expr) {
+      let tgt = base[k] ?? (k === "smile" ? 0.1 : 0);
+      for (const e of events) if (k in e.vals && Math.abs(e.vals[k]) > Math.abs(tgt)) tgt = e.vals[k];
+      expr[k] += (tgt - expr[k]) * (1 - Math.exp(-dt / TAU[k]));
+    }
+  }
 
   // mesh over the lower face and the eyes; everything else is drawn once, unwarped
   const N = 14, gx0 = face.x0 - faceW * 0.15, gx1 = face.x1 + faceW * 0.15, gy0 = face.y0 + faceH * 0.15, gy1 = Math.min(img.height, face.y1 + faceH * 0.25);
@@ -178,6 +226,22 @@ async function photoSpeaker(opts = {}) {
       const cx = (a.x + b.x) / 2, cy = (top.y + bot.y) / 2, ew = Math.abs(b.x - a.x), eh = Math.max(2, (bot.y - top.y) * 1.2);
       const w = Math.exp(-(((p.x - cx) / (ew * 0.7)) ** 2) - (((p.y - cy) / eh) ** 2));
       dy += (cy - p.y) * blink * w * 0.9;
+    }
+    // expressions: small lifts and squeezes that fall off smoothly from the landmarks
+    const g2 = (x0, y0, rx, ry) => Math.exp(-(((p.x - x0) / rx) ** 2) - (((p.y - y0) / ry) ** 2));
+    dy -= expr.browL * faceH * 0.017 * g2(browC[0].x, browC[0].y, faceW * 0.17, faceH * 0.065);
+    dy -= expr.browR * faceH * 0.017 * g2(browC[1].x, browC[1].y, faceW * 0.17, faceH * 0.065);
+    [[browInner[0], 1], [browInner[1], -1]].forEach(([c, sgn]) => {  // furrow: inner brows down and together
+      const w = g2(c.x, c.y, faceW * 0.07, faceH * 0.04); dy += expr.furrow * faceH * 0.008 * w; dx += sgn * expr.furrow * faceW * 0.008 * w;
+    });
+    [[corners[0], -1], [corners[1], 1]].forEach(([c, sgn]) => {  // smile: mouth corners up and out, cheeks rise
+      const w = g2(c.x, c.y, mouthW * 0.28, mouthW * 0.28); dy -= expr.smile * faceH * 0.019 * w; dx += sgn * expr.smile * faceW * 0.011 * w;
+      dy -= expr.smile * faceH * 0.014 * g2(c.x + sgn * mouthW * 0.15, c.y - faceH * 0.13, faceW * 0.12, faceH * 0.07);
+    });
+    for (const [a, b, top, bot] of L.eyes) {  // squint: lower lids rise, upper lids drop a touch
+      const cx = (a.x + b.x) / 2, ew = Math.abs(b.x - a.x), eh0 = bot.y - top.y;
+      dy -= expr.squint * eh0 * 0.5 * g2(cx, bot.y, ew * 0.6, eh0);
+      dy += expr.squint * eh0 * 0.12 * g2(cx, top.y, ew * 0.6, eh0 * 0.8);
     }
     return { x: p.x + dx, y: p.y + dy };
   }
@@ -209,17 +273,23 @@ async function photoSpeaker(opts = {}) {
     sctx.drawImage(img, 0, 0, src.width, src.height);
     const patch = opts.frame && opts.frame();  // MuseTalk: only the face rectangle changes, laid over the sharp original photo
     if (patch) sctx.drawImage(patch, opts.patch[0] * src.width, opts.patch[1] * src.height, (opts.patch[2] - opts.patch[0]) * src.width, (opts.patch[3] - opts.patch[1]) * src.height);
-    // cover the canvas with the crop, then breathe/sway and nod a touch while talking
+    // cover the canvas with the crop. The head only ever drifts slowly or settles into a small tilt/nod (nothing tied to the
+    // loudness of each word: that old 1.4 Hz wobble was the visible "shake"), and the glasses move with it.
     const s = Math.max(canvas.width / crop.w, canvas.height / crop.h);
-    // Only a slow sway, and none at all with MuseTalk (its frames are rock steady; any motion makes thin glasses shimmer).
-    // The old loudness-driven nod (a 1.4 Hz wobble about the chin) was the visible "shake".
-    const t = now / 1000, still = opts.jaw === false, rot = still ? 0 : Math.sin(t * 0.7) * 0.012, bob = still ? 0 : Math.sin(t * 1.3) * crop.h * 0.004;
+    const dt = Math.min(0.1, (now - prevNow) / 1000); prevNow = now;
+    if (calm) { for (const k in expr) expr[k] = k === "smile" ? 0.1 : 0; } else behave(now, dt, rms);
+    const t = now / 1000;
+    const rot = calm ? 0 : Math.sin(t * 0.8) * 0.0045 + Math.sin(t * 1.9 + 1.3) * 0.003 + expr.tilt;
+    const bob = calm ? 0 : Math.sin(t * 1.25) * crop.h * 0.0022 + (expr.nod * 0.009 - expr.pan * 0.006) * crop.h;  // breathing, nods, lifting the head to think
+    const sway = calm ? 0 : Math.sin(t * 0.55 + 0.7) * crop.w * 0.0018;
+    pose = { rot, bob, sway, s, half: faceH / 2 };
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#0f1720"; g.fillRect(0, 0, canvas.width, canvas.height);
     g.imageSmoothingQuality = "high";
     g.setTransform(s, 0, 0, s, (canvas.width - crop.w * s) / 2 - crop.x * s, (canvas.height - crop.h * s) / 2 - crop.y * s);
-    g.translate(mouth.x, face.y1); g.rotate(rot); g.translate(-mouth.x, -face.y1 + bob);
+    const pivotY = (face.y0 + face.y1) / 2;  // turn about the middle of the face: no feature swings more than a pixel or two
+    g.translate(mouth.x + sway, pivotY); g.rotate(rot); g.translate(-mouth.x, -pivotY + bob);
     g.drawImage(src, 0, 0);
-    if (A > 0.05 || blink > 0) {
+    if (A > 0.05 || blink > 0 || !calm) {
       const d = grid.map((p) => displaced(p, A, blink));
       for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
         const k = j * (N + 1) + i, a = k, b = k + 1, c = k + N + 1, e = k + N + 2;
@@ -244,7 +314,7 @@ async function photoSpeaker(opts = {}) {
   }
   requestAnimationFrame(frame);
   return {
-    kind: "photo", ctx, analyser, blinkNow() { blinkAt = performance.now(); },
+    kind: "photo", ctx, analyser, blinkNow() { blinkAt = performance.now(); }, express(name) { (moves[name] || moves.smile)(performance.now()); }, pose: () => pose,
     play(buffer) {
       const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
       const at = Math.max(ctx.currentTime + 0.02, endAt);
@@ -331,7 +401,7 @@ async function museTalkSpeaker() {
   }
   requestAnimationFrame(frame);
   return {
-    kind: "musetalk", ctx, blinkNow: rig.blinkNow,
+    kind: "musetalk", ctx, blinkNow: rig.blinkNow, express: rig.express, pose: rig.pose,
     play(buffer, text, raw) { playClip(buffer, raw); },
     stop() {
       gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
@@ -384,7 +454,8 @@ function b64ToBuffer(b64) { const bin = atob(b64); const out = new Uint8Array(bi
 
 async function onServer(m) {
   if (m.turn && m.turn !== turn) return;
-  if (m.type === "text") { answer += m.delta; caption(null, answer); }
+  if (m.type === "thinking") { setState("thinking", "Looking that up…"); }  // the modules are working; she has said so
+  else if (m.type === "text") { answer += m.delta; caption(null, answer); }
   else if (m.type === "audio") {
     const raw = b64ToBuffer(m.audio);
     const buffer = await speaker.ctx.decodeAudioData(raw.slice(0));  // decoding detaches its input
@@ -415,7 +486,7 @@ setInterval(() => {
   if (speaker.busy()) { quietSince = 0; return; }
   quietSince = quietSince || performance.now();
   const quiet = performance.now() - quietSince;
-  if ((awaitingEnd && quiet > 350) || quiet > 12000) finishSpeaking();
+  if ((awaitingEnd && quiet > 350) || quiet > 90000) finishSpeaking();  // 90 s: a long report can keep the modules busy for a minute
 }, 150);
 
 // ── speech recognition (free, in the browser) ─────────────────────────────
@@ -495,7 +566,7 @@ loadSpeaker().then((s) => {
   if (!SR) $("note").textContent = "Voice input needs Chrome or Edge. You can still type.";
 }).catch((err) => { setState("error", "Avatar failed to load"); $("note").textContent = String(err); console.error(err); });
 
-window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow() };  // used by the automated checks
+window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow(), express: (n) => speaker && speaker.express && speaker.express(n), pose: () => speaker && speaker.pose && speaker.pose() };  // used by the automated checks
 </script>
 </body>
 </html>
