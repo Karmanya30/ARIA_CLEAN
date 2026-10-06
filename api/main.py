@@ -52,6 +52,9 @@ def _warm_up() -> None:
 
         _get_encoder().encode(["warm up"])
         extract_entities("warm up")
+        from shared.news import warm_up as warm_news
+
+        warm_news()
         from ai.speech.live_tts import warm_up as warm_live_voice
 
         warm_live_voice()

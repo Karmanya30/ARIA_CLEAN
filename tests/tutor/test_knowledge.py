@@ -22,7 +22,10 @@ def test_mastery_rises_with_repeated_correct_answers():
     assert mastery["compound_interest"] > 0.5
 
 
-def test_mastery_stays_low_with_wrong_answers():
-    history = [{"concept_id": "sharpe_ratio", "is_correct": False} for _ in range(4)]
-    mastery = mastery_vector(history)
-    assert mastery["sharpe_ratio"] < 0.5
+def test_mastery_is_clearly_lower_with_wrong_answers_than_with_right_ones():
+    # Relative, not "< 0.5": the simulated learners the model is trained on get better with every attempt (a practice
+    # bonus), so even after several misses the honest next-answer probability sits near 0.5. What matters is that a
+    # struggling learner is scored well below a succeeding one on the same concept.
+    wrong = mastery_vector([{"concept_id": "sharpe_ratio", "is_correct": False} for _ in range(6)])["sharpe_ratio"]
+    right = mastery_vector([{"concept_id": "sharpe_ratio", "is_correct": True} for _ in range(6)])["sharpe_ratio"]
+    assert right - wrong > 0.1

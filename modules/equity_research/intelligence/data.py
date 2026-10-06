@@ -38,6 +38,7 @@ from modules.equity_research.data_normalizer import _parse_numeric
 from modules.equity_research.investment import search_company
 from modules.equity_research.screener_adapter import get_screener_data
 from shared.company_resolver import resolve_company
+from shared.news import fetch_news
 
 INDEX_SYMBOL = "^NSEI"  # Nifty 50 -- beta is measured against it
 _CR = 1e7  # rupees per crore
@@ -461,6 +462,12 @@ def get_company_news(name: str, limit: int = 8, max_age_days: int = 45) -> list[
             continue
         seen.add(key)
         items.append({"title": title[:200], "source": source[:60], "date": published.date().isoformat()})
+    # plus what the Indian and global business feeds carry about the company (more sources, corroboration)
+    for n in fetch_news(_LEGAL_SUFFIX.sub("", name).strip(), limit=limit, max_age_hours=max_age_days * 24, google=False):
+        key = n["title"].lower()[:60]
+        if key not in seen:
+            seen.add(key)
+            items.append({"title": n["title"][:200], "source": n["source"][:60], "date": n["published"].date().isoformat()})
     return sorted(items, key=lambda i: i["date"], reverse=True)[:limit]
 
 
