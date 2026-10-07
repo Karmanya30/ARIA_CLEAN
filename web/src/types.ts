@@ -129,6 +129,9 @@ export interface ChatResponse {
   report?: ResearchReportData
   report_id?: string | null
   fund_report?: boolean
+  profile_basis?: string
+  ui_action?: string
+  missing_field?: string
   context?: { news_headlines?: string[] } & Record<string, unknown>
   [key: string]: unknown
 }
@@ -141,18 +144,27 @@ export interface HistoryTurn {
   quiz_correct?: boolean
 }
 
-export interface FinancialProfile {
-  user_id: string
-  monthly_income: number
-  age: number
-  dependents: number
-  existing_emi: number
-  emergency_fund_months: number
-  city_tier: number
-  tax_regime: string
-  risk_label: string | null
-  risk_confidence: number | null
-  risk_top_features: [string, number][]
+export interface Loan { kind?: string; emi?: number; rate_pct?: number; months_left?: number; outstanding?: number }
+export interface Goal { name?: string; target?: number; years?: number; priority?: number; saved?: number }
+/** All fields optional; absent/null = unknown. */
+export interface FinanceProfile {
+  age?: number; city?: string; city_tier?: number; employment?: string; marital_status?: string; dependents?: number
+  monthly_income?: number; income_stability?: string
+  expenses?: Record<string, number>; assets?: Record<string, number>
+  loans?: Loan[]; credit_card_outstanding?: number; term_cover?: number; health_cover?: number
+  goals?: Goal[]; risk_tolerance?: string; horizon_years?: number; tax_regime?: string; used_80c?: number; used_80d?: number
+}
+export interface ProfileState {
+  profile: FinanceProfile
+  sources: Record<string, { src: 'chat' | 'form'; at: string }>
+  completeness: { pct: number; missing: string[] }
+}
+export interface ProfileSummary {
+  snapshot?: Partial<Record<'net_worth' | 'monthly_surplus' | 'savings_rate' | 'emergency_months' | 'foir' | 'liquid', number | null>>
+  health?: { score: number; breakdown: { name: string; weight: number; sub: number | null; reason: string }[] } | null
+  goals?: { name: string; target: number; years: number; future_target?: number; sip_needed?: number | null; on_track?: boolean | null }[]
+  retirement?: Record<string, unknown> | null
+  tax?: { better?: string; saving?: number } | null
 }
 
 export interface Transaction {

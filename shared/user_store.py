@@ -63,6 +63,10 @@ class FinancialProfile(Base):
     # the label -- otherwise this real, already-computed signal only ever
     # reaches the user filtered through one word in the LLM's narration.
     risk_top_features = Column(Text, default="[]")
+    # Facts beyond the 7 columns above (JSON), and where/when each fact was learned. A column is "known"
+    # only if it has a sources entry, so column defaults are never mistaken for something the user said.
+    details_json = Column(Text, default="{}")
+    sources_json = Column(Text, default="{}")
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -138,6 +142,8 @@ def _migrate_add_missing_columns() -> None:
     with _engine.begin() as conn:
         for statement in (
             "ALTER TABLE financial_profiles ADD COLUMN risk_top_features TEXT DEFAULT '[]'",
+            "ALTER TABLE financial_profiles ADD COLUMN details_json TEXT DEFAULT '{}'",
+            "ALTER TABLE financial_profiles ADD COLUMN sources_json TEXT DEFAULT '{}'",
             "ALTER TABLE research_reports ADD COLUMN kind VARCHAR DEFAULT 'equity_research'",
         ):
             try:
@@ -150,34 +156,64 @@ _migrate_add_missing_columns()
 
 
 # ── Module 1: financial profile ─────────────────────────────────────────
+_COLUMN_FACTS = ("monthly_income", "age", "dependents", "existing_emi", "emergency_fund_months", "city_tier", "tax_regime")
+
+
 def get_financial_profile(user_id: str) -> dict[str, Any] | None:
+    """Known facts only (unknown = key absent), plus the risk result and a `sources` map."""
     with _SessionLocal() as session:
         row = session.get(FinancialProfile, user_id)
         if row is None:
             return None
+        sources = json.loads(row.sources_json or "{}")
         return {
+            **json.loads(row.details_json or "{}"),
+            **{k: getattr(row, k) for k in _COLUMN_FACTS if k in sources},
             "user_id": row.user_id,
-            "monthly_income": row.monthly_income,
-            "age": row.age,
-            "dependents": row.dependents,
-            "existing_emi": row.existing_emi,
-            "emergency_fund_months": row.emergency_fund_months,
-            "city_tier": row.city_tier,
-            "tax_regime": row.tax_regime,
             "risk_label": row.risk_label,
             "risk_confidence": row.risk_confidence,
             "risk_top_features": json.loads(row.risk_top_features or "[]"),
+            "sources": sources,
         }
 
 
-def save_financial_profile(user_id: str, **fields: Any) -> None:
+def save_financial_profile(user_id: str, source: str = "chat", **fields: Any) -> None:
+    """Partial update. Profile facts (the FinanceProfile fields) are validated and get a source stamp; a None
+    value deletes that fact; expenses/assets merge key by key. Other kwargs (risk_*) are plain columns."""
+    from modules.finance.schemas import FinanceProfile
+
     if "risk_top_features" in fields and not isinstance(fields["risk_top_features"], str):
         fields["risk_top_features"] = json.dumps(fields["risk_top_features"])
+    facts = {k: fields.pop(k) for k in list(fields) if k in FinanceProfile.model_fields}
+    valid = FinanceProfile(**{k: v for k, v in facts.items() if v is not None}).model_dump(exclude_none=True)
     with _SessionLocal() as session:
         row = session.get(FinancialProfile, user_id)
         if row is None:
             row = FinancialProfile(user_id=user_id)
             session.add(row)
+        details, sources = json.loads(row.details_json or "{}"), json.loads(row.sources_json or "{}")
+        stamp = {"src": source, "at": datetime.now(timezone.utc).isoformat()}
+        for key, raw in facts.items():
+            if isinstance(raw, dict):  # expenses / assets: merge by key, None deletes the key
+                merged = {**details.get(key, {}), **valid.get(key, {})}
+                for sub, value in raw.items():
+                    if value is None:
+                        merged.pop(sub, None)
+                value = merged or None
+            else:
+                value = valid.get(key)
+            if value is None:
+                sources.pop(key, None)
+                details.pop(key, None)
+                if key in _COLUMN_FACTS:
+                    setattr(row, key, FinancialProfile.__table__.c[key].default.arg)
+                continue
+            sources[key] = stamp
+            if key in _COLUMN_FACTS:
+                setattr(row, key, value)
+            else:
+                details[key] = value
+        row.details_json, row.sources_json = json.dumps(details), json.dumps(sources)
         for key, value in fields.items():
             if hasattr(row, key):
                 setattr(row, key, value)

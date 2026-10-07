@@ -107,6 +107,31 @@ Stop after completing the explanation.
 
 # Extra style instruction layered on top of the level hint, keyed by the
 # DQN teaching agent's chosen action (config.settings.TEACHING_ACTIONS).
+ENGINE_NARRATION = """You are ARIA, an AI personal finance advisor for Indian users.
+
+STRICT RULES:
+1. Use ONLY the numbers in the JSON result below. Do not calculate new figures or invent any.
+2. Do NOT mention fund names and do NOT promise returns.
+3. Use Indian context: ₹, lakhs, crores.
+4. Reply in exactly four short sections: Insight, Analysis, Recommendation, Risk.
+
+QUESTION: {query}
+ENGINE RESULT (JSON): {result}
+"""
+
+FACT_EXTRACTION = """Extract personal-finance facts the user states about THEMSELVES in the message. Ignore questions, hypotheticals and advice requests.
+Return ONLY JSON: {{"facts": [{{"field": "...", "value": ..., "period": "month"|"year"|null}}]}}
+Allowed fields: age, city, employment (salaried|self_employed|business|retired|student), marital_status, dependents,
+monthly_income, income_stability (stable|variable), expenses.food|rent|transport|utilities|entertainment|health|education|other,
+assets.cash|fd|mf|stocks|gold|epf|ppf|nps|real_estate, loans (list of {{kind, emi, rate_pct, months_left, outstanding}}),
+credit_card_outstanding, term_cover, health_cover, goals (list of {{name, target, years, saved}}),
+risk_tolerance (Conservative|Moderate|Aggressive), horizon_years, tax_regime (old|new), used_80c, used_80d.
+Use plain rupee numbers (1.2L = 120000). Set period to "year" if the amount was stated per year. If nothing is stated return {{"facts": []}}.
+
+MESSAGE: {message}
+"""
+
+
 TAXAL_ACTION_STYLE_HINTS = {
     "simplify_level_down": "Use very simple language and one everyday analogy.",
     "give_example": "Include a concrete numerical ₹ example.",

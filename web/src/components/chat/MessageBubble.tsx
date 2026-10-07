@@ -17,11 +17,13 @@ export function MessageBubble({
   sessionId,
   onQuizAnswered,
   onRetry,
+  onOpenProfile,
 }: {
   turn: HistoryTurn
   sessionId: string
   onQuizAnswered: (correct: boolean) => void
   onRetry?: (query: string) => void
+  onOpenProfile?: () => void
 }) {
   const { response } = turn
   const company = typeof response.company === 'string' ? response.company : (response.company as { name?: string } | undefined)?.name
@@ -48,6 +50,10 @@ export function MessageBubble({
             <button type="button" className="bubble-retry" onClick={() => onRetry(turn.query)}>Try again</button>
           )}
           {response.domain === 'company_intelligence' && <IntelligenceSummary data={response} />}
+          {response.profile_basis && <p className="bubble-caption">{response.profile_basis}</p>}
+          {response.ui_action === 'open_profile' && onOpenProfile && (
+            <button type="button" className="bubble-retry" onClick={onOpenProfile}>Fill quick form</button>
+          )}
           <p className="bubble-caption">{badge}</p>
           {headlines.length > 0 && (
             <details className="bubble-news">

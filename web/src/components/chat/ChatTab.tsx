@@ -52,7 +52,7 @@ function Composer({
   )
 }
 
-export function ChatTab({ sessionId }: { sessionId: string }) {
+export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpenProfile?: () => void }) {
   const [mode, setMode] = useState<ChatMode>('Normal Mode')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
@@ -209,6 +209,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
+                  onOpenProfile={onOpenProfile}
                     />
                   ))}
                   {pendingTurn}
@@ -256,6 +257,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                   sessionId={sessionId}
                   onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
+                  onOpenProfile={onOpenProfile}
                 />
               ))}
               {pendingTurn}

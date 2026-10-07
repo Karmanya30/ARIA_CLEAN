@@ -69,6 +69,13 @@ value or the rating. FinBERT runs locally on CPU (about 10 s per report); downlo
 `huggingface-cli download ProsusAI/finbert --include "*.json" "*.txt" pytorch_model.bin --local-dir models/nlp/finbert`
 (or set `ARIA_FINBERT_DIR`). Without it the report still builds, with keyword themes and no tone scores.
 
+**Personal finance that remembers you.** The finance module keeps a structured profile (income, spending by category, assets, loans, insurance, goals,
+risk and tax details) that you can fill in through a five-step wizard or simply by telling ARIA in chat ("I earn 1.2 lakh and pay 15k EMI"). Facts picked
+up from chat are shown under "What ARIA remembers" and can be edited or forgotten, and one button deletes everything. Every answer is computed by a
+deterministic engine (`modules/finance/engine.py`: net worth, a transparent 0-100 financial health score, goal SIPs, FIRE/retirement corpus,
+affordability checks on EMI-to-income, what-if scenarios, old vs new tax regime) and only phrased by the language model, with a "Based on your
+profile" line showing what was used. When a needed fact is missing, ARIA asks one specific question instead of guessing.
+
 **Report types.** The same saved report can be viewed as an *equity research report*, a *financial model report*,
 a *valuation report* or a *DuPont and ratio analysis* (ask for e.g. "dupont analysis of TCS", "financial model of
 ITC", "valuation report on Infosys", or pick the type in the Research reports tab). Every type ends with an

@@ -42,6 +42,13 @@ Pre-trained Language Models"; <https://github.com/ProsusAI/finBERT>, Apache-2.0;
 The model is downloaded separately at set-up and is not distributed with ARIA; its Hugging Face card declares no licence, and it was
 fine-tuned on the Financial PhraseBank (Malo et al., 2014; CC BY-NC-SA), so check these terms before commercial deployment.
 
+## Personal-finance project ideas
+
+The personal-finance profile, financial memory and health score were designed after studying the *ideas* of public projects (FinanceOS, Personal Finance
+Copilot, AURA, Artha, Wealthfolio, FinPilot AI, Firefly III, Fava/Beancount): a structured user profile, retrieval of stored facts, deterministic
+calculation with the model only explaining, and a weighted health score. No code, prompts or assets were copied; Firefly III and Wealthfolio are AGPL-3.0
+and Beancount is GPL-2.0. The formulas used are standard published ones (EMI, FOIR, the 4% / safe-withdrawal rule, SIP future value).
+
 ## Academic methods
 
 Published methods implemented independently in `modules/equity_research/intelligence/`:

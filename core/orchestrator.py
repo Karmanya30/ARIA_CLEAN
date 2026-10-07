@@ -4,10 +4,10 @@ import re
 from typing import Any
 
 from core.router import is_broad_market_query, is_equity_research_query, is_intelligence_query, route_query
-from core.session import save_turn
+from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
-from modules.finance.pipeline import run_pipeline as finance_pipeline
+from modules.finance.pipeline import finance_intent, finance_statement, run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
@@ -84,7 +84,6 @@ def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mo
     """Route a user query to the correct module pipeline."""
 
     if mode in ("Conversational Mode", "Live Avatar"):  # spoken follow-ups ("what about taxes on it?") need their subject back
-        from core.session import get_session
         from ai.llm.groq_client import generate_response
 
         session = get_session(session_id)
@@ -114,7 +113,9 @@ Follow-up query: {query}
         save_turn(session_id, query, response)
         return response
 
-    domain = route_query(query)
+    # a bare "about 40k" answers our pending finance question; "can I afford..." is a finance tool whatever the keywords say
+    pending_before = get_session(session_id).get("finance_pending")
+    domain = "finance" if pending_before or finance_intent(query) or finance_statement(query) else route_query(query)
     ticker = resolve_company(query)
 
     # Module 3 and Module 4 are checked ahead of the coarse keyword-bucket
@@ -163,6 +164,9 @@ Follow-up query: {query}
         response["domain"] = "general"
         if guard["available"]:
             response["domain_guard"] = guard
+
+    if pending_before and get_session(session_id).get("finance_pending") is pending_before:
+        get_session(session_id).pop("finance_pending")  # our question went unanswered for a turn: stop expecting a bare reply
 
     # Output Guard -- runs for every response that wasn't already a refusal
     # (that path returned early above), regardless of which branch produced

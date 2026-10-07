@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinancialProfile, ProgressState, ReportMeta, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinanceProfile, ProfileState, ProfileSummary, ProgressState, ReportMeta, Transaction } from './types'
 
 const BASE = ''
 
@@ -101,14 +101,16 @@ export const api = {
   audioUrl: (token: string) => `/api/audio/${token}`,
   avatarUrl: (token?: string | null) => `/avatar/render${token ? `?audio_token=${token}` : ''}`,
 
-  getProfile: (sessionId: string) =>
-    j<FinancialProfile | null>(`/api/profile?session_id=${encodeURIComponent(sessionId)}`),
+  // Profile + transactions are keyed by the device owner id (sessionStorage session ids are lost on tab close).
+  getProfile: () => j<ProfileState>(`/api/profile?session_id=${encodeURIComponent(ownerId())}`),
 
-  saveProfile: (sessionId: string, fields: Partial<FinancialProfile>) =>
-    j<{ status: string }>('/api/profile', {
-      method: 'POST',
-      body: JSON.stringify({ session_id: sessionId, ...fields }),
-    }),
+  getProfileSummary: () => j<ProfileSummary>(`/api/profile/summary?session_id=${encodeURIComponent(ownerId())}`),
+
+  /** Partial update; a null value deletes that fact. */
+  saveProfile: (fields: { [K in keyof FinanceProfile]?: FinanceProfile[K] | null }) =>
+    j<ProfileState>('/api/profile', { method: 'POST', body: JSON.stringify({ session_id: ownerId(), ...fields }) }),
+
+  deleteProfile: () => j<{ deleted: boolean }>(`/api/profile?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
   getTransactions: (sessionId: string) =>
     j<Transaction[]>(`/api/transactions?session_id=${encodeURIComponent(sessionId)}`),

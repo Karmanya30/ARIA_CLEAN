@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -96,3 +97,68 @@ class M1Response(BaseModel):
     sip_plan: SipPlan
     tax: TaxResult
     natural_language: str
+
+
+# ── Long-term financial profile (every fact optional: None = unknown) ────
+class Expenses(BaseModel):
+    food: float | None = Field(None, ge=0, le=1e8)
+    rent: float | None = Field(None, ge=0, le=1e8)
+    transport: float | None = Field(None, ge=0, le=1e8)
+    utilities: float | None = Field(None, ge=0, le=1e8)
+    entertainment: float | None = Field(None, ge=0, le=1e8)
+    health: float | None = Field(None, ge=0, le=1e8)
+    education: float | None = Field(None, ge=0, le=1e8)
+    other: float | None = Field(None, ge=0, le=1e8)
+
+
+class Assets(BaseModel):
+    cash: float | None = Field(None, ge=0, le=1e11)
+    fd: float | None = Field(None, ge=0, le=1e11)
+    mf: float | None = Field(None, ge=0, le=1e11)
+    stocks: float | None = Field(None, ge=0, le=1e11)
+    gold: float | None = Field(None, ge=0, le=1e11)
+    epf: float | None = Field(None, ge=0, le=1e11)
+    ppf: float | None = Field(None, ge=0, le=1e11)
+    nps: float | None = Field(None, ge=0, le=1e11)
+    real_estate: float | None = Field(None, ge=0, le=1e11)
+
+
+class Loan(BaseModel):
+    kind: str = Field("other", max_length=30)
+    emi: float = Field(ge=0, le=1e8)
+    rate_pct: float | None = Field(None, ge=0, le=60)
+    months_left: int | None = Field(None, ge=0, le=600)
+    outstanding: float | None = Field(None, ge=0, le=1e11)
+
+
+class Goal(BaseModel):
+    name: str = Field(max_length=60)
+    target: float = Field(gt=0, le=1e11)
+    years: float = Field(gt=0, le=60)
+    priority: int = Field(2, ge=1, le=3)
+    saved: float = Field(0, ge=0, le=1e11)
+
+
+class FinanceProfile(BaseModel):
+    age: int | None = Field(None, ge=18, le=100)
+    city: str | None = Field(None, max_length=60)
+    city_tier: int | None = Field(None, ge=1, le=3)
+    employment: Literal["salaried", "self_employed", "business", "retired", "student"] | None = None
+    marital_status: str | None = Field(None, max_length=20)
+    dependents: int | None = Field(None, ge=0, le=20)
+    monthly_income: float | None = Field(None, ge=0, le=1e9)
+    income_stability: Literal["stable", "variable"] | None = None
+    expenses: Expenses | None = None
+    assets: Assets | None = None
+    loans: list[Loan] | None = Field(None, max_length=20)
+    existing_emi: float | None = Field(None, ge=0, le=1e8)  # legacy total-EMI column; loans supersede it
+    emergency_fund_months: float | None = Field(None, ge=0, le=600)  # legacy column
+    credit_card_outstanding: float | None = Field(None, ge=0, le=1e9)
+    term_cover: float | None = Field(None, ge=0, le=1e11)
+    health_cover: float | None = Field(None, ge=0, le=1e10)
+    goals: list[Goal] | None = Field(None, max_length=20)
+    risk_tolerance: Literal["Conservative", "Moderate", "Aggressive"] | None = None
+    horizon_years: int | None = Field(None, ge=1, le=60)
+    tax_regime: Literal["old", "new"] | None = None
+    used_80c: float | None = Field(None, ge=0, le=1e8)
+    used_80d: float | None = Field(None, ge=0, le=1e7)

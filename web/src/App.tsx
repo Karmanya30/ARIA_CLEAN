@@ -22,12 +22,12 @@ export default function App() {
     <div className="app-shell">
       <Sidebar tabs={SIDEBAR_TABS} active={tab} onChange={setTab} onNewSession={newSession} />
       <main className="app-main">
-        {tab === 'chat' && <ChatTab sessionId={sessionId} />}
+        {tab === 'chat' && <ChatTab sessionId={sessionId} onOpenProfile={() => setTab('profile')} />}
         {tab === 'research' && <ResearchTab />}
         {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (
           <div className="page-wrap">
-            <ProfileTab sessionId={sessionId} />
+            <ProfileTab />
           </div>
         )}
         {tab === 'progress' && (
