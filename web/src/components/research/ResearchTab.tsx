@@ -79,7 +79,7 @@ export function ResearchTab() {
   const visible = reports.filter((r) => firstOf.get(`${r.symbol}|${r.kind}`) === r.id || openSyms.has(r.symbol) || r.id === selected)
 
   return (
-    <div className="rt">
+    <div className={selected ? 'rt has-selected' : 'rt'}>
       <aside className="rt-list">
         <h1>Research reports</h1>
         <p className="rt-hint">Ask ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.</p>
@@ -157,7 +157,10 @@ export function ResearchTab() {
       </aside>
       <section className="rt-viewer">
         {selected ? (
+          <>
+          <button type="button" className="rt-back" onClick={() => setSelected(null)}>← All reports</button>
           <iframe key={`${selected}-${kind}`} title="Equity research report" src={api.reportHtmlUrl(selected, isFund ? '' : kind)} sandbox="" />
+          </>
         ) : (
           <p className="rt-empty">Choose a report from the list to read it here. You can switch its view (equity research, financial model, valuation, DuPont) without regenerating it.</p>
         )}

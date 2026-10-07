@@ -30,3 +30,28 @@
     padding: 24px 18px 60px;
   }
 }
+
+.back-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0 24px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.back-bar:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+@media (max-width: 600px) {
+  .back-bar {
+    margin-left: 14px;
+  }
+}

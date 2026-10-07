@@ -107,6 +107,7 @@ export function IntelligenceTab() {
 
         {data && i && !busy && (
           <div className="ri-result">
+            <button type="button" className="ri-back" onClick={() => { setData(null); setQ('') }}>← New search</button>
             <div className="ri-hero">
               <div className="ri-ring" style={{ ['--p' as string]: i.score, ['--c' as string]: scoreColour(i.score) }} role="img" aria-label={`Score ${Math.round(i.score)} out of 100`}>
                 <span>{Math.round(i.score)}</span><small>/100</small>

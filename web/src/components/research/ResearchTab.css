@@ -164,3 +164,25 @@
 .rt-more:hover {
   text-decoration: underline;
 }
+
+.rt-back {
+  display: none;
+  margin: 8px 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  /* with a report open on a small screen, show only that report's actions and the reader; "All reports" returns to the list */
+  .rt.has-selected .rt-list > :not(.rt-item.active) { display: none; }
+  .rt.has-selected .rt-list { max-height: none; }
+  .rt.has-selected .rt-back { display: inline-block; }
+  .rt-viewer { display: flex; flex-direction: column; }
+  .rt-viewer iframe { flex: 1; min-height: 70vh; }
+}
