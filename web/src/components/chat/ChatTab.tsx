@@ -8,6 +8,8 @@ import { MessageBubble } from './MessageBubble'
 import { VoiceRecorder } from './VoiceRecorder'
 import { TavusVideo } from './TavusVideo'
 import { TavusTranscript } from './TavusTranscript'
+import { ContextStrip } from './ContextStrip'
+import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
 import './ChatTab.css'
 
@@ -37,6 +39,7 @@ function Composer({
     <div className={`composer composer-${variant}`}>
       <VoiceRecorder onTranscribed={onQueryChange} />
       <input
+        aria-label="Message ARIA"
         className="input composer-input"
         placeholder="Message ARIA…"
         value={query}
@@ -45,7 +48,7 @@ function Composer({
           if (e.key === 'Enter') onSubmit()
         }}
       />
-      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled} type="button">
+      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || !query.trim()} type="button" aria-label="Send message">
         <Send size={15} />
       </button>
     </div>
@@ -131,6 +134,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
     setHistory((h) => h.map((t, i) => (i === index ? { ...t, quiz_answered: true, quiz_correct: correct } : t)))
   }
 
+  const financeTurns = history.filter((t) => t.response.domain === 'finance').length
   const latestAudioToken = [...history].reverse().find((t) => t.audio_token)?.audio_token ?? undefined
   // Conversational/Tavus modes have a real avatar or video to show, so
   // they get a large dedicated left column for it -- "large view" was
@@ -148,9 +152,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
         </span>
         <p>{pending}</p>
       </div>
-      <p className="chat-status" role="status">
-        Analyzing… full research reports can take up to a minute.
-      </p>
+      <ThinkingStatus />
     </div>
   )
 
@@ -158,6 +160,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
     <div className="chat-topbar">
       <select
         id="chat-mode"
+        aria-label="Mode"
         className="input chat-mode-select"
         value={mode}
         onChange={(e) => setMode(e.target.value as ChatMode)}
@@ -177,6 +180,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
   if (isSplitLayout) {
     return (
       <div className="chat-page chat-page-split">
+        <h1 className="sr-only">ARIA chat</h1>
         {topbar}
         <div className="chat-split-body">
           <div className="chat-avatar-col">
@@ -209,6 +213,8 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
+                  onAsk={sending ? undefined : send}
+                  isLast={i === history.length - 1 && !pending}
                   onOpenProfile={onOpenProfile}
                     />
                   ))}
@@ -227,6 +233,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
 
   return (
     <div className="chat-page">
+      <h1 className="sr-only">ARIA chat</h1>
       {topbar}
 
       {showHero && (
@@ -242,6 +249,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
               <h2>{greeting()} — what can I help with?</h2>
               <p>Ask about your finances, learn a concept, or check the market. ARIA routes it to the right module automatically.</p>
             </div>
+            <ContextStrip refreshKey={financeTurns} onOpenProfile={onOpenProfile} />
             <Composer variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             <TemplateCards onPick={send} />
           </div>
@@ -257,12 +265,15 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
                   sessionId={sessionId}
                   onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
+                  onAsk={sending ? undefined : send}
+                  isLast={i === history.length - 1 && !pending}
                   onOpenProfile={onOpenProfile}
                 />
               ))}
               {pendingTurn}
             </div>
           </div>
+          <ContextStrip refreshKey={financeTurns} onOpenProfile={onOpenProfile} />
           <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
         </>
       )}

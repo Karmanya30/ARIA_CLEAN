@@ -17,7 +17,8 @@ const TAXAL_SECTIONS: Array<[string, React.ReactNode, string, string]> = [
 ]
 
 function parseSections(text: string, labels: string[]): Record<string, string> {
-  let normalized = text
+  // models often write the section names as markdown headings (**Insight**): treat them like 'Insight:'
+  let normalized = text.replace(new RegExp(String.raw`\*\*(${labels.join('|')})\*\*:?`, 'g'), '$1:')
   for (const label of labels) {
     normalized = normalized.replace(new RegExp(`(?<!\\n)${label}:`, 'g'), `\n${label}:`)
   }

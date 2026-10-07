@@ -44,6 +44,7 @@ export function Sidebar({
             key={tab.id}
             role="tab"
             aria-selected={active === tab.id}
+            aria-current={active === tab.id ? 'page' : undefined}
             className={active === tab.id ? 'sidebar-nav-item active' : 'sidebar-nav-item'}
             onClick={() => onChange(tab.id)}
             type="button"

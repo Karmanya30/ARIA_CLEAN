@@ -3,7 +3,7 @@ import { api } from '../../api'
 import type { ProgressState } from '../../types'
 import './ProgressTab.css'
 
-export function ProgressTab({ sessionId }: { sessionId: string }) {
+export function ProgressTab({ sessionId, onOpenChat }: { sessionId: string; onOpenChat?: () => void }) {
   const [state, setState] = useState<ProgressState | null>(null)
 
   useEffect(() => {
@@ -12,11 +12,14 @@ export function ProgressTab({ sessionId }: { sessionId: string }) {
 
   return (
     <div>
-      <h2>Your Learning Progress</h2>
+      <h1>Your Learning Progress</h1>
       <p className="tab-caption">Module 2's per-concept mastery, estimated by the DKT model from your quiz answers.</p>
 
       {!state || state.total_interactions === 0 ? (
-        <div className="banner-info">Ask ARIA to explain a financial concept in the Chat tab to start building your progress here.</div>
+        <div className="banner-info">
+          Ask ARIA to explain a financial concept and take a quick quiz: each concept you engage with appears here with a mastery score that updates as you answer.
+          {onOpenChat && <div style={{ marginTop: 10 }}><button type="button" className="btn btn-primary" onClick={onOpenChat}>Ask ARIA to explain a concept</button></div>}
+        </div>
       ) : state.engaged.length === 0 ? (
         <div className="banner-info">No mastery recorded yet — answer a quiz question to see progress here.</div>
       ) : (

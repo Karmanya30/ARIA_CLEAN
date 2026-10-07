@@ -20,8 +20,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main">Skip to main content</a>
       <Sidebar tabs={SIDEBAR_TABS} active={tab} onChange={setTab} onNewSession={newSession} />
-      <main className="app-main">
+      <main className="app-main" id="main" tabIndex={-1}>
         {tab === 'chat' && <ChatTab sessionId={sessionId} onOpenProfile={() => setTab('profile')} />}
         {tab === 'research' && <ResearchTab />}
         {tab === 'intelligence' && <IntelligenceTab />}
@@ -32,7 +33,7 @@ export default function App() {
         )}
         {tab === 'progress' && (
           <div className="page-wrap">
-            <ProgressTab sessionId={sessionId} />
+            <ProgressTab sessionId={sessionId} onOpenChat={() => setTab('chat')} />
           </div>
         )}
         {tab === 'settings' && (

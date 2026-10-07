@@ -288,11 +288,11 @@ async function addTransaction() {
     api.getTransactions(owner).then(setTransactions)
   }
 
-  if (loading) return <div className="pf" aria-busy="true"><h2>Your Finance Profile</h2><div className="card pf-skel" /><div className="card pf-skel" /></div>
+  if (loading) return <div className="pf" aria-busy="true"><h1>Your Finance Profile</h1><div className="card pf-skel" /><div className="card pf-skel" /></div>
 
   return (
     <div className="pf">
-      <h2>Your Finance Profile</h2>
+      <h1>Your Finance Profile</h1>
       <p className="tab-caption">Tell ARIA about yourself once and every answer gets personal. Everything here is optional.</p>
 
       {error && (
@@ -471,11 +471,11 @@ async function addTransaction() {
         <div className="form-grid">
           <div className="field">
             <label>Date</label>
-            <input className="input" type="date" value={txnForm.date} onChange={(e) => setTxnForm({ ...txnForm, date: e.target.value })} />
+            <input aria-label="Date" className="input" type="date" value={txnForm.date} onChange={(e) => setTxnForm({ ...txnForm, date: e.target.value })} />
           </div>
           <div className="field">
             <label>Category</label>
-            <select className="input" value={txnForm.category} onChange={(e) => setTxnForm({ ...txnForm, category: e.target.value })}>
+            <select aria-label="Category" className="input" value={txnForm.category} onChange={(e) => setTxnForm({ ...txnForm, category: e.target.value })}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -486,6 +486,7 @@ async function addTransaction() {
           <div className="field">
             <label>Amount (₹)</label>
             <input
+              aria-label="Amount (₹)"
               className="input"
               type="number"
               value={txnForm.amount}
@@ -494,11 +495,11 @@ async function addTransaction() {
           </div>
           <div className="field">
             <label>Merchant (optional)</label>
-            <input className="input" value={txnForm.merchant} onChange={(e) => setTxnForm({ ...txnForm, merchant: e.target.value })} />
+            <input aria-label="Merchant (optional)" className="input" value={txnForm.merchant} onChange={(e) => setTxnForm({ ...txnForm, merchant: e.target.value })} />
           </div>
           <div className="field">
             <label>Channel (optional)</label>
-            <select className="input" value={txnForm.channel} onChange={(e) => setTxnForm({ ...txnForm, channel: e.target.value })}>
+            <select aria-label="Channel (optional)" className="input" value={txnForm.channel} onChange={(e) => setTxnForm({ ...txnForm, channel: e.target.value })}>
               {CHANNELS.map((c) => (
                 <option key={c} value={c}>
                   {c || '—'}

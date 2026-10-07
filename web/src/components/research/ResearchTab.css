@@ -10,7 +10,7 @@
   border-right: 1px solid var(--border);
   background: var(--bg-elevated);
 }
-.rt-list h2 {
+.rt-list h1 {
   font-family: var(--font-display);
   font-size: 17px;
 }

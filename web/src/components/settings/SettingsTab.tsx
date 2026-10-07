@@ -15,7 +15,7 @@ export function SettingsTab() {
 
   return (
     <section className="settings">
-      <h2>Settings</h2>
+      <h1>Settings</h1>
       <p className="settings-sub">
         <strong>Appearance</strong> — choose how ARIA looks. It applies instantly and is remembered on this device.
       </p>

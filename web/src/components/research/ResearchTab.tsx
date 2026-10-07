@@ -81,7 +81,7 @@ export function ResearchTab() {
   return (
     <div className="rt">
       <aside className="rt-list">
-        <h2>Research reports</h2>
+        <h1>Research reports</h1>
         <p className="rt-hint">Ask ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.</p>
         {error && <p className="rt-error">{error}</p>}
         {reports.length === 0 && <p className="rt-empty">No saved reports yet. Open Chat and ask for one, for example “equity research report on TCS”. It takes under a minute and appears here.</p>}

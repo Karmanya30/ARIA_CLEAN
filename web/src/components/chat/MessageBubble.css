@@ -88,3 +88,9 @@
 .bubble-retry:hover {
   background: var(--accent-soft);
 }
+
+.bubble-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
