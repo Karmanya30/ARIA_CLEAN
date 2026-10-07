@@ -142,7 +142,8 @@ def health_score(p: dict, anomalies: int = 0) -> dict[str, Any]:
     ]
     known = [(w, sub) for _, w, sub, _ in rows if sub is not None]
     score = round(100 * sum(w * sub for w, sub in known) / sum(w for w, _ in known)) if known else 0
-    return {"score": score, "breakdown": [{"name": n, "weight": w, "sub": None if sub is None else round(sub, 2), "reason": r} for n, w, sub, r in rows]}
+    # coverage: the share of the 100 weight points that could be measured. A score from a few factors alone is provisional, not a verdict.
+    return {"score": score, "coverage": sum(w for w, _ in known) / 100, "breakdown": [{"name": n, "weight": w, "sub": None if sub is None else round(sub, 2), "reason": r} for n, w, sub, r in rows]}
 
 
 # ── decisions ────────────────────────────────────────────────────────────

@@ -9,6 +9,8 @@ from typing import Any
 import yfinance as yf
 from loguru import logger
 
+from concurrent.futures import ThreadPoolExecutor
+
 from ai.llm.groq_client import generate_response
 from shared.news import fetch_news, format_headlines
 
@@ -220,24 +222,12 @@ def get_news(ticker: str, limit: int = 8, company_name: str = "") -> list[str]:
 
 
 def analyze_sentiment(headlines: list[str]) -> str:
-    """Classify headline sentiment with Groq."""
+    """Overall headline tone. FinBERT when it is loaded, else keyword rules: a model call here only added ~2 s to every price question."""
     if not headlines:
         return "Neutral"
+    from modules.equity_research.intelligence import sentiment
 
-    prompt = f"""\
-Classify the overall investor sentiment from these headlines.
-
-Headlines:
-{chr(10).join(f"- {headline}" for headline in headlines)}
-
-Return exactly one word: Positive, Negative, or Neutral.
-"""
-    result = generate_response(prompt).strip()
-    if "positive" in result.lower():
-        return "Positive"
-    if "negative" in result.lower():
-        return "Negative"
-    return "Neutral"
+    return {"positive": "Positive", "negative": "Negative"}.get(sentiment.tone(headlines)["label"], "Neutral")
 
 
 def _analysis_prompt(
@@ -299,8 +289,10 @@ def investment_module(query: str) -> dict[str, Any]:
 
     ticker = company["ticker"]
     company_name = company["company_name"]
-    stock_data = get_stock_data(ticker)
-    headlines = get_news(ticker, company_name=company_name)
+    with ThreadPoolExecutor(max_workers=2) as pool:  # the quote and the headlines are independent network calls
+        f_stock = pool.submit(get_stock_data, ticker)
+        f_news = pool.submit(get_news, ticker, company_name=company_name)
+        stock_data, headlines = f_stock.result(), f_news.result()
     sentiment = analyze_sentiment(headlines)
 
     prompt = _analysis_prompt(query, company_name, stock_data, headlines, sentiment)

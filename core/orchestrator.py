@@ -134,6 +134,12 @@ Follow-up query: {query}
     elif domain == "finance":
         response = _with_news(query, finance_pipeline, user_id=session_id)
     elif domain == "tutor":
+        # "what is the weather in Paris" matches the generic "what is ..." tutor pattern, so the off-topic guard must see these too
+        guard = classify_domain(query)
+        if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
+            response = build_refusal_response(query, guard)
+            save_turn(session_id, query, response)
+            return response
         response = _with_news(query, tutor_pipeline, user_id=session_id)
     elif domain == "market":
         # domain says market but neither precise check matched (rare) --

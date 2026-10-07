@@ -555,9 +555,11 @@ def _followup(query: str, uid: str, sid: str, pend: dict) -> dict[str, Any] | No
         return None
     value = _parse_reply(pend["field"], text)
     saver = _ask_spec(pend["field"])[1] if pend["field"] in _ASK or pend["field"].startswith("expenses.") else None
-    if value is None or saver is None or not pend.get("query"):
+    if value is None or saver is None:
         return None
     user_store.save_financial_profile(uid, **saver(value))
+    if not pend.get("query"):  # the answer to a "Next: ..." question after stated facts: note it and ask the next one
+        return _acknowledge(query, uid, [f"Noted: {_label(pend['field'])} {_inr(value) if isinstance(value, (int, float)) else value}."], sid)
     return run_pipeline(pend["query"], user_id=sid)
 
 
@@ -591,7 +593,8 @@ def _template(tool: str, r: Any) -> str:
                 "Analysis: Old-regime tax assumes your 80C/80D usage on file.\nRecommendation: Choose the cheaper regime at filing.\nRisk: Tax rules change every Budget.")
     h, s = r["health"], r["snapshot"]
     weak = min((b for b in h["breakdown"] if b["sub"] is not None), key=lambda b: b["sub"], default=None)
-    return (f"Insight: Your financial health score is {h['score']}/100.\n"
+    prov = f" (provisional: only {h.get('coverage', 1):.0%} of the factors could be measured)" if h.get("coverage", 1) < 0.6 else ""
+    return (f"Insight: Your financial health score is {h['score']}/100{prov}.\n"
             f"Analysis: Net worth {_inr(s['net_worth']) if s['net_worth'] is not None else 'unknown'}, monthly surplus {_inr(s['monthly_surplus']) if s['monthly_surplus'] is not None else 'unknown'}"
             + (f"; weakest area: {weak['name']} ({weak['reason']})." if weak else ".") +
             "\nRecommendation: Fill in the unknown areas in Profile for a sharper score.\nRisk: The score is a guide, not advice.")
@@ -650,10 +653,13 @@ def _legacy(query: str, user_id: str, sid: str) -> dict[str, Any]:
     return _freeform(query)
 
 
-def _acknowledge(query: str, uid: str, notes: list[str]) -> dict[str, Any]:
+def _acknowledge(query: str, uid: str, notes: list[str], sid: str | None = None) -> dict[str, Any]:
     """Just thank the user for the facts (no lecture), and ask for the one most useful fact still missing."""
     p = user_store.get_financial_profile(uid) or {}
-    nxt = next((_ask_spec(f)[0] for f in ("monthly_income", "expenses", "loans", "cash", "age") if not _known(p, f)), None)
+    field = next((f for f in ("monthly_income", "expenses", "loans", "cash", "age") if not _known(p, f)), None)
+    nxt = _ask_spec(field)[0] if field else None
+    if field and sid and _ask_spec(field)[1]:
+        get_session(sid)["finance_pending"] = {"field": field, "query": None}  # so a bare "about 70k" is taken as the answer to this question
     return {"domain": "finance", "query": query, "response": " ".join(notes) + (f"\n\nNext: {nxt[0].lower() + nxt[1:]}" if nxt else "")}
 
 
@@ -685,7 +691,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     hit = finance_intent(query)
     ack = not hit and notes and finance_statement(query)
     if ack:
-        result, notes = _acknowledge(query, uid, notes), []
+        result, notes = _acknowledge(query, uid, notes, sid), []
     else:
         result = _run_tool(query, uid, sid, *hit) if hit else _legacy(query, uid, sid)
     if notes and isinstance(result.get("response"), str):

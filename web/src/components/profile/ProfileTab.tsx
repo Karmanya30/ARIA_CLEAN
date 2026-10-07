@@ -315,7 +315,7 @@ async function addTransaction() {
                 <span>{Math.round(health.score)}</span><small>/ 100</small>
               </div>
               <div className="pf-bars">
-                <div className="ri-name">Financial health</div>
+                <div className="ri-name">Financial health{health.coverage !== undefined && health.coverage < 0.6 && <span className="ri-sub"> · provisional: based on {Math.round(health.coverage * 100)}% of the factors</span>}</div>
                 <div className="ri-bars">
                   {health.breakdown.map((b) => (
                     <div key={b.name} className="ri-bar">

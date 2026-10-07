@@ -165,7 +165,7 @@ export interface ProfileState {
 }
 export interface ProfileSummary {
   snapshot?: Partial<Record<'net_worth' | 'monthly_surplus' | 'savings_rate' | 'emergency_months' | 'foir' | 'liquid', number | null>>
-  health?: { score: number; breakdown: { name: string; weight: number; sub: number | null; reason: string }[] } | null
+  health?: { score: number; coverage?: number; breakdown: { name: string; weight: number; sub: number | null; reason: string }[] } | null
   goals?: { name: string; target: number; years: number; future_target?: number; sip_needed?: number | null; on_track?: boolean | null }[]
   retirement?: Record<string, unknown> | null
   tax?: { better?: string; saving?: number } | null

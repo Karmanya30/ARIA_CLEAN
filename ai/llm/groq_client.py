@@ -39,6 +39,7 @@ MODEL_NAME = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
 FALLBACK_GROQ_MODEL = os.environ.get("FALLBACK_GROQ_MODEL", "openai/gpt-oss-20b")
+SECOND_FALLBACK_GROQ_MODEL = os.environ.get("SECOND_FALLBACK_GROQ_MODEL", "qwen/qwen3.8-27b")  # its own daily allowance
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
     # pause and one more pass rides out the brief 429/503 spikes that hit when several report calls run at once.
     chain = [(n, (lambda p, s, m, f=f: f(p, s, groq_model or m)) if n == "groq" else f) for n, f in _BACKENDS]  # groq_model: Groq only (each model has its own per-minute token bucket)
     chain.append(("groq-small", lambda p, s, m: _call_groq(p, s, m or FALLBACK_GROQ_MODEL)))
+    chain.append(("groq-qwen", lambda p, s, m: _call_groq(p, s, m or SECOND_FALLBACK_GROQ_MODEL)))
     for attempt in range(2):
         for name, backend in chain:
             if _dead.get(name, 0) > time.monotonic():  # its daily quota is spent: do not wait on it again

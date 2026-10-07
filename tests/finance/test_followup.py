@@ -97,3 +97,15 @@ def test_rent_only_does_not_count_as_known_spending():
     from modules.finance import pipeline
     assert not pipeline._known({"expenses": {"rent": 25000}}, "expenses")
     assert pipeline._known({"expenses": {"rent": 25000, "other": 40000}}, "expenses")
+
+
+def test_answer_to_a_next_question_after_stated_facts_is_taken_and_noted(monkeypatch):
+    from modules.finance import pipeline
+    sid, uid = "sess-next", "owner-next"
+    monkeypatch.setattr(pipeline.user_store, "current_owner", type("C", (), {"get": staticmethod(lambda: uid)}))
+    pipeline.user_store.delete_financial_profile(uid)
+    r = pipeline.run_pipeline("I earn 1.5 lakh a month and my rent is 30000 and I am 30", user_id=sid)
+    assert "Next:" in r["response"] and pipeline.get_session(sid).get("finance_pending")
+    r2 = pipeline.run_pipeline("about 70k", user_id=sid)
+    assert r2["domain"] == "finance" and r2["response"].startswith("Noted")
+    assert pipeline.engine.total_expenses(pipeline.user_store.get_financial_profile(uid)) is not None
