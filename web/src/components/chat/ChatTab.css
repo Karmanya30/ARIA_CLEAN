@@ -197,10 +197,15 @@
 
 @media (max-width: 640px) {
   .chat-topbar {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .chat-mode-select {
-    width: 100%;
+    width: auto;
+    min-width: 0;
+    flex: 1;
+  }
+  .chat-topbar .btn {
+    flex: none;
   }
 }
 

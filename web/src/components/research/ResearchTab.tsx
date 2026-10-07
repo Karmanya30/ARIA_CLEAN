@@ -75,7 +75,7 @@ export function ResearchTab() {
         <h2>Research reports</h2>
         <p className="rt-hint">Ask ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.</p>
         {error && <p className="rt-error">{error}</p>}
-        {reports.length === 0 && <p className="rt-empty">No saved reports yet.</p>}
+        {reports.length === 0 && <p className="rt-empty">No saved reports yet. Open Chat and ask for one, for example “equity research report on TCS”. It takes under a minute and appears here.</p>}
         {reports.map((r) => (
           <div key={r.id} className={r.id === selected ? 'rt-item active' : 'rt-item'}>
             <button type="button" className="rt-open" onClick={() => setSelected(r.id)}>
@@ -143,7 +143,7 @@ export function ResearchTab() {
         {selected ? (
           <iframe key={`${selected}-${kind}`} title="Equity research report" src={api.reportHtmlUrl(selected, isFund ? '' : kind)} sandbox="" />
         ) : (
-          <p className="rt-empty">Select a report to read it here.</p>
+          <p className="rt-empty">Choose a report from the list to read it here. You can switch its view (equity research, financial model, valuation, DuPont) without regenerating it.</p>
         )}
       </section>
     </div>

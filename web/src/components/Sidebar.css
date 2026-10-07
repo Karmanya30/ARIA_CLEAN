@@ -124,3 +124,8 @@
     display: none;
   }
 }
+
+@media (max-width: 880px) {
+  .sidebar-nav { overflow-x: auto; max-width: 100%; scrollbar-width: none; gap: 4px; }
+  .sidebar-nav-item { width: auto; white-space: nowrap; flex: none; padding: 9px 12px; }
+}

@@ -133,3 +133,16 @@
     border-bottom: 1px solid var(--border);
   }
 }
+
+.rt-hint select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  margin-left: 4px;
+}
+.rt-empty {
+  line-height: 1.6;
+}

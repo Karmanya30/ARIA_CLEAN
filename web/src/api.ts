@@ -61,7 +61,7 @@ export interface CompanyIntel {
     overlay: { tone: string; reading: string }
   }
   news: { title: string; source: string; date: string; direction: string; net: number }[]
-  call: { available: boolean; period?: string; net?: number; themes?: string[] }
+  call: { available: boolean; period?: string; net?: number; themes?: Record<string, { text: string; label: string | null; net: number | null }[]> }
   response: string
 }
 
