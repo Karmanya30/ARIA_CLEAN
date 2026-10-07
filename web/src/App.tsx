@@ -44,6 +44,7 @@ function useTab(): [string, (id: string) => void, number, string | null] {
 export default function App() {
   const [sessionId, resetSession] = useSessionId()
   const [tab, setTab, idx, prev] = useTab()
+  const [pendingAsk, setPendingAsk] = useState<string | null>(null)
   const prevLabel = SIDEBAR_TABS.find((t) => t.id === prev)?.label
 
   function newSession() {
@@ -61,12 +62,12 @@ export default function App() {
             <ArrowLeft size={15} aria-hidden="true" /> Back to {prevLabel}
           </button>
         )}
-        {tab === 'chat' && <ChatTab sessionId={sessionId} onOpenProfile={() => setTab('profile')} />}
+        {tab === 'chat' && <ChatTab sessionId={sessionId} onOpenProfile={() => setTab('profile')} pendingAsk={pendingAsk} onAskHandled={() => setPendingAsk(null)} />}
         {tab === 'research' && <ResearchTab />}
         {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (
           <div className="page-wrap">
-            <ProfileTab />
+            <ProfileTab onAskInChat={(q) => { setPendingAsk(q); setTab('chat') }} />
           </div>
         )}
         {tab === 'progress' && (

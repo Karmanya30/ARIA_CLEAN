@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, StatementPreview, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction } from './types'
 
 const BASE = ''
 
@@ -128,6 +128,8 @@ export const api = {
     j<ProfileState>('/api/profile', { method: 'POST', body: JSON.stringify({ session_id: ownerId(), ...fields }) }),
 
   deleteProfile: () => j<{ deleted: boolean }>(`/api/profile?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
+
+  getInsights: () => j<SpendingInsightsData>(`/api/transactions/insights?session_id=${encodeURIComponent(ownerId())}`),
 
   getTransactions: (sessionId: string) =>
     j<Transaction[]>(`/api/transactions?session_id=${encodeURIComponent(sessionId)}`),

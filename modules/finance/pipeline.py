@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from ai.llm.groq_client import FALLBACK_GROQ_MODEL, generate_response
 from ai.llm.prompt_templates import ENGINE_NARRATION, FACT_EXTRACTION, finance_prompt
 from core.session import get_session
-from modules.finance import anomaly, engine
+from modules.finance import anomaly, engine, spending
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import Assets, Expenses, FinanceProfile, Transaction, UserFinancialInput
 from shared import user_store
@@ -489,8 +489,27 @@ def _known(p: dict, field: str) -> bool:
     return p.get(field) is not None
 
 
+_SPEND_KINDS = (  # (kind, pattern, needs first person); concept questions ("what is a budget") match none
+    ("unusual", r"\b(unusual|suspicious|odd|strange|weird|fraud\w*)\b.*\b(transactions?|charges?|payments?|spend\w*)", False),
+    ("top", r"\b(top|biggest|largest|highest)\b.*\b(expenses?|merchants?|spend\w*|payments?|purchases)", False),
+    ("trend", r"\bmonthly (spend\w*|expenses?)|\bspending (trend|by month)|month[- ]by[- ]month", False),
+    ("recurring", r"\bsubscriptions?\b|\brecurring (payments?|charges?|expenses?|bills?)", True),
+    ("cut", r"\b(cut|save|saving|reduce|trim|lower)\b.*\b(spend\w*|expenses?|costs?)\b|\bwhere (can|could|do) (i|we) (cut|save|reduce)", True),
+    ("analyse", r"\b(analy[sz]e|summari[sz]e|break ?down|overview|review)\b.*\b(spend\w*|expenses?|transactions?)", True),
+    ("spent", r"\bhow much\b.*\b(spen[dt]|spending)\b|\b(spen[dt]|spending)\b.*\b(on|at)\b", True),
+)
+
+
+def _spending_kind(t: str) -> str | None:
+    fp = bool(_FIRST_PERSON.search(t))
+    return next((k for k, pat, need in _SPEND_KINDS if (fp or not need) and re.search(pat, t)), None)
+
+
 def finance_intent(query: str) -> tuple[str, dict] | None:
     t = query.lower()
+    if kind := _spending_kind(t):
+        if not (_amounts(t) and (kind == "cut" or re.search(r"\bwhat if\b", t))):  # "cut my food spending by 5000" stays a what-if
+            return "spending", {"kind": kind, "text": t}
     if not _FIRST_PERSON.search(t):  # "what is a SIP" is a concept question; personal tools need "I/my/me"
         return None
     nums = _amounts(t)
@@ -600,7 +619,24 @@ def _template(tool: str, r: Any) -> str:
             "\nRecommendation: Fill in the unknown areas in Profile for a sharper score.\nRisk: The score is a guide, not advice.")
 
 
+
+def _run_spending(query: str, uid: str, kind: str, text: str) -> dict[str, Any]:
+    txns = user_store.get_transactions(uid)
+    if not txns:
+        return {"domain": "finance", "query": query, "missing_field": "transactions", "ui_action": "open_profile",
+                "response": "I don't have any transactions yet. Upload a bank statement (PDF, Excel or CSV) in Profile -> Your Transactions and I can answer this"}
+    args = spending.parse_spend_query(text, txns) if kind == "spent" else {}
+    res = spending.chat_result(kind, args, txns, user_store.get_financial_profile(uid))
+    reply = generate_response(ENGINE_NARRATION.format(query=query, result=json.dumps(res, default=str)))
+    if not reply or reply.lower().startswith("error"):
+        reply = spending.chat_template(res)
+    return {"domain": "finance", "query": query, "response": reply, "intent": f"spending_{kind}", "engine": res,
+            "data_basis": spending.basis(txns)}
+
+
 def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str, Any]:
+    if tool == "spending":
+        return _run_spending(query, uid, args["kind"], args["text"])
     p = user_store.get_financial_profile(uid) or {}
     need = [] if tool == "goal" and args.get("goal") else _NEEDS[tool]
     if tool == "what_if":

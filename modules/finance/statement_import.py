@@ -188,15 +188,27 @@ _AMT = re.compile(r"^\(?-?(?:₹|Rs\.?|INR)?[\d,]*\d\.\d{1,2}\)?(?:Dr|Cr)?\.?$",
 _LINE_DATE = re.compile(r"^\s*(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}|\d{1,2}[-/ ][A-Za-z]{3,9}[-/ ,]*\d{2,4}|\d{4}-\d{2}-\d{2})\s+(.*)$")
 
 
+_GLUED = re.compile(r"\d[\d,]*\.\d{2}")
+
+
 def _text_rows(lines: list[str]) -> tuple[list[dict], int]:
     """Lines that start with a date and end with amount(s): `date narration amount [balance]`."""
-    raws, skipped, prev_bal = [], 0, None
+    raws, skipped, prev_bal, open_row = [], 0, None, False
     for line in lines:
         m = _LINE_DATE.match(line)
         if not m:
+            # a wrapped narration: undated, no amount, right after a transaction line
+            if open_row and line.strip() and not _AMT.match(line.split()[-1]) and not _SKIP_NARR.search(line):
+                raws[-1]["narr"] += " " + line.strip()
+            else:
+                open_row = False
             continue
         iso = parse_date(m.group(1).strip().replace(",", ""))
-        toks, amts = m.group(2).split(), []
+        toks, amts = [], []
+        for t in m.group(2).split():  # split amounts glued together like '30,000.000.00'
+            parts = _GLUED.findall(t)
+            toks += parts if len(parts) > 1 and "".join(parts) == t else [t]
+        open_row = False
         while toks and len(amts) < 3:
             if toks[-1].lower() in ("dr", "cr") and len(toks) > 1 and _AMT.match(toks[-2]):
                 amts.insert(0, toks[-2] + toks[-1])
@@ -220,14 +232,17 @@ def _text_rows(lines: list[str]) -> tuple[list[dict], int]:
             direction = "debit"
         elif re.search(r"cr\.?$", amts[0], re.I):
             direction = "credit"
-        elif bal is not None and prev_bal is not None:  # ponytail: balance delta; first row falls back to signed/debit
+        elif bal is not None and prev_bal is not None:  # ponytail: balance delta; first row falls back to column/signed/debit
             direction = "credit" if bal > prev_bal else "debit"
+        elif len(cands) == 2 and sum(1 for n in cands if n) == 1:  # withdrawal | deposit columns
+            direction = "credit" if cands[1] else "debit"
         elif pick < 0:
             direction = "debit"
         else:
             direction = "credit" if _INCOME.search(narr) else "debit"
         prev_bal = bal if bal is not None else prev_bal
         raws.append({"date": iso, "narr": narr, "amt": abs(pick), "dir": direction, "ref": ""})
+        open_row = True
     return raws, skipped
 
 
@@ -298,7 +313,7 @@ def _xls_grids(data: bytes) -> list[list[list[Any]]]:
     return [df.where(df.notna(), None).values.tolist() for df in sheets.values()]
 
 
-def _pdf_lines(data: bytes) -> list[str]:
+def _pdf_lines(data: bytes, layout: bool = True) -> list[str]:
     from pypdf import PdfReader
 
     try:
@@ -306,7 +321,7 @@ def _pdf_lines(data: bytes) -> list[str]:
         if reader.is_encrypted and not reader.decrypt(""):
             raise StatementError("This PDF is password-protected. Please remove the password (or download an unlocked "
                                  "copy from your bank) and upload again.")
-        text = "\n".join((p.extract_text() or "") for p in reader.pages)
+        text = "\n".join((p.extract_text(extraction_mode="layout") if layout else p.extract_text()) or "" for p in reader.pages)
     except StatementError:
         raise
     except Exception:
@@ -353,6 +368,8 @@ def parse_statement(filename: str, data: bytes) -> dict:
         result = _from_grids([_json_grid(data)], warnings)
     elif ext == ".pdf":
         raws, skipped = _text_rows(_pdf_lines(data))
+        if not raws:  # layout mode found nothing: try pypdf's plain reading order
+            raws, skipped = _text_rows(_pdf_lines(data, layout=False))
         result = _finalize(raws, skipped, warnings) if raws else None
     else:  # csv / tsv / txt / ofx: sniff delimited, then fall back to free-text lines
         text = decode(data)

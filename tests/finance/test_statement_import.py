@@ -220,3 +220,66 @@ def test_import_rejects_unknown_or_other_session():
     body = _post("hdfc.csv", HDFC.encode()).json()
     assert client.post("/api/transactions/import", json={"session_id": "other", "import_id": body["import_id"]}).status_code == 404
     assert client.post("/api/transactions/import", json={"session_id": USER, "import_id": "nope"}).status_code == 404
+
+
+_LAYOUT = [
+    "Date        Narration                 Withdrawal   Deposit     Balance",
+    "01/06/2026  NEFT CR-ACME CORP-SALARY  0.00         120,000.00  320,000.00",
+    "03/06/2026  UPI-LANDLORD RENT-9999    30,000.00    0.00        290,000.00",
+    "                                      (June)",
+    "04/06/2026  ACH D- HDFC LTD EMI       15,000.00    0.00        275,000.00",
+]
+
+
+def _text_pdf(lines: list[str]) -> bytes:
+    """Minimal one-page PDF in monospaced Courier (no reportlab): pypdf layout mode keeps the columns."""
+    body = "BT /F1 9 Tf 12 TL 20 800 Td " + " T* ".join(f"({s}) Tj" for s in lines) + " ET"
+    objs = ["<</Type/Catalog/Pages 2 0 R>>", "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 700 842]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>",
+            f"<</Length {len(body)}>>\nstream\n{body}\nendstream", "<</Type/Font/Subtype/Type1/BaseFont/Courier>>"]
+    out, offs = b"%PDF-1.4\n", []
+    for i, o in enumerate(objs, 1):
+        offs.append(len(out))
+        out += f"{i} 0 obj\n{o}\nendobj\n".encode()
+    xref = len(out)
+    out += f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode() + b"".join(f"{o:010d} 00000 n \n".encode() for o in offs)
+    return out + f"trailer<</Size {len(objs) + 1}/Root 1 0 R>>\nstartxref\n{xref}\n%%EOF".encode()
+
+
+def test_text_pdf_layout_columns_decide_debit_credit():
+    r = si.parse_statement("s.pdf", _text_pdf(_LAYOUT))
+    got = [(x["direction"], x["amount"]) for x in r["rows"]]
+    assert got == [("credit", 120000.0), ("debit", 30000.0), ("debit", 15000.0)]
+    assert r["rows"][0]["category"] == "income" and r["rows"][2]["category"] == "emi"
+
+
+def test_text_rows_glued_amounts_and_wrapped_narration():
+    rows, _ = si._text_rows([
+        "01/06/2026  SOMETHING ODD  0.00  120,000.00320,000.00",
+        "03/06/2026  UPI-LANDLORD   30,000.000.00 290,000.00",
+        "            RENT JUNE",
+        "04/06/2026  SHOP  500.00Dr",
+    ])
+    assert [(r["dir"], r["amt"]) for r in rows] == [("credit", 120000.0), ("debit", 30000.0), ("debit", 500.0)]
+    assert rows[1]["narr"].endswith("RENT JUNE")
+
+
+def test_applying_a_statement_to_the_profile_also_records_its_monthly_emi(monkeypatch):
+    """Spending averages exclude EMIs, so the profile must get the EMI too or the surplus is overstated."""
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+    from shared import user_store
+
+    client, owner = TestClient(app), "emi-apply-owner"
+    csv = "Date,Narration,Debit,Credit\n" + "\n".join(
+        f"{d:02d}/{m:02d}/2026,{n},{a},{c}" for m in (6, 7) for d, n, a, c in (
+            (1, "SALARY ACME", "", 100000), (3, "ACH D HDFC LTD EMI", 12000, ""), (5, "SWIGGY", 800, ""), (9, "BIGBASKET", 1500, ""),
+            (12, "BESCOM", 900, ""), (15, "UBER", 400, ""), (18, "NETFLIX", 649, ""), (20, "RENT LANDLORD", 20000, ""), (22, "APOLLO PHARMACY", 700, ""),
+            (25, "AMAZON", 1200, ""), (27, "ZOMATO", 500, "")))
+    user_store.delete_financial_profile(owner)
+    r = client.post("/api/transactions/parse", data={"session_id": owner}, files={"file": ("s.csv", csv.encode(), "text/csv")}).json()
+    out = client.post("/api/transactions/import", json={"session_id": owner, "import_id": r["import_id"], "apply_to_profile": True}).json()
+    assert out["profile_updated"]
+    prof = user_store.get_financial_profile(owner)
+    assert prof["loans"] and prof["loans"][0]["emi"] == 12000

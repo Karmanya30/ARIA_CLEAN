@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { api, ownerId } from '../../api'
 import type { ProfileState, ProfileSummary, Transaction } from '../../types'
 import { StatementUpload } from './StatementUpload'
+import { SpendingInsights } from './SpendingInsights'
 import './ProfileTab.css'
 
 const CATEGORIES = ['housing', 'food', 'transport', 'utilities', 'emi', 'entertainment', 'medical', 'other']
@@ -133,7 +134,8 @@ function clean(v: unknown): unknown {
   return v == null || v === '' ? null : v
 }
 
-export function ProfileTab() {
+export function ProfileTab({ onAskInChat }: { onAskInChat?: (q: string) => void }) {
+  const [insVer, setInsVer] = useState(0)
   const [state, setState] = useState<ProfileState | null>(null)
   const [summary, setSummary] = useState<ProfileSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -180,6 +182,7 @@ export function ProfileTab() {
 
   async function post(patch: D) {
     const s = await api.saveProfile(patch)
+    setInsVer((v) => v + 1)
     if (s?.profile) { setState(s); api.getProfileSummary().then(setSummary).catch(() => {}) } else await load()
   }
 
@@ -468,8 +471,12 @@ async function addTransaction() {
         anything beyond a zero-signal default. Anomaly detection needs 10+ entries.
       </p>
 
+      <SpendingInsights refreshKey={insVer} onAsk={onAskInChat} />
+
       <StatementUpload
+        onAsk={onAskInChat}
         onImported={(profileUpdated) => {
+          setInsVer((v) => v + 1)
           api.getTransactions(owner).then(setTransactions).catch(() => {})
           load(false, profileUpdated)
         }}

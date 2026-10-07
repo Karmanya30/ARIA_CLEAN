@@ -56,7 +56,7 @@ function Composer({
   )
 }
 
-export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpenProfile?: () => void }) {
+export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: { sessionId: string; onOpenProfile?: () => void; pendingAsk?: string | null; onAskHandled?: () => void }) {
   const [mode, setMode] = useState<ChatMode>('Normal Mode')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
@@ -93,6 +93,15 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
       clearInterval(poll)
     }
   }, [isLive, sessionId])
+
+  // A question handed over from another tab (e.g. spending insights): send it once, then clear it.
+  useEffect(() => {
+    if (!pendingAsk) return
+    onAskHandled?.()
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    send(pendingAsk)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAsk])
 
   // The thread flows with the page; keep the latest message in view.
   useEffect(() => {

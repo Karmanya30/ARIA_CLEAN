@@ -33,6 +33,14 @@ def list_transactions(session_id: str) -> list[dict[str, Any]]:
     return get_transactions(session_id)
 
 
+@router.get("/insights")
+def transaction_insights(session_id: str) -> dict[str, Any]:
+    from modules.finance.spending import insights
+    from shared.user_store import get_financial_profile, get_transactions
+
+    return insights(get_transactions(session_id), get_financial_profile(session_id))
+
+
 @router.post("")
 def add_transaction(req: TransactionRequest) -> dict[str, str]:
     from shared.user_store import add_transaction
@@ -89,7 +97,7 @@ def import_statement(req: ImportRequest) -> dict[str, Any]:
     """Save a parsed statement's expense/EMI debits as transactions (skipping ones already stored) and, only
     when apply_to_profile is true, its suggested expenses/income into the profile."""
     from modules.finance.statement_import import to_store_category
-    from shared.user_store import add_transaction, get_transactions, save_financial_profile
+    from shared.user_store import add_transaction, get_financial_profile, get_transactions, save_financial_profile
 
     entry = _imports.get(req.import_id)
     if not entry or entry[0] < time.time() or entry[1] != req.session_id:
@@ -110,6 +118,12 @@ def import_statement(req: ImportRequest) -> dict[str, Any]:
         imported += 1
     fields = {k: v for k, v in suggested.items() if v}
     if req.apply_to_profile and fields:
+        # the spending averages leave EMIs out, so without the EMI the surplus and savings rate would be overstated
+        emis = [r for r in rows if r["direction"] == "debit" and r["category"] == "emi"]
+        if emis and not (get_financial_profile(req.session_id) or {}).get("loans"):
+            d0, d1 = min(r["date"] for r in rows), max(r["date"] for r in rows)
+            months = (int(d1[:4]) - int(d0[:4])) * 12 + int(d1[5:7]) - int(d0[5:7]) + 1
+            fields["loans"] = [{"kind": "other", "emi": round(sum(r["amount"] for r in emis) / months)}]
         save_financial_profile(req.session_id, source="form", **fields)
     return {"imported": imported, "duplicates": duplicates, "profile_updated": bool(req.apply_to_profile and fields)}
 

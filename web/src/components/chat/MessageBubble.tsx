@@ -66,13 +66,14 @@ export function MessageBubble({
           )}
           {response.domain === 'company_intelligence' && <IntelligenceSummary data={response} />}
           {response.profile_basis && <p className="bubble-caption">{response.profile_basis}</p>}
+          {response.data_basis && <p className="bubble-caption">{response.data_basis}</p>}
           {(response.profile_basis || response.domain === 'company_intelligence') && (
             <p className="bubble-caption" title={assumptions}>
               Figures calculated from your profile · wording by AI · not financial advice{assumptions && ' ⓘ'}
             </p>
           )}
           {response.ui_action === 'open_profile' && onOpenProfile && (
-            <button type="button" className="bubble-retry" onClick={onOpenProfile}>Fill quick form</button>
+            <button type="button" className="bubble-retry" onClick={onOpenProfile}>{response.missing_field === 'transactions' ? 'Upload a statement' : 'Fill quick form'}</button>
           )}
           <p className="bubble-caption">{badge}</p>
           {headlines.length > 0 && (

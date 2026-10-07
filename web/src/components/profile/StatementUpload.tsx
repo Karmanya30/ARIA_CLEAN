@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { api } from '../../api'
+import { AskChips } from './SpendingInsights'
 import type { StatementImportResult, StatementPreview } from '../../types'
 
 const ACCEPT = '.csv,.tsv,.txt,.xlsx,.xlsm,.xls,.pdf,.json,.ofx,.qif,*/*'
@@ -8,7 +9,7 @@ const label = (k: string) => k.replace(/_/g, ' ')
 const mon = (d: string) => new Date(d).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
 
 /** Upload a bank/card statement, preview what was read, then import it. Files are parsed server-side and not stored. */
-export function StatementUpload({ onImported }: { onImported: (profileUpdated: boolean) => void }) {
+export function StatementUpload({ onImported, onAsk }: { onImported: (profileUpdated: boolean) => void; onAsk?: (q: string) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const [state, setState] = useState<'idle' | 'reading' | 'preview' | 'importing'>('idle')
   const [drag, setDrag] = useState(false)
@@ -70,10 +71,11 @@ export function StatementUpload({ onImported }: { onImported: (profileUpdated: b
         {state === 'reading' && <p>Reading your statement…</p>}
         {state === 'importing' && <p>Importing…</p>}
         {done && (
-          <p className="banner-info">
+          <div className="banner-info">
             Imported {done.imported} transaction(s); {done.duplicates} duplicate(s) skipped.
             {done.profile_updated ? ' Your profile spending was updated.' : ''}
-          </p>
+            <AskChips onAsk={onAsk} />
+          </div>
         )}
       </div>
       {error && (

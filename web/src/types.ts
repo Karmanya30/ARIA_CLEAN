@@ -134,6 +134,7 @@ export interface ChatResponse {
   report_id?: string | null
   fund_report?: boolean
   profile_basis?: string
+  data_basis?: string
   ui_action?: string
   missing_field?: string
   context?: { news_headlines?: string[] } & Record<string, unknown>
@@ -225,4 +226,23 @@ export interface ProgressItem {
 export interface ProgressState {
   engaged: ProgressItem[]
   total_interactions: number
+}
+
+export interface SpendingInsightsData {
+  available: boolean
+  reason: string | null
+  period: { from: string; to: string; months: number }
+  cashflow: {
+    income_avg: number | null; spend_avg: number; emi_avg: number; savings_rate: number | null
+    by_month: { month: string; spend: number; emi: number; net: number | null }[]
+  }
+  categories: {
+    name: string; total: number; monthly_avg: number; share_of_spend: number; share_of_income: number | null
+    trend_pct: number | null; benchmark_pct: number | null; over_benchmark: boolean
+  }[]
+  top_merchants: { merchant: string; total: number; count: number }[]
+  recurring: { merchant: string; amount: number; months: number; category: string }[]
+  unusual: { date: string; merchant: string; amount: number; category: string; why: string }[]
+  suggestions: { title: string; detail: string; saving_per_month: number | null; priority: 'high' | 'medium' | 'low' }[]
+  notes: string[]
 }
