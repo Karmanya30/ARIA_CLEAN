@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -118,23 +119,28 @@ def clear_llm_cache() -> None:
     _CACHE.clear()
 
 
-def _ask(system: str, prompt: str, stats: dict) -> dict | None:
+# The bull and bear sides run on a smaller Groq model: it has its own per-minute token allowance, so the commentary and the debate
+# do not compete for one 8,000-token bucket on the free tier. Their arguments are checked against the ledger either way.
+DEBATE_GROQ_MODELS = (os.environ.get("DEBATE_GROQ_BULL", "openai/gpt-oss-20b"), os.environ.get("DEBATE_GROQ_BEAR", "qwen/qwen3.8-27b"))  # one bucket each, so the two sides never queue behind each other
+
+
+def _ask(system: str, prompt: str, stats: dict, groq_model: str | None = None) -> dict | None:
     """One JSON exchange with a single retry. Sets ``llm_available`` False if the model errors out.
     Successful answers are cached by (backend, system, prompt); failures never are."""
     key = (id(generate_response), system, prompt)
     hit = _CACHE.get(key)
     if hit and time.monotonic() - hit[0] < _CACHE_TTL:
         return copy.deepcopy(hit[1])
-    obj = _ask_uncached(system, prompt, stats)
+    obj = _ask_uncached(system, prompt, stats, groq_model)
     if obj is not None:
         _CACHE[key] = (time.monotonic(), copy.deepcopy(obj))
     return obj
 
 
-def _ask_uncached(system: str, prompt: str, stats: dict) -> dict | None:
+def _ask_uncached(system: str, prompt: str, stats: dict, groq_model: str | None = None) -> dict | None:
     for attempt in range(2):
         reply = generate_response(prompt if attempt == 0 else prompt + "\n\nYour previous reply was not valid JSON. Reply with the JSON object only.",
-                                  system_prompt=system)
+                                  system_prompt=system, groq_model=groq_model)
         if reply and reply.lstrip().startswith("Error"):
             stats["llm_available"] = False
             logger.warning(f"LLM unavailable for research narrative: {reply[:120]}")
@@ -377,14 +383,14 @@ def _arguments(obj: dict | None, ledger: Ledger) -> tuple[list[dict], list[tuple
     return accepted, rejected
 
 
-def _side(system: str, prompt: str, ledger: Ledger, stats: dict) -> list[dict]:
+def _side(system: str, prompt: str, ledger: Ledger, stats: dict, groq_model: str | None = None) -> list[dict]:
     """One debate side. Rejected arguments get one corrective retry (with the reasons); the better attempt wins."""
-    accepted, rejected = _arguments(_ask(system, prompt, stats), ledger)
+    accepted, rejected = _arguments(_ask(system, prompt, stats, groq_model), ledger)
     if rejected and stats.get("llm_available", True):
         note = ("\n\nThese arguments were rejected: " + "; ".join(f'"{c[:90]}" ({why})' for c, why in rejected)
                 + ". Rewrite them, and add any others the evidence supports, with NO numbers in any form (no digits, no spelled-out "
                 "numbers or percentages; describe magnitudes qualitatively) and citing only evidence ids from the table.")
-        again, still_rejected = _arguments(_ask(system, prompt + note, stats), ledger)
+        again, still_rejected = _arguments(_ask(system, prompt + note, stats, groq_model), ledger)
         if len(again) >= len(accepted):
             accepted, rejected = again, still_rejected
     stats["rejected_arguments"] += len(rejected)
@@ -396,8 +402,8 @@ def debate(snap: Snapshot, an: Analysis, val: Valuation, ledger: Ledger) -> Deba
     facts = evidence_facts(an, val)
     prompt = f"COMPANY: {snap.name}\n\nEVIDENCE:\n{evidence_lines(facts)}\n\nMake your case."
     with ThreadPoolExecutor(max_workers=2) as pool:  # bull and bear never see each other's answer
-        f_bull = pool.submit(_side, BULL_SYSTEM, prompt, ledger, result.stats)
-        f_bear = pool.submit(_side, BEAR_SYSTEM, prompt, ledger, result.stats)
+        f_bull = pool.submit(_side, BULL_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[0])
+        f_bear = pool.submit(_side, BEAR_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[1])
         result.bull, result.bear = f_bull.result(), f_bear.result()
     if not result.bull and not result.bear:
         return result

@@ -165,3 +165,13 @@ def test_report_carries_the_scorecard_lenses_and_feeds_the_evidence(op):
     assert "## Fundamental analysis" in "\n".join(to_markdown(op)) if isinstance(to_markdown(op), list) else "Fundamental analysis" in to_markdown(op)
     weak = [p["name"] for p in sc["pillars"] if p["rating"] == "weak"]
     assert all(any(t.startswith(n) for r in op["risks"] for t in [r["title"]]) for n in weak)
+
+
+def test_peers_far_from_the_company_in_size_are_left_out_of_the_median():
+    from modules.equity_research.intelligence.comps import multiple_stats
+    from modules.equity_research.intelligence.data import Peer
+    peers = [Peer("A", "A", 15, None, None, mcap_cr=900), Peer("B", "B", 17, None, None, mcap_cr=1200), Peer("C", "C", 19, None, None, mcap_cr=700),
+             Peer("D", "D", 60, None, None, mcap_cr=50), Peer("E", "E", 80, None, None, mcap_cr=9000)]
+    s = multiple_stats("pe", peers, 1000)
+    assert s.median == 17 and {d[0] for d in s.dropped} == {"D", "E"}
+    assert multiple_stats("pe", peers[3:], 1000).median is None or len(multiple_stats("pe", peers[3:], 1000).used) < 3  # too few like-sized: no silent fallback to a median of two

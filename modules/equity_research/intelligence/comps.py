@@ -121,12 +121,26 @@ class MultipleStats:
         return len(self.used) >= MIN_PEERS
 
 
-def multiple_stats(kind: str, peers: list[Peer]) -> MultipleStats:
+SIZE_BAND = (0.2, 5.0)  # a peer worth under a fifth or over five times the company is not a like-for-like comparison
+
+
+def _size_ok(peer: Peer, mcap_cr: float | None) -> bool:
+    return not (mcap_cr and peer.mcap_cr) or SIZE_BAND[0] <= peer.mcap_cr / mcap_cr <= SIZE_BAND[1]
+
+
+def multiple_stats(kind: str, peers: list[Peer], mcap_cr: float | None = None) -> MultipleStats:
+    """Median of the peers' multiple. Peers far from the company in size are left out (a mid-cap's 45x P/E says little about a
+    mega-cap), unless that would leave too few to compute a median."""
     stats = MultipleStats(kind)
     lo, hi = SANITY[kind]
+    sized = [p for p in peers if _size_ok(p, mcap_cr) and getattr(p, kind) is not None]
+    like = sized if len(sized) >= MIN_PEERS else peers
     for peer in peers:
         v = getattr(peer, kind)
         if v is None:
+            continue
+        if peer not in like:
+            stats.dropped.append((peer.symbol, v, "much larger or smaller than the company (outside 0.2x to 5x its market value)"))
             continue
         if not lo <= v <= hi:
             stats.dropped.append((peer.symbol, v, "outside sanity bounds (likely currency/unit artifact)"))

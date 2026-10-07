@@ -36,7 +36,7 @@ class _MockLLM:
         self.calls: list[str] = []
         self.models: list[str | None] = []
 
-    def __call__(self, prompt, system_prompt=None, model=None):
+    def __call__(self, prompt, system_prompt=None, model=None, groq_model=None):
         self.calls.append(prompt)
         self.models.append(model)
         return self.response

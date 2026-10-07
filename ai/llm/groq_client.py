@@ -100,6 +100,7 @@ def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str
         messages=messages,
         temperature=0.6,
         top_p=0.9,
+        **({"reasoning_effort": "low"} if "gpt-oss" in (model or MODEL_NAME) else {}),  # fewer hidden reasoning tokens: faster, and kinder to the per-minute token cap
     )
     text = _extract_groq_text(response)
     if not text:
@@ -142,7 +143,7 @@ _BACKENDS = (("groq", _call_groq), ("gemini", _call_gemini))
 
 
 # ── CORE GENERATION ────────────────────────────────────────────────────
-def generate_response(prompt: str, system_prompt: str | None = None, model: str | None = None) -> str:
+def generate_response(prompt: str, system_prompt: str | None = None, model: str | None = None, groq_model: str | None = None) -> str:
     """
     Generate a response, trying Groq first and automatically falling back to
     Gemini if Groq errors out or is rate-limited. Safe wrapper — never
@@ -166,7 +167,8 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
 
     # Each Groq model has its own rate bucket, so a smaller one is a real second chance when the main one is limited; a short
     # pause and one more pass rides out the brief 429/503 spikes that hit when several report calls run at once.
-    chain = [*_BACKENDS, ("groq-small", lambda p, s, m: _call_groq(p, s, m or FALLBACK_GROQ_MODEL))]
+    chain = [(n, (lambda p, s, m, f=f: f(p, s, groq_model or m)) if n == "groq" else f) for n, f in _BACKENDS]  # groq_model: Groq only (each model has its own per-minute token bucket)
+    chain.append(("groq-small", lambda p, s, m: _call_groq(p, s, m or FALLBACK_GROQ_MODEL)))
     for attempt in range(2):
         for name, backend in chain:
             if _dead.get(name, 0) > time.monotonic():  # its daily quota is spent: do not wait on it again
@@ -181,7 +183,8 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
                     _dead[name] = time.monotonic() + 1800  # ponytail: fixed 30 min, parse the "try again in" hint if it matters
         if text is not None or not re.search(r"429|503|rate limit|unavailable|overloaded", str(last_error), re.I):
             break
-        time.sleep(2)
+        wait = re.search(r"try again in (?:(\d+)m)?(\d+(?:\.\d+)?)s", str(last_error))  # a per-minute cap names its own wait
+        time.sleep(min(30.0, int(wait.group(1) or 0) * 60 + float(wait.group(2)) + 0.5) if wait else 2)
 
     if text is None:
         logger.error(f"All LLM backends failed: {last_error}")

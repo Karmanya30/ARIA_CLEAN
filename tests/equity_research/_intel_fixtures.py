@@ -169,7 +169,7 @@ class FakeLLM:
         self.roles = roles
         self.calls: list[tuple[str, str]] = []
 
-    def __call__(self, prompt, system_prompt=None, model=None):
+    def __call__(self, prompt, system_prompt=None, model=None, groq_model=None):
         role = role_of(system_prompt or "")
         self.calls.append((role, prompt))
         reply = self.roles.get(role)

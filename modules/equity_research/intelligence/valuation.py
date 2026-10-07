@@ -807,7 +807,7 @@ def _comps(snap: Snapshot, an: Analysis, ledger: Ledger, val: Valuation) -> None
                 val.skipped[k] = reason
             val.notes.append("Peer-multiple valuation was skipped: " + reason + ".")
             return
-    stats = {k: multiple_stats(k, snap.peers) for k in ("pe", "fwd_pe", "pb", "ev_ebitda")}
+    stats = {k: multiple_stats(k, snap.peers, snap.market_cap_cr) for k in ("pe", "fwd_pe", "pb", "ev_ebitda")}
     val.comps = comps_table(snap.peers, stats)
     val.comps["group"] = snap.peer_group
     info, F = snap.info, val.facts

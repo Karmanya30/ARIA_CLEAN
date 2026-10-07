@@ -101,7 +101,7 @@ def company_intelligence(query: str, target: Target | None = None) -> dict[str, 
     return {**result, "query": query} if result else None
 
 
-LLM_DEADLINE_S = 25  # commentary + debate budget; gather and fundamentals take ~15 s, the report must finish in 60
+LLM_DEADLINE_S = 32  # commentary + debate budget; gather and fundamentals take ~15 s, the report must finish in 60
 
 
 def report_kind(query: str) -> str:
