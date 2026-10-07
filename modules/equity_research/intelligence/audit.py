@@ -113,8 +113,8 @@ def run_audit(snap: Snapshot, ledger: Ledger, an: Analysis, val: Valuation) -> A
         audit.add("required_inputs", "review", "No annual financial statements were retrieved: statement analysis and intrinsic valuation were skipped.")
     if val.synthesis is None:
         audit.add("required_inputs", "review", "No valuation method could be computed, so there is no fair value: " + "; ".join(f"{k}: {v}" for k, v in val.skipped.items()))
-    for w in snap.warnings:
-        audit.add("required_inputs", "review", w)
+    for w in snap.warnings:  # a data problem the pipeline already worked around (field dropped, source swapped) is disclosed, not a reason to caveat
+        audit.add("required_inputs", "info" if "were ignored" in w else "review", w)
 
     # 2. units and scale
     price, shares, mcap = snap.price, snap.shares, snap.market_cap_cr

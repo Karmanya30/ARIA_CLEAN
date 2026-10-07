@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from typing import Iterator
 
 from loguru import logger
@@ -37,6 +38,7 @@ MODEL_NAME = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
 # gemini-3.6-flash as its replacement (checked live 2026-08-18).
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
+FALLBACK_GROQ_MODEL = os.environ.get("FALLBACK_GROQ_MODEL", "openai/gpt-oss-20b")
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────
@@ -135,6 +137,7 @@ def _call_gemini(prompt: str, system_prompt: str, model: str | None = None) -> s
     return text
 
 
+_dead: dict[str, float] = {}  # backend name -> monotonic time until which it is skipped (daily token quota exhausted)
 _BACKENDS = (("groq", _call_groq), ("gemini", _call_gemini))
 
 
@@ -161,14 +164,24 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
     text: str | None = None
     last_error: Exception | None = None
 
-    for name, backend in _BACKENDS:
-        try:
-            text = backend(prompt, system_prompt, model)
+    # Each Groq model has its own rate bucket, so a smaller one is a real second chance when the main one is limited; a short
+    # pause and one more pass rides out the brief 429/503 spikes that hit when several report calls run at once.
+    chain = [*_BACKENDS, ("groq-small", lambda p, s, m: _call_groq(p, s, m or FALLBACK_GROQ_MODEL))]
+    for attempt in range(2):
+        for name, backend in chain:
+            if _dead.get(name, 0) > time.monotonic():  # its daily quota is spent: do not wait on it again
+                continue
+            try:
+                text = backend(prompt, system_prompt, model)
+                break
+            except Exception as e:
+                last_error = e
+                logger.warning(f"LLM backend '{name}' failed, trying next: {e}")
+                if "tokens per day" in str(e):
+                    _dead[name] = time.monotonic() + 1800  # ponytail: fixed 30 min, parse the "try again in" hint if it matters
+        if text is not None or not re.search(r"429|503|rate limit|unavailable|overloaded", str(last_error), re.I):
             break
-        except Exception as e:
-            last_error = e
-            logger.warning(f"LLM backend '{name}' failed, trying next: {e}")
-            continue
+        time.sleep(2)
 
     if text is None:
         logger.error(f"All LLM backends failed: {last_error}")

@@ -133,7 +133,7 @@ def _ttl_cache(seconds: int) -> Callable:
 # Yahoo reports some Indian IT companies' statements in USD while prices are in INR (Infosys: revenue
 # "2,030 Cr", EV/EBITDA 905x, EV/Sales 202x). Every statement-derived Yahoo field is then in the wrong
 # currency, so those fields are dropped at the source instead of being filtered out later.
-_STATEMENT_FIELDS = ("enterpriseToEbitda", "enterpriseToRevenue", "ebitda", "totalRevenue", "netIncomeToCommon")
+_STATEMENT_FIELDS = ("enterpriseToEbitda", "enterpriseToRevenue", "ebitda", "totalRevenue", "netIncomeToCommon", "totalDebt", "totalCash", "enterpriseValue")
 
 
 def _currency_mismatch(info: dict) -> bool:
