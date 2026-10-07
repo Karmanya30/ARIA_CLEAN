@@ -26,7 +26,7 @@ export function ContextStrip({ refreshKey, onOpenProfile }: { refreshKey: number
   const chips = [
     income != null && `Income ${inr(income)}/mo`,
     surplus != null && `Surplus ${inr(surplus)}`,
-    s?.health && `Health ${Math.round(s.health.score)}`,
+    s?.health && s.health.breakdown.some((b) => b.sub !== null) && `Health ${Math.round(s.health.score)}`,
     `Profile ${Math.round(p.completeness.pct)}% complete`,
   ].filter(Boolean) as string[]
   const empty = income == null && !s?.health && p.completeness.pct === 0

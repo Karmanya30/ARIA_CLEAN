@@ -4,6 +4,7 @@ from typing import Any
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import market_prompt
+from modules.finance import personal
 from modules.market.analyzer import MarketAnalyzer
 
 
@@ -19,12 +20,10 @@ def run_pipeline(query: str) -> dict[str, Any]:
     context = build_context(query)
     prompt = build_prompt(query, context)
     answer = generate_response(prompt)
-    return {
-        "domain": "market",
-        "query": query,
-        "context": context,
-        "response": answer,
-    }
+    response = {"domain": "market", "query": query, "context": context, "response": answer}
+    if caption := personal.market_caption(personal.profile()):
+        response["profile_basis"] = caption
+    return response
 
 
 class MarketPipeline:

@@ -63,6 +63,7 @@ export interface ResearchReportData {
     price: number | null
     notes: string[]
   }
+  for_you?: ForYouData | null
   thesis: string[]
   business: string
   financials: { text: string; tables: ReportTable[] }
@@ -117,7 +118,10 @@ export interface ReportMeta {
   created_at: string | null
 }
 
+export interface ForYouData { lines: string[]; basis: string; caveat: string }
+
 export interface ChatResponse {
+  for_you?: ForYouData | null
   domain: string
   query: string
   response: string

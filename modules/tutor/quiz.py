@@ -9,6 +9,7 @@ import re
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import M2_QUIZ
+from modules.finance import personal
 from modules.tutor.schemas import QuizItem
 
 _FIELDS = ["QUESTION", "CORRECT", "WRONG_1", "WRONG_2", "WRONG_3", "EXPLANATION"]
@@ -40,6 +41,8 @@ def generate_quiz(concept_name: str, concept_id: str, level: int = 3) -> QuizIte
     """None if the LLM output didn't match the expected format — callers
     should re-prompt once or fall back gracefully, never crash."""
     prompt = M2_QUIZ.format(concept=concept_name, level=max(1, min(8, level)))
+    if learner := personal.learner_context(personal.profile()):
+        prompt += f"\nUse these numbers in any \u20b9 example: {learner}"
     text = generate_response(prompt)
     return _parse_quiz_text(text, concept_id)
 

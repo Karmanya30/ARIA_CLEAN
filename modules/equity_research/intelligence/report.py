@@ -419,6 +419,8 @@ def to_markdown(report: dict) -> str:
         out += [f"**{s['stance']}** - model-implied rating {s['rating']}, {fv}, {fmt(s['upside_pct'], '%')} vs price, {s['confidence'].replace('_', ' ')} confidence.", ""]
     else:
         out += ["**Valuation not assessed.** " + " ".join(s["notes"]), ""]
+    if f := report.get("for_you"):
+        out += ["## For you (based on your profile)", *[f"- {x}" for x in f["lines"]], f"_{f['basis']} · {f['caveat']}_", ""]
     if report["thesis"]:
         out += ["## Investment thesis", *[f"- {b}" for b in report["thesis"]], ""]
     out += ["## Business", report["business"], "", "## Financial analysis", report["financials"]["text"], ""]

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Send, User } from 'lucide-react'
+import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
 import { useTavusSession } from '../../hooks/useTavusSession'
@@ -9,6 +9,7 @@ import { VoiceRecorder } from './VoiceRecorder'
 import { TavusVideo } from './TavusVideo'
 import { TavusTranscript } from './TavusTranscript'
 import { ContextStrip } from './ContextStrip'
+import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
 import './ChatTab.css'
@@ -63,6 +64,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
   // The message being answered: shown at once, so pressing Send visibly does something even on the first
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
+  const [profileVer, setProfileVer] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
@@ -174,6 +176,11 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
       <button className="btn" onClick={clearChat} type="button">
         Clear Chat
       </button>
+      {isSplitLayout && (
+        <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
+          <ArrowLeft size={15} aria-hidden="true" /> {isConversational ? 'Back to chat' : 'End and go back'}
+        </button>
+      )}
     </div>
   )
 
@@ -249,7 +256,8 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
               <h2>{greeting()} — what can I help with?</h2>
               <p>Ask about your finances, learn a concept, or check the market. ARIA routes it to the right module automatically.</p>
             </div>
-            <ContextStrip refreshKey={financeTurns} onOpenProfile={onOpenProfile} />
+            <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
+            <Onboarding onSaved={() => setProfileVer((v) => v + 1)} onAsk={send} />
             <Composer variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             <TemplateCards onPick={send} />
           </div>
@@ -273,7 +281,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
               {pendingTurn}
             </div>
           </div>
-          <ContextStrip refreshKey={financeTurns} onOpenProfile={onOpenProfile} />
+          <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
           <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
         </>
       )}

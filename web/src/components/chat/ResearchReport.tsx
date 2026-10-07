@@ -3,6 +3,7 @@ import { Check, Copy, Download, ExternalLink, ShieldAlert, ShieldCheck } from 'l
 import { api } from '../../api'
 import type { DebateArgument, ReportTable, ResearchReportData } from '../../types'
 import { Markdown } from './Markdown'
+import { ForYou } from './IntelligenceSummary'
 import './ResearchReport.css'
 
 // Mirrors modules/equity_research/intelligence/facts.py fmt(): percentages arrive as percent numbers.
@@ -190,6 +191,8 @@ export function ResearchReport({ report, reportId }: { report: ResearchReportDat
           {caveated ? <ShieldAlert size={13} /> : <ShieldCheck size={13} />} {caveated ? 'Verification: caveated' : 'Verification: passed'}
         </span>
       </div>
+
+      <ForYou data={report.for_you} />
 
       {s.notes.length > 0 && (
         <ul className="rr-notes">

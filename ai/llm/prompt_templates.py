@@ -142,7 +142,7 @@ TAXAL_ACTION_STYLE_HINTS = {
 }
 
 
-def build_taxal_prompt(concept: str, level: int, action: str | None = None) -> str:
+def build_taxal_prompt(concept: str, level: int, action: str | None = None, learner: str = "") -> str:
     level = max(1, min(8, int(level)))
     action_hint = TAXAL_ACTION_STYLE_HINTS.get(action or "", "")
 
@@ -151,6 +151,7 @@ You are ARIA, a financial tutor explaining "{concept}".
 
 Level: {level}/8
 Style: {TAXAL_LEVEL_HINTS[level]} {action_hint}
+{f"Use these numbers in the ₹ example: {learner}" if learner else ""}
 
 Produce EXACTLY 3 sections:
 

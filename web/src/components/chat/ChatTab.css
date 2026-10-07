@@ -248,3 +248,14 @@
   border-radius: var(--radius-pill);
   padding: 2px 10px;
 }
+
+.onb { margin: 0 0 14px; padding: 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--bg-elevated); }
+.onb h3 { margin: 0 0 4px; font-size: 16px; }
+.onb legend { font-weight: 600; padding: 0; margin-bottom: 8px; }
+.onb fieldset { border: 0; margin: 0 0 10px; padding: 0; }
+.onb label { display: block; font-size: 13.5px; margin: 8px 0 4px; }
+.onb .onb-opt { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; cursor: pointer; }
+.onb .onb-opt small { display: block; color: var(--ink-muted); }
+.onb-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.onb-dots { margin-left: auto; font-size: 12px; color: var(--ink-muted); }
+.onb-asks { display: flex; flex-wrap: wrap; gap: 8px; }

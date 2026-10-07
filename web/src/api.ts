@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinanceProfile, ProfileState, ProfileSummary, ProgressState, ReportMeta, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, Transaction } from './types'
 
 const BASE = ''
 
@@ -63,6 +63,7 @@ export interface CompanyIntel {
   news: { title: string; source: string; date: string; direction: string; net: number }[]
   call: { available: boolean; period?: string; net?: number; themes?: Record<string, { text: string; label: string | null; net: number | null }[]> }
   response: string
+  for_you?: ForYouData | null
 }
 
 export interface SentimentResult {
@@ -158,7 +159,7 @@ export const api = {
   deleteReport: (id: string) =>
     j<{ status: string }>(`/api/research/reports/${id}?owner_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
-  companyIntel: (q: string) => j<CompanyIntel>(`/api/research/intelligence?q=${encodeURIComponent(q)}`),
+  companyIntel: (q: string) => j<CompanyIntel>(`/api/research/intelligence?q=${encodeURIComponent(q)}&owner_id=${encodeURIComponent(ownerId())}`),
 
   sentiment: (texts: string[]) =>
     j<SentimentResult>('/api/research/sentiment', { method: 'POST', body: JSON.stringify({ texts }) }),

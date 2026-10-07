@@ -22,9 +22,10 @@ from modules.equity_research.intelligence.analysis import analyze
 from modules.equity_research.intelligence.audit import audit_narrative, run_audit
 from modules.equity_research.intelligence.fundamentals import analyze_fundamentals
 from modules.equity_research.intelligence.data import Snapshot, Target, _ttl_cache, gather, resolve_target
-from modules.equity_research.intelligence.facts import Ledger
+from modules.equity_research.intelligence.facts import ASSUMPTION, Ledger
 from modules.equity_research.intelligence.report import build_report, summary_response, to_markdown
 from modules.equity_research.intelligence.valuation import value_company
+from modules.finance import personal
 
 _CONFIDENCE = {"high": "high", "medium": "medium", "low": "low", "very_low": "low"}
 
@@ -59,6 +60,17 @@ def _persist(user_id: str, report: dict) -> dict | None:
         return None
 
 
+def _risk(an, val) -> dict:
+    """Non-personal risk inputs for the stock-fit lines: annualised volatility (%) and beta (None when beta was only assumed)."""
+    v, b = an.facts.get("volatility"), val.facts.get("beta")
+    return {"volatility": v.value if v else None, "beta": b.value if b and b.kind != ASSUMPTION else None}
+
+
+def _fit(risk: dict, scorecard: dict | None) -> dict | None:
+    safety = next((p["rating"] for p in (scorecard or {}).get("pillars", []) if p["name"] == "Financial safety"), None)
+    return personal.stock_fit(personal.profile(), risk["volatility"], risk["beta"], safety)
+
+
 @_ttl_cache(900)
 def _intel(target: Target) -> dict | None:
     """The data-and-numbers half of a research run (no LLM, no narration, no debate, nothing saved); raises on failure so it is never cached."""
@@ -89,7 +101,7 @@ def _intel(target: Target) -> dict | None:
     news = [{k: n.get(k) for k in ("title", "source", "date", "direction", "net")} for n in fund["news_signals"]["items"][:5]]
     watch = f" Watch: {intel['divergences'][0]['text'].lower()}." if intel["divergences"] else ""
     logger.info(f"company intelligence for {target.symbol} in {time.perf_counter() - t0:.1f}s: {stages}")
-    return {"domain": "company_intelligence", "company": {"name": snap.name, "symbol": target.symbol}, "intelligence": intel, "scorecard": fund["scorecard"], "news": news,
+    return {"domain": "company_intelligence", "company": {"name": snap.name, "symbol": target.symbol}, "intelligence": intel, "scorecard": fund["scorecard"], "risk": _risk(an, val), "news": news,
             "call": {"available": bool(call.get("available")), "period": call.get("period"), "net": call.get("net"), "themes": call.get("themes") or {}},
             "response": (f"{snap.name} scores {intel['score']}/100 ({intel['band']})." + watch) if intel["score"] is not None else f"{snap.name}: too little data to score."}
 
@@ -98,7 +110,7 @@ def company_intelligence(query: str, target: Target | None = None) -> dict[str, 
     """Intelligence score, divergences, news and call tone for one company; None when the company or its data cannot be found."""
     target = target or resolve_target(query)
     result = _intel(target) if target else None
-    return {**result, "query": query} if result else None
+    return {**result, "query": query, "for_you": _fit(result["risk"], result["scorecard"])} if result else None
 
 
 LLM_DEADLINE_S = 32  # commentary + debate budget; gather and fundamentals take ~15 s, the report must finish in 60
@@ -180,6 +192,7 @@ def run_research(query: str, user_id: str = "default", target: Target | None = N
     audit_narrative(audit, stats)
 
     report = build_report(snap, an, val, audit, narr, deb, ledger, kind=kind or report_kind(query))
+    report["for_you"] = _fit(_risk(an, val), (an.fundamentals or {}).get("scorecard"))
     report["markdown"] = to_markdown(report)
     meta = _persist(user_id, report)
     lap("report+save")

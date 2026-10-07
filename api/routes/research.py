@@ -35,10 +35,15 @@ class SentimentRequest(BaseModel):
 
 
 @router.get("/intelligence")
-def intelligence(q: str) -> dict[str, Any]:
+def intelligence(q: str, owner_id: str | None = None) -> dict[str, Any]:
     from modules.equity_research.intelligence.pipeline import company_intelligence
+    from shared.user_store import current_owner
 
-    result = company_intelligence(q)
+    token = current_owner.set(owner_id)
+    try:
+        result = company_intelligence(q)
+    finally:
+        current_owner.reset(token)
     if result is None:
         raise HTTPException(status_code=404, detail="Company not found.")
     return result

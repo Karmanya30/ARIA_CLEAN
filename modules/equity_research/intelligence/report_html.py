@@ -186,7 +186,10 @@ def _summary(r: dict) -> str:
     thesis = "".join(f"<li>{_e(t)}</li>" for t in r["thesis"]) or '<li class="muted">No thesis could be written from the available data.</li>'
     rk = "".join(f'<li><span class="sev-{_e(x["severity"])}">{_e(x["title"] or x["category"])}</span> {_e(x["detail"])}</li>' for x in risks) or '<li class="muted">No rule-based risk flags were raised.</li>'
     notes = "".join(f"<li>{_e(n)}</li>" for n in r["stance"]["notes"])
-    return (f'<section><h2><span class="n">1</span>Summary</h2><div class="summary">{_stance_block(r)}<div>'
+    fy = r.get("for_you")
+    you = (f'<div class="callout"><b>For you (based on your profile)</b><ul>{"".join(f"<li>{_e(x)}</li>" for x in fy["lines"])}</ul>'
+           f'<span class="muted">{_e(fy["basis"])} · {_e(fy["caveat"])}</span></div>') if fy else ""
+    return (f'<section><h2><span class="n">1</span>Summary</h2><div class="summary"><div>{_stance_block(r)}{you}</div><div>'
             f'<h3>Investment thesis {tag("ai" if origin == "llm" else "calculated")}</h3><ul>{thesis}</ul>'
             f'<h3>Key risks {tag("rule")}</h3><ul>{rk}</ul>{f"<h3>Why no point estimate</h3><ul>{notes}</ul>" if r["stance"]["withheld"] and notes else ""}'
             f'</div></div></section>')

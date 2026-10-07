@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api } from '../../api'
 import type { CompanyIntel, SentimentResult } from '../../api'
+import { ForYou } from '../chat/IntelligenceSummary'
 import './ResearchTab.css'
 import './IntelligenceTab.css'
 
@@ -119,6 +120,7 @@ export function IntelligenceTab() {
                 {i.low_evidence && <p className="ri-warn">Only {Math.round(i.coverage * 100)}% of the evidence was available for this company, so treat the score with caution.</p>}
               </div>
             </div>
+            <ForYou data={data.for_you} />
 
             {i.divergences.length > 0 && (
               <>
