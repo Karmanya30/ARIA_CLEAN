@@ -5,19 +5,28 @@ import { ResearchReport } from './ResearchReport'
 import { ShapExplainer } from './ShapExplainer'
 import { QuizWidget } from './QuizWidget'
 import { api } from '../../api'
+import { IntelligenceSummary } from './IntelligenceSummary'
 import './MessageBubble.css'
+
+const DOMAIN_LABEL: Record<string, string> = {
+  finance: 'Personal finance', tutor: 'Tutor', market: 'Market analysis', equity_research: 'Equity research', company_intelligence: 'Company intelligence',
+}
 
 export function MessageBubble({
   turn,
   sessionId,
   onQuizAnswered,
+  onRetry,
 }: {
   turn: HistoryTurn
   sessionId: string
   onQuizAnswered: (correct: boolean) => void
+  onRetry?: (query: string) => void
 }) {
   const { response } = turn
-  const badge = `Domain: ${response.domain}${response.company ? ` · Company: ${response.company}` : ''}`
+  const company = typeof response.company === 'string' ? response.company : (response.company as { name?: string } | undefined)?.name
+  const badge = [DOMAIN_LABEL[response.domain] ?? response.domain.replace(/_/g, ' '), company].filter(Boolean).join(' · ')
+  const failed = String(response.response ?? '').startsWith('Error:')
   const headlines = response.context?.news_headlines ?? []
 
   return (
@@ -35,6 +44,10 @@ export function MessageBubble({
         </span>
         <div className="bubble-content">
           <ResponseCard text={response.response} />
+          {failed && onRetry && (
+            <button type="button" className="bubble-retry" onClick={() => onRetry(turn.query)}>Try again</button>
+          )}
+          {response.domain === 'company_intelligence' && <IntelligenceSummary data={response} />}
           <p className="bubble-caption">{badge}</p>
           {headlines.length > 0 && (
             <details className="bubble-news">
@@ -74,7 +87,7 @@ export function MessageBubble({
           )}
 
           {turn.audio_token && (
-            <audio controls src={api.audioUrl(turn.audio_token)} className="bubble-audio" />
+            <audio controls src={api.audioUrl(turn.audio_token)} className="bubble-audio" onError={(e) => { e.currentTarget.style.display = 'none' }} onLoadedMetadata={(e) => { if (!e.currentTarget.duration) e.currentTarget.style.display = 'none' }} />
           )}
         </div>
       </div>

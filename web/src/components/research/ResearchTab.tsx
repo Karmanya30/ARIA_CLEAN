@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Download, ExternalLink, RefreshCw, Trash2 } from 'lucide-react'
 import { api } from '../../api'
 import type { ReportMeta } from '../../types'
@@ -17,6 +17,7 @@ export function ResearchTab() {
   const [reports, setReports] = useState<ReportMeta[] | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [openSyms, setOpenSyms] = useState<Set<string>>(new Set())
   const [kind, setKind] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -68,6 +69,14 @@ export function ResearchTab() {
   if (reports === null) return <p className="rt-empty">Loading saved reports…</p>
 
   const isFund = reports.find((r) => r.id === selected)?.kind === 'fund_analysis'
+  // newest version of each company first; older versions fold away unless opened or selected
+  const firstOf = new Map<string, string>()
+  const olderCount: Record<string, number> = {}
+  for (const r of reports) {
+    const key = `${r.symbol}|${r.kind}`
+    if (!firstOf.has(key)) { firstOf.set(key, r.id); olderCount[r.id] = 0 } else olderCount[firstOf.get(key)!]++
+  }
+  const visible = reports.filter((r) => firstOf.get(`${r.symbol}|${r.kind}`) === r.id || openSyms.has(r.symbol) || r.id === selected)
 
   return (
     <div className="rt">
@@ -76,8 +85,9 @@ export function ResearchTab() {
         <p className="rt-hint">Ask ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.</p>
         {error && <p className="rt-error">{error}</p>}
         {reports.length === 0 && <p className="rt-empty">No saved reports yet. Open Chat and ask for one, for example “equity research report on TCS”. It takes under a minute and appears here.</p>}
-        {reports.map((r) => (
-          <div key={r.id} className={r.id === selected ? 'rt-item active' : 'rt-item'}>
+        {visible.map((r) => (
+          <Fragment key={r.id}>
+          <div className={r.id === selected ? 'rt-item active' : 'rt-item'}>
             <button type="button" className="rt-open" onClick={() => setSelected(r.id)}>
               <span className="rt-name">
                 {r.company} <span className="rt-ver">v{r.version}</span>
@@ -124,6 +134,12 @@ export function ResearchTab() {
               </div>
             )}
           </div>
+          {olderCount[r.id] > 0 && (
+            <button type="button" className="rt-more" onClick={() => setOpenSyms((o) => { const n = new Set(o); if (n.has(r.symbol)) n.delete(r.symbol); else n.add(r.symbol); return n })}>
+              {openSyms.has(r.symbol) ? 'Hide earlier versions' : `Show ${olderCount[r.id]} earlier version${olderCount[r.id] > 1 ? 's' : ''} of ${r.company}`}
+            </button>
+          )}
+          </Fragment>
         ))}
         {!isFund && (
         <label className="rt-hint">

@@ -208,6 +208,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                       turn={turn}
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
+                  onRetry={sending ? undefined : send}
                     />
                   ))}
                   {pendingTurn}
@@ -254,6 +255,7 @@ export function ChatTab({ sessionId }: { sessionId: string }) {
                   turn={turn}
                   sessionId={sessionId}
                   onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
+                  onRetry={sending ? undefined : send}
                 />
               ))}
               {pendingTurn}

@@ -43,7 +43,7 @@ def test_shareholding_history_pledge_and_promoter_trend_are_facts_flags_and_show
     assert flags["Promoter shares pledged"] == "high" and "Promoter holding falling" in flags
     rep = _report(snap)
     html = render_html(rep)
-    company = html[html.index("Company overview"): html.index("Industry and competitive position")]
+    company = html[html.index("</span>Company overview"): html.index("</span>Industry and competitive position")]
     assert "Shareholding pattern" in company and "pledged 62.5%" in company and "promoters -3.00pp" in company
     assert "Shareholding pattern" not in html[html.index("</span>Financial analysis"): html.index("</span>Ratio analysis")]
     assert "Shareholding history" not in {x["item"] for x in rep["not_available"]}

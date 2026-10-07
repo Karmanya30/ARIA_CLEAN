@@ -72,3 +72,19 @@
   flex-direction: column;
   gap: 3px;
 }
+
+.bubble-retry {
+  align-self: flex-start;
+  margin: 2px 0 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bubble-retry:hover {
+  background: var(--accent-soft);
+}

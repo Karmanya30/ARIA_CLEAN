@@ -81,6 +81,7 @@
 .rt-actions {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
   padding: 0 12px 10px;
 }
 .rt-actions a,
@@ -145,4 +146,21 @@
 }
 .rt-empty {
   line-height: 1.6;
+}
+
+.rt-more {
+  width: 100%;
+  margin: -4px 0 10px;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.rt-more:hover {
+  text-decoration: underline;
 }

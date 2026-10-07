@@ -521,7 +521,7 @@ def _fundamental_risks(fund: dict) -> list[dict]:
     for p in (fund.get("scorecard") or {}).get("pillars", []):
         if p["rating"] == "weak":
             bad = [r["text"] for r in p["reasons"] if r["sign"] < 0]
-            out.append({"category": _PILLAR_CATEGORY.get(p["name"], "financial"), "severity": "medium", "title": f"{p['name']} is weak on the scorecard",
+            out.append({"category": _PILLAR_CATEGORY.get(p["name"], "financial"), "severity": "medium", "title": f"{p['name']} {'are' if p['name'].endswith('s') else 'is'} weak on the scorecard",
                         "detail": "; ".join(bad) + ".", "facts": [], "origin": "rule"})
     for d in (fund.get("intelligence") or {}).get("divergences", []):
         if d["severity"] == "high":

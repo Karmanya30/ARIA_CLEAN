@@ -74,6 +74,7 @@ th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:itali
 .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.chart{max-width:640px}.chart h4{margin:0 0 2px;font-size:12px;color:var(--muted)}
 .check{margin:3px 0}.check.review b,.check.blocked b{color:var(--amber)}.finding{display:block;margin-left:18px;color:var(--muted);font-size:12px}
 .bar{text-align:right;padding:8px 16px}.bar button{padding:6px 14px;border-radius:8px;border:1px solid #ccd4e3;background:#fff;cursor:pointer}.disc h3{text-transform:none;letter-spacing:0;color:var(--ink);font-size:13px}@page{size:A4;margin:12mm}@media print{.noprint{display:none}.disc{page-break-before:always}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}.disclaimer{font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:8px}
+.jump{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:8px 16px;background:rgba(246,248,251,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);scrollbar-width:none}.jump a{flex:none;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}.jump a:hover,.jump a:focus-visible{color:var(--accent);border-color:var(--accent)}section{scroll-margin-top:52px}html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .sev-high{color:var(--red);font-weight:700}.sev-medium{color:var(--amber);font-weight:700}
 @media print{.scroll{overflow:visible}table th,table td,table.tight th,table.tight td,table.wide th,table.wide td,table.wide td.l{font-size:9px;padding:2px 3px}body{background:#fff}section{border-color:#ccc;break-inside:avoid}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media (max-width:760px){.summary,.two,.cases{grid-template-columns:1fr}main{padding:0 12px}.cover{padding:20px 16px}}
@@ -846,7 +847,21 @@ def _for_fund(html: str) -> str:
 
 
 def _number(sections: list[str]) -> list[str]:
-    return [re.sub(r'<span class="n">\d+</span>', f'<span class="n">{i}</span>', s, count=1) for i, s in enumerate(sections, 1)]
+    out = []
+    for i, s in enumerate(sections, 1):
+        s = re.sub(r'<span class="n">\d+</span>', f'<span class="n">{i}</span>', s, count=1)
+        out.append(s.replace("<section>", f'<section id="s{i}">', 1))  # anchors for the jump bar
+    return out
+
+
+def _jump_bar(sections: list[str]) -> str:
+    """A sticky row of links to every numbered section: a long report is read in jumps, not top to bottom."""
+    links = []
+    for s in sections:
+        m = re.match(r'<section id="(s\d+)"[^>]*><h2><span class="n">(\d+)</span>(.*?)(?:<span class="tag|</h2>)', s)
+        if m:
+            links.append(f'<a href="#{m.group(1)}">{m.group(2)}. {re.sub("<[^>]+>", "", m.group(3)).strip()}</a>')
+    return f'<nav class="jump noprint" aria-label="Sections">{"".join(links)}</nav>' if len(links) > 3 else ""
 
 
 def render_html(report: dict, kind: str | None = None, *, printable: bool = False, autoprint: bool = False) -> str:
@@ -856,7 +871,8 @@ def render_html(report: dict, kind: str | None = None, *, printable: bool = Fals
     version = f'v{meta["version"]}' if meta.get("version") else "draft"
     status_ok = report["status"] == "publishable"
     legend = " ".join(f"{tag(k)}" for k in ("actual", "calculated", "estimate", "assumption", "source", "ai"))
-    body = "".join(_number([f for f in (_SECTIONS[k](report) for k in keys) if f] + [_disclosure(report)]))
+    numbered = _number([f for f in (_SECTIONS[k](report) for k in keys) if f] + [_disclosure(report)])
+    body = "".join(numbered)
     price = f'{fmt(c["price"], "₹")}' if c["price"] else "n/a"
     through = "".join(f"<div><b>{_e(k)}</b>{_e(v)}</div>" for k, v in c["data_through"].items())
     bar = ('<div class="bar noprint"><button onclick="window.print()">Save as PDF / Print</button></div>' if printable else "")
@@ -867,4 +883,4 @@ def render_html(report: dict, kind: str | None = None, *, printable: bool = Fals
 <div class="meta"><div><b>Price</b>{_e(price)}</div><div><b>Market cap</b>{_e(fmt(c["market_cap_cr"], "₹ Cr"))}</div><div><b>Report date</b>{_e(c["report_date"])}</div>
 <div><b>Version</b>{_e(version)}</div>{through}<div><b>Verification</b><span class="pill {"ok" if status_ok else "warn"}">{"Passed" if status_ok else "Caveated"}</span></div></div>
 <p class="small" style="opacity:.85;margin:12px 0 0">{_e(c["ai_disclosure"])} Not investment advice; see the disclosures on the last page.</p></header>
-<div class="legend">Every figure is tagged: {legend}</div><main>{body}</main></div>{auto}</body></html>'''
+<div class="legend">Every figure is tagged: {legend}</div>{_jump_bar(numbered)}<main>{body}</main></div>{auto}</body></html>'''

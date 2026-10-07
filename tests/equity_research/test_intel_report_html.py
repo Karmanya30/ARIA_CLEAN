@@ -204,7 +204,7 @@ def test_text_is_escaped_exactly_once(op):
 
 def test_forecast_table_has_one_row_per_metric_with_actual_then_estimate_columns(op):
     html = render_html(op)
-    forecast = html[html.index("Forecasts"): html.index("Assumptions")]
+    forecast = html[html.index("</span>Forecasts"): html.index("</span>Assumptions")]
     rows = re.findall(r'<tr><td class="\s?l">Revenue <span', forecast)
     assert len(rows) == 1
     assert "ACTUAL</span> <span class=\"tag t-est\">ESTIMATE" in forecast  # the merged row says it spans both
