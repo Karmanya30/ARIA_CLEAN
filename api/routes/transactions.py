@@ -4,11 +4,15 @@ list (see modules/finance/pipeline.py's _load_transactions)."""
 from __future__ import annotations
 
 import random
+import time
+import uuid
 from datetime import date, timedelta
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
+
+from modules.finance.statement_import import EXPENSE_KEYS as _EXPENSE
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
@@ -38,6 +42,76 @@ def add_transaction(req: TransactionRequest) -> dict[str, str]:
         merchant=req.merchant, channel=req.channel,
     )
     return {"status": "added"}
+
+
+_MAX_BYTES = 5 * 1024 * 1024
+_TTL = 600
+_imports: dict[str, tuple[float, str, list[dict], dict]] = {}  # import_id -> (expires, session_id, rows, suggested)
+
+
+@router.post("/parse")
+def parse_statement_file(file: UploadFile = File(...), session_id: str = Form(...)) -> dict[str, Any]:
+    """Parse an uploaded statement/transaction file in memory. The file itself is never stored; only the
+    normalized transactions are kept server-side for 10 minutes (so /import can use them), then dropped."""
+    from modules.finance import statement_import as si
+
+    data = file.file.read(_MAX_BYTES + 1)
+    if len(data) > _MAX_BYTES:
+        raise HTTPException(413, "That file is larger than 5 MB. Please upload a shorter period.")
+    try:
+        parsed = si.parse_statement(file.filename or "", data)
+        info = si.summarize(parsed["rows"])
+    except si.StatementError as exc:
+        raise HTTPException(exc.status, exc.message)
+    except Exception:  # never leak internals or file contents
+        raise HTTPException(422, "Sorry, I couldn't read that file. Try CSV or Excel.")
+    now = time.time()
+    for k in [k for k, v in _imports.items() if v[0] < now]:
+        del _imports[k]
+    import_id = uuid.uuid4().hex
+    _imports[import_id] = (now + _TTL, session_id, parsed["rows"], info["suggested_profile"])
+    return {
+        "filename": file.filename, "format": parsed["format"], "rows_total": len(parsed["rows"]),
+        "importable": sum(1 for r in parsed["rows"] if r["direction"] == "debit" and r["category"] != "investment" and r["category"] in (*_EXPENSE, "emi")),
+        "rows": parsed["rows"][:200], "skipped": parsed["skipped"], "warnings": parsed["warnings"],
+        **info, "import_id": import_id,
+    }
+
+
+class ImportRequest(BaseModel):
+    session_id: str
+    import_id: str
+    apply_to_profile: bool = False
+
+
+@router.post("/import")
+def import_statement(req: ImportRequest) -> dict[str, Any]:
+    """Save a parsed statement's expense/EMI debits as transactions (skipping ones already stored) and, only
+    when apply_to_profile is true, its suggested expenses/income into the profile."""
+    from modules.finance.statement_import import to_store_category
+    from shared.user_store import add_transaction, get_transactions, save_financial_profile
+
+    entry = _imports.get(req.import_id)
+    if not entry or entry[0] < time.time() or entry[1] != req.session_id:
+        raise HTTPException(404, "That import has expired. Please upload the file again.")
+    _, _, rows, suggested = entry
+    seen = {(t["date"], round(t["amount"], 2), (t["merchant"] or "").lower()) for t in get_transactions(req.session_id)}
+    imported = duplicates = 0
+    for r in rows:
+        if r["direction"] != "debit" or r["category"] == "investment" or r["category"] not in (*_EXPENSE, "emi"):
+            continue
+        key = (r["date"], r["amount"], r["merchant"].lower())
+        if key in seen:
+            duplicates += 1
+            continue
+        seen.add(key)
+        add_transaction(req.session_id, date=r["date"], category=to_store_category(r["category"]),
+                        amount=r["amount"], merchant=r["merchant"], channel="statement")
+        imported += 1
+    fields = {k: v for k, v in suggested.items() if v}
+    if req.apply_to_profile and fields:
+        save_financial_profile(req.session_id, source="form", **fields)
+    return {"imported": imported, "duplicates": duplicates, "profile_updated": bool(req.apply_to_profile and fields)}
 
 
 @router.delete("")

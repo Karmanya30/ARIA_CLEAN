@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
@@ -65,7 +65,6 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
   const [profileVer, setProfileVer] = useState(0)
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
@@ -95,12 +94,11 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
     }
   }, [isLive, sessionId])
 
-  // The message list is the only part of the page that scrolls (the
-  // avatar/video stage above it stays fixed in place) -- so unlike a
-  // normal page, a new turn doesn't automatically come into view on its
-  // own; keep the scroll pinned to the latest message.
+  // The thread flows with the page; keep the latest message in view.
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+    if (!history.length && !sending) return
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: calm ? 'auto' : 'smooth' })
   }, [history.length, sending])
 
   async function send(text: string) {
@@ -203,7 +201,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
             )}
           </div>
           <div className="chat-chat-col">
-            <div className="chat-scroll-region" ref={scrollRef}>
+            <div className="chat-scroll-region">
               {isTavus ? (
                 <TavusTranscript session={tavusSession} />
               ) : (
@@ -264,7 +262,7 @@ export function ChatTab({ sessionId, onOpenProfile }: { sessionId: string; onOpe
         </div>
       ) : (
         <>
-          <div className="chat-scroll-region" ref={scrollRef}>
+          <div className="chat-scroll-region">
             <div className="chat-thread">
               {history.map((turn, i) => (
                 <MessageBubble

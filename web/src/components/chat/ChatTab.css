@@ -1,11 +1,11 @@
 .chat-page {
   max-width: 780px;
   margin: 0 auto;
-  /* matches .app-main's 40px + 80px vertical padding, plus the top bar of themes that have one */
-  height: calc(100vh - 120px - var(--topbar-h, 0px));
+  /* The page itself scrolls (one scrollbar); min-height keeps the composer at the bottom of a short thread.
+   * 120px = .app-main's 40px + 80px vertical padding. */
+  min-height: calc(100vh - 120px - var(--topbar-h, 0px));
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 /* Conversational/Tavus modes have a real avatar to show large, so they
@@ -27,6 +27,12 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  /* stays in view while the conversation scrolls with the page */
+  position: sticky;
+  top: calc(var(--topbar-h, 0px) + 16px);
+  align-self: flex-start;
+  height: calc(100vh - 200px - var(--topbar-h, 0px));
+  min-height: 360px;
 }
 /* The real avatar/video content grows to fill the column -- without
  * this, a column-direction flex child sizes to its own content instead
@@ -70,7 +76,10 @@
   .chat-avatar-col {
     flex: 0 0 auto;
     max-width: none;
+    position: static;
+    align-self: stretch;
     height: 320px;
+    min-height: 0;
   }
 }
 
@@ -98,20 +107,13 @@
 
 .chat-idle-block {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   display: flex;
 }
-/* margin:auto (not justify-content:center) so this only centers when it
- * fits -- justify-content:center on a scrolling flex container clips
- * overflowing content from BOTH edges instead of letting it scroll from
- * the top, which is the opposite of what a "fits when it can" hero
- * should do. Auto margins on a flex item never go negative, so they fall
- * back to top-aligned (0 margin) once content is taller than the box. */
+/* margin:auto centers the hero when it fits and falls back to top-aligned when it doesn't. */
 .chat-idle-inner {
   margin: auto 0;
   width: 100%;
-  padding: 12px 0;
+  padding: 12px 0 24px;
 }
 
 .chat-hero-text {
@@ -145,6 +147,9 @@
 }
 .composer-pinned {
   margin-top: 14px;
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
 }
 .composer-input {
   flex: 1;
@@ -168,31 +173,14 @@
   margin: 8px 0;
 }
 
-/* The only part of the chat page that actually scrolls -- avatar/video
- * above it and the composer below it both stay fixed in place. */
+/* Thread flows with the page scroll; the pinned composer sticks to the viewport bottom. */
 .chat-scroll-region {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .chat-thread {
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 880px) {
-  /* Sidebar collapses to a static top bar on this breakpoint, so there's
-   * no fixed-height column to anchor a scroll region against -- fall
-   * back to normal whole-page scrolling instead. */
-  .chat-page {
-    height: auto;
-    overflow: visible;
-  }
-  .chat-idle-block,
-  .chat-scroll-region {
-    overflow-y: visible;
-  }
 }
 
 @media (max-width: 640px) {

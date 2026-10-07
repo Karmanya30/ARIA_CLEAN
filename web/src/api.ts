@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, StatementPreview, Transaction } from './types'
 
 const BASE = ''
 
@@ -89,6 +89,22 @@ export const api = {
     j<{ status: string }>('/api/chat/clear', {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId }),
+    }),
+
+  // multipart: the browser sets the Content-Type (with boundary) itself
+  parseStatement: async (file: File): Promise<StatementPreview> => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('session_id', ownerId())
+    const res = await fetch('/api/transactions/parse', { method: 'POST', body: form })
+    if (!res.ok) throw new Error(await extractErrorDetail(res))
+    return res.json()
+  },
+
+  importStatement: (importId: string, applyToProfile: boolean) =>
+    j<StatementImportResult>('/api/transactions/import', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: ownerId(), import_id: importId, apply_to_profile: applyToProfile }),
     }),
 
   transcribe: async (blob: Blob): Promise<{ text: string }> => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { api, ownerId } from '../../api'
 import type { ProfileState, ProfileSummary, Transaction } from '../../types'
+import { StatementUpload } from './StatementUpload'
 import './ProfileTab.css'
 
 const CATEGORIES = ['housing', 'food', 'transport', 'utilities', 'emi', 'entertainment', 'medical', 'other']
@@ -148,13 +149,13 @@ export function ProfileTab() {
   const [txnForm, setTxnForm] = useState({ date: new Date().toISOString().slice(0, 10), category: 'housing', amount: 0, merchant: '', channel: '' })
   const owner = ownerId()
 
-  const load = useCallback(async (first = false) => {
+  const load = useCallback(async (first = false, resetForm = false) => {
     if (first) setLoading(true)
     try {
       const s = await api.getProfile()
       if (!s || typeof s.profile !== 'object') throw new Error('Unexpected response')
       setState(s)
-      if (first) setD(structuredClone(s.profile ?? {}))
+      if (first || resetForm) setD(structuredClone(s.profile ?? {}))
       setError('')
       api.getProfileSummary().then(setSummary).catch(() => setSummary(null))
     } catch (e) {
@@ -466,6 +467,13 @@ async function addTransaction() {
         Feeds Module 1's LSTM spend forecast and Isolation Forest anomaly detector — both need real transaction history to produce
         anything beyond a zero-signal default. Anomaly detection needs 10+ entries.
       </p>
+
+      <StatementUpload
+        onImported={(profileUpdated) => {
+          api.getTransactions(owner).then(setTransactions).catch(() => {})
+          load(false, profileUpdated)
+        }}
+      />
 
       <div className="card txn-form">
         <div className="form-grid">

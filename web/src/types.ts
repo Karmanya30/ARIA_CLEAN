@@ -180,6 +180,42 @@ export interface Transaction {
   channel: string | null
 }
 
+export interface StatementRow {
+  date: string
+  merchant: string
+  amount: number
+  direction: 'debit' | 'credit'
+  category: string
+}
+
+export interface StatementPreview {
+  filename: string
+  format: string
+  rows_total: number
+  importable?: number
+  rows: StatementRow[]
+  skipped: number
+  warnings: string[]
+  period: { from: string; to: string; months: number }
+  summary: {
+    expenses_by_category: Record<string, number>
+    monthly_avg: Record<string, number>
+    total_expenses: number
+    total_income: number
+    avg_monthly_income: number
+    emi_total: number
+    investment_total: number
+  }
+  suggested_profile: { expenses: Record<string, number>; monthly_income: number | null }
+  import_id: string
+}
+
+export interface StatementImportResult {
+  imported: number
+  duplicates: number
+  profile_updated: boolean
+}
+
 export interface ProgressItem {
   concept_id: string
   name: string
