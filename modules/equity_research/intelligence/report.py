@@ -20,7 +20,10 @@ from modules.equity_research.intelligence.analysis import Analysis, dupont_note,
 from modules.equity_research.intelligence.audit import Audit
 from modules.equity_research.intelligence.data import Snapshot, _currency_mismatch
 from modules.equity_research.intelligence.facts import Fact, Ledger, fmt
-from modules.equity_research.intelligence.valuation import Valuation
+from modules.equity_research.intelligence.fundamentals import analyze_fundamentals
+from modules.equity_research.intelligence.valuation import (
+    SCENARIO_WEIGHTS, Valuation, ddm_scenario_detail, scenario_detail, weighted_value,
+)
 
 DISCLAIMER = (
     "Automated, model-generated research for educational purposes. It is not investment advice or a recommendation to "
@@ -81,7 +84,8 @@ def build_report(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit, nar
         "ratio_groups": [{"group": g, "items": _pick(an.facts, keys)} for g, keys in _RATIO_GROUPS if _pick(an.facts, keys)],
         "forecast": _forecast(snap, an, val),
         "assumption_table": [] if audit.withhold_valuation else _assumption_rows(an, val),
-        "scenarios": None if audit.withhold_valuation else _scenarios(val, snap.price),
+        "scenarios": None if audit.withhold_valuation else _scenarios(val, snap.price, an),
+        "fundamentals": analyze_fundamentals(snap, an, val, ledger),
         "drivers": _drivers(an, narr),
         "not_available": _not_available(snap, an, val),
         "ownership": {**{k: an.facts[k].value for k in _OWNERSHIP if k in an.facts}, "pledged_pct": snap.pledged_pct},
@@ -260,15 +264,27 @@ def _assumption_rows(an: Analysis, val: Valuation) -> list[dict]:
     return rows
 
 
-def _scenarios(val: Valuation, price: float | None) -> dict | None:
+def _scenarios(val: Valuation, price: float | None, an: Analysis | None = None) -> dict | None:
+    """Bear / base / bull, each worked through in full: its assumptions, the history it starts from, every forecast line,
+    the discounting and the bridge to value per share; then the three side by side and their probability-weighted value."""
     if not val.scenarios:
         return None
     what = {"bear": "growth and margin -2pp, WACC +1pp, terminal growth -0.5pp", "base": "the model's central assumptions",
             "bull": "growth and margin +2pp, WACC -1pp, terminal growth +0.5pp"} if val.dcf_result else \
            {"bear": "EPS growth -2pp, cost of equity +1pp", "base": "the model's central assumptions", "bull": "EPS growth +2pp, cost of equity -1pp"}
-    cases = [{"name": n.title(), "value": val.scenarios.get(n), "assumptions": what[n],
-              "upside_pct": (val.scenarios[n] / price - 1) * 100 if val.scenarios.get(n) and price else None} for n in ("bear", "base", "bull")]
-    return {"cases": cases, "monte_carlo": val.monte_carlo, "model": "DCF" if val.dcf_result else "DDM"}
+    detail = (lambda d: scenario_detail(val.dcf_inputs, d)) if val.dcf_result else (lambda d: ddm_scenario_detail(val.ddm_inputs, d))
+    cases = [{"name": n.title(), "key": n, "value": val.scenarios.get(n), "assumptions": what[n], "weight": SCENARIO_WEIGHTS[n],
+              "upside_pct": (val.scenarios[n] / price - 1) * 100 if val.scenarios.get(n) and price else None, "detail": detail(d)}
+             for n, d in (("bear", -1), ("base", 0), ("bull", 1))]
+    weighted = weighted_value(val.scenarios)
+    history = None
+    if an and an.years:
+        hist = an.years[-3:]
+        keys = ("revenue", "rev_growth", "ebitda", "opm", "ebit", "pat") if val.dcf_result else ("eps", "pat", "payout", "roe")
+        history = {"columns": [f"{fy(c)}A" for c in hist], "rows": {k: [an.series.get(k, {}).get(c) for c in hist] for k in keys}}
+    return {"cases": cases, "monte_carlo": val.monte_carlo, "model": "DCF" if val.dcf_result else "DDM", "history": history,
+            "weighted": weighted, "weighted_upside_pct": (weighted / price - 1) * 100 if weighted and price else None,
+            "weights": SCENARIO_WEIGHTS}
 
 
 def _dcf_walk(val: Valuation, snap: Snapshot, an: Analysis) -> dict | None:
@@ -409,6 +425,7 @@ def to_markdown(report: dict) -> str:
     if val["comps"]:
         out += ["**Peer multiples** (" + str(val["comps"]["group"]) + " peers; blank = not available or excluded)", "",
                 _md_table(["Peer", "P/E", "P/B", "EV/EBITDA"], [[p["name"], *[("" if p[k] is None or k in p["excluded"] else fmt(p[k], "x")) for k in ("pe", "pb", "ev_ebitda")]] for p in val["comps"]["peers"]])]
+    out += _md_scenarios(report.get("scenarios")) + _md_fundamentals(report.get("fundamentals"))
     d = report["debate"]
     if d["bull"] or d["bear"]:
         out += ["## Bull vs bear"]
@@ -426,3 +443,41 @@ def to_markdown(report: dict) -> str:
             "## Verification"] + [f"- {'✓' if k['status'] == 'pass' else '⚠'} {k['title']}" + ("" if k["status"] == "pass" else ": " + " ".join(k["findings"])) for k in report["audit"]["checks"]]
     out += ["", "## Sources", *[f"- {x['source']}: {x['count']} figures" for x in report["sources"]], "", f"_{report['disclaimer']}_"]
     return "\n".join(out)
+
+
+def _md_scenarios(sc: dict | None) -> list[str]:
+    if not sc:
+        return []
+    out = ["## Scenarios", _md_table(["", "Bear", "Base", "Bull"], [
+        ["Value per share"] + [fmt(c["value"], "₹") for c in sc["cases"]],
+        ["vs price"] + [fmt(c["upside_pct"], "%") for c in sc["cases"]],
+        ["What changes"] + [c["assumptions"] for c in sc["cases"]],
+        ["Weight"] + [f"{c['weight']:.0%}" for c in sc["cases"]]])]
+    if sc.get("weighted"):
+        out.append(f"Probability-weighted value: **{fmt(sc['weighted'], '₹')}**" + (f" ({fmt(sc['weighted_upside_pct'], '%')} vs price)" if sc.get("weighted_upside_pct") is not None else "")
+                   + ". The full year-by-year build of each case is in the HTML/PDF report.")
+    return out + [""]
+
+
+def _md_fundamentals(f: dict | None) -> list[str]:
+    if not f or not f.get("available"):
+        return []
+    out = ["## Fundamental analysis"]
+    p = f["piotroski"]
+    if p.get("available"):
+        out.append(f"- Piotroski F-score: **{p['score']} of {p['tested']}** tested signals ({p['verdict']})")
+    if (q := f["quality"]).get("cash_conversion") is not None:
+        out.append(f"- Cash conversion (3-year median): {fmt(q['cash_conversion'], 'x')} ({q.get('verdict', '')})")
+    if (v := f["value_creation"]).get("available"):
+        out.append(f"- ROIC {fmt(v['roic'], '%')} vs WACC {fmt(v['wacc'], '%')}: {v['spread']:+.1f}pp ({'creates value' if v['creates_value'] else 'below its cost of capital'})")
+    if (g := f["growth_check"]).get("available"):
+        out.append(f"- Fundamental growth not meaningful: {g['note']}" if g["fundamental"] is None else
+                   f"- Fundamental growth {fmt(g['fundamental'] * 100, '%')}" + (f" vs forecast {fmt(g['model'] * 100, '%')}: {g['verdict']}" if g.get("model") is not None else ""))
+    if (o := f["owner_earnings"]).get("available"):
+        out.append(f"- Owner earnings {fmt(o['value'], '₹ Cr')}" + (f" ({o['yield']:.1%} of market value)" if o.get("yield") is not None else ""))
+    if (r := f["residual_income"]).get("available"):
+        out.append(f"- Residual income value {fmt(r['per_share'], '₹')} per share" + (f" ({fmt(r['upside'] * 100, '%')} vs price)" if r.get("upside") is not None else ""))
+    ns = f["news_signals"]
+    if ns["items"]:
+        out.append("- News themes: " + "; ".join(f"{cat} {c['positive']}+/{c['negative']}-" for cat, c in ns["summary"].items()))
+    return out + [""]

@@ -146,6 +146,7 @@ def analyze(snap: Snapshot, ledger: Ledger) -> Analysis:
     s["tax_rate"] = {c: (tax_pct[c] / 100 if tax_pct.get(c) is not None else None) for c in years}
     s["net_worth"] = {c: (eq_cap[c] + reserves[c] if eq_cap.get(c) is not None and reserves.get(c) is not None else None) for c in years}
     s["borrowings"] = {c: borrowings.get(c) for c in years}
+    s["equity_capital"] = {c: eq_cap.get(c) for c in years}
     s["opm"] = {c: _div(ebitda_row.get(c), revenue.get(c)) for c in years}
     s["da_pct"] = {c: _div(dep.get(c), revenue.get(c)) for c in years}
     s["net_margin"] = {c: _div(pat.get(c), revenue.get(c)) for c in years}

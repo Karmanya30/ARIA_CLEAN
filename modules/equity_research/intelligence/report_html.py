@@ -60,7 +60,7 @@ th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;white
 th:first-child,td.l,thead th.l{text-align:left}td.l{white-space:normal}
 thead th{background:#f6f8fb;font-weight:700;color:#334155;border-bottom:2px solid var(--line)}
 th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:italic}
-.scroll{overflow-x:auto}table.tight th,table.tight td{padding:4px 5px;font-size:11.5px}.median td,.median th{font-weight:700;background:#f6f8fb}
+.scroll{overflow-x:auto}table.tight th,table.tight td{padding:4px 5px;font-size:11.5px}table.wide th,table.wide td,table.wide td.l{padding:3px 3px;font-size:10.5px;white-space:nowrap}.median td,.median th{font-weight:700;background:#f6f8fb}
 .heat td{text-align:center;font-weight:600}.base{outline:2px solid var(--ink);outline-offset:-2px}
 .cases{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:8px 0}
 .case{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}.case .v{font-size:20px;font-weight:800}
@@ -73,7 +73,7 @@ th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:itali
 .check{margin:3px 0}.check.review b,.check.blocked b{color:var(--amber)}.finding{display:block;margin-left:18px;color:var(--muted);font-size:12px}
 .bar{text-align:right;padding:8px 16px}.bar button{padding:6px 14px;border-radius:8px;border:1px solid #ccd4e3;background:#fff;cursor:pointer}.disc h3{text-transform:none;letter-spacing:0;color:var(--ink);font-size:13px}@page{size:A4;margin:12mm}@media print{.noprint{display:none}.disc{page-break-before:always}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}.disclaimer{font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:8px}
 .sev-high{color:var(--red);font-weight:700}.sev-medium{color:var(--amber);font-weight:700}
-@media print{body{background:#fff}section{border-color:#ccc;break-inside:avoid}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media print{.scroll{overflow:visible}table th,table td,table.tight th,table.tight td,table.wide th,table.wide td,table.wide td.l{font-size:9px;padding:2px 3px}body{background:#fff}section{border-color:#ccc;break-inside:avoid}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media (max-width:760px){.summary,.two,.cases{grid-template-columns:1fr}main{padding:0 12px}.cover{padding:20px 16px}}
 """
 
@@ -439,9 +439,6 @@ def _sensitivity(r: dict) -> str:
     dcf = v["dcf"]
     parts = []
     if sc:
-        cards = "".join(f'<div class="case {c["name"].lower()}"><div class="muted small">{c["name"]} case</div><div class="v">{_e(fmt(c["value"], "₹")) if c["value"] else "n/a"}</div>'
-                        f'<div>{_e(fmt(c["upside_pct"], "%")) if c["upside_pct"] is not None else ""} vs price</div><div class="small muted">{_e(c["assumptions"])}</div></div>' for c in sc["cases"])
-        parts.append(f'<h3>{sc["model"]} scenarios {tag("calculated")}</h3><div class="cases">{cards}</div>')
         mc = sc["monte_carlo"]
         if mc:
             parts.append(f'<div class="callout"><b>Monte Carlo.</b> Across {mc["n"]:,} seeded scenarios (growth, margin, WACC and terminal growth varied), the DCF value has a 10th–90th percentile range of '
@@ -452,7 +449,7 @@ def _sensitivity(r: dict) -> str:
         sw = dcf.get("margin_swing")
         if sw and sw[0] is not None and sw[1] is not None:
             parts.append(f'<p>EBITDA margin ±2pp moves the DCF between {_e(fmt(sw[0], "₹"))} and {_e(fmt(sw[1], "₹"))}.</p>')
-    return f'<section><h2><span class="n">10</span>Sensitivity and scenarios</h2>{"".join(parts) or "<div class=na>No sensitivity analysis: no DCF or DDM could be computed.</div>"}</section>'
+    return f'<section><h2><span class="n">10</span>Sensitivity and Monte Carlo</h2>{"".join(parts) or "<div class=na>No sensitivity analysis: no DCF or DDM could be computed.</div>"}</section>'
 
 
 def _debate(r: dict) -> str:
@@ -502,17 +499,182 @@ def _verification(r: dict) -> str:
             f'of the same model; the exit-multiple and LBO checks are shown for comparison and never blended. The language model writes prose only.</p></section>')
 
 
+# ── forecasts and scenarios: every case worked through, line by line ───────
+_DCF_LINES = (("Revenue", "revenue", "revenue", "₹ Cr"), ("Revenue growth", "growth", "rev_growth", "%"), ("EBITDA", "ebitda", "ebitda", "₹ Cr"),
+              ("EBITDA margin", "margin", "opm", "%"), ("Depreciation and amortisation", "da", None, "₹ Cr"), ("EBIT", "ebit", "ebit", "₹ Cr"),
+              ("Tax on EBIT", "tax", None, "₹ Cr"), ("NOPAT (EBIT after tax)", "nopat", None, "₹ Cr"), ("Capex", "capex", None, "₹ Cr"),
+              ("Increase in working capital", "nwc_change", None, "₹ Cr"), ("Unlevered free cash flow", "fcf", None, "₹ Cr"))
+_DDM_LINES = (("EPS", "eps", "eps", "₹"), ("EPS growth", "growth", None, "%"), ("Dividend per share", "dps", None, "₹"))
+
+
+def _num(v, unit: str) -> str:
+    return _e(fmt(v * 100 if unit == "%" and v is not None else v, unit))
+
+
+def _cell(v, unit: str) -> str:
+    """Year-table cell with the unit moved to the row label: plain numbers keep 13 year columns on one line."""
+    if v is None:
+        return _num(v, unit)
+    return f"{v * 100:.1f}" if unit == "%" else f"{v:,.2f}" if unit == "₹" else f"{v:,.0f}"
+
+
+def _case_table(case: dict, hist: dict | None, dcf: bool) -> str:
+    d = case["detail"]
+    if "reason" in d:
+        return f'<div class="na">The model refuses this case: {_e(d["reason"])}</div>'
+    n = len(d["discount_factor"])
+    hcols = hist["columns"] if hist else []
+    cols = hcols + [f"Y{i + 1}E" for i in range(n)]
+    rows = []
+    for label, key, hkey, unit in (_DCF_LINES if dcf else _DDM_LINES):
+        actual = [_cell(v, unit) if hkey and v is not None else "" for v in (hist["rows"].get(hkey, [None] * len(hcols)) if hist and hkey else [None] * len(hcols))]
+        rows.append([_e(f"{label} ({unit})")] + actual + [_cell(v, unit) for v in d["lines"][key]])
+    rows.append(["Discount factor"] + [""] * len(hcols) + [_e(f"{k:.3f}") for k in d["discount_factor"]])
+    pv = d["pv_fcf"] if dcf else d["pv_dps"]
+    rows.append(["Present value of " + ("free cash flow (₹ Cr)" if dcf else "dividend (₹)")] + [""] * len(hcols) + [_cell(v, "₹ Cr" if dcf else "₹") for v in pv])
+    a = d["assumptions"]
+    rate = f'WACC {a["wacc"]:.1%}' if dcf else f'cost of equity {a["coe"]:.1%}'
+    head = (f'<p class="small"><b>Assumptions:</b> year-1 growth {a["g1"]:.1%}, fading to {a["g_final"]:.1%} by year {n}; '
+            + (f'EBITDA margin {a["margin"]:.1%}; tax {a["tax"]:.1%}; capex {a["capex_pct"]:.1%} of revenue; working capital {a["nwc_pct"]:.1%} of revenue; '
+               if dcf else f'payout {a["payout"]:.0%}; ')
+            + f'{rate}; terminal growth {a["terminal_growth"]:.1%}. {tag("assumption")}</p>')
+    b = d["bridge"]
+    if dcf:
+        bridge = [("Sum of PV of free cash flow (10 years)", fmt(b["sum_pv_fcf"], "₹ Cr")), ("Terminal-year free cash flow", fmt(b["terminal_fcf"], "₹ Cr")),
+                  ("Terminal value", fmt(b["terminal_value"], "₹ Cr")), ("PV of terminal value", fmt(b["pv_terminal"], "₹ Cr")),
+                  ("Terminal value share of EV", fmt(b["tv_share"] * 100, "%")), ("Enterprise value", fmt(b["enterprise_value"], "₹ Cr")),
+                  ("Less: net debt", fmt(b["net_debt"], "₹ Cr")), ("Less: minority interest", fmt(b["nci"], "₹ Cr")),
+                  ("Equity value", fmt(b["equity_value"], "₹ Cr")), ("Shares", fmt(b["shares_cr"], "Cr shares")),
+                  ("Value per share", fmt(b["per_share"], "₹")), ("Implied EV / year-1 EBITDA", fmt(b["ev_ebitda_fwd"], "x"))]
+    else:
+        bridge = [("Sum of PV of dividends (10 years)", fmt(b["sum_pv_dividends"], "₹")), ("Terminal payout", fmt(b["terminal_payout"] * 100, "%")),
+                  ("Terminal value", fmt(b["terminal_value"], "₹")), ("PV of terminal value", fmt(b["pv_terminal"], "₹")), ("Value per share", fmt(b["per_share"], "₹"))]
+    return (head + _table(["Line item"] + [_e(c) for c in cols], rows, est_from=len(hcols) + 1, cls="tight wide")
+            + f'<h4>Bridge to value per share {tag("calculated")}</h4>' + _table(["Step", "Value"], [[_e(k), _e(v)] for k, v in bridge], cls="tight"))
+
+
+def _scenarios_section(r: dict) -> str:
+    sc = r.get("scenarios")
+    if not sc:
+        return ('<section><h2><span class="n">7</span>Forecasts and scenarios</h2><div class="na">No scenarios: they need a DCF or DDM, '
+                'which could not be computed (or was withheld by verification) for this company.</div></section>')
+    dcf = sc["model"] == "DCF"
+    price = r["stance"]["price"] if r.get("stance") else None
+    cards = "".join(f'<div class="case {c["key"]}"><div class="muted small">{c["name"]} case · weight {c["weight"]:.0%}</div><div class="v">{_e(fmt(c["value"], "₹")) if c["value"] else "n/a"}</div>'
+                    f'<div>{_e(fmt(c["upside_pct"], "%")) if c["upside_pct"] is not None else ""} vs price</div><div class="small muted">{_e(c["assumptions"])}</div></div>' for c in sc["cases"])
+    # side by side
+    def pick(c, fn):
+        d = c["detail"]
+        return "n/a" if "reason" in d else fn(d)
+    if dcf:
+        spec = [("Year-1 revenue growth", lambda d: fmt(d["assumptions"]["g1"] * 100, "%")), ("Year-10 revenue growth", lambda d: fmt(d["assumptions"]["g_final"] * 100, "%")),
+                ("EBITDA margin", lambda d: fmt(d["assumptions"]["margin"] * 100, "%")), ("WACC", lambda d: fmt(d["assumptions"]["wacc"] * 100, "%")),
+                ("Terminal growth", lambda d: fmt(d["assumptions"]["terminal_growth"] * 100, "%")), ("Year-5 revenue", lambda d: fmt(d["lines"]["revenue"][4], "₹ Cr")),
+                ("Year-5 EBITDA", lambda d: fmt(d["lines"]["ebitda"][4], "₹ Cr")), ("Year-5 free cash flow", lambda d: fmt(d["lines"]["fcf"][4], "₹ Cr")),
+                ("Sum of PV of free cash flow", lambda d: fmt(d["bridge"]["sum_pv_fcf"], "₹ Cr")), ("PV of terminal value", lambda d: fmt(d["bridge"]["pv_terminal"], "₹ Cr")),
+                ("Terminal value share of EV", lambda d: fmt(d["bridge"]["tv_share"] * 100, "%")), ("Enterprise value", lambda d: fmt(d["bridge"]["enterprise_value"], "₹ Cr")),
+                ("Equity value", lambda d: fmt(d["bridge"]["equity_value"], "₹ Cr")), ("Implied EV / year-1 EBITDA", lambda d: fmt(d["bridge"]["ev_ebitda_fwd"], "x"))]
+    else:
+        spec = [("Year-1 EPS growth", lambda d: fmt(d["assumptions"]["g1"] * 100, "%")), ("Cost of equity", lambda d: fmt(d["assumptions"]["coe"] * 100, "%")),
+                ("Terminal growth", lambda d: fmt(d["assumptions"]["terminal_growth"] * 100, "%")), ("Year-5 EPS", lambda d: fmt(d["lines"]["eps"][4], "₹")),
+                ("Year-5 dividend per share", lambda d: fmt(d["lines"]["dps"][4], "₹")), ("Sum of PV of dividends", lambda d: fmt(d["bridge"]["sum_pv_dividends"], "₹")),
+                ("PV of terminal value", lambda d: fmt(d["bridge"]["pv_terminal"], "₹"))]
+    rows = [[_e(label)] + [_e(pick(c, fn)) for c in sc["cases"]] for label, fn in spec]
+    rows.append(["<b>Value per share</b>"] + [f'<b>{_e(fmt(c["value"], "₹"))}</b>' for c in sc["cases"]])
+    rows.append(["Upside / downside vs price"] + [_e(fmt(c["upside_pct"], "%")) for c in sc["cases"]])
+    rows.append(["Probability weight"] + [_e(f'{c["weight"]:.0%}') for c in sc["cases"]])
+    weighted = ""
+    if sc.get("weighted"):
+        weighted = (f'<div class="callout"><b>Probability-weighted value: {_e(fmt(sc["weighted"], "₹"))}</b>'
+                    + (f' ({_e(fmt(sc["weighted_upside_pct"], "%"))} vs today\'s price {_e(fmt(price, "₹"))})' if sc.get("weighted_upside_pct") is not None else "")
+                    + f'. Bear 25%, base 50%, bull 25%: a stated convention, not a forecast of likelihood. {tag("calculated")}</div>')
+    cases = "".join(f'<h3>{c["name"]} case: {_e(c["assumptions"])} {tag("estimate")}</h3>{_case_table(c, sc.get("history"), dcf)}' for c in sc["cases"])
+    intro = ("Each case is the same model with fixed, stated changes to its drivers. Every case below starts from the reported history "
+             "(ACTUAL), runs the full forecast year by year (ESTIMATE), discounts it, and bridges enterprise value to value per share, so "
+             "any number can be traced to the line above it.")
+    return (f'<section><h2><span class="n">7</span>Forecasts and scenarios</h2><p class="small muted">{intro}</p><div class="cases">{cards}</div>'
+            f'<h3>Scenarios side by side {tag("calculated")}</h3>{_table(["", "Bear", "Base", "Bull"], rows, cls="tight")}{weighted}{cases}</section>')
+
+
+# ── fundamental analysis ───────────────────────────────────────────────────
+def _fundamentals_section(r: dict) -> str:
+    f = r.get("fundamentals") or {}
+    if not f.get("available"):
+        return ""
+    parts = []
+    p = f["piotroski"]
+    mark = {True: '<span style="color:var(--green);font-weight:700">Pass</span>', False: '<span style="color:var(--red);font-weight:700">Fail</span>', None: '<span class="muted">n/a</span>'}
+    if p.get("signals"):
+        head = (f'<b>{p["score"]} of {p["tested"]} tested signals pass: {p["verdict"]}.</b> ' if p.get("available") else f'<b>Not scored:</b> {_e(p.get("reason", ""))}. ')
+        parts.append(f'<h3>Piotroski F-score {tag("calculated")}</h3><p class="small">{head}Nine pass/fail tests of profitability, balance-sheet strength and '
+                     f'efficiency (Piotroski, 2000). 8–9 is strong, 0–2 weak.</p>'
+                     + _table(["Group", "Test", "Result", "Detail"], [[_e(x["group"]), _e(x["test"]), mark[x["passed"]], _e(x["detail"])] for x in p["signals"]], cls="tight", text=(1, 3)))
+    elif p.get("reason"):
+        parts.append(f'<h3>Piotroski F-score</h3><div class="na">{_e(p["reason"])}</div>')
+    rows = []
+    q = f["quality"]
+    if q.get("cash_conversion") is not None:
+        rows.append(["Cash conversion (3-year median)", fmt(q["cash_conversion"], "x"), q.get("verdict", ""), "operating cash flow / net profit"])
+    if q.get("accruals") is not None:
+        rows.append(["Accruals ratio (Sloan)", fmt(q["accruals"] * 100, "%"), "profits backed by cash" if q["accruals"] <= 0 else "profits ahead of cash",
+                     "(net profit - operating cash flow) / average total assets"])
+    v = f["value_creation"]
+    if v.get("available"):
+        rows.append(["ROIC vs WACC", f'{fmt(v["roic"], "%")} vs {fmt(v["wacc"], "%")} ({v["spread"]:+.1f}pp)',
+                     "creates value" if v["creates_value"] else "earns less than its cost of capital", "return on invested capital minus WACC"])
+    g = f["growth_check"]
+    if g.get("available"):
+        how = (f'reinvestment rate {g["reinvestment_rate"]:.0%} x ROIC {g["roic"]:.1%}' if "reinvestment_rate" in g else f'ROE {g["roe"]:.1%} x retention {g["retention"]:.0%}')
+        rows.append(["Fundamental growth", "not meaningful" if g["fundamental"] is None else fmt(g["fundamental"] * 100, "%"),
+                     g["note"] if g["fundamental"] is None else
+                     (f'forecast year-1 growth {fmt(g["model"] * 100, "%")}: {g["verdict"]}' if g.get("model") is not None else ""), how])
+    o = f["owner_earnings"]
+    if o.get("available"):
+        rows.append(["Owner earnings (Buffett)", fmt(o["value"], "₹ Cr"), f'{o["yield"]:.1%} of market value' if o.get("yield") is not None else "",
+                     "net profit + depreciation - capex - working-capital build"])
+    rim = f["residual_income"]
+    if rim.get("available"):
+        rows.append(["Residual income value", fmt(rim["per_share"], "₹") + " per share",
+                     (f'{fmt(rim["upside"] * 100, "%")} vs price; {rim["reading"]}' if rim.get("upside") is not None else ""),
+                     f'book {fmt(rim["book"], "₹")} + PV of excess returns {fmt(rim["pv_residual"], "₹")}'])
+    if rows:
+        parts.append(f'<h3>Quality, value creation and growth {tag("calculated")}</h3>'
+                     + _table(["Measure", "Value", "Reading", "How it is calculated"], [[_e(c) for c in x] for x in rows], cls="tight", text=(2, 3)))
+    if rim.get("available"):
+        rr = rim["rows"]
+        parts.append(f'<h4>Residual income model, year by year {tag("estimate")}</h4><p class="small muted">ROE {rim["roe"]:.1%} (3-year median) fades in a straight line to the '
+                     f'{rim["coe"]:.1%} cost of equity over 10 years, so no excess return is assumed after that; book value grows by retained profit '
+                     f'({1 - rim["payout"]:.0%} retained). A cross-check, not part of the blended fair value.</p>'
+                     + _table(["Year"] + [f"Y{x['year']}E" for x in rr],
+                              [["ROE"] + [_e(fmt(x["roe"] * 100, "%")) for x in rr], ["Opening book value per share"] + [_e(fmt(x["book"], "₹")) for x in rr],
+                               ["Residual income per share"] + [_e(fmt(x["residual_income"], "₹")) for x in rr], ["Present value"] + [_e(fmt(x["pv"], "₹")) for x in rr]],
+                              est_from=1, cls="tight wide"))
+    ns = f["news_signals"]
+    if ns["items"]:
+        summ = [[_e(cat), str(c["positive"]), str(c["negative"]), str(c["neutral"] + c["mixed"])] for cat, c in sorted(ns["summary"].items(), key=lambda kv: -sum(kv[1].values()))]
+        colour = {"positive": "var(--green)", "negative": "var(--red)"}
+        items = [[_e(it["category"]), f'<span style="color:{colour.get(it["direction"], "inherit")}">{_e(it["direction"])}</span>', _e(it["title"]),
+                  _e(f'{it.get("source", "")}, {it.get("date", "")}')] for it in ns["items"]]
+        parts.append(f'<h3>Forward-looking signals in the news {tag("source")}</h3><p class="small muted">{_e(ns["method"])}</p>'
+                     + _table(["Theme", "Positive", "Negative", "Neutral / mixed"], summ, cls="tight")
+                     + _table(["Theme", "Direction", "Headline", "Outlet, date"], items, cls="tight", text=(2,)))
+    intro = ("Is the business getting stronger, are its profits backed by cash, does it earn more than its capital costs, can it fund the growth the "
+             "forecast assumes, and what does the recent news point to? Scores are arithmetic on the reported statements; headline themes come from fixed keyword rules.")
+    return f'<section><h2><span class="n">6</span>Fundamental analysis</h2><p class="small muted">{intro}</p>{"".join(parts)}</section>'
+
+
 KINDS = {
-    "equity_research": ("Equity research report", ("summary", "executive", "company", "industry", "financials", "ratios", "dupont", "common", "forecast",
-                                                    "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
-    "financial_model": ("Financial model report", ("summary", "financials", "common", "ratios", "dupont", "forecast", "assumptions", "valuation",
-                                                    "sensitivity", "verification")),
-    "valuation": ("Valuation report", ("summary", "forecast", "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
+    "equity_research": ("Equity research report", ("summary", "executive", "company", "industry", "financials", "ratios", "dupont", "common", "fundamentals",
+                                                    "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
+    "financial_model": ("Financial model report", ("summary", "financials", "common", "ratios", "dupont", "fundamentals", "forecast", "scenarios", "assumptions",
+                                                    "valuation", "sensitivity", "verification")),
+    "valuation": ("Valuation report", ("summary", "fundamentals", "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
     "dupont": ("DuPont and ratio analysis", ("financials", "dupont", "ratios", "common", "verification")),
 }
 _SECTIONS = {"summary": _summary, "executive": _executive, "company": _company, "industry": _industry, "financials": _fin_tables, "ratios": _ratios,
              "dupont": _dupont, "common": _common, "forecast": _forecast, "assumptions": _assumptions, "valuation": _valuation,
-             "sensitivity": _sensitivity, "debate": _debate, "risks": _risks, "verification": _verification}
+             "sensitivity": _sensitivity, "debate": _debate, "risks": _risks, "verification": _verification,
+             "scenarios": _scenarios_section, "fundamentals": _fundamentals_section}
 _RATING_DEFS = {"BUY": "Undervalued: the model's fair value is above the price by at least the buy threshold for its confidence tier.",
                 "HOLD": "Fairly valued: the price is within the band around fair value.",
                 "SELL": "Overvalued: the model's fair value is below the price by at least the sell threshold."}

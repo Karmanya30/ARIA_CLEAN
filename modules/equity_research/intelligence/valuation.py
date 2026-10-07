@@ -115,24 +115,32 @@ class DCFResult:
     per_share: float
 
 
-def _project(inp: DCFInputs, growth: tuple[float, ...]) -> tuple[list[float], list[float], list[float]]:
-    """Revenue, EBITDA and free cash flow per year: FCF = EBIT(1-t) + D&A - capex - change in NWC.
+def projection_lines(inp: DCFInputs, growth: tuple[float, ...]) -> dict[str, list[float]]:
+    """Every line of the explicit forecast, per year: FCF = EBIT(1-t) + D&A - capex - change in NWC.
     Net investment (capex minus D&A) scales with the growth rate: as growth fades the company
     needs proportionally less growth capex, instead of carrying peak-growth capex into maturity."""
     g1 = growth[0]
-    revenue, ebitda, fcf = [], [], []
+    out: dict[str, list[float]] = {k: [] for k in ("revenue", "growth", "ebitda", "margin", "da", "ebit", "tax", "nopat", "capex", "nwc_change", "fcf")}
     prev = inp.revenue_base
     for g in growth:
         rev = prev * (1 + g)
         da = rev * inp.da_pct
         scale = g / g1 if g1 > 0 else 1.0
         capex = max(da + rev * (inp.capex_pct - inp.da_pct) * scale, 0.0)
-        free = (rev * inp.ebitda_margin - da) * (1 - inp.tax_rate) + da - capex - inp.nwc_pct * (rev - prev)
-        revenue.append(rev)
-        ebitda.append(rev * inp.ebitda_margin)
-        fcf.append(free)
+        ebit = rev * inp.ebitda_margin - da
+        tax = ebit * inp.tax_rate
+        dnwc = inp.nwc_pct * (rev - prev)
+        for k, v in (("revenue", rev), ("growth", g), ("ebitda", rev * inp.ebitda_margin), ("margin", inp.ebitda_margin), ("da", da), ("ebit", ebit),
+                     ("tax", tax), ("nopat", ebit - tax), ("capex", capex), ("nwc_change", dnwc), ("fcf", ebit - tax + da - capex - dnwc)):
+            out[k].append(v)
         prev = rev
-    return revenue, ebitda, fcf
+    return out
+
+
+def _project(inp: DCFInputs, growth: tuple[float, ...]) -> tuple[list[float], list[float], list[float]]:
+    """Revenue, EBITDA and free cash flow per year (see projection_lines)."""
+    lines = projection_lines(inp, growth)
+    return lines["revenue"], lines["ebitda"], lines["fcf"]
 
 
 def _terminal_fcf(inp: DCFInputs, rev_n: float, tg: float) -> float:
@@ -257,16 +265,53 @@ SCENARIO_GROWTH_PP, SCENARIO_MARGIN_PP, SCENARIO_WACC_PP, SCENARIO_TG_PP = 0.02,
 MC_DRAWS, MC_SEED, MC_MIN_VALID = 2000, 42, 200
 
 
-def scenario_value(inp: DCFInputs, d: int) -> float | None:
-    """DCF per share in the bull (d=+1) or bear (d=-1) case: growth and margin +/-2pp, WACC -/+1pp,
-    terminal growth +/-0.5pp, all at once. None where the model refuses."""
+# How much weight each case gets in the probability-weighted value (a stated convention, like the spreads above;
+# the weighted value is reported beside the three cases, never instead of them). Idea from ai-hedge-fund (MIT).
+SCENARIO_WEIGHTS = {"bear": 0.25, "base": 0.50, "bull": 0.25}
+
+
+def scenario_inputs(inp: DCFInputs, d: int) -> tuple[DCFInputs, tuple[float, ...], float, float]:
+    """Inputs, growth path, WACC and terminal growth of the bull (d=+1), base (0) or bear (d=-1) case: growth and
+    margin +/-2pp, WACC -/+1pp, terminal growth +/-0.5pp, all at once."""
+    if d == 0:
+        return inp, inp.growth, inp.wacc, inp.terminal_growth
     tg = inp.terminal_growth + d * SCENARIO_TG_PP
     g1 = max(inp.growth[0] + d * SCENARIO_GROWTH_PP, tg)
+    return replace(inp, ebitda_margin=inp.ebitda_margin + d * SCENARIO_MARGIN_PP), fade(g1, tg, len(inp.growth)), inp.wacc - d * SCENARIO_WACC_PP, tg
+
+
+def scenario_value(inp: DCFInputs, d: int) -> float | None:
+    """DCF per share in the bull (d=+1) or bear (d=-1) case. None where the model refuses."""
     try:
-        return _value(replace(inp, ebitda_margin=inp.ebitda_margin + d * SCENARIO_MARGIN_PP), fade(g1, tg, len(inp.growth)),
-                      inp.wacc - d * SCENARIO_WACC_PP, tg).per_share
+        return _value(*scenario_inputs(inp, d)).per_share
     except NotApplicable:
         return None
+
+
+def scenario_detail(inp: DCFInputs, d: int) -> dict:
+    """The whole case, line by line: its assumptions, every forecast line, the discounting and the bridge from enterprise
+    value to value per share. {"reason": ...} where the model refuses this case."""
+    case_inp, growth, wacc, tg = scenario_inputs(inp, d)
+    try:
+        res = _value(case_inp, growth, wacc, tg)
+    except NotApplicable as exc:
+        return {"reason": str(exc)}
+    lines = projection_lines(case_inp, growth)
+    factors = [1 / (1 + wacc) ** (i + 1) for i in range(len(growth))]
+    return {"assumptions": {"g1": growth[0], "g_final": growth[-1], "margin": case_inp.ebitda_margin, "wacc": wacc, "terminal_growth": tg,
+                            "tax": case_inp.tax_rate, "capex_pct": case_inp.capex_pct, "nwc_pct": case_inp.nwc_pct},
+            "lines": lines, "discount_factor": factors, "pv_fcf": [f * k for f, k in zip(lines["fcf"], factors)],
+            "bridge": {"sum_pv_fcf": res.pv_fcf, "terminal_fcf": res.terminal_fcf, "terminal_value": res.terminal_value, "pv_terminal": res.pv_terminal,
+                       "tv_share": res.tv_share, "enterprise_value": res.enterprise_value, "net_debt": inp.net_debt, "nci": inp.nci,
+                       "equity_value": res.equity_value, "shares_cr": inp.shares_cr, "per_share": res.per_share,
+                       "ev_ebitda_fwd": res.enterprise_value / lines["ebitda"][0] if lines["ebitda"][0] > 0 else None}}
+
+
+def weighted_value(cases: dict[str, float | None]) -> float | None:
+    """Probability-weighted value per share across bear/base/bull; None unless every case could be valued."""
+    if any(cases.get(k) is None for k in SCENARIO_WEIGHTS):
+        return None
+    return sum(w * cases[k] for k, w in SCENARIO_WEIGHTS.items())
 
 
 def monte_carlo(inp: DCFInputs, price: float, draws: int = MC_DRAWS, seed: int = MC_SEED) -> dict | None:
@@ -324,14 +369,41 @@ def lbo(inp: DCFInputs, res: DCFResult, rate: float) -> dict:
     return {**out, "per_share": per_share, "entry_ev": ev, "entry_multiple": ev / ebitda0, "min_cover": min(cover) if cover else None}
 
 
-def ddm_scenario_value(inp: DDMInputs, d: int) -> float | None:
-    """DDM per share, bull (d=+1) / bear (d=-1): EPS growth +/-2pp, cost of equity -/+1pp."""
+def _ddm_case(inp: DDMInputs, d: int) -> tuple[DDMInputs, float]:
+    """Inputs and cost of equity of the bull (d=+1), base (0) or bear (d=-1) case: EPS growth +/-2pp, cost of equity -/+1pp."""
+    if d == 0:
+        return inp, inp.coe
     tg = inp.terminal_growth
     g1 = max(inp.growth[0] + d * SCENARIO_GROWTH_PP, tg)
+    return replace(inp, growth=fade(g1, tg, len(inp.growth))), inp.coe - d * SCENARIO_WACC_PP
+
+
+def ddm_scenario_value(inp: DDMInputs, d: int) -> float | None:
+    """DDM per share, bull (d=+1) / bear (d=-1). None where the model refuses."""
+    case, coe = _ddm_case(inp, d)
     try:
-        return ddm(replace(inp, growth=fade(g1, tg, len(inp.growth))), coe=inp.coe - d * SCENARIO_WACC_PP).per_share
+        return ddm(case, coe=coe).per_share
     except NotApplicable:
         return None
+
+
+def ddm_scenario_detail(inp: DDMInputs, d: int) -> dict:
+    """The DDM case line by line: EPS, growth, dividends and their present values, then the terminal value."""
+    case, coe = _ddm_case(inp, d)
+    try:
+        res = ddm(case, coe=coe)
+    except NotApplicable as exc:
+        return {"reason": str(exc)}
+    eps, path = case.eps0, []
+    for g in case.growth:
+        eps *= 1 + g
+        path.append(eps)
+    factors = [1 / (1 + coe) ** (i + 1) for i in range(len(case.growth))]
+    return {"assumptions": {"g1": case.growth[0], "g_final": case.growth[-1], "coe": coe, "terminal_growth": case.terminal_growth, "payout": case.payout},
+            "lines": {"eps": path, "growth": list(case.growth), "dps": list(res.dividends)},
+            "discount_factor": factors, "pv_dps": [d_ * k for d_, k in zip(res.dividends, factors)],
+            "bridge": {"sum_pv_dividends": res.pv_dividends, "terminal_payout": res.terminal_payout, "terminal_value": res.terminal_value,
+                       "pv_terminal": res.pv_terminal, "per_share": res.per_share}}
 
 
 # ── DDM and justified P/B (banks, NBFCs) ───────────────────────────────────
@@ -376,6 +448,30 @@ def ddm(inp: DDMInputs, coe: float | None = None, tg: float | None = None) -> DD
     if value <= 0:
         raise NotApplicable("the dividend stream has no positive value")
     return DDMResult(tuple(dividends), pv_div, terminal_payout, terminal_value, pv_terminal, value)
+
+
+RIM_YEARS = 10
+
+
+def residual_income(bvps: float, roe: float, coe: float, payout: float, years: int = RIM_YEARS) -> dict:
+    """Residual income model (Edwards-Bell-Ohlson): value = book value + present value of future profits in excess of the
+    cost of equity on that book. Return on equity fades in a straight line to the cost of equity over ``years`` (competitive
+    advantage erodes), so no excess return is assumed after that -- the conservative textbook closing. Book value grows by
+    retained earnings. Concept as used in ai-hedge-fund (MIT); this implementation keeps book value and the cost of equity
+    from the company's own statements and ARIA's CAPM, and applies no arbitrary haircut."""
+    if bvps <= 0:
+        raise NotApplicable("book value per share is not positive")
+    if not 0 <= payout <= 1:
+        raise NotApplicable("dividend payout is outside 0-100%")
+    bv, pv, rows = bvps, 0.0, []
+    for t in range(1, years + 1):
+        r = roe + (coe - roe) * t / years
+        ri = (r - coe) * bv
+        pv_ri = ri / (1 + coe) ** t
+        pv += pv_ri
+        rows.append({"year": t, "roe": r, "book": bv, "residual_income": ri, "pv": pv_ri})
+        bv += r * bv * (1 - payout)
+    return {"per_share": bvps + pv, "book": bvps, "pv_residual": pv, "rows": rows}
 
 
 def justified_pb(bvps: float, roe: float, coe: float, tg: float) -> float:
@@ -582,6 +678,8 @@ def _dcf(snap: Snapshot, an: Analysis, ledger: Ledger, val: Valuation) -> None:
 
     bear, bull = scenario_value(inp, -1), scenario_value(inp, +1)
     val.scenarios = {"bear": bear, "base": res.per_share, "bull": bull}
+    if (pw := weighted_value(val.scenarios)) is not None:
+        F["scenario_weighted"] = _assume(ledger, "Probability-weighted DCF value", pw, "₹", "bear 25% / base 50% / bull 25% of the three DCF cases", kind=CALCULATED, period="today")
     for name, v in (("bear", bear), ("bull", bull)):
         if v is not None:
             up = name == "bull"
@@ -656,6 +754,8 @@ def _intrinsic_financial(snap: Snapshot, an: Analysis, ledger: Ledger, val: Valu
                                  kind=CALCULATED, inputs=[f_eps, f_pay, f_g, f_roe, F["coe"], f_tg], period="today")
         bear, bull = ddm_scenario_value(inp, -1), ddm_scenario_value(inp, +1)
         val.scenarios = {"bear": bear, "base": res.per_share, "bull": bull}
+        if (pw := weighted_value(val.scenarios)) is not None:
+            F["scenario_weighted"] = _assume(ledger, "Probability-weighted DDM value", pw, "₹", "bear 25% / base 50% / bull 25% of the three DDM cases", kind=CALCULATED, period="today")
         for name, v in (("bear", bear), ("bull", bull)):
             if v is not None:
                 up = name == "bull"

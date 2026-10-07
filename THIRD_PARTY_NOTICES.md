@@ -27,6 +27,24 @@ Thresholds were re-tuned for Indian large caps. The Apache-2.0 license text is a
 the AI4Finance Foundation; this project is not affiliated with or endorsed by them, and does
 not use the name as a product or feature name.
 
+## virattt/ai-hedge-fund — MIT License
+
+The scenario and fundamental-analysis sections of the intelligence layer
+(`modules/equity_research/intelligence/`) use two ideas from **ai-hedge-fund**
+(<https://github.com/virattt/ai-hedge-fund>, MIT License): a probability-weighted
+bear/base/bull value, and the residual income model concept. ARIA's implementation is
+independent; no source code was copied.
+
+## Academic methods
+
+Published methods implemented independently in `modules/equity_research/intelligence/`:
+
+- Piotroski (2000) F-score
+- Sloan (1996) accruals
+- Damodaran's fundamental growth (reinvestment rate x return on capital)
+- Buffett's owner earnings (1986 Berkshire Hathaway letter)
+- Edwards-Bell-Ohlson residual income model
+
 ## Data sources and text used at run time
 
 | Source | Used for | Terms note |

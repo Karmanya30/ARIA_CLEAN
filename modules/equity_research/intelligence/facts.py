@@ -46,6 +46,8 @@ def fmt(value: float | None, unit: str) -> str:
         return f"{sign}{v:.0f} days"
     if unit == "Cr shares":
         return f"{sign}{v:,.1f} Cr shares"
+    if unit.startswith("of "):  # a score: "7 of 9"
+        return f"{sign}{v:.0f} {unit}"
     return f"{sign}{v:,.2f}{(' ' + unit) if unit else ''}"
 
 

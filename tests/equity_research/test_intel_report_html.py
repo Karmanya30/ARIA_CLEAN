@@ -42,7 +42,8 @@ def bank():
 
 # ── structure ──────────────────────────────────────────────────────────────
 SECTIONS = ["Summary", "Executive summary", "Company overview", "Industry and competitive position", "Financial analysis", "Ratio analysis",
-            "Forecasts", "Assumptions", "Valuation", "Sensitivity and scenarios", "Verification, sources and methodology"]
+            "Fundamental analysis", "Forecasts", "Forecasts and scenarios", "Assumptions", "Valuation", "Sensitivity and Monte Carlo",
+            "Verification, sources and methodology"]
 
 
 def test_report_has_every_professional_section_in_order(op):

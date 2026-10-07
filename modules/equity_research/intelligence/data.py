@@ -432,7 +432,7 @@ def fetch_peers(group: str | None, exclude_slug: str) -> tuple[list[Peer], list[
 _LEGAL_SUFFIX = re.compile(r"\b(ltd|limited|corporation|corp|inc)\.?\s*$", re.IGNORECASE)
 
 
-def get_company_news(name: str, limit: int = 8, max_age_days: int = 45) -> list[dict]:
+def get_company_news(name: str, limit: int = 15, max_age_days: int = 45) -> list[dict]:
     """Recent dated headlines via Google News' public RSS search. Never raises."""
     if not settings.FI_NEWS_RSS or not name:
         return []

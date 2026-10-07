@@ -54,6 +54,14 @@ The document separates ACTUAL, CALCULATED, ESTIMATE, ASSUMPTION, SOURCE TEXT and
 actual vs forecast columns, a WACC x terminal-growth grid, bull/base/bear scenarios, a seeded Monte Carlo
 interval, and lists what the data sources cannot provide (segments, geography, industry size, precedent deals) instead of guessing.
 
+Two sections show the working. **Forecasts and scenarios** works the bear, base and bull cases year by year: reported
+history, then a 10-year forecast of revenue, growth, EBITDA, margin, D&A, EBIT, tax, NOPAT, capex, working capital,
+free cash flow, discount factors and present values, then a bridge from enterprise value to value per share. The
+scenarios sit side by side with a probability-weighted value at 25/50/25; banks get the same on their dividend model.
+**Fundamental analysis** adds the Piotroski F-score, cash conversion and accruals, ROIC vs WACC, a fundamental-growth
+check (reinvestment rate x return on capital, marked not meaningful when the business released capital), owner
+earnings, a residual-income cross-check, and forward-looking signals from recent headlines classified by fixed keyword rules.
+
 **Report types.** The same saved report can be viewed as an *equity research report*, a *financial model report*,
 a *valuation report* or a *DuPont and ratio analysis* (ask for e.g. "dupont analysis of TCS", "financial model of
 ITC", "valuation report on Infosys", or pick the type in the Research reports tab). Every type ends with an
