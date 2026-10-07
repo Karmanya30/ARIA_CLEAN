@@ -1,5 +1,5 @@
 """Module 3 vs Module 4 routing predicates -- pure logic, no ML, no LLM."""
-from core.router import is_broad_market_query, is_equity_research_query, is_fundamental_query
+from core.router import is_broad_market_query, is_equity_research_query, is_fundamental_query, is_intelligence_query
 
 
 def test_nifty_query_is_broad_market_not_equity_research():
@@ -37,3 +37,10 @@ def test_everyday_money_questions_are_not_captured_by_the_macro_terms():
     for q in ["How do I start investing with 5000 rupees a month?", "Plan my monthly budget", "Is this insurance policy good?",
               "Which software stocks should a beginner learn about?", "What is a SIP?", "Reliance news"]:
         assert not is_broad_market_query(q), q
+
+
+def test_intelligence_queries_need_a_company_and_a_sentiment_phrase():
+    assert is_intelligence_query("what is the management tone on TCS's last concall", "TCS")
+    assert is_intelligence_query("any red flags in Infosys", "INFY")
+    assert not is_intelligence_query("what is sentiment analysis", None)  # concept question: tutor
+    assert not is_intelligence_query("what is TCS's current stock price", "TCS")

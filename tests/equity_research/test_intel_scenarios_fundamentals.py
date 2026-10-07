@@ -114,3 +114,54 @@ def test_growth_check_is_not_meaningful_when_the_business_released_capital():
     assert g["available"] and g["fundamental"] is None and g["reinvestment"] < 0
     assert ledger.find("Fundamental growth") is None
     assert "releasing capital" in g["note"] and "verdict" not in g
+
+
+# ── lenses, scorecard and sentiment ─────────────────────────────────────────
+def _fake_scorer(texts):
+    return [{"positive": 0.9, "negative": 0.05, "neutral": 0.05, "net": 0.85} if "up" in t else {"positive": 0.05, "negative": 0.9, "neutral": 0.05, "net": -0.85} for t in texts]
+
+
+def test_news_and_call_tone_use_the_scorer_and_recent_headlines_weigh_more():
+    from datetime import date, timedelta
+
+    from modules.equity_research.intelligence.fundamentals import concall_signals
+    today, old = date.today().isoformat(), (date.today() - timedelta(days=60)).isoformat()
+    s = news_signals([{"title": "profits up", "source": "x", "date": today}, {"title": "profits down", "source": "x", "date": old}], scorer=_fake_scorer)
+    assert s["scored"] == 2 and s["net"] > 0.5 and s["items"][0]["direction"] == "positive" and s["items"][1]["direction"] == "negative"
+    call = concall_signals({"period": "Jul 2026", "url": "u", "sentences": ["We expect order inflow to go up 10% next year.", "Margins face pressure from costs."]}, scorer=_fake_scorer)
+    assert call["available"] and call["scored"] == 2 and "Outlook and guidance" in call["themes"] and "Risks and headwinds" in call["themes"]
+    assert not concall_signals(None)["available"]
+
+
+def test_pillars_and_overlay_follow_their_published_thresholds():
+    from types import SimpleNamespace as NS
+
+    from modules.equity_research.intelligence import lenses
+    assert lenses._pillar("x", [(1, "a"), (1, "b")])["rating"] == "strong"
+    assert lenses._pillar("x", [(-1, "a"), (0, "b")])["rating"] == "weak"
+    assert lenses._pillar("x", [(1, "a"), (-1, "b")])["rating"] == "mixed" and lenses._pillar("x", [])["rating"] == "n/a"
+    val = NS(synthesis=NS(rating="BUY"), withheld_by_audit=False)
+    P = lambda *r: [{"name": n, "rating": x} for n, x in zip("abcdef", r)]  # noqa: E731
+    assert lenses.overlay(P("weak", "weak", "mixed", "mixed", "mixed", "mixed"), val)["tone"] == "concern"
+    assert lenses.overlay(P("strong", "strong", "strong", "mixed", "mixed", "mixed"), val)["tone"] == "support"
+    assert lenses.overlay(P("strong", "weak", "mixed", "mixed", "mixed", "mixed"), val)["tone"] == "mixed"
+    assert "No valuation call" in lenses.overlay(P("mixed"), NS(synthesis=None, withheld_by_audit=False))["reading"]
+
+
+def test_report_carries_the_scorecard_lenses_and_feeds_the_evidence(op):
+    from modules.equity_research.intelligence.report import to_markdown
+    f = op["fundamentals"]
+    sc = f["scorecard"]
+    assert [p["name"] for p in sc["pillars"]] == ["Quality", "Valuation lenses", "Growth", "Financial safety", "Technical", "Sentiment"]
+    assert op["stance"]["quality_overlay"]["reading"] in op["stance"]["notes"]
+    g = f["lenses"]["graham"]
+    if g.get("number") is not None:  # Graham number = sqrt(22.5 x EPS x book value per share)
+        assert g["number"] == pytest.approx((22.5 * g["eps"] * g["bvps"]) ** 0.5, rel=1e-3)
+    ids = {x["id"] for x in op["facts"]}
+    assert {f["lenses"][k]["fact"] for k in ("graham", "buffett") if f["lenses"][k].get("fact")} <= ids
+    html = render_html(op)
+    for needle in ("Fundamental scorecard", "Investor lenses", "Technical read", "Management on the latest earnings call"):
+        assert needle in html, needle
+    assert "## Fundamental analysis" in "\n".join(to_markdown(op)) if isinstance(to_markdown(op), list) else "Fundamental analysis" in to_markdown(op)
+    weak = [p["name"] for p in sc["pillars"] if p["rating"] == "weak"]
+    assert all(any(t.startswith(n) for r in op["risks"] for t in [r["title"]]) for n in weak)

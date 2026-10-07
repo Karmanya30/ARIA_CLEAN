@@ -58,6 +58,11 @@ def _warm_up() -> None:
         from ai.speech.live_tts import warm_up as warm_live_voice
 
         warm_live_voice()
+        from modules.equity_research.intelligence import sentiment
+
+        t_fb = time.time()
+        sentiment.score(["warm up"])  # loads FinBERT when its weights are installed (no-op otherwise)
+        logger.info(f"Sentiment warm-up took {time.time() - t_fb:.1f}s")
         logger.info(f"Warm-up finished in {time.time() - t:.1f}s")
     except Exception as exc:  # a failed warm-up only means the first request loads them instead
         logger.warning(f"Warm-up skipped: {exc}")

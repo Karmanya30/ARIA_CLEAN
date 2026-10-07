@@ -61,6 +61,13 @@ scenarios sit side by side with a probability-weighted value at 25/50/25; banks 
 **Fundamental analysis** adds the Piotroski F-score, cash conversion and accruals, ROIC vs WACC, a fundamental-growth
 check (reinvestment rate x return on capital, marked not meaningful when the business released capital), owner
 earnings, a residual-income cross-check, and forward-looking signals from recent headlines classified by fixed keyword rules.
+It also applies the classic investor tests (Graham number and defensive checklist, Buffett consistency and retained-earnings
+tests, Lynch PEG, Greenblatt earnings yield and EVA), a technical read, and **FinBERT** tone scores for recent headlines and
+for the latest earnings-call transcript (read from screener.in; quotes by theme are verbatim). These roll up into a six-pillar
+scorecard whose reading is added to the stance and whose weak pillars become listed risks. The scorecard never changes the fair
+value or the rating. FinBERT runs locally on CPU (about 10 s per report); download it once with
+`huggingface-cli download ProsusAI/finbert --include "*.json" "*.txt" pytorch_model.bin --local-dir models/nlp/finbert`
+(or set `ARIA_FINBERT_DIR`). Without it the report still builds, with keyword themes and no tone scores.
 
 **Report types.** The same saved report can be viewed as an *equity research report*, a *financial model report*,
 a *valuation report* or a *DuPont and ratio analysis* (ask for e.g. "dupont analysis of TCS", "financial model of

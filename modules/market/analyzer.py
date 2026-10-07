@@ -16,6 +16,7 @@ from typing import Any
 import yfinance as yf
 from loguru import logger
 
+from modules.equity_research.intelligence import sentiment
 from modules.equity_research.intelligence.data import _ttl_cache
 from shared.news import fetch_news, format_headlines
 
@@ -97,10 +98,10 @@ def get_sector_snapshot(sector: str) -> dict[str, Any]:
     }
 
 
-def get_market_news(query: str = "", limit: int = 12) -> list[str]:
-    """Fresh headlines for the question (or a broad market + world briefing when it names nothing specific), merged
-    from many Indian and international feeds, each tagged with its source and age. Empty list, never an error."""
-    return format_headlines(fetch_news(query, limit=limit))
+def get_market_news_with_tone(query: str = "", limit: int = 12) -> tuple[list[str], dict]:
+    """Fresh headlines for the question (or a broad market + world briefing when it names nothing specific), each tagged with its source and age, plus their tone (keyword rules unless FinBERT is already loaded: never loads the model here)."""
+    items = fetch_news(query, limit=limit)
+    return format_headlines(items), sentiment.tone([i["title"] for i in items])
 
 
 def _detect_sector(query: str) -> str | None:
@@ -124,7 +125,8 @@ class MarketAnalyzer:
         sector = _detect_sector(query)
         index_name = _detect_index(query)
 
-        context: dict[str, Any] = {"query": query, "news_headlines": get_market_news(query)}
+        headlines, tone = get_market_news_with_tone(query)
+        context: dict[str, Any] = {"query": query, "news_headlines": headlines, "news_tone": tone}
 
         if sector:
             context["sector"] = get_sector_snapshot(sector)

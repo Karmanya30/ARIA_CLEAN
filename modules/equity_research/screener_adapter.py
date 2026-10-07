@@ -68,7 +68,35 @@ class Screener:
                 return float(m.group(1))
         return None
 
-    def get_company_data(self, company_name: str, consolidated: bool = False) -> Dict[str, Any]:
+    @staticmethod
+    def _documents(soup) -> Dict[str, Any]:
+        """Report documents from the page's #documents block: recent concall transcripts/PPTs and annual
+        reports. Concall <li>s read "Jul | 2026 | Transcript | AI | Summary | PPT | REC"; only the links
+        labelled Transcript / PPT matter. Never raises -- the page layout is not ours to control."""
+        out: Dict[str, Any] = {"concalls": [], "annual_reports": []}
+        try:
+            root = soup.find(id="documents")
+            if root is None:
+                return out
+            for li in root.select("div.annual-reports ul li"):
+                a = li.find("a", href=True)
+                if a:
+                    out["annual_reports"].append({"label": a.get_text(" ", strip=True), "url": a["href"]})
+            for li in root.select("ul.list-links li"):
+                m = re.match(r"\s*([A-Za-z]{3,9})[\s|]+(\d{4})\b", li.get_text(" ", strip=True))
+                if not m:
+                    continue
+                links = {a.get_text(strip=True): a["href"] for a in li.find_all("a", href=True)}
+                if links.get("Transcript") or links.get("PPT"):
+                    out["concalls"].append({"period": f"{m.group(1)} {m.group(2)}",
+                                            "transcript": links.get("Transcript"), "ppt": links.get("PPT")})
+        except Exception:
+            return {"concalls": [], "annual_reports": []}
+        out["annual_reports"] = out["annual_reports"][:5]
+        out["concalls"] = out["concalls"][:5]
+        return out
+
+    def get_company_data(self,company_name: str, consolidated: bool = False) -> Dict[str, Any]:
         company_name = company_name.upper().strip()
 
         # Default: standalone first (matches official annual report Schedule 4 figures for
@@ -95,6 +123,7 @@ class Screener:
             "ratios":            self._scrape_table(soup, "ratios"),
             "shareholding":      self._scrape_table(soup, "quarterly-shp"),  # promoters / FIIs / DIIs / public, last 12 quarters
             "pledged_pct":       self._pledged_pct(soup),
+            "documents":         self._documents(soup),
             # Screener redirects /consolidated/ to the standalone page when a company has
             # no group accounts, so the final URL (not the one requested) says which we got.
             "view": "consolidated" if res.url.rstrip("/").endswith("/consolidated") else "standalone",
@@ -119,6 +148,7 @@ def get_screener_data(company_name: str, consolidated: bool = False) -> Dict[str
             "quarterly_results": data.get("quarterly_results", {}),
             "shareholding":      data.get("shareholding", {}),
             "pledged_pct":       data.get("pledged_pct"),
+            "documents":         data.get("documents", {}),
             "view":              data.get("view", "standalone"),
         }
     except Exception as e:

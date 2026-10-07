@@ -68,6 +68,8 @@ th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:itali
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.side{border-radius:10px;padding:10px 14px}.side.bull{background:#eaf7f1}.side.bear{background:#fdeeee}
 .chip{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:99px;padding:0 8px;margin:2px 3px 0 0;font-size:11px}
 .callout{border-left:4px solid var(--accent);background:#eef3ff;padding:8px 12px;border-radius:6px;margin:8px 0}
+.callout.warn{border-left-color:var(--red);background:#fdeeee}.callout.good{border-left-color:var(--green);background:#eaf7f1}
+.quote{border-left:3px solid var(--line);margin:6px 0;padding:2px 10px;font-size:12.5px}.quote .meta{font-size:11px;color:var(--faint)}
 .na{border:1px dashed var(--faint);border-radius:8px;padding:8px 12px;margin:8px 0;background:#fafbfc}
 .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.chart{max-width:640px}.chart h4{margin:0 0 2px;font-size:12px;color:var(--muted)}
 .check{margin:3px 0}.check.review b,.check.blocked b{color:var(--amber)}.finding{display:block;margin-left:18px;color:var(--muted);font-size:12px}
@@ -597,11 +599,114 @@ def _scenarios_section(r: dict) -> str:
 
 
 # ── fundamental analysis ───────────────────────────────────────────────────
+_RATING = {"strong": ("var(--green)", "Strong"), "mixed": ("#b45309", "Mixed"), "weak": ("var(--red)", "Weak"), "n/a": ("var(--faint)", "No data")}
+_SENTIMENT_WORDS = {"strong": "Positive", "mixed": "Neutral", "weak": "Negative"}
+_PASS = {True: '<span style="color:var(--green);font-weight:700">Pass</span>', False: '<span style="color:var(--red);font-weight:700">Fail</span>', None: '<span class="muted">n/a</span>'}
+
+
+def _scorecard_html(f: dict) -> str:
+    sc = f.get("scorecard")
+    if not sc:
+        return ""
+    rows = []
+    for p in sc["pillars"]:
+        colour, word = _RATING[p["rating"]]
+        if p["name"] == "Sentiment":
+            word = _SENTIMENT_WORDS.get(p["rating"], word)
+        mark = {1: '<span style="color:var(--green)">▲</span>', -1: '<span style="color:var(--red)">▼</span>', 0: '<span class="muted">●</span>'}
+        why = "<br>".join(f'{mark[x["sign"]]} {_e(x["text"])}' for x in p["reasons"]) or '<span class="muted">nothing to measure for this company</span>'
+        rows.append([_e(p["name"]), f'<b style="color:{colour}">{word}</b>', why])
+    ov = sc["overlay"]
+    cls = {"concern": "warn", "support": "good"}.get(ov["tone"], "")
+    it = f.get("intelligence") or {}
+    badge = ""
+    if it.get("score") is not None:
+        colour = _RATING[it["band"]][0]
+        divs = "".join(f'<li><b>{_e(d["severity"])}</b>: {_e(d["text"])} <span class="muted">({_e(d["evidence"])})</span></li>' for d in it["divergences"])
+        badge = (f'<p><b style="color:{colour}">Intelligence score {it["score"]}/100 ({it["band"]})</b> <span class="small muted">coverage {it["coverage"]:.0%}'
+                 f'{", low evidence" if it["low_evidence"] else ""}</span></p>' + (f'<ul class="small">{divs}</ul>' if divs else ""))
+    return (f'<h3>Fundamental scorecard {tag("calculated")}</h3><div class="callout {cls}"><b>{_e(ov["reading"])}</b></div>{badge}'
+            f'<p class="small muted">Six pillars, each built from the measures below: ▲ counts for, ▼ against, ● neutral. A pillar is strong at two or more net points and weak at '
+            f'minus one or lower. The reading never changes the fair value or the rating: it says how much weight the call deserves.</p>'
+            + _table(["Pillar", "Rating", "What it rests on"], rows, cls="tight", text=(2,)))
+
+
+def _checklist(rows: list[dict], score: tuple | None = None) -> str:
+    return _table(["Test", "Result", "Detail"], [[_e(x["test"]), _PASS[x["passed"]], _e(x["detail"])] for x in rows], cls="tight", text=(0, 2))
+
+
+def _lenses_html(f: dict) -> str:
+    L = f.get("lenses") or {}
+    parts = []
+    g = L.get("graham") or {}
+    if g.get("available"):
+        line = ""
+        if g.get("number") is not None:
+            line = (f'Graham number <b>{_e(fmt(g["number"], "₹"))}</b> (the most a defensive investor should pay, from EPS {_e(fmt(g["eps"], "₹"))} and book value '
+                    f'{_e(fmt(g["bvps"], "₹"))} per share): margin of safety <b>{g["margin_of_safety"]:+.0%}</b> against today\'s price. ')
+        parts.append(f'<h4>Graham: the defensive investor {tag("calculated")}</h4><p class="small">{line}<b>{g["score"]} of {g["tested"]} tests pass.</b></p>' + _checklist(g["tests"]))
+    b = L.get("buffett") or {}
+    if b.get("available"):
+        parts.append(f'<h4>Buffett: consistency and retained earnings {tag("calculated")}</h4><p class="small"><b>{b["score"]} of {b["tested"]} tests pass.</b></p>' + _checklist(b["tests"]))
+    ly = L.get("lynch") or {}
+    gb = L.get("greenblatt") or {}
+    rows = []
+    if ly.get("available"):
+        rows.append(["Lynch: PEG ratio", f'{ly["peg"]:.2f}', f'P/E {ly["pe"]:.1f}x / EPS growth {ly["growth"] * 100:.1f}% a year: a {ly["category"]}; {ly["reading"]}'])
+    if gb.get("available"):
+        rows.append(["Greenblatt: earnings yield", f'{gb["earnings_yield"] * 100:.1f}%', f'EBIT / enterprise value vs the {gb["risk_free"] * 100:.2f}% risk-free rate; ROIC {gb["roic"] * 100:.1f}%: {gb["verdict"]}'])
+        if gb.get("eva"):
+            e = gb["eva"]
+            rows.append(["Economic value added (EVA)", fmt(e["value"], "₹ Cr"), f'(ROIC - WACC {e["spread"]:+.1f}pp) x invested capital {fmt(e["invested_capital"], "₹ Cr")}: '
+                         + ("earns above its cost of capital" if e["value"] > 0 else "earns below its cost of capital")])
+    if rows:
+        parts.append(f'<h4>Growth and return lenses {tag("calculated")}</h4>' + _table(["Lens", "Value", "Reading"], [[_e(c) for c in x] for x in rows], cls="tight", text=(2,)))
+    if not parts:
+        return ""
+    return ('<h3>Investor lenses</h3><p class="small muted">Each framework asks a different question of the same statements, with the pass marks its author published '
+            '(Graham 1949, Buffett 1977–, Lynch 1989, Greenblatt 2005, Stern Stewart). They are screens, not verdicts: a growth company will fail Graham and a bank will not fit Greenblatt.</p>'
+            + "".join(parts))
+
+
+def _technical_html(f: dict) -> str:
+    t = f.get("technical") or {}
+    if not t.get("available"):
+        return ""
+    return (f'<h3>Technical read {tag("calculated")}</h3><p class="small muted">Trend, relative strength and momentum from the weekly price history. Trend and relative strength feed the '
+            'scorecard; the rest is context.</p>' + _table(["Measure", "Value", "Reading"], [[_e(x["measure"]), _e(x["value"]), _e(x["reading"])] for x in t["rows"]], cls="tight", text=(2,)))
+
+
+def _call_html(call: dict) -> str:
+    if not call or not call.get("available"):
+        return (f'<h3>Management on the latest earnings call</h3><div class="na">{_e((call or {}).get("reason", "no transcript"))}</div>')
+    head = (f'The {_e(call["period"])} earnings call, {call["n_sentences"]} sentences read'
+            + (f', {call["scored"]} scored: net tone <b>{call["net"]:+.2f}</b> ({call["positive_share"]:.0%} of sentences positive, {call["negative_share"]:.0%} negative). ' if call.get("net") is not None
+               else ' (not scored: FinBERT is not installed). ')
+            + (f'<a href="{_e(call["url"])}" target="_blank" rel="noreferrer">Open the transcript</a>.' if call.get("url") else ""))
+    blocks = []
+    for theme, quotes in call["themes"].items():
+        qs = "".join(f'<div class="quote">“{_e(q["text"])}”<div class="meta">'
+                     + (f'{_e(q["label"])} ({q["net"]:+.2f})' if q.get("net") is not None else "tone not scored") + '</div></div>' for q in quotes)
+        blocks.append(f'<h4>{_e(theme)}</h4>{qs}')
+    return (f'<h3>Management on the latest earnings call {tag("source")}</h3><p class="small">{head}</p><p class="small muted">{_e(call["method"])}</p>' + "".join(blocks))
+
+
+def _documents_html(docs: dict) -> str:
+    docs = docs or {}
+    ar, cc = docs.get("annual_reports", [])[:3], docs.get("concalls", [])[:4]
+    if not ar and not cc:
+        return ""
+    link = lambda label, url: f'<a href="{_e(url)}" target="_blank" rel="noreferrer">{_e(label)}</a>'  # noqa: E731
+    items = [f"<li>{link(a['label'], a['url'])}</li>" for a in ar] + [f"<li>{link('Earnings call ' + c['period'] + ' (transcript)', c['transcript'])}</li>" for c in cc if c.get("transcript")]
+    return (f'<h3>Company reports on file {tag("source")}</h3><p class="small muted">Linked from screener.in for the reader. Only the latest earnings-call transcript is read '
+            f'and scored above; annual reports are not analysed.</p><ul class="small">{"".join(items)}</ul>')
+
+
 def _fundamentals_section(r: dict) -> str:
     f = r.get("fundamentals") or {}
     if not f.get("available"):
         return ""
-    parts = []
+    parts = [_scorecard_html(f), _lenses_html(f)]
     p = f["piotroski"]
     mark = {True: '<span style="color:var(--green);font-weight:700">Pass</span>', False: '<span style="color:var(--red);font-weight:700">Fail</span>', None: '<span class="muted">n/a</span>'}
     if p.get("signals"):
@@ -649,18 +754,22 @@ def _fundamentals_section(r: dict) -> str:
                               [["ROE"] + [_e(fmt(x["roe"] * 100, "%")) for x in rr], ["Opening book value per share"] + [_e(fmt(x["book"], "₹")) for x in rr],
                                ["Residual income per share"] + [_e(fmt(x["residual_income"], "₹")) for x in rr], ["Present value"] + [_e(fmt(x["pv"], "₹")) for x in rr]],
                               est_from=1, cls="tight wide"))
+    parts.append(_technical_html(f))
     ns = f["news_signals"]
     if ns["items"]:
         summ = [[_e(cat), str(c["positive"]), str(c["negative"]), str(c["neutral"] + c["mixed"])] for cat, c in sorted(ns["summary"].items(), key=lambda kv: -sum(kv[1].values()))]
         colour = {"positive": "var(--green)", "negative": "var(--red)"}
-        items = [[_e(it["category"]), f'<span style="color:{colour.get(it["direction"], "inherit")}">{_e(it["direction"])}</span>', _e(it["title"]),
-                  _e(f'{it.get("source", "")}, {it.get("date", "")}')] for it in ns["items"]]
-        parts.append(f'<h3>Forward-looking signals in the news {tag("source")}</h3><p class="small muted">{_e(ns["method"])}</p>'
+        items = [[_e(it["category"]), f'<span style="color:{colour.get(it["direction"], "inherit")}">{_e(it["direction"])}</span>',
+                  "" if it.get("net") is None else f'{it["net"]:+.2f}', _e(it["title"]), _e(f'{it.get("source", "")}, {it.get("date", "")}')] for it in ns["items"]]
+        tone = (f' Overall tone <b>{ns["net"]:+.2f}</b> across {ns["scored"]} headlines (recent ones count more).' if ns.get("net") is not None else "")
+        parts.append(f'<h3>News: forward-looking signals and tone {tag("source")}</h3><p class="small muted">{_e(ns["method"])}</p><p class="small">{tone}</p>'
                      + _table(["Theme", "Positive", "Negative", "Neutral / mixed"], summ, cls="tight")
-                     + _table(["Theme", "Direction", "Headline", "Outlet, date"], items, cls="tight", text=(2,)))
-    intro = ("Is the business getting stronger, are its profits backed by cash, does it earn more than its capital costs, can it fund the growth the "
-             "forecast assumes, and what does the recent news point to? Scores are arithmetic on the reported statements; headline themes come from fixed keyword rules.")
-    return f'<section><h2><span class="n">6</span>Fundamental analysis</h2><p class="small muted">{intro}</p>{"".join(parts)}</section>'
+                     + _table(["Theme", "Direction", "Tone", "Headline", "Outlet, date"], items, cls="tight", text=(3,)))
+    parts += [_call_html(f.get("concall")), _documents_html(f.get("documents"))]
+    intro = ("Is the business getting stronger, are its profits backed by cash, does it earn more than it costs to fund, is it priced sensibly by the classic investors' tests, "
+             "what is the trend, and what do the news and management's own words say about the future? Scores are arithmetic on the reported statements and prices; "
+             "tone is scored by FinBERT; quotes are verbatim.")
+    return f'<section><h2><span class="n">6</span>Fundamental analysis</h2><p class="small muted">{intro}</p>{"".join(x for x in parts if x)}</section>'
 
 
 KINDS = {

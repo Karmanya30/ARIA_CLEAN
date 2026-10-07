@@ -20,6 +20,7 @@ from modules.equity_research.intelligence.analysis import Analysis, dupont_note,
 from modules.equity_research.intelligence.audit import Audit
 from modules.equity_research.intelligence.data import Snapshot, _currency_mismatch
 from modules.equity_research.intelligence.facts import Fact, Ledger, fmt
+from modules.equity_research.intelligence import lenses
 from modules.equity_research.intelligence.fundamentals import analyze_fundamentals
 from modules.equity_research.intelligence.valuation import (
     SCENARIO_WEIGHTS, Valuation, ddm_scenario_detail, scenario_detail, weighted_value,
@@ -67,7 +68,16 @@ def _valuation_block(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit,
 
 def build_report(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit, narr: Narrative, deb: Debate, ledger: Ledger,
                  kind: str = "equity_research") -> dict:
+    fund = an.fundamentals if an.fundamentals is not None else analyze_fundamentals(snap, an, val, ledger)
+    if fund.get("scorecard"):  # the valuation may have been withheld by the audit since the scorecard was first read
+        fund["scorecard"]["overlay"] = lenses.overlay(fund["scorecard"]["pillars"], val)
+        fund["intelligence"] = lenses.intelligence(fund, val)
+    stance = _stance(val, audit)
+    if (overlay := (fund.get("scorecard") or {}).get("overlay")):
+        stance["notes"] = [*stance["notes"], overlay["reading"]]
+        stance["quality_overlay"] = overlay
     risks = [{**r.to_dict(), "origin": "rule"} for r in sorted([*an.risks, *val.risks], key=lambda r: _SEVERITY[r.severity])]
+    risks += _fundamental_risks(fund)
     risks += [{"category": r["category"], "severity": "", "title": "", "detail": r["text"], "facts": [], "origin": "llm"} for r in narr.risks]
     by_source: dict[str, dict] = {}
     for f in ledger:
@@ -85,7 +95,7 @@ def build_report(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit, nar
         "forecast": _forecast(snap, an, val),
         "assumption_table": [] if audit.withhold_valuation else _assumption_rows(an, val),
         "scenarios": None if audit.withhold_valuation else _scenarios(val, snap.price, an),
-        "fundamentals": analyze_fundamentals(snap, an, val, ledger),
+        "fundamentals": fund,
         "drivers": _drivers(an, narr),
         "not_available": _not_available(snap, an, val),
         "ownership": {**{k: an.facts[k].value for k in _OWNERSHIP if k in an.facts}, "pledged_pct": snap.pledged_pct},
@@ -93,7 +103,7 @@ def build_report(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit, nar
         "company": {"name": snap.name, "symbol": snap.target.symbol, "sector": snap.info.get("sector"), "industry": snap.info.get("industry"),
                     "price": snap.price, "market_cap_cr": snap.market_cap_cr, "as_of": snap.as_of, "basis": snap.view},
         "status": audit.status,
-        "stance": _stance(val, audit),
+        "stance": stance,
         "thesis": narr.thesis,
         "business": narr.business,
         "financials": {"text": narr.financial, "tables": [t.to_dict() for t in an.tables]},
@@ -372,6 +382,8 @@ def summary_response(snap: Snapshot, an: Analysis, val: Valuation, audit: Audit,
     if "net_npa" in f:
         bits.append(f"net NPA {T(f, 'net_npa')}")
     analysis = ("Fundamentals: " + ", ".join(bits) + "." if bits else "Financial statement data was limited.")
+    if (it := (an.fundamentals or {}).get("intelligence")) and it["score"] is not None:
+        analysis += f" Intelligence score {it['score']}/100 ({it['band']})" + (f"; watch: {it['divergences'][0]['text'].lower()}" if it["divergences"] else "") + "."
     if live:
         analysis += " Valuation methods: " + ", ".join(f"{m.label} {fmt(m.mid, '₹')}" for m in syn.methods) + "."
 
@@ -463,6 +475,19 @@ def _md_fundamentals(f: dict | None) -> list[str]:
     if not f or not f.get("available"):
         return []
     out = ["## Fundamental analysis"]
+    if sc := f.get("scorecard"):
+        out.append(f"**{sc['overlay']['reading']}**")
+        if (it := f.get("intelligence")) and it["score"] is not None:
+            out.append(f"- Intelligence score: **{it['score']}/100 ({it['band']})**" + "".join(f"; {d['text'].lower()}" for d in it["divergences"]))
+        out += [f"- {x['name']}: **{x['rating']}**" for x in sc["pillars"]]
+    L = f.get("lenses") or {}
+    for key, name in (("graham", "Graham defensive tests"), ("buffett", "Buffett consistency tests")):
+        if (x := L.get(key) or {}).get("available"):
+            out.append(f"- {name}: {x['score']} of {x['tested']} pass")
+    if (g := L.get("graham") or {}).get("number") is not None:
+        out.append(f"- Graham number {fmt(g['number'], '₹')} (margin of safety {g['margin_of_safety']:+.0%})")
+    if (ly := L.get("lynch") or {}).get("available"):
+        out.append(f"- Lynch PEG {ly['peg']:.2f}: {ly['reading']}")
     p = f["piotroski"]
     if p.get("available"):
         out.append(f"- Piotroski F-score: **{p['score']} of {p['tested']}** tested signals ({p['verdict']})")
@@ -480,4 +505,25 @@ def _md_fundamentals(f: dict | None) -> list[str]:
     ns = f["news_signals"]
     if ns["items"]:
         out.append("- News themes: " + "; ".join(f"{cat} {c['positive']}+/{c['negative']}-" for cat, c in ns["summary"].items()))
+    if f["news_signals"].get("net") is not None:
+        out.append(f"- News tone (FinBERT): {f['news_signals']['net']:+.2f} across {f['news_signals']['scored']} headlines")
+    if (c := f.get("concall") or {}).get("available") and c.get("net") is not None:
+        out.append(f"- Earnings call {c['period']} tone (FinBERT): {c['net']:+.2f} ({c['positive_share']:.0%} positive, {c['negative_share']:.0%} negative sentences)")
     return out + [""]
+
+
+_PILLAR_CATEGORY = {"Quality": "financial", "Valuation lenses": "valuation", "Growth": "business", "Financial safety": "financial", "Technical": "market", "Sentiment": "market"}
+
+
+def _fundamental_risks(fund: dict) -> list[dict]:
+    """A weak pillar of the scorecard is a risk in its own right: shown with the specific readings that made it weak."""
+    out = []
+    for p in (fund.get("scorecard") or {}).get("pillars", []):
+        if p["rating"] == "weak":
+            bad = [r["text"] for r in p["reasons"] if r["sign"] < 0]
+            out.append({"category": _PILLAR_CATEGORY.get(p["name"], "financial"), "severity": "medium", "title": f"{p['name']} is weak on the scorecard",
+                        "detail": "; ".join(bad) + ".", "facts": [], "origin": "rule"})
+    for d in (fund.get("intelligence") or {}).get("divergences", []):
+        if d["severity"] == "high":
+            out.append({"category": "financial", "severity": "high", "title": d["text"], "detail": d["evidence"] + ".", "facts": [], "origin": "rule"})
+    return out

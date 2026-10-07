@@ -29,3 +29,4 @@ fastapi==0.115.8
 uvicorn==0.34.0
 pyngrok==7.2.3
 python-multipart==0.0.26
+pypdf==5.1.0

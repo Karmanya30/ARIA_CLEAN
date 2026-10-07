@@ -108,6 +108,16 @@ def is_research_report_query(query: str, ticker: str | None) -> bool:
     return bool(ticker) and any(p in text for p in _RESEARCH_COMPANY_PHRASES)
 
 
+_INTELLIGENCE_PHRASES = ("company intelligence", "intelligence score", "sentiment", "management tone", "concall", "earnings call tone", "divergence", "red flags")
+
+
+def is_intelligence_query(query: str, ticker: str | None) -> bool:
+    """True for "what's the sentiment / management tone / red flags on <company>": needs a resolved company, so concept
+    questions ("what is sentiment analysis") still reach the tutor."""
+    text = query.lower()
+    return bool(ticker) and any(p in text for p in _INTELLIGENCE_PHRASES)
+
+
 def is_equity_research_query(query: str, ticker: str | None) -> bool:
     """True if this query should go to Module 4 (Equity Research) at all --
     a full research/valuation request, a resolved company + fundamental

@@ -219,6 +219,8 @@ class Snapshot:
     warnings: list[str] = field(default_factory=list)
     pledged_pct: float | None = None  # % of promoter holding pledged, only when screener.in's remarks flag it
     yf_statements: dict | None = None  # latest annual balance-sheet rows + EBIT from Yahoo: {as_of, rows, ebit}, absolute units
+    documents: dict = field(default_factory=dict)  # screener.in links: {"concalls": [{period, transcript, ppt}], "annual_reports": [{label, url}]}
+    concall: dict | None = None  # latest earnings-call transcript: {period, url, sentences}
 
     def as_peer(self) -> "Peer":
         """The subject in the same shape as its peers, for like-for-like benchmarking."""
@@ -283,6 +285,8 @@ def build_snapshot(
     warnings: list[str] | None = None,
     as_of: str | None = None,
     yf_statements: dict | None = None,
+    documents: dict | None = None,
+    concall: dict | None = None,
 ) -> Snapshot:
     """Assemble a Snapshot from fetched data. Pure -- no network, no LLM."""
     warnings = list(warnings or [])
@@ -331,6 +335,8 @@ def build_snapshot(
         warnings=warnings,
         pledged_pct=pledged,
         yf_statements=yf_statements,
+        documents=documents if documents is not None else ((screener_raw or {}).get("documents") or {}),
+        concall=concall,
     )
 
 
@@ -341,6 +347,100 @@ def _screener(slug: str) -> dict:
     if "error" in data:
         raise RuntimeError(data["error"])
     return data
+
+
+# ── earnings-call transcript: fetch, clean, split ──────────────────────────
+_MAX_PDF_BYTES = 8 * 1024 * 1024
+_MIN_WORDS, _MAX_WORDS, _MAX_SENTENCES = 8, 80, 600
+# Operator scripts, safe-harbour and disclaimer text carry no signal about the business; scoring them
+# would only drag every call towards neutral.
+_BOILERPLATE = re.compile(
+    r"ladies and gentlemen|listen\s*-?\s*only|forward\s*-?\s*looking|^moderator:|next question comes from|warm welcome|presentation was uploaded|quick look at the numbers|conference call is being recorded|being recorded|"
+    r"touch ?tone|press (star|\*)|question-and-answer|question and answer session|"
+    r"safe harbou?r|disclaimer|no representation|without prior (written )?consent|"
+    r"this document|copyright|all rights reserved|please note that this|"
+    r"over to you|hand the conference|handing the conference|thank you (very much )?and over|"
+    r"you may (now )?(disconnect|log off)|conference has (now )?concluded|good (morning|afternoon|evening)|"
+    r"welcome to the|first question is from|next question is from|your line is",
+    re.IGNORECASE,
+)
+_ABBREVIATIONS = {"rs", "mr", "mrs", "ms", "dr", "ltd", "no", "nos", "inc", "co", "pvt", "vs", "st", "approx",
+                  "etc", "eg", "ie", "fy", "q", "cr", "sr", "jr", "prof", "mn", "bn"}
+
+
+def _pdf_pages(content: bytes) -> list[str]:
+    """Text of each PDF page (split out so tests can stand in for a real PDF)."""
+    import io
+
+    from pypdf import PdfReader
+
+    return [page.extract_text() or "" for page in PdfReader(io.BytesIO(content)).pages]
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split at . ! ? followed by whitespace and a capital, except after abbreviations ("Rs. ", "Ltd. ") or
+    a lone initial. Decimals ("5.8") have no space after the dot, so they never match."""
+    out, start = [], 0
+    for m in re.finditer(r"[.!?]\s+(?=[A-Z])", text):
+        word = re.search(r"(\w+)$", text[start:m.start()])
+        last = word.group(1) if word else ""
+        if m.group()[0] == "." and (last.lower() in _ABBREVIATIONS or len(last) == 1):
+            continue
+        out.append(text[start:m.start() + 1])
+        start = m.end()
+    out.append(text[start:])
+    return [s.strip() for s in out if s.strip()]
+
+
+def _clean_transcript(pages: list[str]) -> list[str]:
+    """Page texts -> analysable sentences: running headers/footers and page numbers removed, hyphenated line
+    breaks rejoined, operator/disclaimer boilerplate dropped, only 8-80 word sentences kept (shorter ones are
+    greetings and fragments, longer ones are usually run-together tables), at most 600."""
+    key = lambda line: re.sub(r"\d+", "#", line.strip().lower())  # noqa: E731 -- "Page 3 of 40" == "Page 4 of 40"
+    seen: dict[str, int] = {}
+    for page in pages:
+        for k in {key(l) for l in page.splitlines() if l.strip()}:
+            seen[k] = seen.get(k, 0) + 1
+    repeated = max(3, math.ceil(0.3 * len(pages)))  # a line on this many pages is furniture, not speech
+    kept = []
+    for page in pages:
+        lines = [l.strip() for l in page.splitlines() if l.strip()]
+        kept += [l for l in lines if seen[key(l)] < repeated and not re.fullmatch(r"[\d\s\-–/]+", l)]
+    text = re.sub(r"(\w)-\n(\w)", r"\1\2", "\n".join(kept))
+    text = re.sub(r"\s+", " ", text)
+    sentences = [s for s in _split_sentences(text) if _MIN_WORDS <= len(s.split()) <= _MAX_WORDS]
+    sentences = [s for s in sentences if not _BOILERPLATE.search(s)]
+    # strip "Amit Anwani: " speaker labels so they do not count as words
+    sentences = [re.sub(r"^(?:[A-Z][\w.'-]*\s){0,3}[A-Z][\w.'-]*:\s+", "", s) for s in sentences]
+    return [s for s in sentences if len(s.split()) >= _MIN_WORDS][:_MAX_SENTENCES]
+
+
+@_ttl_cache(6 * 3600)
+def _fetch_concall(url: str, period: str) -> dict:
+    # keyed by url (not the documents dict, which is unhashable); raises so failures are not cached
+    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}, timeout=25, stream=True)
+    resp.raise_for_status()
+    if "pdf" not in resp.headers.get("content-type", "").lower() and ".pdf" not in url.lower():
+        raise ValueError("not a PDF")
+    content = b""
+    for chunk in resp.iter_content(65536):
+        content += chunk
+        if len(content) > _MAX_PDF_BYTES:
+            raise ValueError("transcript larger than 8 MB")
+    sentences = _clean_transcript(_pdf_pages(content))
+    if not sentences:
+        raise ValueError("no readable text (scanned or encrypted PDF?)")
+    return {"period": period, "url": url, "sentences": sentences}
+
+
+def get_concall(documents: dict) -> dict | None:
+    """The latest earnings-call transcript as cleaned sentences, or None if there is none or anything fails."""
+    try:
+        call = next((c for c in (documents or {}).get("concalls", []) if c.get("transcript")), None)
+        return _fetch_concall(call["transcript"], call.get("period", "")) if call else None
+    except Exception as exc:
+        logger.warning(f"earnings-call transcript unavailable: {exc}")
+        return None
 
 
 @_ttl_cache(300)
@@ -536,11 +636,14 @@ def gather(target: Target) -> Snapshot:
     info = info or {}
     group = _peer_group(info.get("sector"), info.get("industry"))
     name = info.get("longName") or info.get("shortName") or target.name
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    documents = (screener_raw or {}).get("documents") or {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
         f_peers = pool.submit(fetch_peers, group, target.slug)
         f_news = pool.submit(get_company_news, name)
         f_wiki = pool.submit(get_wiki_context, name, info.get("industry"))
+        f_concall = pool.submit(get_concall, documents)  # never raises: a missing transcript only degrades
         (peers, failed), news, wiki = f_peers.result(), f_news.result(), f_wiki.result()
+        concall = f_concall.result()
     if failed:
         warnings.append(f"peer data unavailable for: {', '.join(failed)}")
 
@@ -556,6 +659,8 @@ def gather(target: Target) -> Snapshot:
         wiki=wiki,
         warnings=warnings,
         yf_statements=bs,
+        documents=documents,
+        concall=concall,
     )
 
 

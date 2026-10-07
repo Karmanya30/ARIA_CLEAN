@@ -3,6 +3,7 @@ import { Sidebar, SIDEBAR_TABS } from './components/Sidebar'
 import { ChatTab } from './components/chat/ChatTab'
 import { ProfileTab } from './components/profile/ProfileTab'
 import { ResearchTab } from './components/research/ResearchTab'
+import { IntelligenceTab } from './components/research/IntelligenceTab'
 import { ProgressTab } from './components/progress/ProgressTab'
 import { SettingsTab } from './components/settings/SettingsTab'
 import { useSessionId } from './hooks/useSessionId'
@@ -23,6 +24,7 @@ export default function App() {
       <main className="app-main">
         {tab === 'chat' && <ChatTab sessionId={sessionId} />}
         {tab === 'research' && <ResearchTab />}
+        {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (
           <div className="page-wrap">
             <ProfileTab sessionId={sessionId} />

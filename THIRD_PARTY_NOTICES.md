@@ -35,6 +35,13 @@ The scenario and fundamental-analysis sections of the intelligence layer
 bear/base/bull value, and the residual income model concept. ARIA's implementation is
 independent; no source code was copied.
 
+## ProsusAI/finBERT
+
+The tone scores of headlines and earnings-call sentences use **FinBERT** (Araci, 2019, "FinBERT: Financial Sentiment Analysis with
+Pre-trained Language Models"; <https://github.com/ProsusAI/finBERT>, Apache-2.0; model <https://huggingface.co/ProsusAI/finbert>).
+The model is downloaded separately at set-up and is not distributed with ARIA; its Hugging Face card declares no licence, and it was
+fine-tuned on the Financial PhraseBank (Malo et al., 2014; CC BY-NC-SA), so check these terms before commercial deployment.
+
 ## Academic methods
 
 Published methods implemented independently in `modules/equity_research/intelligence/`:
@@ -44,6 +51,13 @@ Published methods implemented independently in `modules/equity_research/intellig
 - Damodaran's fundamental growth (reinvestment rate x return on capital)
 - Buffett's owner earnings (1986 Berkshire Hathaway letter)
 - Edwards-Bell-Ohlson residual income model
+- Graham's defensive-investor tests and Graham number (*The Intelligent Investor*, 1949)
+- Buffett's consistency and retained-earnings tests (Berkshire Hathaway letters)
+- Lynch's PEG ratio (*One Up on Wall Street*, 1989)
+- Greenblatt's earnings yield and return on capital (*The Little Book That Beats the Market*, 2005)
+- Stern Stewart's economic value added (EVA)
+
+Earnings-call PDFs are read with `pypdf` (BSD-3-Clause).
 
 ## Data sources and text used at run time
 

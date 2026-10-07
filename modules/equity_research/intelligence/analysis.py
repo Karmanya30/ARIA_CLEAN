@@ -62,6 +62,7 @@ class Analysis:
     attributable: float = 1.0  # share of screener's net profit attributable to shareholders (minorities excluded)
     unavailable: dict[str, str] = field(default_factory=dict)  # optional measure -> why it could not be computed
     competitive: dict = field(default_factory=dict)  # the company beside its listed peers: rows, ranks, revenue share
+    fundamentals: dict | None = None  # set by fundamentals.analyze_fundamentals (before the commentary is written)
 
 
 # ── helpers ────────────────────────────────────────────────────────────────

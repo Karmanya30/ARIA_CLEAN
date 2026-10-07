@@ -14,7 +14,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/research", tags=["research"])
 
@@ -28,6 +28,27 @@ _FORMATS = {
 
 class OwnerRequest(BaseModel):
     owner_id: str
+
+
+class SentimentRequest(BaseModel):
+    texts: list[str] = Field(max_length=50)
+
+
+@router.get("/intelligence")
+def intelligence(q: str) -> dict[str, Any]:
+    from modules.equity_research.intelligence.pipeline import company_intelligence
+
+    result = company_intelligence(q)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Company not found.")
+    return result
+
+
+@router.post("/sentiment")
+def sentiment_tone(req: SentimentRequest) -> dict[str, Any]:
+    from modules.equity_research.intelligence import sentiment
+
+    return sentiment.tone([t[:1000] for t in req.texts])
 
 
 def _load(owner_id: str, report_id: str) -> dict[str, Any]:

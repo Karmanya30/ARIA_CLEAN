@@ -3,8 +3,9 @@
 import re
 from typing import Any
 
-from core.router import is_broad_market_query, is_equity_research_query, route_query
+from core.router import is_broad_market_query, is_equity_research_query, is_intelligence_query, route_query
 from core.session import save_turn
+from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
 from modules.finance.pipeline import run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
@@ -123,7 +124,9 @@ Follow-up query: {query}
     # queries to the general fallback. is_broad_market_query and
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
-    if is_equity_research_query(query, ticker):
+    if is_intelligence_query(query, ticker) and (response := company_intelligence(query)):
+        pass
+    elif is_equity_research_query(query, ticker) or is_intelligence_query(query, ticker):
         response = equity_research_pipeline(query, user_id=session_id)
     elif is_broad_market_query(query):
         response = market_pipeline(query)

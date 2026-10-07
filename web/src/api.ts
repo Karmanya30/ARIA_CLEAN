@@ -45,6 +45,33 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export interface CompanyIntel {
+  domain: string
+  company: { name: string; symbol: string }
+  intelligence: {
+    score: number
+    band: string
+    coverage: number
+    low_evidence: boolean
+    components: { name: string; weight: number; value: number }[]
+    divergences: { id: string; severity: string; text: string; evidence: string }[]
+  }
+  scorecard: {
+    pillars: { name: string; rating: string; points: number; reasons: { sign: string; text: string }[] }[]
+    overlay: { tone: string; reading: string }
+  }
+  news: { title: string; source: string; date: string; direction: string; net: number }[]
+  call: { available: boolean; period?: string; net?: number; themes?: string[] }
+  response: string
+}
+
+export interface SentimentResult {
+  engine: 'finbert' | 'keywords'
+  net: number
+  label: string
+  items: { text: string; label: string; net: number }[]
+}
+
 export const api = {
   sendMessage: (query: string, sessionId: string, mode: ChatMode) =>
     j<ChatResponse>('/api/chat', {
@@ -128,6 +155,11 @@ export const api = {
 
   deleteReport: (id: string) =>
     j<{ status: string }>(`/api/research/reports/${id}?owner_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
+
+  companyIntel: (q: string) => j<CompanyIntel>(`/api/research/intelligence?q=${encodeURIComponent(q)}`),
+
+  sentiment: (texts: string[]) =>
+    j<SentimentResult>('/api/research/sentiment', { method: 'POST', body: JSON.stringify({ texts }) }),
 
   startTavus: (sessionId: string) =>
     j<{ conversation_id: string; conversation_url: string; embed_url: string }>('/api/tavus/start', {
