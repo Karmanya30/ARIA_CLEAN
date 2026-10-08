@@ -51,6 +51,9 @@ def _warm_up() -> None:
         from shared.vector_store import _get_encoder
 
         _get_encoder().encode(["warm up"])
+        from shared.understand import _speller
+
+        _speller()
         extract_entities("warm up")
         from shared.news import warm_up as warm_news
 

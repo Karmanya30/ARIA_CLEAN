@@ -68,7 +68,7 @@ _RESEARCH_COMPANY_PHRASES = (
     "investment thesis", "bull case", "bear case", "bull and bear", "valuation", "dcf", "fair value",
     "intrinsic value", "target price", "price target", "overvalued", "undervalued", "deep dive", "full analysis",
 )
-_CONCEPT_QUESTION = re.compile(r"^\s*(what is|what's|what are|explain|define|meaning of|how does|how do)\b")
+_CONCEPT_QUESTION = re.compile(r"^\s*(?:(?:please|kindly|can you|could you)\s+)?(what is|what's|whats|what are|explain|define|meaning of|how does|how do)\b")
 
 
 def route_query(query: str) -> str:
@@ -126,7 +126,8 @@ def is_equity_research_query(query: str, ticker: str | None) -> bool:
         return True
     if ticker and is_fundamental_query(query):
         return True
-    return is_investment_query(query)
+    # "pe ratio of L&T and HDFC Bank" is company data, not a personal SIP plan; without a company it stays a concept question
+    return is_investment_query(query) or (bool(ticker) and bool(re.search(r"\bpe ratio\b|\bp/e\b|\bp e ratio\b|price to earnings", query.lower())))
 
 
 def is_broad_market_query(query: str) -> bool:

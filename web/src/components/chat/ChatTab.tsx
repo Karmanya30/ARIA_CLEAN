@@ -110,14 +110,14 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: calm ? 'auto' : 'smooth' })
   }, [history.length, sending])
 
-  async function send(text: string) {
+  async function send(text: string, correct = true) {
     const trimmed = text.trim()
     if (!trimmed || sending) return
     setSending(true)
     setPending(trimmed)
     setQuery('')
     try {
-      const response = await api.sendMessage(trimmed, sessionId, mode)
+      const response = await api.sendMessage(trimmed, sessionId, mode, correct)
       setHistory((h) => [...h, { query: trimmed, response, audio_token: response.audio_token }])
     } catch (err) {
       setHistory((h) => [

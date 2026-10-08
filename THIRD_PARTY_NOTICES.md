@@ -42,6 +42,12 @@ Pre-trained Language Models"; <https://github.com/ProsusAI/finBERT>, Apache-2.0;
 The model is downloaded separately at set-up and is not distributed with ARIA; its Hugging Face card declares no licence, and it was
 fine-tuned on the Financial PhraseBank (Malo et al., 2014; CC BY-NC-SA), so check these terms before commercial deployment.
 
+## SymSpell and symspellpy (query spelling correction)
+
+`shared/understand.py` corrects spelling for routing with **symspellpy** (mammothb, MIT; <https://github.com/mammothb/symspellpy>), a Python port of
+**SymSpell** (Wolf Garbe, MIT; <https://github.com/wolfgarbe/SymSpell>), and **editdistpy** (mammothb, MIT). It uses the English frequency dictionary
+that ships with symspellpy (`frequency_dictionary_en_82_765.txt`, derived from Google Books Ngram data and SCOWL; MIT as distributed by SymSpell).
+
 ## Personal-finance project ideas
 
 The personal-finance profile, financial memory and health score were designed after studying the *ideas* of public projects (FinanceOS, Personal Finance

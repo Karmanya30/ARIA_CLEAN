@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     # the per-tab session, so they survive closing the tab.
     owner_id: str | None = None
     adapt_tone: bool = True  # Settings > Conversation; crisis care replies ignore it
+    correct: bool = True  # False = route the text exactly as typed (the chat's "use original" button)
 
 
 @router.post("")
@@ -33,7 +34,7 @@ def send_message(req: ChatRequest) -> dict[str, Any]:
     get_session(req.session_id)["adapt_tone"] = req.adapt_tone
     token = current_owner.set(req.owner_id)
     try:
-        result = handle_query(req.query.strip(), session_id=req.session_id, mode=req.mode)
+        result = handle_query(req.query.strip(), session_id=req.session_id, mode=req.mode, correct=req.correct)
     finally:
         current_owner.reset(token)
     response_text = result.get("response", "No response generated.")

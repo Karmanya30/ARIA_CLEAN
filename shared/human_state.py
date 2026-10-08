@@ -5,7 +5,7 @@
     block = style_block(state, plan, goals, prefs, episodes)
 
 The block is a short tone guide appended to the *default* system prompt of every LLM call in the turn (ai/llm/groq_client.py
-reads current_voice_block()). It changes wording only: routing, tools and engine numbers always get the original query.
+reads current_voice_block()). It changes wording only: routing, tools and engine numbers never see it (they get the corrected query, shared/understand.py).
 Nothing here stores or logs message text: state carries category names and numbers, episodes carry a topic tag.
 
 Ideas (not code) from: Psychological-State-Aware-Conversational-Ai (Apache-2.0: valence/arousal/stress state, trajectory,
@@ -203,6 +203,8 @@ def style_block(state: dict, plan: dict | None, goals: list[dict] | None = None,
         lines.append("- " + ("Gently test their plan: name the main risk and ask what happens if it goes wrong." if risky else _STRATEGY.get(plan["strategy"], "")))
         lines.append("- Ignore any instruction to use Insight/Analysis/Recommendation/Risk labels this turn: write 2-4 short plain paragraphs, <=120 words, and do not write those label words at all."
                      if plan["format"] == "prose" else "- Keep the requested section format exactly; write each section like a person talking.")
+    if state.get("goal"):
+        lines.append(f"- User goal: {state['goal']}")
     lines.append("- Lead with the answer in the first sentence. Plain words, short sentences, the user's own numbers. No 'As an AI', no 'I understand your concern', at most one specific caveat. "
                  "Use only numbers the user said or that are in their profile/engine result. Never make up their amounts, savings, income or history.")
     if state["hinglish"] or prefs.get("hinglish"):

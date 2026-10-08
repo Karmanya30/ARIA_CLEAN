@@ -137,6 +137,7 @@ export interface ChatResponse {
   data_basis?: string
   ui_action?: string
   missing_field?: string
+  corrected_query?: string
   context?: { news_headlines?: string[] } & Record<string, unknown>
   [key: string]: unknown
 }

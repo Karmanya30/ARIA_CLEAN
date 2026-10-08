@@ -91,10 +91,10 @@ export interface SentimentResult {
 }
 
 export const api = {
-  sendMessage: (query: string, sessionId: string, mode: ChatMode) =>
+  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true) =>
     j<ChatResponse>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone() }),
+      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone(), correct }),
     }),
 
   getHistory: (sessionId: string) =>

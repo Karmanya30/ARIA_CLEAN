@@ -15,6 +15,7 @@ from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
 from shared import human_state, user_store
+from shared.understand import goal, normalize, spelled, suggest
 from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
 from shared.domain_guard import (
@@ -112,8 +113,10 @@ def _support_reply(query: str, profile: dict, hinglish: bool, turn: int) -> dict
     return {"domain": "support", "query": query, "response": reply}
 
 
-def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
-    """Route a user query to the correct module pipeline."""
+def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", original: str | None = None) -> dict[str, Any]:
+    """Route a user query (already spelling-corrected) to the correct module pipeline. `original` is what the user typed:
+    it is what history and the response show."""
+    shown = original or query
 
     if mode in ("Conversational Mode", "Live Avatar"):  # spoken follow-ups ("what about taxes on it?") need their subject back
         from ai.llm.groq_client import generate_response
@@ -142,7 +145,8 @@ Follow-up query: {query}
 
     if _is_smalltalk(query):
         response = _smalltalk_reply(query)
-        save_turn(session_id, query, response)
+        response["query"] = shown
+        save_turn(session_id, shown, response)
         return response
 
     # a bare "about 40k" answers our pending finance question; "can I afford..." is a finance tool whatever the keywords say
@@ -173,7 +177,8 @@ Follow-up query: {query}
         guard = classify_domain(query)
         if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
             response = build_refusal_response(query, guard)
-            save_turn(session_id, query, response)
+            response["query"] = shown
+            save_turn(session_id, shown, response)
             return response
         response = _with_news(query, tutor_pipeline, user_id=session_id)
     elif domain == "market":
@@ -195,10 +200,16 @@ Follow-up query: {query}
         # business/company/management angle instead of hard-refusing every
         # borderline question -- see shared/domain_guard.py's docstring for
         # the full three-tier rationale.
+        # no keyword route hit: a close match to a known question becomes a "did you mean", with no model call
+        if suggestions := suggest(query):
+            response = {"domain": "clarify", "query": shown, "response": "Did you mean: " + " / ".join(suggestions) + "?", "suggestions": suggestions}
+            save_turn(session_id, shown, response)
+            return response
         guard = classify_domain(query)
         if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
             response = build_refusal_response(query, guard)
-            save_turn(session_id, query, response)
+            response["query"] = shown
+            save_turn(session_id, shown, response)
             return response
 
         response = _with_news(query, tutor_pipeline, user_id=session_id)
@@ -219,24 +230,37 @@ Follow-up query: {query}
     if output_guard["available"]:
         response["domain_guard_output"] = output_guard
 
-    save_turn(session_id, query, response)
+    response["query"] = shown
+    save_turn(session_id, shown, response)
     return response
 
 
-def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
+def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode", correct: bool = True) -> dict[str, Any]:
     """Read how the user seems to feel (shared/human_state.py), then answer with a matching tone. A self-harm message gets a
-    fixed caring reply with no model and no finance, even when tone adaptation is off. Routing and tools get the original query."""
+    fixed caring reply with no model and no finance, even when tone adaptation is off. Routing and tools get the spelling-,
+    text-speak- and Hinglish-normalised query (shared/understand.py; amounts are never altered); the tone layer, history and
+    display keep the original. `correct=False` routes the original text as typed."""
     session = get_session(session_id)
-    if human_state.is_crisis(query):
+    text, changes = normalize(query) if correct else (query, [])
+    if human_state.is_crisis(query) or human_state.is_crisis(text):
         response = {"domain": "care", "query": query, "response": human_state.CARE_REPLY, "tone": {"strategy": "care", "format": "prose"}}
         save_turn(session_id, query, response)
         return response
+    response = _tone_and_handle(query, text, session, session_id, mode)
+    if spelled(changes) and response.get("domain") not in ("refused", "clarify", "care", "smalltalk"):
+        response["corrected_query"] = text
+    return response
+
+
+def _tone_and_handle(query: str, text: str, session: dict, session_id: str, mode: str) -> dict[str, Any]:
     if not session.get("adapt_tone", True):
-        return _handle(query, session_id, mode)
+        return _handle(text, session_id, mode, original=query)
     support = False
     try:
         owner = user_store.current_owner.get() or session_id
         state = human_state.analyze(query, session.get("human"))
+        hit = finance_intent(text)
+        state["goal"] = goal(text, hit, state["intent"])
         prefs, episodes = user_store.get_style(owner)
         plan = human_state.choose(state, prefs)
         new_prefs = human_state.learn_prefs(query, prefs, state["trajectory"]["hing"])
@@ -246,7 +270,7 @@ def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mo
             block = human_state.style_block(state, plan, goals, new_prefs, episodes)
         if plan:
             episodes = human_state.add_episode(episodes, state, plan, date.today().isoformat())
-        support = bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision")             and not finance_intent(query) and not finance_statement(query)
+        support = bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision") and not hit and not finance_statement(text)
         if plan or new_prefs != prefs:
             user_store.save_style(owner, new_prefs, episodes)
         session["human"] = state["trajectory"]
@@ -262,7 +286,7 @@ def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mo
             response = _support_reply(query, user_store.get_financial_profile(owner) or {}, state["hinglish"], len(session.get("history", [])))
             save_turn(session_id, query, response)
         else:
-            response = _handle(query, session_id, mode)
+            response = _handle(text, session_id, mode, original=query)
     if plan:
         response["tone"] = {"strategy": plan["strategy"], "format": plan["format"]}
     return response

@@ -32,7 +32,7 @@ export function MessageBubble({
   turn: HistoryTurn
   sessionId: string
   onQuizAnswered: (correct: boolean) => void
-  onRetry?: (query: string) => void
+  onRetry?: (query: string, correct?: boolean) => void
   onOpenProfile?: () => void
   onAsk?: (query: string) => void
   isLast?: boolean
@@ -74,6 +74,12 @@ export function MessageBubble({
           )}
           {response.ui_action === 'open_profile' && onOpenProfile && (
             <button type="button" className="bubble-retry" onClick={onOpenProfile}>{response.missing_field === 'transactions' ? 'Upload a statement' : 'Fill quick form'}</button>
+          )}
+          {typeof response.corrected_query === 'string' && onRetry && (
+            <p className="bubble-caption">
+              Showing results for {response.corrected_query} ·{' '}
+              <button type="button" className="bubble-retry" onClick={() => onRetry(turn.query, false)}>use original</button>
+            </p>
           )}
           <p className="bubble-caption">{badge}</p>
           {headlines.length > 0 && (
