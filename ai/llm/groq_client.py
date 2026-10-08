@@ -156,12 +156,20 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
     changing behavior for any other caller (default None preserves the
     exact prior behavior).
     """
-    if system_prompt is None:
+    default = system_prompt is None  # explicit prompts (JSON, classifier, rewrite, agents) never get the tone guide
+    if default:
         system_prompt = "You are a helpful AI assistant."
+    from shared.human_state import current_plan as current_voice_plan, current_voice_block # set by core.orchestrator.handle_query
     from shared.news import current_news_block  # set by core.orchestrator for time-sensitive questions
 
     if news := current_news_block():
         system_prompt = f"{system_prompt}\n\n{news}"
+    if default and (voice := current_voice_block()):
+        if (plan := current_voice_plan()) and plan["format"] == "prose":  # prose wins over a module prompt that demands labels
+            system_prompt = f"{voice}\n\n{system_prompt}"
+            prompt += "\n\nAnswer as 2-4 short plain paragraphs without section labels."
+        else:
+            system_prompt = f"{system_prompt}\n\n{voice}"
 
     text: str | None = None
     last_error: Exception | None = None

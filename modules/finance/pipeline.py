@@ -14,6 +14,8 @@ from modules.finance import anomaly, engine, spending
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import Assets, Expenses, FinanceProfile, Transaction, UserFinancialInput
 from shared import user_store
+from shared import human_state
+from shared.human_state import soften
 from shared.ner import extract_entities
 
 # Query terms that signal the user wants a *personalized* number (risk
@@ -285,6 +287,9 @@ def _regex_facts(query: str) -> dict[str, Any]:
 _LABELS = {"assets.mf": "mutual funds", "assets.fd": "FD", "monthly_income": "monthly income", "existing_emi": "EMI", "term_cover": "term cover", "health_cover": "health cover",
            "credit_card_outstanding": "credit card dues", "used_80c": "80C used", "used_80d": "80D used"}
 _PLAIN = {"age", "dependents", "horizon_years", "city_tier"}  # numbers shown as-is, not as rupees
+_SELL = re.compile(r"\b(sell|exit|redeem|withdraw|stop|pause|switch|book profit|bech|nikaal|nikal)\b")
+_HOLDING = re.compile(r"\b(mutual funds?|mfs?|stocks?|shares|sips?|fds?|fixed deposits?|investments?|portfolio|funds?)\b")
+_WEIGHING = re.compile(r"\b(should (?:i|we)|shall i|thinking (?:of|about)|want to|planning to|kya|du|dun|doon|karu)\b")
 _FIRST_PERSON = re.compile(r"\b(i|i'm|im|i've|ive|my|me|we|our)\b")
 _FACT_WORDS = re.compile(r"\b(salary|earn|income|rent|emi|loan|fd|ppf|epf|nps|cover|insurance|married|single|kids?|children|wife|husband|goal|live in|stay in|mutual funds?|cash|savings|stocks|spend)\b|\b(?:i am|i'm)\s*\d{2}\b")
 # questions / what-ifs / purchase asks describe a plan, not a fact about the user
@@ -510,6 +515,8 @@ def finance_intent(query: str) -> tuple[str, dict] | None:
     if kind := _spending_kind(t):
         if not (_amounts(t) and (kind == "cut" or re.search(r"\bwhat if\b", t))):  # "cut my food spending by 5000" stays a what-if
             return "spending", {"kind": kind, "text": t}
+    if _SELL.search(t) and _HOLDING.search(t) and _WEIGHING.search(t):  # "should I sell my funds?" is coaching, never a plan builder
+        return "decision", {}
     if not _FIRST_PERSON.search(t):  # "what is a SIP" is a concept question; personal tools need "I/my/me"
         return None
     nums = _amounts(t)
@@ -626,15 +633,58 @@ def _run_spending(query: str, uid: str, kind: str, text: str) -> dict[str, Any]:
         return {"domain": "finance", "query": query, "missing_field": "transactions", "ui_action": "open_profile",
                 "response": "I don't have any transactions yet. Upload a bank statement (PDF, Excel or CSV) in Profile -> Your Transactions and I can answer this"}
     args = spending.parse_spend_query(text, txns) if kind == "spent" else {}
-    res = spending.chat_result(kind, args, txns, user_store.get_financial_profile(uid))
+    res = spending.chat_result(kind, args, txns, user_store.get_financial_profile(uid), user_store.get_transactions(uid, kind="income"))
     reply = generate_response(ENGINE_NARRATION.format(query=query, result=json.dumps(res, default=str)))
     if not reply or reply.lower().startswith("error"):
-        reply = spending.chat_template(res)
+        reply = soften(spending.chat_template(res))
     return {"domain": "finance", "query": query, "response": reply, "intent": f"spending_{kind}", "engine": res,
             "data_basis": spending.basis(txns)}
 
 
+def _decision_template(r: dict, prose: bool) -> str:
+    goal = (f"Your {r['goals'][0]['name']} is {r['goals'][0]['years']:g} years away, so what matters is that date more than the last few months."
+            if r.get("goals") else "I don't have your goal or time horizon yet, and that is what should decide this.")
+    em = " Your emergency cover is below 6 months, so keep that money safe first." if "emergency fund below 6 months" in r["flags"] else ""
+    when = "Selling can make sense if the goal date is near, you need the money for an emergency, or the fund itself has changed, not just because recent returns are weak."
+    if prose:
+        return f"There is no action needed today. {goal}{em} {when} {r['ask']}"
+    return (f"Insight: {goal}\nAnalysis: {when}{em}\nRecommendation: Pause before acting and check your holdings against your goal date. {r['ask']}\n"
+            "Risk: ARIA does not know your actual returns, so this is a way to think, not a verdict.")
+
+
+def _run_decision(query: str, uid: str) -> dict[str, Any]:
+    """Sell/stop/switch questions: a slow-down, never a verdict. Facts come only from the stored profile."""
+    p = user_store.get_financial_profile(uid) or {}
+    snap, a = engine.snapshot(p), p.get("assets") or {}
+    tot = sum(v for v in a.values() if v)
+    share = lambda keys: round(100 * sum(a.get(k) or 0 for k in keys) / tot) if tot else None
+    goals = [{"name": g["name"], "years": g["years"]} for g in p.get("goals") or []]
+    em = snap["emergency_months"]
+    res = {"goals": goals, "horizon_years": p.get("horizon_years"), "risk_tolerance": p.get("risk_tolerance"), "emergency_months": em,
+           "equity_share_pct": share(("stocks", "mf")), "debt_share_pct": share(("fd", "ppf", "epf")), "cash_share_pct": share(("cash",)),
+           "monthly_surplus": snap["monthly_surplus"], "foir": snap["foir"]}
+    res = {k: v for k, v in res.items() if v not in (None, [])}
+    yrs = min((g["years"] for g in goals), default=p.get("horizon_years"))
+    res["flags"] = ([f"goal is {yrs:g} years away"] if yrs else []) + (["emergency fund below 6 months"] if em is not None and em < 6 else []) + ["portfolio performance is not on file (ARIA does not know the actual returns)"]
+    res["ask"] = ("Roughly how far down is it since you bought?" if goals else "What is this money for, and when will you need it?")
+    prose = bool((plan := human_state.current_plan()) and plan["format"] == "prose")
+    rules = ("Do NOT recommend selling or holding. Slow the user down, anchor on their own goal and horizon, say what would justify selling "
+             "(goal date near, emergency need, fundamentals changed, not just recent returns), then ask the one question in 'ask'. Use only figures in this result."
+             + (" No section labels; plain short paragraphs; say no action is needed today." if prose else ""))
+    reply = generate_response(ENGINE_NARRATION.format(query=query, result=json.dumps({**res, "instructions": rules}, default=str)))
+    if not reply or reply.lower().startswith("error"):
+        reply = _decision_template(res, prose)
+    out = {"domain": "finance", "query": query, "response": reply, "intent": "decision", "engine": res}
+    if p:
+        out["profile_basis"] = engine.basis_line(p, ["income", "emergency"])
+    else:
+        out["ui_action"] = "open_profile"
+    return out
+
+
 def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str, Any]:
+    if tool == "decision":
+        return _run_decision(query, uid)
     if tool == "spending":
         return _run_spending(query, uid, args["kind"], args["text"])
     p = user_store.get_financial_profile(uid) or {}
@@ -660,7 +710,7 @@ def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str
         res = {"health": engine.health_score(p, len(anomaly.detect_for_user(_load_transactions(uid)))), "snapshot": engine.snapshot(p)}
     reply = generate_response(ENGINE_NARRATION.format(query=query, result=json.dumps(res, default=str)))
     if not reply or reply.lower().startswith("error"):
-        reply = _template(tool, res)
+        reply = soften(_template(tool, res))
     return {"domain": "finance", "query": query, "response": reply, "intent": tool, "engine": res,
             "profile_basis": engine.basis_line(p, _USED[tool])}
 

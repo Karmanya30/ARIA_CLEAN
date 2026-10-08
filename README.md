@@ -234,6 +234,10 @@ file serving at it) and point it at the deployed `api/main:app`
 process; there's no dev-only proxy needed once the frontend calls an
 absolute API URL instead of Vite's relative proxy.
 
+## Human state engine
+
+`shared/human_state.py` reads each message (words and code-mixed Hinglish, no model, about 0.2 ms) into emotion, stress, uncertainty, intent and a smoothed trend over the conversation, then picks how to answer: listen, reassure, slow a stressed decision down, or just explain. The choice becomes a short tone guide appended to the default system prompt only; routing, tools and every number still come from the original query. An explicit self-harm message gets a fixed caring reply with Tele-MANAS 14416 and 112, with no model call, even when tone adaptation is off. Nothing is shown as a mood label, no message text or amounts are stored (only a topic tag and a strategy name), and Settings > Conversation turns it off or forgets the learned style. Not built on purpose: voice-prosody emotion (needs a speech LLM on GPU), facial emotion, a GoEmotions model, vector episodic memory, and LLM refinement of the state (it would add a serial call). Ideas credited in THIRD_PARTY_NOTICES.md.
+
 ## Tests
 
 ```bash

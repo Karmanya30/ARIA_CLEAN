@@ -38,7 +38,7 @@ def transaction_insights(session_id: str) -> dict[str, Any]:
     from modules.finance.spending import insights
     from shared.user_store import get_financial_profile, get_transactions
 
-    return insights(get_transactions(session_id), get_financial_profile(session_id))
+    return insights(get_transactions(session_id), get_financial_profile(session_id), get_transactions(session_id, kind="income"))
 
 
 @router.post("")
@@ -94,28 +94,32 @@ class ImportRequest(BaseModel):
 
 @router.post("/import")
 def import_statement(req: ImportRequest) -> dict[str, Any]:
-    """Save a parsed statement's expense/EMI debits as transactions (skipping ones already stored) and, only
-    when apply_to_profile is true, its suggested expenses/income into the profile."""
+    """Save a parsed statement's expense/EMI debits (and salary-like credits, as kind=income) as transactions,
+    skipping ones already stored, in one bulk insert; only when apply_to_profile is true, also its suggested
+    expenses/income into the profile."""
     from modules.finance.statement_import import to_store_category
-    from shared.user_store import add_transaction, get_financial_profile, get_transactions, save_financial_profile
+    from shared.user_store import add_transactions, get_financial_profile, get_transactions, save_financial_profile
 
     entry = _imports.get(req.import_id)
     if not entry or entry[0] < time.time() or entry[1] != req.session_id:
         raise HTTPException(404, "That import has expired. Please upload the file again.")
     _, _, rows, suggested = entry
-    seen = {(t["date"], round(t["amount"], 2), (t["merchant"] or "").lower()) for t in get_transactions(req.session_id)}
-    imported = duplicates = 0
+    seen = {(t["date"], round(t["amount"], 2), (t["merchant"] or "").lower(), t["kind"]) for t in get_transactions(req.session_id, kind=None)}
+    batch, duplicates = [], 0
     for r in rows:
-        if r["direction"] != "debit" or r["category"] == "investment" or r["category"] not in (*_EXPENSE, "emi"):
+        income = r["direction"] == "credit" and r["category"] == "income"
+        if not income and (r["direction"] != "debit" or r["category"] == "investment" or r["category"] not in (*_EXPENSE, "emi")):
             continue
-        key = (r["date"], r["amount"], r["merchant"].lower())
+        kind = "income" if income else "expense"
+        key = (r["date"], r["amount"], r["merchant"].lower(), kind)
         if key in seen:
             duplicates += 1
             continue
         seen.add(key)
-        add_transaction(req.session_id, date=r["date"], category=to_store_category(r["category"]),
-                        amount=r["amount"], merchant=r["merchant"], channel="statement")
-        imported += 1
+        batch.append({"date": r["date"], "category": "income" if income else to_store_category(r["category"]),
+                      "amount": r["amount"], "merchant": r["merchant"], "channel": "statement", "kind": kind})
+    add_transactions(req.session_id, batch)
+    imported = len(batch)
     fields = {k: v for k, v in suggested.items() if v}
     if req.apply_to_profile and fields:
         # the spending averages leave EMIs out, so without the EMI the surplus and savings rate would be overstated

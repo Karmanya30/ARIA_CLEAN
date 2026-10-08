@@ -185,7 +185,7 @@ def _grid_rows(grid: list[list[Any]], hdr: tuple[int, dict[str, int]]) -> tuple[
 
 
 _AMT = re.compile(r"^\(?-?(?:₹|Rs\.?|INR)?[\d,]*\d\.\d{1,2}\)?(?:Dr|Cr)?\.?$", re.I)
-_LINE_DATE = re.compile(r"^\s*(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}|\d{1,2}[-/ ][A-Za-z]{3,9}[-/ ,]*\d{2,4}|\d{4}-\d{2}-\d{2})\s+(.*)$")
+_LINE_DATE = re.compile(r"^\s*(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}|\d{1,2}[-/ ][A-Za-z]{3,9}[-/ ,]*\d{2,4}|\d{4}-\d{2}-\d{2})(?:\s+|(?=[A-Za-z]))(.*)$")  # the date may be glued to the narration: 01/06/2026NEFT CR-...
 
 
 _GLUED = re.compile(r"\d[\d,]*\.\d{2}")

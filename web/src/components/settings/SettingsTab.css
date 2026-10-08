@@ -178,3 +178,25 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
+
+.settings-h2 {
+  font-size: 18px;
+  margin: 28px 0 10px;
+}
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.settings-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+.settings-check input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

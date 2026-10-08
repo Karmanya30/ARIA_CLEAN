@@ -157,3 +157,22 @@ def test_normal_month_and_rent_never_flagged_and_single_month_ok():
     assert spending.insights(rows, {"monthly_income": 120000})["unusual"] == []
     one = _month("2026-06", 300) + _month("2026-06", 400) + _month("2026-06", 500)
     assert spending.insights(one, {})["available"] and spending.insights(one, {})["unusual"] == []
+
+
+def test_stored_income_beats_profile_income_and_net_per_month():
+    rows = _month("2026-06", 300) + _month("2026-07", 1200) + _month("2026-08", 3500)
+    pay = [{"date": f"2026-0{m}-01", "category": "income", "amount": 100000.0, "merchant": "Acme Salary"} for m in (6, 7)]
+    out = spending.insights(rows, {"monthly_income": 999}, pay)
+    cf = out["cashflow"]
+    assert cf["income_avg"] == round(200000 / 3, 2)  # two paycheques over three months
+    assert cf["by_month"][0]["net"] == 100000 - 30000 - 2000 - 300 - 15000
+    assert cf["by_month"][2]["net"] == round(200000 / 3 - 30000 - 2000 - 3500 - 15000, 2)  # no paycheque yet: average
+    assert spending.insights(rows, {"monthly_income": 999}, [])["cashflow"]["income_avg"] == 999
+
+
+def test_income_rows_are_invisible_to_expense_consumers():
+    for t in _data():
+        user_store.add_transaction(U, date=t["date"], category=t["category"], amount=t["amount"], merchant=t["merchant"])
+    user_store.add_transaction(U, date="2026-06-01", category="income", amount=90000.0, merchant="Salary", kind="income")
+    assert len(user_store.get_transactions(U)) == len(_data())
+    assert [t["amount"] for t in user_store.get_transactions(U, kind="income")] == [90000.0]

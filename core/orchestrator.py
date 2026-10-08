@@ -1,9 +1,12 @@
 """Thin orchestrator for ARIA."""
 
 import re
+from datetime import date
 from typing import Any
 
-from core.router import is_broad_market_query, is_equity_research_query, is_intelligence_query, route_query
+from loguru import logger
+
+from core.router import _CONCEPT_QUESTION, is_broad_market_query, is_equity_research_query, is_intelligence_query, route_query
 from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
@@ -11,6 +14,8 @@ from modules.finance.pipeline import finance_intent, finance_statement, run_pipe
 from modules.market.pipeline import run_pipeline as market_pipeline
 from modules.tutor.pipeline import run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
+from shared import human_state, user_store
+from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
 from shared.domain_guard import (
     CONFIDENCE_THRESHOLD,
@@ -74,13 +79,40 @@ def _smalltalk_reply(query: str) -> dict[str, Any]:
             "'Insight:'/'Analysis:' style sections, no definitions, no lecture. "
             "Naturally invite them to ask about their finances, a concept, or "
             "the market."
+            + (f"\n\n{voice}" if (voice := current_voice_block()) else "")
         ),
     )
     text = reply if (reply and not reply.lower().startswith("error")) else "Hey! What can I help you with today?"
     return {"domain": "smalltalk", "query": query, "response": text}
 
 
-def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
+_SUPPORT_SYSTEM = (
+    "You are ARIA, a warm Indian financial assistant. The user is being hard on themselves or venting. Reply in 2-3 short sentences: "
+    "acknowledge what they said using only their own words and numbers, reassure without any claim about their finances, history, job or "
+    "savings, then ask exactly ONE gentle open question or offer to look at the numbers together. Hard rule: never state any fact or "
+    "figure about the user that is not in their message or profile. No plans, no lists.")
+_INVENTED = re.compile(r"you(?:'ve| have) saved|your salary|your job|for the past", re.I)
+_SAFE_SUPPORT = (
+    "That sounds really heavy, and being this hard on yourself doesn't help. Money mistakes happen to everyone. Want to look at the numbers together, one small piece at a time?",
+    "I hear you. One rough moment isn't the whole picture of how you handle money. What is weighing on you most right now?",
+)
+_SAFE_SUPPORT_HI = ("Samajh sakta hoon, yeh kaafi bhaari lag raha hoga. Ek galti poori kahani nahi hoti. Chahein to hum numbers saath mein dekh lein?",)
+
+
+def _support_reply(query: str, profile: dict, hinglish: bool, turn: int) -> dict[str, Any]:
+    """Venting / self-doubt: a constrained reply, checked in code. Any number not in the message or profile, or a claim about
+    their savings, job or history, replaces the model's text with a fixed safe one."""
+    from ai.llm.groq_client import generate_response
+
+    reply = generate_response(query, system_prompt=_SUPPORT_SYSTEM) or ""
+    norm = lambda t: {n.replace(",", "").rstrip(".") for n in re.findall(r"\d[\d,.]*", t)}
+    if reply.lower().startswith("error") or _INVENTED.search(reply) or not norm(reply) <= norm(query) | norm(str(profile)):
+        options = _SAFE_SUPPORT_HI if hinglish else _SAFE_SUPPORT
+        reply = options[turn % len(options)]
+    return {"domain": "support", "query": query, "response": reply}
+
+
+def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
     """Route a user query to the correct module pipeline."""
 
     if mode in ("Conversational Mode", "Live Avatar"):  # spoken follow-ups ("what about taxes on it?") need their subject back
@@ -115,7 +147,10 @@ Follow-up query: {query}
 
     # a bare "about 40k" answers our pending finance question; "can I afford..." is a finance tool whatever the keywords say
     pending_before = get_session(session_id).get("finance_pending")
-    domain = "finance" if pending_before or finance_intent(query) or finance_statement(query) else route_query(query)
+    by_intent = pending_before or finance_intent(query) or finance_statement(query)
+    domain = "finance" if by_intent else route_query(query)
+    if domain == "finance" and not by_intent and _CONCEPT_QUESTION.match(query.lower()) and not re.search(r"\b(i|i'm|im|i've|my|me|mine|we|our)\b", query.lower()):
+        domain = "tutor"  # "what is expense ratio?" is a concept, whatever the keyword router thinks
     ticker = resolve_company(query)
 
     # Module 3 and Module 4 are checked ahead of the coarse keyword-bucket
@@ -185,6 +220,51 @@ Follow-up query: {query}
         response["domain_guard_output"] = output_guard
 
     save_turn(session_id, query, response)
+    return response
+
+
+def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode") -> dict[str, Any]:
+    """Read how the user seems to feel (shared/human_state.py), then answer with a matching tone. A self-harm message gets a
+    fixed caring reply with no model and no finance, even when tone adaptation is off. Routing and tools get the original query."""
+    session = get_session(session_id)
+    if human_state.is_crisis(query):
+        response = {"domain": "care", "query": query, "response": human_state.CARE_REPLY, "tone": {"strategy": "care", "format": "prose"}}
+        save_turn(session_id, query, response)
+        return response
+    if not session.get("adapt_tone", True):
+        return _handle(query, session_id, mode)
+    support = False
+    try:
+        owner = user_store.current_owner.get() or session_id
+        state = human_state.analyze(query, session.get("human"))
+        prefs, episodes = user_store.get_style(owner)
+        plan = human_state.choose(state, prefs)
+        new_prefs = human_state.learn_prefs(query, prefs, state["trajectory"]["hing"])
+        block = None
+        if plan or new_prefs:
+            goals = (user_store.get_financial_profile(owner) or {}).get("goals") if plan else None
+            block = human_state.style_block(state, plan, goals, new_prefs, episodes)
+        if plan:
+            episodes = human_state.add_episode(episodes, state, plan, date.today().isoformat())
+        support = bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision")             and not finance_intent(query) and not finance_statement(query)
+        if plan or new_prefs != prefs:
+            user_store.save_style(owner, new_prefs, episodes)
+        session["human"] = state["trajectory"]
+        logger.info(f"tone strategy={plan and plan['strategy']}")
+    except Exception as exc:  # the tone layer must never break an answer
+        logger.warning(f"tone layer skipped: {type(exc).__name__}")
+        block, plan = None, None
+    with human_state.voice(block, plan):
+        if plan and plan["strategy"] == "ask":  # a bare "Fine." is a check-in moment: fixed warm reply, no model, no routing
+            response = {"domain": "smalltalk", "query": query, "response": human_state.check_in(len(session.get("history", [])), state["hinglish"])}
+            save_turn(session_id, query, response)
+        elif support:
+            response = _support_reply(query, user_store.get_financial_profile(owner) or {}, state["hinglish"], len(session.get("history", [])))
+            save_turn(session_id, query, response)
+        else:
+            response = _handle(query, session_id, mode)
+    if plan:
+        response["tone"] = {"strategy": plan["strategy"], "format": plan["format"]}
     return response
 
 

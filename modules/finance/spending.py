@@ -2,7 +2,7 @@
 
 insights(txns, profile) -> cashflow, categories vs rule-of-thumb benchmarks, top merchants, recurring payments,
 unusual charges and deterministic suggestions. spent() filters by category / month / merchant for chat.
-Only debits are stored, so income comes from the profile's monthly_income (None when unknown).
+Income is the average of stored salary-like credits (income_txns) when there are any, else the profile's monthly_income (None when unknown).
 """
 from __future__ import annotations
 
@@ -92,20 +92,24 @@ def _unusual(txns: list[dict], income: float | None, recurring: list[dict]) -> l
     return sorted(out, key=lambda u: -u["amount"])[:5]
 
 
-def insights(txns: list[dict], profile: dict | None) -> dict[str, Any]:
+def insights(txns: list[dict], profile: dict | None, income_txns: list[dict] | None = None) -> dict[str, Any]:
     if len(txns) < MIN_TRANSACTIONS:
         return {"available": False, "reason": UNAVAILABLE}
     income = (profile or {}).get("monthly_income") or None
     ds = sorted(t["date"][:7] for t in txns)
     months = _months_between(ds[0], ds[-1])
     n = len(months)
+    earned = {m: spent(income_txns or [], month=m) for m in months}  # stored salary-like credits win over the profile figure
+    if any(earned.values()):
+        income = round(sum(earned.values()) / n, 2)
     emi_tot = spent(txns, "emi")
     spend_tot = round(spent(txns) - emi_tot, 2)
     spend_avg, emi_avg = spend_tot / n, emi_tot / n
     by_month = [{"month": m, "spend": round(spent(txns, month=m) - spent(txns, "emi", m), 2), "emi": spent(txns, "emi", m)}
                 for m in months]
     for r in by_month:
-        r["net"] = round(income - r["spend"] - r["emi"], 2) if income else None
+        inc_m = earned[r["month"]] or income
+        r["net"] = round(inc_m - r["spend"] - r["emi"], 2) if inc_m else None
     total = spend_tot + emi_tot
     cats = []
     for name in sorted({t["category"] for t in txns}, key=lambda c: -spent(txns, c)):
@@ -191,13 +195,13 @@ def parse_spend_query(t: str, txns: list[dict]) -> dict[str, Any]:
     return {"category": category, "merchant": merchant or None, "month": month}
 
 
-def chat_result(kind: str, args: dict, txns: list[dict], profile: dict | None) -> dict[str, Any]:
+def chat_result(kind: str, args: dict, txns: list[dict], profile: dict | None, income_txns: list[dict] | None = None) -> dict[str, Any]:
     """Numbers for a chat question (narrated by the LLM, or by chat_template when it is unavailable)."""
     if kind == "spent":
         total = spent(txns, args["category"], args["month"], args["merchant"])
         return {"kind": kind, **args, "total": total, "count": sum(1 for t in txns if (not args["category"] or t["category"] == args["category"])
                 and (not args["month"] or t["date"][:7] == args["month"]) and (not args["merchant"] or args["merchant"] in (t.get("merchant") or "").lower()))}
-    ins = insights(txns, profile)
+    ins = insights(txns, profile, income_txns)
     if kind == "top":
         return {"kind": kind, "top_merchants": ins.get("top_merchants") or sorted(
             ({"merchant": t.get("merchant"), "total": t["amount"], "count": 1} for t in txns), key=lambda m: -m["total"])[:8]}

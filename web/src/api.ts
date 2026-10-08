@@ -18,6 +18,23 @@ async function extractErrorDetail(res: Response): Promise<string> {
 }
 
 const OWNER_KEY = 'aria_owner_id'
+const TONE_KEY = 'aria_adapt_tone'
+
+/** Settings > Conversation: adapt ARIA's tone to how the user seems to feel (on unless switched off on this device). */
+export function adaptTone(): boolean {
+  try {
+    return localStorage.getItem(TONE_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+export function setAdaptTone(on: boolean) {
+  try {
+    localStorage.setItem(TONE_KEY, on ? 'on' : 'off')
+  } catch {
+    /* storage blocked: the choice lasts until reload */
+  }
+}
 
 /** Device-level id that owns saved research reports. The chat session id resets per browser tab, so
  * reports are keyed by this instead (ARIA has no accounts). Falls back to a per-page id if storage is blocked. */
@@ -77,7 +94,7 @@ export const api = {
   sendMessage: (query: string, sessionId: string, mode: ChatMode) =>
     j<ChatResponse>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId() }),
+      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone() }),
     }),
 
   getHistory: (sessionId: string) =>
@@ -127,6 +144,7 @@ export const api = {
   saveProfile: (fields: { [K in keyof FinanceProfile]?: FinanceProfile[K] | null }) =>
     j<ProfileState>('/api/profile', { method: 'POST', body: JSON.stringify({ session_id: ownerId(), ...fields }) }),
 
+  forgetStyle: () => j<{ deleted: boolean }>(`/api/profile/style?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
   deleteProfile: () => j<{ deleted: boolean }>(`/api/profile?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
   getInsights: () => j<SpendingInsightsData>(`/api/transactions/insights?session_id=${encodeURIComponent(ownerId())}`),

@@ -2,8 +2,8 @@
   max-width: 780px;
   margin: 0 auto;
   /* The page itself scrolls (one scrollbar); min-height keeps the composer at the bottom of a short thread.
-   * 120px = .app-main's 40px + 80px vertical padding. */
-  min-height: calc(100vh - 120px - var(--topbar-h, 0px));
+   * .app-main pads 40px top / 20px bottom here (see the :has rule below), hence 60px. */
+  min-height: calc(100vh - 60px - var(--topbar-h, 0px));
   display: flex;
   flex-direction: column;
 }
@@ -11,6 +11,11 @@
 /* Conversational/Tavus modes have a real avatar to show large, so they
  * get more width and a two-column split instead of the single centered
  * column Normal Mode uses. */
+/* Trim .app-main's 80px bottom padding so no dead gap sits under the sticky composer. */
+.app-main:has(.chat-page) {
+  padding-bottom: 20px;
+}
+
 .chat-page-split {
   max-width: 1180px;
 }

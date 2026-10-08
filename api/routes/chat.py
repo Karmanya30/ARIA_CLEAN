@@ -21,13 +21,16 @@ class ChatRequest(BaseModel):
     # Device-level id the frontend keeps in localStorage: saved research reports belong to it, not to
     # the per-tab session, so they survive closing the tab.
     owner_id: str | None = None
+    adapt_tone: bool = True  # Settings > Conversation; crisis care replies ignore it
 
 
 @router.post("")
 def send_message(req: ChatRequest) -> dict[str, Any]:
     from core.orchestrator import handle_query
+    from core.session import get_session
     from shared.user_store import current_owner
 
+    get_session(req.session_id)["adapt_tone"] = req.adapt_tone
     token = current_owner.set(req.owner_id)
     try:
         result = handle_query(req.query.strip(), session_id=req.session_id, mode=req.mode)

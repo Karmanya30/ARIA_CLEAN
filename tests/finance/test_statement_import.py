@@ -204,13 +204,13 @@ def test_api_round_trip_parse_then_import():
     assert body["suggested_profile"]["monthly_income"] == 80000
     user_store.add_transaction(USER, date="2024-04-28", category="transport", amount=300.0, merchant="Uber India")
     imp = client.post("/api/transactions/import", json={"session_id": USER, "import_id": body["import_id"]})
-    assert imp.json() == {"imported": 3, "duplicates": 1, "profile_updated": False}  # swiggy, rent, emi (+1 dup)
+    assert imp.json() == {"imported": 4, "duplicates": 1, "profile_updated": False}  # swiggy, rent, emi, salary (+1 dup)
     stored = {t["category"] for t in user_store.get_transactions(USER)}
     assert stored == {"food", "housing", "emi", "transport"}
     assert user_store.get_financial_profile(USER) is None
     imp = client.post("/api/transactions/import",
                       json={"session_id": USER, "import_id": body["import_id"], "apply_to_profile": True})
-    assert imp.json() == {"imported": 0, "duplicates": 4, "profile_updated": True}
+    assert imp.json() == {"imported": 0, "duplicates": 5, "profile_updated": True}
     prof = user_store.get_financial_profile(USER)
     assert prof["monthly_income"] == 80000 and prof["expenses"]["rent"] == 20000
     assert prof["sources"]["expenses"]["src"] == "form"
@@ -283,3 +283,32 @@ def test_applying_a_statement_to_the_profile_also_records_its_monthly_emi(monkey
     assert out["profile_updated"]
     prof = user_store.get_financial_profile(owner)
     assert prof["loans"] and prof["loans"][0]["emi"] == 12000
+
+
+def test_pdf_date_glued_to_narration():
+    raws, _ = si._text_rows(["01/06/2026NEFT CR-ACME CORP-SALARY 80,000.00 1,80,000.00", "02/06/2026UPI SWIGGY 450.00 1,79,550.00"])
+    assert [(r["date"], r["dir"], r["amt"]) for r in raws] == [("2026-06-01", "credit", 80000.0), ("2026-06-02", "debit", 450.0)]
+
+
+def test_real_xls_file():
+    xlwt = pytest.importorskip("xlwt")
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet("S")
+    for i, row in enumerate([["Date", "Narration", "Withdrawal Amt.", "Deposit Amt."], ["01/04/2024", "UPI SWIGGY", 450, ""], ["05/04/2024", "NEFT SALARY ACME", "", 80000]]):
+        for j, v in enumerate(row):
+            ws.write(i, j, v)
+    buf = io.BytesIO()
+    wb.save(buf)
+    res = si.parse_statement("old.xls", buf.getvalue())
+    assert [(r["category"], r["amount"]) for r in res["rows"]] == [("food", 450.0), ("income", 80000.0)]
+
+
+def test_import_stores_salary_credits_as_income_and_skips_duplicates():
+    csv_ = b"Date,Narration,Withdrawal Amt.,Deposit Amt.\n" + b"".join(
+        f"0{m}/0{m}/2026,UPI SHOP{m},{100 * m}.00,\n2{m}/0{m}/2026,NEFT SALARY ACME,,50000.00\n".encode() for m in range(1, 4))
+    for _ in range(2):
+        p = client.post("/api/transactions/parse", files={"file": ("s.csv", csv_)}, data={"session_id": USER}).json()
+        out = client.post("/api/transactions/import", json={"session_id": USER, "import_id": p["import_id"]}).json()
+    assert out == {"imported": 0, "duplicates": 6, "profile_updated": False}
+    assert len(user_store.get_transactions(USER)) == 3 and len(user_store.get_transactions(USER, kind="income")) == 3
+    assert len(user_store.get_transactions(USER, kind=None)) == 6

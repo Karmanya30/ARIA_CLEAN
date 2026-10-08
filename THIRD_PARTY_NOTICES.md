@@ -66,6 +66,15 @@ Published methods implemented independently in `modules/equity_research/intellig
 
 Earnings-call PDFs are read with `pypdf` (BSD-3-Clause).
 
+## Human state engine and tone ideas
+
+`shared/human_state.py` is original code. These projects supplied ideas only; no code, prompts or text were copied.
+
+- SaiPavankumar22/Psychological-State-Aware-Conversational-Ai (Apache-2.0): valence/arousal/stress state, trajectory, hysteresis, episodic plus semantic memory.
+- aslp-lab/osum (Apache-2.0): understand, reason about empathy, then reply.
+- MihirBindal/Empathetic-AI (no licence file, so ideas only): safety gate first, separating the brain from the voice, no unsolicited task lists for a distressed user.
+- HELJJ/COSMIC (MIT) and declare-lab/conv-emotion (MIT): conversation-level emotion, emotional inertia, the cause of a feeling kept as a topic tag.
+
 ## Data sources and text used at run time
 
 | Source | Used for | Terms note |

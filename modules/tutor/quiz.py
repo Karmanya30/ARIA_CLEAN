@@ -9,6 +9,7 @@ import re
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import M2_QUIZ
+from shared.human_state import quiet
 from modules.finance import personal
 from modules.tutor.schemas import QuizItem
 
@@ -43,7 +44,8 @@ def generate_quiz(concept_name: str, concept_id: str, level: int = 3) -> QuizIte
     prompt = M2_QUIZ.format(concept=concept_name, level=max(1, min(8, level)))
     if learner := personal.learner_context(personal.profile()):
         prompt += f"\nUse these numbers in any \u20b9 example: {learner}"
-    text = generate_response(prompt)
+    with quiet():  # output is parsed by format: no tone guide
+        text = generate_response(prompt)
     return _parse_quiz_text(text, concept_id)
 
 

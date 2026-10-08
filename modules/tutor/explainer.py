@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import build_taxal_prompt
+from shared.human_state import quiet
 from modules.finance import personal
 from modules.tutor.schemas import TaxalExplanation
 
@@ -31,5 +32,6 @@ def _parse_taxal(text: str, level: int) -> TaxalExplanation:
 
 def explain(concept_name: str, level: int, action: str | None = None) -> TaxalExplanation:
     prompt = build_taxal_prompt(concept_name, level, action=action, learner=personal.learner_context(personal.profile()))
-    text = generate_response(prompt)
+    with quiet():  # output is parsed by format: no tone guide
+        text = generate_response(prompt)
     return _parse_taxal(text, level)

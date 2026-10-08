@@ -84,6 +84,7 @@ class TransactionRecord(Base):
     amount = Column(Float, nullable=False)
     merchant = Column(String, nullable=True)
     channel = Column(String, nullable=True)  # upi | card | cash | netbanking
+    kind = Column(String, nullable=True, default="expense")  # expense | income (NULL = expense, for rows from before the column)
 
 
 class LearningState(Base):
@@ -94,6 +95,17 @@ class LearningState(Base):
     user_id = Column(String, primary_key=True)
     mastery_json = Column(Text, default="{}")  # {concept_id: probability}
     history_json = Column(Text, default="[]")  # [{concept_id, is_correct, ts}]
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ConversationStyle(Base):
+    """How the user likes ARIA to talk (learned from explicit phrases) plus the last few turns' topic/feeling tags. No message text."""
+
+    __tablename__ = "conversation_style"
+
+    owner_id = Column(String, primary_key=True)
+    prefs_json = Column(Text, default="{}")  # {length, directness, hinglish}
+    episodes_json = Column(Text, default="[]")  # last 10 {date, topic_tag, feeling, strategy}
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -144,6 +156,7 @@ def _migrate_add_missing_columns() -> None:
             "ALTER TABLE financial_profiles ADD COLUMN risk_top_features TEXT DEFAULT '[]'",
             "ALTER TABLE financial_profiles ADD COLUMN details_json TEXT DEFAULT '{}'",
             "ALTER TABLE financial_profiles ADD COLUMN sources_json TEXT DEFAULT '{}'",
+            "ALTER TABLE transactions ADD COLUMN kind VARCHAR DEFAULT 'expense'",
             "ALTER TABLE research_reports ADD COLUMN kind VARCHAR DEFAULT 'equity_research'",
         ):
             try:
@@ -229,29 +242,32 @@ def add_transaction(
     amount: float,
     merchant: str | None = None,
     channel: str | None = None,
+    kind: str = "expense",
 ) -> None:
+    add_transactions(user_id, [dict(date=date, category=category, amount=amount, merchant=merchant, channel=channel, kind=kind)])
+
+
+def add_transactions(user_id: str, rows: list[dict[str, Any]]) -> None:
+    """Bulk insert in one transaction (rows: date, category, amount, merchant?, channel?, kind?)."""
+    if not rows:
+        return
     with _SessionLocal() as session:
-        session.add(
-            TransactionRecord(
-                user_id=user_id,
-                date=date,
-                category=category,
-                amount=amount,
-                merchant=merchant,
-                channel=channel,
-            )
+        session.execute(
+            TransactionRecord.__table__.insert(),
+            [{"user_id": user_id, "merchant": None, "channel": None, "kind": "expense", **r} for r in rows],
         )
         session.commit()
 
 
-def get_transactions(user_id: str) -> list[dict[str, Any]]:
+def get_transactions(user_id: str, kind: str | None = "expense") -> list[dict[str, Any]]:
+    """Expenses by default, so forecaster/anomaly/insights never see income; kind="income" for credits, None for both."""
     with _SessionLocal() as session:
-        rows = (
-            session.query(TransactionRecord)
-            .filter(TransactionRecord.user_id == user_id)
-            .order_by(TransactionRecord.date)
-            .all()
-        )
+        q = session.query(TransactionRecord).filter(TransactionRecord.user_id == user_id)
+        if kind == "income":
+            q = q.filter(TransactionRecord.kind == "income")
+        elif kind == "expense":
+            q = q.filter((TransactionRecord.kind != "income") | (TransactionRecord.kind.is_(None)))
+        rows = q.order_by(TransactionRecord.date).all()
         return [
             {
                 "id": row.id,
@@ -260,6 +276,7 @@ def get_transactions(user_id: str) -> list[dict[str, Any]]:
                 "amount": row.amount,
                 "merchant": row.merchant,
                 "channel": row.channel,
+                "kind": row.kind or "expense",
             }
             for row in rows
         ]
@@ -274,6 +291,32 @@ def clear_transactions(user_id: str) -> None:
 def delete_financial_profile(user_id: str) -> None:
     with _SessionLocal() as session:
         row = session.get(FinancialProfile, user_id)
+        if row is not None:
+            session.delete(row)
+            session.commit()
+
+
+# ── Conversation style (human state engine) ─────────────────────────────
+def get_style(owner_id: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    with _SessionLocal() as session:
+        row = session.get(ConversationStyle, owner_id)
+        return (json.loads(row.prefs_json or "{}"), json.loads(row.episodes_json or "[]")) if row else ({}, [])
+
+
+def save_style(owner_id: str, prefs: dict[str, Any], episodes: list[dict[str, Any]]) -> None:
+    with _SessionLocal() as session:
+        row = session.get(ConversationStyle, owner_id)
+        if row is None:
+            row = ConversationStyle(owner_id=owner_id)
+            session.add(row)
+        row.prefs_json, row.episodes_json = json.dumps(prefs), json.dumps(episodes)
+        row.updated_at = datetime.now(timezone.utc)
+        session.commit()
+
+
+def delete_style(owner_id: str) -> None:
+    with _SessionLocal() as session:
+        row = session.get(ConversationStyle, owner_id)
         if row is not None:
             session.delete(row)
             session.commit()

@@ -53,9 +53,19 @@ def profile_summary(session_id: str) -> dict[str, Any]:
 @router.delete("")
 def delete_profile(session_id: str) -> dict[str, bool]:
     from core.session import get_session
-    from shared.user_store import clear_transactions, delete_financial_profile
+    from shared.user_store import clear_transactions, delete_financial_profile, delete_style
 
     delete_financial_profile(session_id)
+    delete_style(session_id)
     clear_transactions(session_id)
     get_session(session_id).pop("finance_pending", None)
+    return {"deleted": True}
+
+
+@router.delete("/style")
+def delete_conversation_style(session_id: str) -> dict[str, bool]:
+    """Forget how this user likes ARIA to talk (learned preferences and the recent-feeling tags)."""
+    from shared.user_store import delete_style
+
+    delete_style(session_id)
     return {"deleted": True}
