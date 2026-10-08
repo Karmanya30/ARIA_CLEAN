@@ -102,3 +102,17 @@ def test_rent_alone_is_not_known_spending():
     p = {"monthly_income": 120_000, "expenses": {"rent": 25_000}}
     assert engine.total_expenses(p) is None and engine.snapshot(p)["monthly_surplus"] is None
     assert engine.total_expenses({**p, "expenses": {"rent": 25_000, "other": 40_000}}) == 65_000
+
+
+def test_inr_keeps_meaningful_digits():
+    assert [engine.inr(x) for x in (8500, 12345, 123000, 95000, 120000, 200000, 950)] == ["₹8.5k", "₹12.3k", "₹1.23L", "₹95k", "₹1.2L", "₹2L", "₹950"]
+
+
+def test_sip_capacity_tiers_buffer_and_emergency_fund():
+    p = {"monthly_income": 95000, "existing_emi": 8500, "expenses": {"other": 50000}, "assets": {"cash": 100000}}
+    r = engine.sip_capacity(p)
+    assert r["surplus"] == 36500 and [t["amount"] for t in r["tiers"]] == [10950, 18250, 25550]
+    assert max(t["amount"] for t in r["tiers"]) <= 0.9 * 36500
+    assert r["first_build_emergency_fund"] and r["verdict"] == "build_emergency_fund_first"
+    assert r["emergency_shortfall_amount"] == round(4.3 * 58500)
+    assert engine.sip_capacity({**p, "expenses": {"other": 120000}})["verdict"] == "no_surplus"

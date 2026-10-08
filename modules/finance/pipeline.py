@@ -1,5 +1,6 @@
 """Finance pipeline: context + prompt + Groq response."""
 
+import copy
 import json
 import re
 from typing import Any
@@ -423,9 +424,11 @@ def _apply_facts(uid: str, sid: str, flat: dict[str, Any]) -> list[str]:
     return notes
 
 
-def _remember(query: str, uid: str, sid: str) -> list[str]:
-    facts = _llm_facts(query)
-    return _apply_facts(uid, sid, {**_regex_facts(query), **facts})
+def _remember(query: str, uid: str, sid: str, stated: dict | None = None) -> list[str]:
+    flat = {**_regex_facts(query), **_llm_facts(query)}
+    if stated is not None:
+        stated.update(flat)  # the caller overlays these on the saved profile for this answer
+    return _apply_facts(uid, sid, flat)
 
 
 def _try_build_financial_profile(query: str, user_id: str, sid: str | None = None) -> UserFinancialInput | None:
@@ -461,12 +464,13 @@ _ASK = {  # field -> (question, how a bare reply becomes facts); None = no numer
     "cash": ("About how much do you hold in savings or FDs?", lambda v: {"assets": {"cash": v}}),
     "age": ("How old are you?", lambda v: {"age": int(v)}),
     "risk_tolerance": ("Would you call your investing style conservative, moderate or aggressive?", lambda v: {"risk_tolerance": v}),
+    "expenses_reset": ("Roughly how much do you spend per month now?", lambda v: {"expenses": {**{k: None for k in Expenses.model_fields}, "other": v}}),
     "goals": ("Which goal are you saving for, how much, and in how many years? Add it in Profile, or tell me like 'goal: 50 lakh in 10 years'.", None),
 }
-_NEEDS = {"afford": ["monthly_income", "expenses", "loans", "cash"], "afford_sip": ["monthly_income", "expenses"],
+_NEEDS = {"afford": ["monthly_income", "expenses", "loans", "cash"], "afford_sip": ["monthly_income", "expenses"], "sip_capacity": ["monthly_income", "expenses"],
           "what_if": ["monthly_income", "expenses"], "retirement": ["age", "expenses", "monthly_income", "risk_tolerance"],
           "goal": ["goals"], "tax": ["monthly_income"], "health": ["monthly_income"]}
-_USED = {"afford": ["income", "emi", "liquid", "emergency"], "afford_sip": ["income", "expenses", "surplus"],
+_USED = {"sip_capacity": ["income", "expenses", "emi", "surplus", "emergency"], "afford": ["income", "emi", "liquid", "emergency"], "afford_sip": ["income", "expenses", "surplus"],
          "what_if": ["income", "expenses", "surplus"], "retirement": ["age", "expenses", "risk"], "goal": ["income", "surplus"],
          "tax": ["income"], "health": ["income", "expenses", "emi", "emergency"]}
 _WHAT_IF_TARGET = (("expenses.entertainment", r"entertainment|subscription|dining|movies"), ("expenses.food", r"food|grocer"),
@@ -510,6 +514,15 @@ def _spending_kind(t: str) -> str | None:
     return next((k for k, pat, need in _SPEND_KINDS if (fp or not need) and re.search(pat, t)), None)
 
 
+_AMT = r"(?:₹|rs\.?\s*)?(\d[\d,]*(?:\.\d+)?\s*(?:lakhs?|lacs?|crores?|cr|k|l|thousand)?)(?!\s*(?:years?|yrs?|y)\b)"
+
+
+def _sip_amount(t: str) -> float | None:
+    m = (re.search(rf"\bsips?\s+(?:of|for|worth)?\s*{_AMT}", t) or re.search(rf"{_AMT}\s*(?:(?:a|per|/)\s*month|monthly)?\s*(?:monthly\s+)?sips?\b", t)
+         or re.search(rf"\binvest\w*\s+{_AMT}[^.?,]{{0,24}}\bsips?\b", t))
+    return (_amounts(m.group(1)) or [None])[0] if m else None
+
+
 def finance_intent(query: str) -> tuple[str, dict] | None:
     t = query.lower()
     if kind := _spending_kind(t):
@@ -526,8 +539,9 @@ def finance_intent(query: str) -> tuple[str, dict] | None:
             if re.search(pat, t):
                 sign = -1 if re.search(r"reduce|cut|decrease|lower|drop|less|fall", t) else 1
                 return "what_if", {"changes": {path: sign * nums[0]}}
-    if nums and re.search(r"\b(start|begin|do|invest|put)\b.*\bsip\b|\bsip of\b", t):
-        return "afford_sip", {"amount": nums[0]}
+    if re.search(r"\b(start|begin|do|invest|put|should|can|how much)\b.*\bsips?\b|\bsip of\b|\d\s*(?:k|l)?\s*(?:monthly )?sip\b", t):
+        amount = _sip_amount(t)  # only a number tied to the SIP words; income/EMI figures are never the SIP
+        return ("afford_sip", {"amount": amount}) if amount else ("sip_capacity", {})
     if nums and re.search(r"\b(afford|buy|buying|purchase)\b|\b(take|get)\b.*\bloan\b", t):
         kind = "car" if re.search(r"\b(car|bike|scooter|vehicle)\b", t) else "home" if re.search(r"\b(house|home|flat|apartment|property)\b", t) else "personal"
         return "afford", {"price": max(nums), "kind": kind}
@@ -551,12 +565,12 @@ def _parse_reply(field: str, text: str) -> Any:
     return _parse_indian_amount(text)
 
 
-def _ask(query: str, sid: str, field: str, p: dict) -> dict[str, Any]:
-    question, saver = _ask_spec(field)
+def _ask(query: str, sid: str, field: str, p: dict, question: str | None = None) -> dict[str, Any]:
+    question, saver = (question, _ask_spec(field)[1]) if question else _ask_spec(field)
     have = [t for t in (f"income {engine.inr(p['monthly_income'])}" if field != "monthly_income" and p.get("monthly_income") is not None else None,
                         f"EMI {engine.inr(engine.total_emi(p))}" if engine.total_emi(p) is not None and field != "loans" else None,
                         f"age {p['age']}" if p.get("age") is not None and field != "age" else None) if t]
-    if have:
+    if have and not question.startswith("Using"):
         question = f"I have your {', '.join(have)}. {question}"
     if saver:
         get_session(sid)["finance_pending"] = {"field": field, "query": query}
@@ -602,6 +616,13 @@ def _template(tool: str, r: Any) -> str:
         return (f"Insight: Verdict: {r['verdict']}; {head}.\nAnalysis: " + "; ".join(r["reasons"]) + ".\n"
                 "Recommendation: Keep EMIs under 40% of income and 6+ months of emergency cover before committing.\n"
                 "Risk: Projections are estimates, not guarantees.")
+    if tool == "sip_capacity":
+        t = r["tiers"]
+        lines = ", ".join(f"{x['name']} {_inr(x['amount'])}/month (about {_inr(x['future_value_10y'])} in 10y, {_inr(x['future_value_20y'])} in 20y)" for x in t)
+        fund = (f" First build your emergency fund: you are about {r['emergency_shortfall_months']} months short (roughly {_inr(r['emergency_shortfall_amount'])})."
+                if r["first_build_emergency_fund"] else "")
+        return (f"Insight: Your monthly surplus is {_inr(r['surplus'])}; a SIP of {lines}.\nAnalysis: Tiers are 30/50/70% of surplus at {r['rate_pct']:.0f}% a year, and {r['buffer_rule']}.{fund}\n"
+                "Recommendation: Start with the conservative or balanced tier and step up as income grows.\nRisk: Returns are not guaranteed.")
     if tool == "what_if":
         b, a = r["before"], r["after"]
         return (f"Insight: Your monthly surplus would change by {_inr(r['monthly_surplus_change'])} (health score {r['score_before']} to {r['score_after']}).\n"
@@ -682,12 +703,36 @@ def _run_decision(query: str, uid: str) -> dict[str, Any]:
     return out
 
 
-def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str, Any]:
+def _overlay(p: dict, stated: dict[str, Any]) -> dict:
+    """The saved profile with the figures stated in this message laid over it (a scenario for this answer)."""
+    q = copy.deepcopy(p)
+    for path, value in stated.items():
+        key, _, sub = path.partition(".")
+        if sub:
+            q.setdefault(key, {})[sub] = value
+        else:
+            q[key] = value
+    if "existing_emi" in stated:
+        q.pop("loans", None)  # a stated total EMI supersedes a saved loan list
+    return q
+
+
+def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict, stated: dict | None = None) -> dict[str, Any]:
     if tool == "decision":
         return _run_decision(query, uid)
     if tool == "spending":
         return _run_spending(query, uid, args["kind"], args["text"])
-    p = user_store.get_financial_profile(uid) or {}
+    saved = user_store.get_financial_profile(uid) or {}
+    p, stated = _overlay(saved, stated or {}), stated or {}
+    diffs = {k: v for k, v in stated.items() if _stored(saved, k) is not None and not _same(_stored(saved, k), v)}
+    using = ""
+    if diffs:
+        using = ("Using the " + " and ".join(f"{_show(k, v)} {_label(k)}" for k, v in diffs.items()) + " you just mentioned (your saved "
+                 + ", ".join(f"{_label(k)} is {_show(k, _stored(saved, k))}" for k in diffs) + "; say yes to update it).")
+        if not any(k.startswith("expenses") for k in stated) and engine.snapshot(p)["monthly_surplus"] is not None and engine.snapshot(p)["monthly_surplus"] <= 0:
+            spend = engine.total_expenses(p)
+            return {**_ask(query, sid, "expenses_reset", p, f"{using} Your saved spending of {_inr(spend)} a month would leave {engine.inr(engine.snapshot(p)['monthly_surplus'])} short, so it looks out of date. Roughly how much do you spend per month now?"),
+                    "missing_field": "expenses"}
     need = [] if tool == "goal" and args.get("goal") else _NEEDS[tool]
     if tool == "what_if":
         path = next(iter(args["changes"]))
@@ -698,6 +743,8 @@ def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str
         res = engine.afford_purchase(p, args["price"], args["kind"])
     elif tool == "afford_sip":
         res = engine.afford_sip(p, args["amount"])
+    elif tool == "sip_capacity":
+        res = engine.sip_capacity(p)
     elif tool == "what_if":
         res = engine.what_if(p, args["changes"])
     elif tool == "retirement":
@@ -711,6 +758,8 @@ def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict) -> dict[str
     reply = generate_response(ENGINE_NARRATION.format(query=query, result=json.dumps(res, default=str)))
     if not reply or reply.lower().startswith("error"):
         reply = soften(_template(tool, res))
+    if using:
+        reply += "\n\n" + using
     return {"domain": "finance", "query": query, "response": reply, "intent": tool, "engine": res,
             "profile_basis": engine.basis_line(p, _USED[tool])}
 
@@ -773,13 +822,14 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     if pend := get_session(sid).get("finance_pending"):
         if (out := _followup(query, uid, sid, pend)) is not None:
             return out
-    notes = _remember(query, uid, sid)
+    stated: dict[str, Any] = {}
+    notes = _remember(query, uid, sid, stated)
     hit = finance_intent(query)
     ack = not hit and notes and finance_statement(query)
     if ack:
         result, notes = _acknowledge(query, uid, notes, sid), []
     else:
-        result = _run_tool(query, uid, sid, *hit) if hit else _legacy(query, uid, sid)
+        result = _run_tool(query, uid, sid, *hit, stated=stated) if hit else _legacy(query, uid, sid)
     if notes and isinstance(result.get("response"), str):
         result["response"] += "\n\n" + " ".join(notes)
     if "profile_basis" not in result and (p := user_store.get_financial_profile(uid)):

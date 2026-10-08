@@ -64,7 +64,7 @@ def test_conflicting_value_asks_then_yes_commits(mock_llm):
     user_store.save_financial_profile(U, monthly_income=100000)
     mock_llm.set_response(facts({"field": "monthly_income", "value": 120000}))
     notes = pipeline._remember("my salary is now 1.2L", U, U)
-    assert "Update monthly income from ₹1.0L to ₹1.2L?" in notes[0]
+    assert "Update monthly income from ₹1L to ₹1.2L?" in notes[0]
     assert user_store.get_financial_profile(U)["monthly_income"] == 100000
     out = pipeline.run_pipeline("yes", user_id=U)
     assert "Updated monthly income" in out["response"]

@@ -15,7 +15,7 @@ def test_conservative_with_volatile_stock():
     fit = personal.stock_fit(P, 45, 1.4, "weak")
     assert "poor fit" in fit["lines"][0]
     sizing = next(l for l in fit["lines"] if l.startswith("Sizing"))
-    assert "₹25k-₹50k" in sizing and "₹5.0L" in sizing  # 5-10% of 5L investable
+    assert "₹25k-₹50k" in sizing and "₹5L" in sizing  # 5-10% of 5L investable
     assert next(l for l in fit["lines"] if l.startswith("Horizon")).endswith("(aim for 5+).")
     assert fit["caveat"]
 

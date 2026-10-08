@@ -182,6 +182,20 @@ def afford_sip(p: dict, amount: float) -> dict[str, Any]:
                         "future_value": round(sip_emi_calc.sip_future_value(amount, years, rate))}}
 
 
+def sip_capacity(p: dict) -> dict[str, Any]:
+    """How much SIP the profile can carry when the user names no amount: 30/50/70% of surplus, always leaving a 10% buffer."""
+    s = snapshot(p)
+    surplus, em, rate = s["monthly_surplus"], s["emergency_months"], _ret(p)
+    spend = (total_expenses(p) or 0) + (total_emi(p) or 0)
+    tiers = [{"name": n, "amount": (a := round(min(f * surplus, 0.9 * surplus)) if surplus > 0 else 0),
+              "future_value_10y": round(sip_emi_calc.sip_future_value(a, 10, rate)), "future_value_20y": round(sip_emi_calc.sip_future_value(a, 20, rate))}
+             for n, f in (("conservative", 0.3), ("balanced", 0.5), ("stretch", 0.7))]
+    short = max(0.0, 6 - em) if em is not None else 0.0
+    verdict = "no_surplus" if surplus <= 0 else "build_emergency_fund_first" if short else "ok"
+    return {"verdict": verdict, "surplus": surplus, "emergency_months": em, "rate_pct": rate, "buffer_rule": "keep at least 10% of surplus free",
+            "tiers": tiers, "first_build_emergency_fund": bool(short), "emergency_shortfall_months": round(short, 1), "emergency_shortfall_amount": round(short * spend)}
+
+
 def _apply(p: dict, changes: dict[str, float]) -> dict:
     q = copy.deepcopy(p)
     for path, delta in changes.items():
@@ -225,11 +239,8 @@ def completeness(p: dict) -> dict[str, Any]:
 
 def inr(x: float) -> str:
     x = abs(x) if x is not None else 0
-    if x >= 1e7:
-        return f"₹{x / 1e7:.1f}Cr"
-    if x >= 1e5:
-        return f"₹{x / 1e5:.1f}L"
-    return f"₹{x / 1e3:.0f}k" if x >= 1e3 else f"₹{x:.0f}"
+    unit, div = ("Cr", 1e7) if x >= 1e7 else ("L", 1e5) if x >= 1e5 else ("k", 1e3) if x >= 1e3 else ("", 1)
+    return f"₹{float(f'{x / div:.3g}'):g}{unit}"  # 3 significant digits: 8,500 -> 8.5k, 1,23,000 -> 1.23L
 
 
 def basis_line(p: dict, used_fields: list[str]) -> str:

@@ -109,3 +109,35 @@ def test_answer_to_a_next_question_after_stated_facts_is_taken_and_noted(monkeyp
     r2 = pipeline.run_pipeline("about 70k", user_id=sid)
     assert r2["domain"] == "finance" and r2["response"].startswith("Noted")
     assert pipeline.engine.total_expenses(pipeline.user_store.get_financial_profile(uid)) is not None
+
+
+@pytest.mark.parametrize("q,amount", [("should I start a SIP of 15k", 15000), ("can I start a 10000 monthly sip", 10000),
+                                      ("I want to invest 5000 a month in sip", 5000), ("I want to start sip 5k", 5000)])
+def test_sip_amount_only_comes_from_sip_words(q, amount):
+    assert pipeline.finance_intent(q) == ("afford_sip", {"amount": amount})
+
+
+def test_income_is_never_taken_as_the_sip_amount(mock_llm):
+    q = "I earn 95000 a month, pay 8500 EMI, should I start a SIP?"
+    assert pipeline.finance_intent(q) == ("sip_capacity", {})
+    out = pipeline.run_pipeline(q, user_id=U)
+    assert out["missing_field"] == "expenses" and "₹95k" in out["response"] and "₹8.5k" in out["response"]
+    done = pipeline.run_pipeline("about 50k", user_id=U)
+    assert done["intent"] == "sip_capacity" and done["engine"]["surplus"] == 36500
+
+
+def test_stated_figures_override_saved_ones_for_this_answer(mock_llm):
+    user_store.save_financial_profile(U, monthly_income=200000, existing_emi=8000, expenses={"rent": 40000, "food": 20000, "other": 30000})
+    out = pipeline.run_pipeline("I earn 95000 a month, pay 8500 EMI, should I start a SIP?", user_id=U)
+    assert out["missing_field"] == "expenses" and "Using the" in out["response"] and "saved" in out["response"] and "₹90k" in out["response"]
+    assert user_store.get_financial_profile(U)["monthly_income"] == 200000  # not overwritten without a yes
+    done = pipeline.run_pipeline("about 50k", user_id=U)
+    assert done["engine"]["surplus"] == 36500 and "Using the" in done["response"]
+    assert user_store.get_financial_profile(U)["expenses"] == {"other": 50000}
+
+
+def test_bare_answer_is_not_read_as_a_mood_check_in(mock_llm):
+    user_store.save_financial_profile(U, expenses={"other": 30000}, loans=[], assets={"cash": 500000})
+    handle_query("Can I afford a car of 10 lakh", session_id=U)
+    out = handle_query("about 1.5L", session_id=U)
+    assert out["domain"] == "finance" and out["intent"] == "afford"

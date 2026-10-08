@@ -253,7 +253,7 @@ def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mo
 
 
 def _tone_and_handle(query: str, text: str, session: dict, session_id: str, mode: str) -> dict[str, Any]:
-    if not session.get("adapt_tone", True):
+    if not session.get("adapt_tone", True) or session.get("finance_pending"):  # a bare "about 50k" answers our question: no tone read
         return _handle(text, session_id, mode, original=query)
     support = False
     try:
