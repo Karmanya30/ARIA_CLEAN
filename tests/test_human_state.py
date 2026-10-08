@@ -315,3 +315,11 @@ def test_weak_concept_match_must_share_the_querys_words():
     hit = {"id": "pe_ratio", "canonical_name": "P/E Ratio (Price-to-Earnings)", "aliases": ["PE ratio"]}
     assert not retriever._names_every_term("What is expense ratio?", hit)
     assert retriever._names_every_term("explain the P/E ratio", hit)
+
+
+def test_support_reply_in_devanagari_is_replaced_by_a_roman_hinglish_fallback(monkeypatch):
+    from ai.llm import groq_client
+    from core import orchestrator
+    monkeypatch.setattr(groq_client, "generate_response", lambda *a, **k: "मैं समझ रहा हूँ, क्या हम नंबर देखें?")
+    out = orchestrator._support_reply("yaar bahut tension hai", {}, True, 0)["response"]
+    assert not any("ऀ" <= c <= "ॿ" for c in out) and "numbers" in out

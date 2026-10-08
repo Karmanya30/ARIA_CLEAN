@@ -206,7 +206,7 @@ def style_block(state: dict, plan: dict | None, goals: list[dict] | None = None,
     lines.append("- Lead with the answer in the first sentence. Plain words, short sentences, the user's own numbers. No 'As an AI', no 'I understand your concern', at most one specific caveat. "
                  "Use only numbers the user said or that are in their profile/engine result. Never make up their amounts, savings, income or history.")
     if state["hinglish"] or prefs.get("hinglish"):
-        lines.append("- Mirror their light Hinglish ('theek hai', 'koi tension nahi') only where natural, never a caricature.")
+        lines.append("- They write Hinglish (Hindi in Roman letters mixed with English): reply in that same register in Roman letters only (never Devanagari), mostly simple Hinglish with the finance terms in English ('koi tension nahi, abhi action ki zaroorat nahi hai'), never a caricature.")
     if state["uncertainty"] >= 0.6:
         lines.append("- Don't name their feeling; at most a light check-in.")
     if prefs.get("length") == "short":

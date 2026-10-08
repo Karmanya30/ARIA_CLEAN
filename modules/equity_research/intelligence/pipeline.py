@@ -13,6 +13,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
+from dataclasses import replace
 from typing import Any
 
 from loguru import logger
@@ -161,6 +162,10 @@ def run_research(query: str, user_id: str = "default", target: Target | None = N
     lap("fundamentals")
     audit = run_audit(snap, ledger, an, val)
     val.withheld_by_audit = audit.withhold_valuation
+    if val.withheld_by_audit and (f := an.fundamentals) and f.get("scorecard") and (old := an.facts.get("intelligence_score")):
+        f["intelligence"] = intel = lenses.intelligence(f, val)  # the audit withheld the valuation: the score must not lean on its upside
+        if intel["score"] is not None:  # facts are frozen and the commentary has not read them yet, so swap the entry in place
+            ledger._facts[old.id] = an.facts["intelligence_score"] = replace(old, value=intel["score"], method=old.method + "; valuation upside left out (withheld by the audit)")
     lap("audit")
 
     # Narrative and debate are independent readers of the same immutable facts.

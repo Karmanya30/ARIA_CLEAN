@@ -75,3 +75,15 @@ def test_company_intelligence_returns_the_ui_contract(monkeypatch):
     assert r["scorecard"]["pillars"] and len(r["news"]) <= 5 and set(r["call"]) == {"available", "period", "net", "themes"} and "/100" in r["response"]
     monkeypatch.setattr(pipeline, "resolve_target", lambda q: None)
     assert pipeline.company_intelligence("nothing") is None
+
+
+def test_withheld_valuation_updates_the_ledger_score(monkeypatch):
+    """The commentary cites the intelligence_score fact: when the audit withholds the valuation the fact must follow the report's score."""
+    from test_intel_report_html import report_for
+
+    from modules.equity_research.intelligence.audit import Audit
+    monkeypatch.setattr(Audit, "withhold_valuation", property(lambda self: True))
+    rep = report_for()
+    score = rep["fundamentals"]["intelligence"]["score"]
+    facts = [x for x in rep["facts"] if x["label"] == "Intelligence score"]
+    assert facts and facts[0]["value"] == score and "withheld" in facts[0]["method"]

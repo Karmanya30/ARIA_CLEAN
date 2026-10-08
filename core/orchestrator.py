@@ -104,9 +104,9 @@ def _support_reply(query: str, profile: dict, hinglish: bool, turn: int) -> dict
     their savings, job or history, replaces the model's text with a fixed safe one."""
     from ai.llm.groq_client import generate_response
 
-    reply = generate_response(query, system_prompt=_SUPPORT_SYSTEM) or ""
+    reply = generate_response(query, system_prompt=_SUPPORT_SYSTEM + (" The user writes Hinglish: answer in simple Hinglish in Roman letters only, never Devanagari." if hinglish else "")) or ""
     norm = lambda t: {n.replace(",", "").rstrip(".") for n in re.findall(r"\d[\d,.]*", t)}
-    if reply.lower().startswith("error") or _INVENTED.search(reply) or not norm(reply) <= norm(query) | norm(str(profile)):
+    if reply.lower().startswith("error") or _INVENTED.search(reply) or re.search("[ऀ-ॿ]", reply) or not norm(reply) <= norm(query) | norm(str(profile)):
         options = _SAFE_SUPPORT_HI if hinglish else _SAFE_SUPPORT
         reply = options[turn % len(options)]
     return {"domain": "support", "query": query, "response": reply}
