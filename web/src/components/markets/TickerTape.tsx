@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { useMarket } from '../../hooks/useMarket'
 import { Delta } from './Delta'
-import { fmtNum } from './format'
+import { fmtIst, fmtNum } from './format'
 import type { Movers, OpenStock, Overview } from './types'
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -48,7 +48,7 @@ export function TickerTape({ onOpen }: { onOpen: OpenStock }) {
           </button>
         </>
       ) : ov.error && mv.error ? (
-        <span className="tape-note">Market data unavailable{asOf ? ` · last updated ${asOf}` : ''}</span>
+        <span className="tape-note">Market data unavailable{asOf ? ` · last updated ${fmtIst(asOf)}` : ''}</span>
       ) : (
         <span className="mk-skel tape-skel" style={{ ['--h' as string]: '12px' }} aria-label="Loading market data" role="status" />
       )}

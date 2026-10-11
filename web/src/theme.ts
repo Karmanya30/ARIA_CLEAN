@@ -1,3 +1,5 @@
+import { useEffect, useReducer } from 'react'
+
 export type ThemeId = 'classic' | 'vitara' | 'vitara-markets'
 
 export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
@@ -29,4 +31,49 @@ export function setTheme(id: ThemeId) {
   } catch {
     // Storage blocked (private window etc.): the choice still applies until the tab is closed.
   }
+}
+
+// ── Colour mode (Vitara Markets only; the CSS rules are scoped to that theme) ──────────────
+// 'auto' follows the OS preference live. index.html applies the saved setting before first paint.
+export type ModeSetting = 'light' | 'night' | 'auto'
+export const MODES: { id: ModeSetting; label: string }[] = [
+  { id: 'light', label: 'Light' },
+  { id: 'night', label: 'Night' },
+  { id: 'auto', label: 'Auto' },
+]
+const MODE_KEY = 'aria_mode'
+const dark = window.matchMedia('(prefers-color-scheme: dark)')
+
+export function getModeSetting(): ModeSetting {
+  try {
+    const saved = localStorage.getItem(MODE_KEY)
+    return MODES.find((m) => m.id === saved)?.id ?? 'light'
+  } catch {
+    return 'light'
+  }
+}
+
+const resolve = (m: ModeSetting) => (m === 'auto' ? (dark.matches ? 'night' : 'light') : m)
+
+export function setModeSetting(m: ModeSetting) {
+  document.documentElement.dataset.mode = resolve(m)
+  try {
+    localStorage.setItem(MODE_KEY, m)
+  } catch {
+    // Storage blocked: the choice still applies until the tab is closed.
+  }
+  window.dispatchEvent(new Event('aria-mode'))
+}
+
+// Auto mode tracks the OS live.
+dark.addEventListener('change', () => getModeSetting() === 'auto' && setModeSetting('auto'))
+
+/** The saved setting (light | night | auto) plus its setter; re-renders on any mode change, including OS flips in auto. */
+export function useModeSetting(): [ModeSetting, (m: ModeSetting) => void] {
+  const [, tick] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    window.addEventListener('aria-mode', tick)
+    return () => window.removeEventListener('aria-mode', tick)
+  }, [])
+  return [getModeSetting(), setModeSetting]
 }

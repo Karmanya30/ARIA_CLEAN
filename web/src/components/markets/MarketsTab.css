@@ -71,6 +71,7 @@
 .mk-tile { flex-basis: 110px; min-height: 84px; display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-1); padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--ink); font: inherit; font-size: var(--fs-2); text-align: left; cursor: pointer; transition: box-shadow var(--t-fast) var(--ease); }
 .mk-tile:hover { box-shadow: var(--shadow-md); }
 .mk-tile[aria-expanded='true'] { outline: 2px solid var(--accent-strong); outline-offset: 1px; }
+.mk-basis { font-size: var(--fs-1); color: var(--ink); }
 
 .mk-news { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .mk-news li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); padding: var(--s-3) 0; border-bottom: 1px solid var(--border); }

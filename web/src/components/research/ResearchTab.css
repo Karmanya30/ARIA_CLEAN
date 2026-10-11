@@ -67,7 +67,7 @@
   font-size: 12.5px;
 }
 .rt-chip {
-  color: #fff;
+  color: var(--on-solid, #fff);
   font-size: 11px;
   font-weight: 700;
   padding: 1px 8px;

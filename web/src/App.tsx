@@ -7,6 +7,7 @@ import { ResearchTab } from './components/research/ResearchTab'
 import { IntelligenceTab } from './components/research/IntelligenceTab'
 import { ProgressTab } from './components/progress/ProgressTab'
 import { SettingsTab } from './components/settings/SettingsTab'
+import { ModeToggle } from './components/ModeToggle'
 import { MarketsTab } from './components/markets/MarketsTab'
 import { TickerTape } from './components/markets/TickerTape'
 import { useSessionId } from './hooks/useSessionId'
@@ -69,7 +70,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">Skip to main content</a>
-      <Sidebar tabs={tabs} active={tab} onChange={setTab} onNewSession={newSession} />
+      <Sidebar tabs={tabs} active={tab} onChange={setTab} onNewSession={newSession} extra={theme === 'vitara-markets' ? <ModeToggle /> : undefined} />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
       <main className="app-main" id="main" tabIndex={-1}>
         {tab !== defaultTab(theme) && idx > 0 && prevLabel && (

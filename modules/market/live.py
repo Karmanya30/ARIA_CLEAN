@@ -112,6 +112,20 @@ def _session(s: pd.Series) -> tuple[pd.Series, float | None]:
     return s.iloc[start:], (float(s.iloc[start - 1]) if start > 0 else None)
 
 
+def _fallback_prev(sym: str, price: float) -> float | None:
+    """Prior close for a symbol whose 15m window holds only one session: fast_info, else the daily history."""
+    try:
+        with YF_LOCK:
+            t = yf.Ticker(sym)
+            prev = t.fast_info.get("previousClose")
+            if not prev:
+                d = t.history(period="1mo", interval="1d", auto_adjust=False)["Close"].dropna()
+                prev = d.iloc[-2] if len(d) > 1 else None
+        return float(prev) if prev else None
+    except Exception:
+        return None
+
+
 def _pct(price: float, prev: float | None) -> tuple[float, float]:
     return (price - prev, (price - prev) / prev * 100) if prev else (0.0, 0.0)
 
@@ -127,7 +141,8 @@ def _build_overview(df: pd.DataFrame) -> tuple[dict, dict[str, float]]:
         if today.empty:
             continue
         price = float(today.iloc[-1])
-        prev = prev if prev is not None else float(today.iloc[0])
+        if prev is None:
+            prev = _fallback_prev(sym, price) or float(today.iloc[0])
         chg, pct = _pct(price, prev)
         changes[sym] = round(pct, 2)
         if sym in OVERVIEW:
@@ -161,11 +176,12 @@ def _build_movers(df: pd.DataFrame, idx_changes: dict[str, float]) -> tuple[dict
         stocks = [r for r in rows if r["sector"] == name]
         isym = SECTOR_INDEX.get(name)
         pct = idx_changes.get(isym) if isym else None
+        basis = "index"
         if pct is None and stocks:
-            pct = round(sum(r["change_pct"] for r in stocks) / len(stocks), 2)
+            pct, basis = round(sum(r["change_pct"] for r in stocks) / len(stocks), 2), "constituents"
         if pct is None:
             continue
-        sectors.append({"name": name, "index_symbol": isym, "change_pct": pct, "value_cr": round(sum(r["value_cr"] for r in stocks), 2),
+        sectors.append({"name": name, "index_symbol": isym, "basis": basis, "change_pct": pct, "value_cr": round(sum(r["value_cr"] for r in stocks), 2),
                         "stocks": [{k: r[k] for k in ("symbol", "name", "change_pct", "value_cr")} for r in stocks]})
     return {**movers, "meta": _meta()}, {"sectors": sectors, "meta": _meta()}
 

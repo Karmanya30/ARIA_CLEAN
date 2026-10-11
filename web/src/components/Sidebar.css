@@ -27,7 +27,7 @@
   height: 32px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent-strong), var(--violet));
-  color: #ffffff;
+  color: var(--on-solid, #ffffff);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(41, 83, 184, 0.28);
 }

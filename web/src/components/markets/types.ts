@@ -48,7 +48,8 @@ export interface Sectors {
   meta: Meta
   sectors: {
     name: string
-    index_symbol: string
+    index_symbol: string | null
+    basis: 'index' | 'constituents'
     change_pct: number
     value_cr: number
     stocks: { symbol: string; name: string; change_pct: number; value_cr: number }[]

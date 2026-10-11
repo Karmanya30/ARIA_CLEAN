@@ -17,6 +17,12 @@
         var q = new URLSearchParams(location.search).get('theme') // ?theme=<id> for screenshots / demo links
         if (q) localStorage.setItem('aria_theme', q)
         document.documentElement.dataset.theme = localStorage.getItem('aria_theme') || 'classic'
+        // Colour mode (only styled by the Vitara Markets theme): light | night | auto. Same key as src/theme.ts.
+        var m = new URLSearchParams(location.search).get('mode') // ?mode=night for screenshots / demo links
+        if (m) localStorage.setItem('aria_mode', m)
+        m = localStorage.getItem('aria_mode')
+        if (m === 'auto') m = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light'
+        document.documentElement.dataset.mode = m === 'night' ? 'night' : 'light'
       } catch (e) {}
     </script>
   </head>

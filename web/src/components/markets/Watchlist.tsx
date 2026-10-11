@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { useMarket } from '../../hooks/useMarket'
 import { Delta } from './Delta'
@@ -40,7 +40,13 @@ export function Watchlist({ onOpen }: { onOpen: OpenStock }) {
   const [hi, setHi] = useState(0)
   const [open, setOpen] = useState(false)
   const id = useId()
+  const inp = useRef<HTMLInputElement>(null)
   const first = useMarket<Quote>(list[0] ? qpath(list[0]) : null, 60_000)
+  useEffect(() => { // the stock drawer's star writes storage and fires this event
+    const sync = () => setList(load())
+    window.addEventListener('aria-watchlist', sync); window.addEventListener('storage', sync)
+    return () => { window.removeEventListener('aria-watchlist', sync); window.removeEventListener('storage', sync) }
+  }, [])
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(list)) } catch { /* ignore */ } }, [list])
   useEffect(() => { const t = setTimeout(() => setTerm(text.trim()), 250); return () => clearTimeout(t) }, [text])
   const s = useMarket<SearchHit[]>(term.length >= 2 ? `/api/markets/search?q=${encodeURIComponent(term)}` : null, 600_000)
@@ -48,7 +54,7 @@ export function Watchlist({ onOpen }: { onOpen: OpenStock }) {
   const showList = open && term.length >= 2
   const add = (sym: string) => { setList((l) => (l.includes(sym) ? l : [...l, sym])); setText(''); setTerm(''); setOpen(false) }
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setHi((h) => Math.min(h + 1, hits.length - 1)) }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setHi((h) => Math.max(0, Math.min(h + 1, hits.length - 1))) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(h - 1, 0)) }
     else if (e.key === 'Enter' && showList && hits[hi]) { e.preventDefault(); add(hits[hi].symbol) }
     else if (e.key === 'Escape') setOpen(false)
@@ -59,7 +65,7 @@ export function Watchlist({ onOpen }: { onOpen: OpenStock }) {
       <div className="mk-combo">
         <label htmlFor={`${id}-in`} className="sr-only">Add a stock to your watchlist</label>
         <Plus size={16} aria-hidden="true" className="mk-combo-ic" />
-        <input id={`${id}-in`} className="mk-input" role="combobox" aria-expanded={showList} aria-controls={`${id}-lb`} aria-autocomplete="list" aria-activedescendant={showList && hits[hi] ? `${id}-o${hi}` : undefined}
+        <input ref={inp} id={`${id}-in`} className="mk-input" role="combobox" aria-expanded={showList} aria-controls={`${id}-lb`} aria-autocomplete="list" aria-activedescendant={showList && hits[hi] ? `${id}-o${hi}` : undefined}
           placeholder="Add a stock, e.g. Reliance" autoComplete="off" value={text} onChange={(e) => { setText(e.target.value); setOpen(true); setHi(0) }} onKeyDown={onKey} onBlur={() => setOpen(false)} />
         {showList && (
           <ul id={`${id}-lb`} role="listbox" className="mk-listbox" aria-label="Search results">
@@ -73,7 +79,7 @@ export function Watchlist({ onOpen }: { onOpen: OpenStock }) {
         )}
       </div>
       {list.length ? (
-        <ul className="mk-wl">{list.map((sym) => <Row key={sym} symbol={sym} onOpen={onOpen} onRemove={() => setList((l) => l.filter((x) => x !== sym))} />)}</ul>
+        <ul className="mk-wl">{list.map((sym) => <Row key={sym} symbol={sym} onOpen={onOpen} onRemove={() => { setList((l) => l.filter((x) => x !== sym)); inp.current?.focus() }} />)}</ul>
       ) : <p className="mk-empty">Your watchlist is empty. Search above to add a stock.</p>}
       <footer className="mk-panel-f">{first.data && <DataProv meta={first.data.meta} />}</footer>
     </section>

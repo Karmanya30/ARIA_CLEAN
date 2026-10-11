@@ -81,6 +81,25 @@ def test_movers_and_sector_grouping(monkeypatch):
     assert {s["symbol"] for s in it["stocks"]} == {"TCS.NS", "INFY.NS", "HCLTECH.NS", "WIPRO.NS", "TECHM.NS"}
 
 
+def test_sector_basis(monkeypatch):
+    _patch_downloads(monkeypatch)
+    with pytest.raises(RuntimeError):
+        live.refresh_once()
+    by = {s["name"]: s for s in live.snapshot("sectors")["sectors"]}
+    assert by["IT"]["basis"] == "index"
+    assert by["Telecom"]["basis"] == "constituents" and by["Telecom"]["index_symbol"] is None and by["Telecom"]["stocks"]
+    assert by["Realty"]["basis"] == "index" and by["Realty"]["stocks"] == []
+
+
+def test_single_session_symbol_uses_fallback_prev_close(monkeypatch):
+    idx = pd.date_range("2026-10-09 03:45", periods=10, freq="15min", tz="UTC")
+    df = _frame({"INR=X": list(np.linspace(96.0, 97.0, 10))}, idx)
+    monkeypatch.setattr(live, "_ALL_INDEX", ["INR=X"])
+    monkeypatch.setattr(live, "_fallback_prev", lambda sym, price: 95.0)
+    item = live._build_overview(df)[0]["items"][0]
+    assert item["prev_close"] == 95.0 and item["change_pct"] == pytest.approx(2.11, abs=0.01)
+
+
 def test_failure_keeps_last_good_copy_and_flags_stale(monkeypatch):
     _patch_downloads(monkeypatch)
     with pytest.raises(RuntimeError):

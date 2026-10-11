@@ -28,7 +28,7 @@
 }
 .bubble-avatar-assistant {
   background: linear-gradient(135deg, var(--accent-strong), var(--violet));
-  color: #ffffff;
+  color: var(--on-solid, #ffffff);
 }
 
 .bubble-user p {
@@ -54,7 +54,8 @@
   height: 36px;
   border-radius: var(--radius-pill);
 }
-
+
+
 .bubble-news {
   font-size: 12px;
   color: var(--ink-faint);

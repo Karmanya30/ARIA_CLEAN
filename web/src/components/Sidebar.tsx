@@ -20,11 +20,13 @@ export function Sidebar({
   active,
   onChange,
   onNewSession,
+  extra,
 }: {
   tabs: NavDef[]
   active: string
   onChange: (id: string) => void
   onNewSession: () => void
+  extra?: React.ReactNode // theme-specific controls (the Markets colour-mode toggle) next to New session
 }) {
   return (
     <aside className="app-sidebar">
@@ -39,6 +41,7 @@ export function Sidebar({
         <Plus size={15} />
         New session
       </button>
+      {extra}
 
       <nav className="sidebar-nav" role="tablist">
         {tabs.map((tab) => (

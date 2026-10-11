@@ -19,7 +19,7 @@ function load(path: string): Promise<unknown> {
   return p
 }
 
-/** Stale-while-revalidate market data: cached value first, then refreshed every intervalMs (paused while the tab is hidden).
+/** Stale-while-revalidate market data: cached value first, then refreshed every intervalMs (0 = once; paused while the tab is hidden).
  * Requests are shared per path and not aborted individually (another component may be awaiting the same one); results of
  * an unmounted/changed path are simply ignored. */
 export function useMarket<T>(path: string | null, intervalMs: number): { data: T | null; error: string | null; loading: boolean; stale: boolean } {
@@ -38,7 +38,7 @@ export function useMarket<T>(path: string | null, intervalMs: number): { data: T
         () => live && (setError(null), setStale(false), tick((n) => n + 1)),
         (e: Error) => live && (setError(e.message), setStale(cache.has(path))),
       ).finally(() => {
-        if (live) timer = setTimeout(run, intervalMs)
+        if (live && intervalMs > 0) timer = setTimeout(run, intervalMs) // 0 = fetch once
       })
     }
     const onVis = () => {

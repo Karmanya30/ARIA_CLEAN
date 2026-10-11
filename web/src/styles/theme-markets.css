@@ -4,6 +4,16 @@
   --up: #13795b;
   --down: #b42318;
   --flat: var(--ink-muted);
+  /* categorical series colours (donut, cash-flow bars) */
+  --viz-1: #1f6f54;
+  --viz-2: #b4691f;
+  --viz-3: #2f5f9e;
+  --viz-4: #8a4f9e;
+  --viz-5: #8a6d00;
+  --viz-6: #4d7c0f;
+  --viz-7: #a33a5b;
+  --viz-8: #0e7490;
+  --viz-9: #6b5b4a;
   --num: 'tnum' 1;
 
   --tape-h: 36px;
@@ -207,3 +217,32 @@
     transition: none;
   }
 }
+
+/* ── Light / Night switch in the top bar (next to "New session") ─────────────────── */
+.mode-toggle {
+  order: 3;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--ink);
+  transition: background var(--t-fast) var(--ease);
+}
+.mode-toggle:hover {
+  background: var(--bg-inset);
+}
+.mode-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* the top bar holds brand + nav pill + mode toggle + New session: let the nav give way instead of pushing the toggle off-screen */
+[data-theme='vitara-markets'] .app-sidebar .sidebar-nav { min-width: 0; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
+[data-theme='vitara-markets'] .app-sidebar .sidebar-new-btn { white-space: nowrap; flex: none; }
+[data-theme='vitara-markets'] .app-sidebar .mode-toggle { order: 3; flex: none; }

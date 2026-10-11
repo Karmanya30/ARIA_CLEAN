@@ -66,6 +66,13 @@ function RangeBar({ title, low, high, value }: { title: string; low: number; hig
 
 function PriceChart({ bars, mode, intraday, onTip }: { bars: Chart['bars']; mode: 'area' | 'candles'; intraday: boolean; onTip: (t: React.ReactNode) => void }) {
   const ref = useRef<HTMLDivElement>(null)
+  // Colours are read from CSS variables at build time, so rebuild when Light/Night flips (ponytail: loses zoom, fine).
+  const [modeTick, setModeTick] = useState(0)
+  useEffect(() => {
+    const mo = new MutationObserver(() => setModeTick((n) => n + 1))
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-mode'] })
+    return () => mo.disconnect()
+  }, [])
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -126,7 +133,7 @@ function PriceChart({ bars, mode, intraday, onTip }: { bars: Chart['bars']; mode
       ro?.disconnect()
       chart?.remove()
     }
-  }, [bars, mode, intraday, onTip])
+  }, [bars, mode, intraday, onTip, modeTick])
   const last = bars[bars.length - 1]
   return <div ref={ref} className="sd-chart" role="img" aria-label={`Price chart, ${bars.length} points, last close ${last ? fmtNum(last.c) : 'n/a'}. A table version follows.`} />
 }
@@ -325,7 +332,7 @@ function Drawer({ symbol, onClose, onAsk }: { symbol: string; onClose: () => voi
         )}
 
         <div className="sd-actions">
-          <button className="btn primary" type="button" onClick={() => ask(`Why is ${name} ${dir} ${Math.abs(pct).toFixed(2)}% today?`)}>
+          <button className="btn primary" type="button" disabled={!quote} onClick={() => ask(`Why is ${name} ${dir} ${Math.abs(pct).toFixed(2)}% today?`)}>
             Ask ARIA: Why is {name} {dir} {Math.abs(pct).toFixed(2)}% today?
           </button>
           <button className="btn" type="button" onClick={() => ask(`Is ${name} fairly valued?`)}>Is {name} fairly valued?</button>

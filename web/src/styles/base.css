@@ -155,7 +155,7 @@ a {
 }
 .btn-danger {
   background: linear-gradient(135deg, #e35d60, var(--red));
-  color: #ffffff;
+  color: var(--on-solid, #ffffff);
   border: none;
 }
 

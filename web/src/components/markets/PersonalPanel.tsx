@@ -25,7 +25,8 @@ const loadAll = () =>
 
 const inr = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`
 const CLASS_LABEL: Record<string, string> = { stocks: 'Stocks', mf: 'Mutual funds', fd: 'Fixed deposits', gold: 'Gold', cash: 'Cash', ppf: 'PPF', epf: 'EPF', nps: 'NPS', real_estate: 'Real estate' }
-const COLORS = ['#1f6f54', '#b4691f', '#2f5f9e', '#8a4f9e', '#8a6d00', '#4d7c0f', '#a33a5b', '#0e7490', '#6b5b4a']
+// Series colours live in theme-markets.css (--viz-1..9) so Night mode can re-tint them.
+const COLORS = Array.from({ length: 9 }, (_, i) => `var(--viz-${i + 1})`)
 
 function Card({ title, children, table, tableTitle }: { title: string; children: React.ReactNode; table?: React.ReactNode; tableTitle?: string }) {
   return (
@@ -145,8 +146,8 @@ function CashFlowBars({ cf }: { cf: SpendingInsightsData['cashflow'] }) {
           return (
             <g key={m.month}>
               {income > 0 && <rect x={x - bw * 1.6} y={base - h(income)} width={bw} height={h(income)} fill="var(--accent)" />}
-              <rect x={x - bw * 0.5} y={base - h(m.spend)} width={bw} height={h(m.spend)} fill="#b4691f" />
-              <rect x={x + bw * 0.6} y={base - h(m.emi)} width={bw} height={h(m.emi)} fill="#2f5f9e" />
+              <rect x={x - bw * 0.5} y={base - h(m.spend)} width={bw} height={h(m.spend)} fill="var(--viz-2)" />
+              <rect x={x + bw * 0.6} y={base - h(m.emi)} width={bw} height={h(m.emi)} fill="var(--viz-3)" />
               <text x={x} y={base + 13} textAnchor="middle">{mname(m.month)}</text>
               {m.net != null && <text x={x} y={base + 26} textAnchor="middle" style={{ fill: 'var(--ink)' }}>{m.net >= 0 ? 'left' : 'short'} {inr(Math.abs(m.net))}</text>}
             </g>
@@ -155,8 +156,8 @@ function CashFlowBars({ cf }: { cf: SpendingInsightsData['cashflow'] }) {
       </svg>
       <ul className="pp-legend" style={{ gridAutoFlow: 'column', gridAutoColumns: 'max-content', gap: 12 }}>
         <li><span className="sw" style={{ background: 'var(--accent)' }} aria-hidden="true" />Income (average)</li>
-        <li><span className="sw" style={{ background: '#b4691f' }} aria-hidden="true" />Spend</li>
-        <li><span className="sw" style={{ background: '#2f5f9e' }} aria-hidden="true" />EMI</li>
+        <li><span className="sw" style={{ background: 'var(--viz-2)' }} aria-hidden="true" />Spend</li>
+        <li><span className="sw" style={{ background: 'var(--viz-3)' }} aria-hidden="true" />EMI</li>
       </ul>
     </Card>
   )

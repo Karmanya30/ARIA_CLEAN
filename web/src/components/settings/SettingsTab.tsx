@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
-import { THEMES, setTheme, type ThemeId } from '../../theme'
+import { MODES, THEMES, setTheme, useModeSetting, type ThemeId } from '../../theme'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
@@ -9,6 +9,7 @@ import './SettingsTab.css'
 export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: ThemeId) => void }) {
   const [tone, setTone] = useState(adaptTone)
   const [status, setStatus] = useState('')
+  const [mode, setMode] = useModeSetting()
 
   function pick(id: ThemeId) {
     setTheme(id)
@@ -61,6 +62,20 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
           </label>
         ))}
       </div>
+      {theme === 'vitara-markets' && (
+        <>
+          <h2 className="settings-h2">Appearance</h2>
+          <div className="seg" role="radiogroup" aria-label="Colour mode">
+            {MODES.map((m) => (
+              <label key={m.id}>
+                <input type="radio" name="mode" value={m.id} checked={mode === m.id} onChange={() => setMode(m.id)} />
+                <span>{m.label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="settings-sub">Night is a dark trading-terminal look. Auto follows your device.</p>
+        </>
+      )}
       <h2 className="settings-h2">Conversation</h2>
       <label className="settings-check">
         <input

@@ -61,7 +61,7 @@
   border-radius: var(--radius-md);
 }
 .rr-rating {
-  color: #fff;
+  color: var(--on-solid, #fff);
   font-weight: 700;
   font-size: 13px;
   padding: 4px 12px;

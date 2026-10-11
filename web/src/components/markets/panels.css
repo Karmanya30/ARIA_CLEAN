@@ -17,7 +17,7 @@
   animation: sd-in var(--t-med) var(--ease);
 }
 .sd::backdrop {
-  background: rgba(26, 26, 23, 0.4);
+  background: var(--backdrop, rgba(26, 26, 23, 0.4));
 }
 @keyframes sd-in {
   from {
@@ -211,7 +211,7 @@
   flex-direction: column;
   gap: var(--s-2);
 }
-.btn {
+:is(.sd, .pp) .btn {
   min-height: 44px;
   padding: 0 var(--s-4);
   border-radius: var(--radius-pill);
@@ -221,18 +221,18 @@
   cursor: pointer;
   text-align: left;
 }
-.btn:hover {
+:is(.sd, .pp) .btn:hover {
   border-color: var(--ink);
 }
-.btn.primary {
+:is(.sd, .pp) .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
 }
-.btn.primary:hover {
+:is(.sd, .pp) .btn.primary:hover {
   background: var(--accent-strong);
 }
-.btn[disabled] {
+:is(.sd, .pp) .btn[disabled] {
   opacity: 0.7;
   cursor: progress;
 }

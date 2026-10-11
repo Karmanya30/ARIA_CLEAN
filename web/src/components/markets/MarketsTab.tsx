@@ -53,7 +53,7 @@ export function MarketsTab({ onAsk, onOpenStock, selectedSymbol }: { onAsk: (q: 
   const [seen, setSeen] = useState(selectedSymbol)
   if (selectedSymbol !== seen) { setSeen(selectedSymbol); if (selectedSymbol) setSymbol(selectedSymbol) }
   const open: OpenStock = (s) => { setSymbol(s); onOpenStock?.(s) }
-  const close = () => { setSymbol(null) }
+  const close = () => { setSymbol(null); onOpenStock?.('') } // clear App's selection so the same tape stock can reopen
 
   const items = ov.data?.items ?? []
   const shown = items.filter((i) => i.group === group)

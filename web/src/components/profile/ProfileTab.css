@@ -77,8 +77,8 @@
 
 .banner-info {
   background: var(--blue-soft);
-  border: 1px solid rgba(37, 99, 235, 0.25);
-  color: #1d4ed8;
+  border: 1px solid var(--info-line, rgba(37, 99, 235, 0.25));
+  color: var(--info-ink, #1d4ed8);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   font-size: 14px;

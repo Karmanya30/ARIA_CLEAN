@@ -84,7 +84,7 @@
 }
 [data-theme^='vitara'] .sidebar-nav-item.active {
   background: var(--ink);
-  color: #ffffff;
+  color: var(--on-solid, #ffffff);
 }
 [data-theme^='vitara'] .sidebar-new-btn {
   order: 3;
