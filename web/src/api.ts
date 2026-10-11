@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction } from './types'
+import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction, ValidationLatest } from './types'
 
 const BASE = ''
 
@@ -194,6 +194,11 @@ export const api = {
 
   deleteReport: (id: string) =>
     j<{ status: string }>(`/api/research/reports/${id}?owner_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
+
+  validationLatest: (symbol: string) => j<ValidationLatest>(`/api/research/validation/latest?symbol=${encodeURIComponent(symbol)}`),
+
+  validationStart: (symbol: string, force = false) =>
+    j<{ run_id: string; status: ValidationLatest['status'] }>('/api/research/validation', { method: 'POST', body: JSON.stringify({ symbol, force }) }),
 
   companyIntel: (q: string) => j<CompanyIntel>(`/api/research/intelligence?q=${encodeURIComponent(q)}&owner_id=${encodeURIComponent(ownerId())}`),
 

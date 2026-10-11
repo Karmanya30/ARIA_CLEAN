@@ -9,6 +9,7 @@ already consumes a Module 4 response -- chat UI, TTS, the Tavus avatar -- keeps 
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -47,6 +48,17 @@ def no_data(query: str, target: Target, warnings: list[str]) -> dict[str, Any]:
     return _message(query, target.slug, f"I could not retrieve market or financial data for {target.slug}.",
                     "Neither the price source nor the statements source returned usable data: " + " ".join(warnings[:3]),
                     "Check the ticker and try again in a moment.", "No report was generated, so there is nothing to rely on here.")
+
+
+def _queue_forecast(symbol: str, report_id: str | None) -> None:
+    """Enqueue the forecast validation run (background process); never slows or breaks the report."""
+    if os.getenv("ARIA_FORECAST", "1") == "0":
+        return
+    try:
+        from modules.equity_research.forecast import jobs
+        jobs.submit(symbol, report_id)
+    except Exception:
+        logger.exception("could not queue the forecast validation run")
 
 
 def _persist(user_id: str, report: dict) -> dict | None:
@@ -200,6 +212,7 @@ def run_research(query: str, user_id: str = "default", target: Target | None = N
     report["for_you"] = _fit(_risk(an, val), (an.fundamentals or {}).get("scorecard"))
     report["markdown"] = to_markdown(report)
     meta = _persist(user_id, report)
+    _queue_forecast(target.symbol, meta["id"] if meta else None)
     lap("report+save")
     logger.info(f"research report for {target.symbol}: {len(ledger)} facts, status={audit.status}, methods={[m.key for m in val.methods]}; {time.perf_counter() - t0:.1f}s {stages}")
     return {

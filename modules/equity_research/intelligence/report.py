@@ -453,6 +453,9 @@ def to_markdown(report: dict) -> str:
         out += ["## Catalysts"] + [f"- {x}" for x in report["catalysts"]] + [""]
     if report["news"]:
         out += ["## Recent headlines"] + [f"- {n['date']} - {n['title']} ({n['source']})" for n in report["news"]] + [""]
+    if report.get("quant_validation"):
+        from modules.equity_research.forecast.report import md_section
+        out += [md_section(report)]
     out += ["## Assumptions", _md_table(["Assumption", "Value", "Basis"], [[a["label"], a["text"], a["method"]] for a in report["assumptions"]]),
             "## Verification"] + [f"- {'✓' if k['status'] == 'pass' else '⚠'} {k['title']}" + ("" if k["status"] == "pass" else ": " + " ".join(k["findings"])) for k in report["audit"]["checks"]]
     out += ["", "## Sources", *[f"- {x['source']}: {x['count']} figures" for x in report["sources"]], "", f"_{report['disclaimer']}_"]

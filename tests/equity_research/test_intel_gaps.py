@@ -179,3 +179,8 @@ def test_fund_report_shows_category_rank_and_the_right_benchmark():
     dh = fund.render_fund_html(debt)
     assert "not used: an equity index is not a meaningful benchmark" in dh and "Category comparison" not in dh
     assert {"Category ranking"} <= {x["item"] for x in debt["not_available"]}
+
+
+def test_list_items_returned_as_objects_are_read_as_text():
+    from modules.equity_research.intelligence.agents import _item_text
+    assert _item_text({"text": "Order inflow rose [N1]."}) == "Order inflow rose [N1]." and _item_text("plain") == "plain" and _item_text({"x": 1}) == ""

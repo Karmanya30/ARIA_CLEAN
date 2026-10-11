@@ -9,6 +9,7 @@ download link, neither of which can send custom headers.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 
@@ -77,7 +78,21 @@ def get_report(report_id: str, owner_id: str) -> dict[str, Any]:
     return _load(owner_id, report_id)
 
 
+def _with_quant(report: dict) -> dict:
+    """Copy of the report with the quantitative validation attached; the saved report is never modified."""
+    if report.get("kind") == "fund_analysis":
+        return report
+    try:
+        from modules.equity_research.forecast.report import attach
+
+        return attach(report)
+    except Exception:  # noqa: BLE001
+        logging.getLogger(__name__).warning("quant validation not attached", exc_info=True)
+        return report
+
+
 def _render(report: dict, kind: str | None = None, **kw) -> str:
+    report = _with_quant(report)
     from modules.equity_research.intelligence.fund import render_fund_html
     from modules.equity_research.intelligence.report_html import render_html
 
@@ -108,15 +123,27 @@ def download_report(report_id: str, owner_id: str, format: str = "html", kind: s
         raise HTTPException(status_code=400, detail=f"format must be one of {sorted(_FORMATS)}")
     kind = _kind(kind)
     report = _load(owner_id, report_id)
+    if format in ("md", "json"):
+        report = _with_quant(report)
     if format == "pdf":
         pdf = render_pdf(_render(report, kind))
         if pdf is None:
             raise HTTPException(status_code=501, detail="PDF export needs Chrome or Edge installed on the server (or set ARIA_PDF_BROWSER). Download the HTML and use Print > Save as PDF instead.")
-    body = {"pdf": lambda: pdf, "html": lambda: _render(report, kind, printable=True), "md": lambda: report["markdown"], "json": lambda: json.dumps(report, indent=2)}[format]()
+    body = {"pdf": lambda: pdf, "html": lambda: _render(report, kind, printable=True), "md": lambda: _markdown(report), "json": lambda: json.dumps(report, indent=2)}[format]()
     media_type, ext = _FORMATS[format]
     meta = report["meta"]
     stem = re.sub(r"[^A-Za-z0-9._-]+", "_", f"{meta['symbol']}_{kind or report.get('kind') or 'equity_research'}_v{meta['version']}_{meta['created_at'][:10]}")
     return Response(body, media_type=media_type, headers={"Content-Disposition": f'attachment; filename="{stem}.{ext}"'})
+
+
+def _markdown(report: dict) -> str:
+    md = report["markdown"]
+    if not report.get("quant_validation") or "## Quantitative forecast validation" in md:
+        return md
+    from modules.equity_research.forecast.report import md_section
+
+    head, sep, tail = md.partition(chr(10) + "## Sources")
+    return head + chr(10) * 2 + md_section(report) + sep + tail
 
 
 @router.post("/reports/{report_id}/regenerate")

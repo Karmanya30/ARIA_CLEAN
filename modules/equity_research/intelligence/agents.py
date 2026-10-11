@@ -282,6 +282,11 @@ def template_narrative(snap: Snapshot, an: Analysis, val: Valuation, ledger: Led
     return n
 
 
+def _item_text(item) -> str:
+    """Some models return list items as {'text': ...} objects instead of strings."""
+    return str(item.get("text") or item.get("claim") or "") if isinstance(item, dict) else item
+
+
 def narrate(snap: Snapshot, an: Analysis, val: Valuation, ledger: Ledger) -> Narrative:
     base = template_narrative(snap, an, val, ledger)
     sources, source_ids = sources_block(snap)
@@ -325,7 +330,7 @@ def narrate(snap: Snapshot, an: Analysis, val: Valuation, ledger: Ledger) -> Nar
     out.valuation = section("valuation_view", "valuation", base.valuation)
     thesis = []
     for item in (obj.get("thesis") or [])[:5] if isinstance(obj.get("thesis"), list) else []:
-        text, dropped = clean_text(item, ledger, source_ids)
+        text, dropped = clean_text(_item_text(item), ledger, source_ids)
         out.stats["dropped_sentences"] += dropped
         if text:
             thesis.append(text)
@@ -338,7 +343,7 @@ def narrate(snap: Snapshot, an: Analysis, val: Valuation, ledger: Ledger) -> Nar
             if text:
                 out.risks.append({"category": item["category"], "text": text})
     for item in (obj.get("catalysts") or [])[:5] if isinstance(obj.get("catalysts"), list) else []:
-        text, dropped = clean_text(item, ledger, source_ids)
+        text, dropped = clean_text(_item_text(item), ledger, source_ids)
         out.stats["dropped_sentences"] += dropped
         if text and _CITATION.search(text):  # a catalyst must be grounded in a headline
             out.catalysts.append(text)

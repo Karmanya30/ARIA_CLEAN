@@ -33,3 +33,10 @@ data/raw/kt_sequences/
 interface/avatar/ngrok_url.txt
 interface/avatar/ngrok_error.txt
 interface/avatar/.tavus_persona_cache.json
+
+# forecast engine artefacts
+data/forecast_runs/
+data/forecast_cache/
+data/user_profiles/*.db-wal
+data/user_profiles/*.db-shm
+data/forecast_universe/

@@ -1,3 +1,4 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["network: needs live Yahoo Finance access (skipped when unreachable)", "slow: long-running model tests (deep learning)"]

@@ -1,8 +1,19 @@
-import { Fragment, useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Download, ExternalLink, RefreshCw, Trash2 } from 'lucide-react'
 import { api } from '../../api'
-import type { ReportMeta } from '../../types'
+import type { ReportMeta, ValidationLatest } from '../../types'
 import './ResearchTab.css'
+
+const DONE = ['ok_beats_baseline', 'no_model_beats_baseline', 'insufficient_evidence', 'data_unavailable', 'failed', 'timeout']
+const RUNNING = ['queued', 'computing']
+
+function validationLabel(v: ValidationLatest | null): string {
+  if (!v) return ''
+  if (RUNNING.includes(v.status)) return `${v.status === 'queued' ? 'Validation queued' : 'Validating forecasts…'}${v.progress ? ` ${v.progress}%` : ''}${v.stage ? ` · ${v.stage}` : ''}`
+  if (v.status === 'not_run') return 'Forecast validation not run'
+  if (v.status === 'failed' || v.status === 'timeout') return 'Forecast validation failed'
+  return 'Forecast validation complete'
+}
 
 const RATING_COLOR: Record<string, string> = { BUY: 'var(--green)', HOLD: 'var(--amber)', SELL: 'var(--red)' }
 
@@ -20,6 +31,10 @@ export function ResearchTab() {
   const [openSyms, setOpenSyms] = useState<Set<string>>(new Set())
   const [kind, setKind] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [validation, setValidation] = useState<ValidationLatest | null>(null)
+  const [valError, setValError] = useState<string | null>(null)
+  const [frameKey, setFrameKey] = useState(0)
+  const lastStatus = useRef<string | undefined>(undefined)
 
   const load = useCallback(async () => {
     try {
@@ -44,6 +59,45 @@ export function ResearchTab() {
         setReports([])
       })
   }, [])
+
+  const selMeta = reports?.find((r) => r.id === selected)
+  const valSymbol = selMeta && selMeta.kind !== 'fund_analysis' ? selMeta.symbol : null
+
+  // Fetch the validation state of the open report; while queued/computing poll every 5 s (paused when the tab is hidden).
+  useEffect(() => {
+    lastStatus.current = undefined
+    setValidation(null)
+    setValError(null)
+    if (!valSymbol) return
+    let alive = true
+    const poll = () => {
+      if (document.hidden) return
+      api.validationLatest(valSymbol).then((v) => {
+        if (!alive) return
+        setValidation(v)
+        setValError(null)
+        const prev = lastStatus.current
+        if (prev && RUNNING.includes(prev) && DONE.includes(v.status)) setFrameKey((k) => k + 1) // the new section is now in the report
+        lastStatus.current = v.status
+      }).catch(() => alive && setValError('Could not check forecast validation'))
+    }
+    poll()
+    const timer = window.setInterval(() => { const p = lastStatus.current; if (p === undefined || RUNNING.includes(p)) poll() }, 5000)
+    document.addEventListener('visibilitychange', poll)
+    return () => { alive = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', poll) }
+  }, [valSymbol])
+
+  async function startValidation() {
+    if (!valSymbol) return
+    setValError(null)
+    try {
+      const out = await api.validationStart(valSymbol)
+      lastStatus.current = out.status
+      setValidation({ status: out.status, run_id: out.run_id })
+    } catch (err) {
+      setValError(err instanceof Error ? err.message : 'Could not start validation')
+    }
+  }
 
   async function regenerate(id: string) {
     setBusy(id)
@@ -159,7 +213,17 @@ export function ResearchTab() {
         {selected ? (
           <>
           <button type="button" className="rt-back" onClick={() => setSelected(null)}>← All reports</button>
-          <iframe key={`${selected}-${kind}`} title="Equity research report" src={api.reportHtmlUrl(selected, isFund ? '' : kind)} sandbox="" />
+          <div className="rt-vbar" aria-live="polite">
+            {valSymbol && (
+              <>
+                <span className={validation && RUNNING.includes(validation.status) ? 'rt-vchip running' : 'rt-vchip'}>{valError ?? validationLabel(validation)}</span>
+                {validation?.status === 'not_run' && <button type="button" onClick={startValidation}>Run validation</button>}
+                {validation && DONE.includes(validation.status) && <button type="button" onClick={() => setFrameKey((k) => k + 1)}>Refresh</button>}
+                {valError && <button type="button" onClick={startValidation}>Retry</button>}
+              </>
+            )}
+          </div>
+          <iframe key={`${selected}-${kind}-${frameKey}`} title="Equity research report" src={api.reportHtmlUrl(selected, isFund ? '' : kind)} sandbox="" />
           </>
         ) : (
           <p className="rt-empty">Choose a report from the list to read it here. You can switch its view (equity research, financial model, valuation, DuPont) without regenerating it.</p>

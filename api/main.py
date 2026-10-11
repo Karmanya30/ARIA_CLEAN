@@ -21,7 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import avatar, chat, live, markets, profile, progress, research, transactions, voice
+from api.routes import avatar, chat, forecast, live, markets, profile, progress, research, transactions, voice
 
 app = FastAPI(title="ARIA API")
 
@@ -90,6 +90,7 @@ app.include_router(transactions.router)
 app.include_router(progress.router)
 app.include_router(avatar.router)
 app.include_router(research.router)
+app.include_router(forecast.router)
 app.include_router(live.router)
 app.include_router(markets.router)
 

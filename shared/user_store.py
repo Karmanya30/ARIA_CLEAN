@@ -23,7 +23,7 @@ from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text, create_engine, event
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -134,13 +134,45 @@ class ResearchReportRecord(Base):
     kind = Column(String, nullable=True, default="equity_research")  # equity_research | financial_model | valuation | dupont | fund_analysis
 
 
+class ForecastRun(Base):
+    """Equity forecast validation run (modules/equity_research/forecast). The child process
+    writes progress while the API reads, so every write is one short transaction."""
+
+    __tablename__ = "forecast_runs"
+
+    id = Column(String, primary_key=True)  # uuid4 hex
+    symbol = Column(String, index=True, nullable=False)
+    market = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="queued")
+    progress = Column(Integer, default=0)
+    stage = Column(String, default="")
+    cache_key = Column(String, index=True, nullable=True)
+    feature_version = Column(String, nullable=True)
+    zoo_version = Column(String, nullable=True)
+    training_cutoff = Column(String, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
+    error = Column(Text, nullable=True)
+    report_id = Column(String, nullable=True)
+    meta_json = Column(Text, default="{}")
+    result_json = Column(Text, nullable=True)
+
+
 # Who a saved report belongs to. ARIA has no accounts, and the chat session id resets per
 # browser tab, so history is keyed by a device-level id the frontend keeps in localStorage.
 # The chat route sets it for the duration of a request; anything that doesn't falls back to
 # the session id it was given. (A ContextVar keeps core/orchestrator.py untouched.)
 current_owner: ContextVar[str | None] = ContextVar("aria_report_owner", default=None)
 
-_engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+_engine = create_engine(DB_URL, connect_args={"check_same_thread": False, "timeout": 30})  # 30 s busy timeout: forecast child processes write too
+if DB_URL.startswith("sqlite"):
+    @event.listens_for(_engine, "connect")
+    def _sqlite_wal(dbapi_conn, _record):
+        try:
+            dbapi_conn.execute("PRAGMA journal_mode=WAL")
+        except Exception:  # read-only / in-memory: fine without WAL
+            pass
 _SessionLocal = sessionmaker(bind=_engine)
 Base.metadata.create_all(_engine)  # creates missing tables only, never columns
 
@@ -427,3 +459,51 @@ def delete_research_report(owner_id: str, report_id: str) -> bool:
         session.delete(row)
         session.commit()
         return True
+
+
+# ── Equity forecast runs ───────────────────────────────────────────────
+_RUN_FIELDS = ("symbol", "market", "status", "progress", "stage", "cache_key", "feature_version", "zoo_version",
+               "training_cutoff", "started_at", "finished_at", "error", "report_id", "meta_json", "result_json")
+
+
+def _run_dict(row: ForecastRun) -> dict[str, Any]:
+    d = {c: getattr(row, c) for c in ("id", "created_at", *_RUN_FIELDS)}
+    d["meta"] = json.loads(row.meta_json or "{}")
+    return d
+
+
+def save_forecast_run(run_id: str | None = None, **fields: Any) -> str:
+    run_id = run_id or uuid.uuid4().hex
+    with _SessionLocal() as session:
+        session.add(ForecastRun(id=run_id, **{k: v for k, v in fields.items() if k in _RUN_FIELDS}))
+        session.commit()
+    return run_id
+
+
+def update_forecast_run(run_id: str, **fields: Any) -> bool:
+    with _SessionLocal() as session:
+        row = session.get(ForecastRun, run_id)
+        if row is None:
+            return False
+        for k, v in fields.items():
+            if k in _RUN_FIELDS:
+                setattr(row, k, v)
+        session.commit()
+    return True
+
+
+def get_forecast_run(run_id: str) -> dict[str, Any] | None:
+    with _SessionLocal() as session:
+        row = session.get(ForecastRun, run_id)
+        return _run_dict(row) if row else None
+
+
+def latest_forecast_run(symbol: str, cache_key: str | None = None, status: str | None = None) -> dict[str, Any] | None:
+    with _SessionLocal() as session:
+        q = session.query(ForecastRun).filter(ForecastRun.symbol == symbol)
+        if cache_key:
+            q = q.filter(ForecastRun.cache_key == cache_key)
+        if status:
+            q = q.filter(ForecastRun.status == status)
+        row = q.order_by(ForecastRun.created_at.desc()).first()
+        return _run_dict(row) if row else None

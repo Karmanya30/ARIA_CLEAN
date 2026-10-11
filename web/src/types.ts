@@ -101,6 +101,19 @@ export interface ResearchReportData {
   meta?: ReportMeta
 }
 
+/** Status of a quantitative forecast validation run (GET /api/research/validation/latest). */
+export type ValidationStatus =
+  | 'ok_beats_baseline' | 'no_model_beats_baseline' | 'insufficient_evidence' | 'data_unavailable'
+  | 'failed' | 'timeout' | 'computing' | 'queued' | 'not_run'
+
+export interface ValidationLatest {
+  status: ValidationStatus
+  run_id?: string
+  progress?: number
+  stage?: string
+  errors?: string[]
+}
+
 export interface ReportMeta {
   id: string
   kind: string

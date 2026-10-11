@@ -80,6 +80,9 @@ th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:itali
 @media (max-width:760px){.summary,.two,.cases{grid-template-columns:1fr}main{padding:0 12px}.cover{padding:20px 16px}}
 """
 
+CSS += """.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}details{margin:8px 0}summary{cursor:pointer}
+@media print{details::details-content{content-visibility:visible;display:block}}"""
+
 
 def tag(kind: str) -> str:
     label, cls = _TAGS.get(kind, (kind.upper(), "t-src"))
@@ -776,18 +779,27 @@ def _fundamentals_section(r: dict) -> str:
     return f'<section><h2><span class="n">6</span>Fundamental analysis</h2><p class="small muted">{intro}</p>{"".join(x for x in parts if x)}</section>'
 
 
+def _quant_section(r: dict) -> str:
+    """Quantitative forecast validation (code-computed); rendered by forecast.report. Never breaks the report."""
+    try:
+        from modules.equity_research.forecast.report import html_section
+        return html_section(r)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 KINDS = {
     "equity_research": ("Equity research report", ("summary", "executive", "company", "industry", "financials", "ratios", "dupont", "common", "fundamentals",
-                                                    "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
+                                                    "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
     "financial_model": ("Financial model report", ("summary", "financials", "common", "ratios", "dupont", "fundamentals", "forecast", "scenarios", "assumptions",
-                                                    "valuation", "sensitivity", "verification")),
-    "valuation": ("Valuation report", ("summary", "fundamentals", "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "verification")),
+                                                    "valuation", "sensitivity", "quant", "verification")),
+    "valuation": ("Valuation report", ("summary", "fundamentals", "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
     "dupont": ("DuPont and ratio analysis", ("financials", "dupont", "ratios", "common", "verification")),
 }
 _SECTIONS = {"summary": _summary, "executive": _executive, "company": _company, "industry": _industry, "financials": _fin_tables, "ratios": _ratios,
              "dupont": _dupont, "common": _common, "forecast": _forecast, "assumptions": _assumptions, "valuation": _valuation,
              "sensitivity": _sensitivity, "debate": _debate, "risks": _risks, "verification": _verification,
-             "scenarios": _scenarios_section, "fundamentals": _fundamentals_section}
+             "scenarios": _scenarios_section, "fundamentals": _fundamentals_section, "quant": _quant_section}
 _RATING_DEFS = {"BUY": "Undervalued: the model's fair value is above the price by at least the buy threshold for its confidence tier.",
                 "HOLD": "Fairly valued: the price is within the band around fair value.",
                 "SELL": "Overvalued: the model's fair value is below the price by at least the sell threshold."}
