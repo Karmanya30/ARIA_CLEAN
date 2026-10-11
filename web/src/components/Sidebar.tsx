@@ -1,4 +1,4 @@
-import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings } from 'lucide-react'
+import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart } from 'lucide-react'
 import './Sidebar.css'
 
 export interface NavDef {
@@ -6,6 +6,8 @@ export interface NavDef {
   label: string
   icon: React.ReactNode
 }
+
+export const MARKETS_TAB: NavDef = { id: 'markets', label: 'Markets', icon: <LineChart size={16} /> }
 
 /** Persistent left nav, replacing the old top Header+Tabs bar. Deliberately
  * doesn't clone a multi-conversation "chat history" list or a fake user/

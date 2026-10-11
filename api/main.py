@@ -21,7 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import avatar, chat, live, profile, progress, research, transactions, voice
+from api.routes import avatar, chat, live, markets, profile, progress, research, transactions, voice
 
 app = FastAPI(title="ARIA API")
 
@@ -40,10 +40,14 @@ app.add_middleware(
 def _warm_up() -> None:
     """Load the heavy pieces (orchestrator imports, the Sentence-BERT encoder, NER) in the background at
     startup. Otherwise the first chat message after a restart pays for all of it (~45 s against ~3 s)."""
+    import threading
     import time
 
     from loguru import logger
 
+    from modules.market import live as markets_live
+
+    threading.Thread(target=markets_live.start, name="markets-live-start", daemon=True).start()  # not behind the other warm-ups
     t = time.time()
     try:
         import core.orchestrator  # noqa: F401  (imports every module pipeline)
@@ -87,6 +91,7 @@ app.include_router(progress.router)
 app.include_router(avatar.router)
 app.include_router(research.router)
 app.include_router(live.router)
+app.include_router(markets.router)
 
 
 @app.get("/api/health")

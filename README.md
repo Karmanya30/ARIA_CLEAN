@@ -106,6 +106,7 @@ Print* button does the same job.
 Valuation inputs risk-free rate / equity risk premium / terminal growth are **configured
 assumptions** (`FI_*` in `.env`, see `.env.example`), not live data. Ideas adapted from
 FinRobot (Apache-2.0) -- see `THIRD_PARTY_NOTICES.md`. Not investment advice.
+Stock charts use TradingView Lightweight Charts™ (Apache-2.0, © TradingView, Inc., https://www.tradingview.com/), shown with its attribution link.
 
 ## Setup
 

@@ -84,7 +84,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
-.tp[data-theme='vitara'] {
+.tp[data-theme^='vitara'] {
   flex-direction: column;
 }
 .tp-nav {
@@ -100,7 +100,7 @@
   width: 34%;
   border-right: 1px solid var(--border);
 }
-.tp[data-theme='vitara'] .tp-nav {
+.tp[data-theme^='vitara'] .tp-nav {
   border-bottom: 1px solid var(--border);
 }
 .tp i {
@@ -113,7 +113,7 @@
   border-radius: 5px;
   background: linear-gradient(135deg, var(--accent-strong), var(--violet));
 }
-.tp[data-theme='vitara'] .tp-mark {
+.tp[data-theme^='vitara'] .tp-mark {
   margin: 0 auto 0 0;
   border-radius: 50%;
 }
@@ -125,17 +125,17 @@
 .tp[data-theme='classic'] .tp-tab.tp-on {
   background: var(--accent-soft);
 }
-.tp[data-theme='vitara'] .tp-tab {
+.tp[data-theme^='vitara'] .tp-tab {
   width: 26px;
   border-radius: var(--radius-pill);
 }
-.tp[data-theme='vitara'] .tp-tab.tp-on {
+.tp[data-theme^='vitara'] .tp-tab.tp-on {
   background: var(--ink);
 }
 .tp-cta {
   display: none;
 }
-.tp[data-theme='vitara'] .tp-cta {
+.tp[data-theme^='vitara'] .tp-cta {
   display: block;
   width: 30px;
   height: 10px;
@@ -163,8 +163,17 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
-.tp[data-theme='vitara'] .tp-bar {
+.tp[data-theme^='vitara'] .tp-bar {
   border-radius: var(--radius-pill);
+}
+.tp .tp-tape {
+  display: none;
+  height: 8px;
+  background: repeating-linear-gradient(90deg, var(--up) 0 14px, transparent 14px 20px, var(--down) 20px 34px, transparent 34px 40px);
+  opacity: 0.55;
+}
+.tp[data-theme='vitara-markets'] .tp-tape {
+  display: block;
 }
 .tp-cards {
   flex: 1;

@@ -1,19 +1,18 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
-import { THEMES, getTheme, setTheme, type ThemeId } from '../../theme'
+import { THEMES, setTheme, type ThemeId } from '../../theme'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
  * carries data-theme itself, so it is painted with that theme's real tokens. */
-export function SettingsTab() {
-  const [theme, setChoice] = useState<ThemeId>(getTheme)
+export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: ThemeId) => void }) {
   const [tone, setTone] = useState(adaptTone)
   const [status, setStatus] = useState('')
 
   function pick(id: ThemeId) {
     setTheme(id)
-    setChoice(id)
+    onTheme(id)
   }
 
   function forget() {
@@ -42,6 +41,7 @@ export function SettingsTab() {
                 <i className="tp-tab" />
                 <i className="tp-cta" />
               </span>
+              <i className="tp-tape" />
               <span className="tp-main">
                 <i className="tp-h" />
                 <i className="tp-bar" />

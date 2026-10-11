@@ -14,6 +14,8 @@
          default one. Same key as src/theme.ts; unknown values fall back to Classic. -->
     <script>
       try {
+        var q = new URLSearchParams(location.search).get('theme') // ?theme=<id> for screenshots / demo links
+        if (q) localStorage.setItem('aria_theme', q)
         document.documentElement.dataset.theme = localStorage.getItem('aria_theme') || 'classic'
       } catch (e) {}
     </script>

@@ -1,4 +1,4 @@
-export type ThemeId = 'classic' | 'vitara'
+export type ThemeId = 'classic' | 'vitara' | 'vitara-markets'
 
 export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
   { id: 'classic', label: 'Classic', blurb: 'The original ARIA look: left sidebar, cool blue accent, compact cards.' },
@@ -7,6 +7,7 @@ export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
     label: 'Vitara',
     blurb: 'Warm ivory canvas, top navigation bar, rounded pill controls and a deep green accent.',
   },
+  { id: 'vitara-markets', label: 'Vitara Markets', blurb: 'Vitara with a live markets dashboard, ticker tape and charts.' },
 ]
 
 // index.html applies the saved value before first paint (no flash) -- keep the key in sync there.

@@ -81,6 +81,12 @@ Earnings-call PDFs are read with `pypdf` (BSD-3-Clause).
 - MihirBindal/Empathetic-AI (no licence file, so ideas only): safety gate first, separating the brain from the voice, no unsolicited task lists for a distressed user.
 - HELJJ/COSMIC (MIT) and declare-lab/conv-emotion (MIT): conversation-level emotion, emotional inertia, the cause of a feeling kept as a topic tag.
 
+## TradingView Lightweight Charts (web UI, lazy-loaded)
+
+TradingView Lightweight Charts™ Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
+
+Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0). Used unmodified as an npm dependency (`lightweight-charts@5`) to draw the stock chart. The library's attribution logo/link on the chart is left enabled, as its licence requires.
+
 ## Data sources and text used at run time
 
 | Source | Used for | Terms note |

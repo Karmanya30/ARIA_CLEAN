@@ -2,7 +2,7 @@
  * Picked in Settings -> Appearance (src/theme.ts sets data-theme on <html>); Classic stays the
  * default in tokens.css. The token block matches any element carrying data-theme="vitara" (<html>
  * and the Settings preview swatch); the layout rules below only match real app classes. */
-[data-theme='vitara'] {
+[data-theme^='vitara'] {
   --bg: #f8f5ee;
   --bg-elevated: #ffffff;
   --bg-inset: #f1ece1;
@@ -34,13 +34,13 @@
   --topbar-h: 72px;
 }
 
-[data-theme='vitara'] ::selection {
+[data-theme^='vitara'] ::selection {
   background: rgba(31, 111, 84, 0.22);
   color: var(--ink);
 }
 
 /* ── Top navigation bar (replaces the left sidebar) ─────────────────────────────── */
-[data-theme='vitara'] .app-sidebar {
+[data-theme^='vitara'] .app-sidebar {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 30;
@@ -57,14 +57,14 @@
   backdrop-filter: saturate(1.4) blur(14px);
   overflow: visible;
 }
-[data-theme='vitara'] .sidebar-brand {
+[data-theme^='vitara'] .sidebar-brand {
   order: 1;
 }
-[data-theme='vitara'] .app-mark {
+[data-theme^='vitara'] .app-mark {
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(31, 111, 84, 0.3);
 }
-[data-theme='vitara'] .sidebar-nav {
+[data-theme^='vitara'] .sidebar-nav {
   order: 2;
   flex-direction: row;
   gap: 2px;
@@ -75,18 +75,18 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-sm);
 }
-[data-theme='vitara'] .sidebar-nav-item {
+[data-theme^='vitara'] .sidebar-nav-item {
   width: auto;
   padding: 8px 16px;
   border-radius: var(--radius-pill);
   font-size: 13.5px;
   white-space: nowrap;
 }
-[data-theme='vitara'] .sidebar-nav-item.active {
+[data-theme^='vitara'] .sidebar-nav-item.active {
   background: var(--ink);
   color: #ffffff;
 }
-[data-theme='vitara'] .sidebar-new-btn {
+[data-theme^='vitara'] .sidebar-new-btn {
   order: 3;
   width: auto;
   padding: 10px 20px;
@@ -96,15 +96,15 @@
   color: var(--accent-ink);
   box-shadow: var(--shadow-glow);
 }
-[data-theme='vitara'] .sidebar-new-btn:hover {
+[data-theme^='vitara'] .sidebar-new-btn:hover {
   background: var(--accent-strong);
   color: var(--accent-ink);
 }
-[data-theme='vitara'] .sidebar-footer {
+[data-theme^='vitara'] .sidebar-footer {
   display: none;
 }
 
-[data-theme='vitara'] .app-main {
+[data-theme^='vitara'] .app-main {
   padding-top: calc(var(--topbar-h) + 40px);
   background:
     radial-gradient(ellipse 900px 420px at 50% 0, rgba(31, 111, 84, 0.07), transparent 65%),
@@ -113,10 +113,10 @@
 
 /* Room for the labels stops around here: keep icons, hide the text visually (still read aloud). */
 @media (max-width: 1100px) {
-  [data-theme='vitara'] .sidebar-nav-item {
+  [data-theme^='vitara'] .sidebar-nav-item {
     padding: 9px 13px;
   }
-  [data-theme='vitara'] .sidebar-nav-label {
+  [data-theme^='vitara'] .sidebar-nav-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -127,98 +127,98 @@
 }
 /* Narrow screens: the bar goes back to a normal (scrolling) header row, labels included. */
 @media (max-width: 880px) {
-  [data-theme='vitara'] {
+  [data-theme^='vitara'] {
     --topbar-h: 0px;
   }
-  [data-theme='vitara'] .app-sidebar {
+  [data-theme^='vitara'] .app-sidebar {
     position: static;
     height: auto;
     flex-wrap: wrap;
     padding: 14px 18px;
   }
-  [data-theme='vitara'] .sidebar-nav {
+  [data-theme^='vitara'] .sidebar-nav {
     order: 3;
     width: 100%;
     margin: 0;
     overflow-x: auto;
   }
-  [data-theme='vitara'] .sidebar-nav-label {
+  [data-theme^='vitara'] .sidebar-nav-label {
     position: static;
     width: auto;
     height: auto;
     overflow: visible;
     clip: auto;
   }
-  [data-theme='vitara'] .sidebar-new-btn {
+  [data-theme^='vitara'] .sidebar-new-btn {
     margin-left: auto;
   }
-  [data-theme='vitara'] .app-main {
+  [data-theme^='vitara'] .app-main {
     padding-top: 24px;
   }
 }
 
 /* ── Controls ──────────────────────────────────────────────────────────────────── */
-[data-theme='vitara'] .btn {
+[data-theme^='vitara'] .btn {
   padding: 10px 20px;
   border-radius: var(--radius-pill);
   background: var(--bg-elevated);
   box-shadow: none;
 }
-[data-theme='vitara'] .btn:hover:not(:disabled) {
+[data-theme^='vitara'] .btn:hover:not(:disabled) {
   border-color: var(--ink);
   color: var(--ink);
   box-shadow: none;
 }
-[data-theme='vitara'] .btn-primary {
+[data-theme^='vitara'] .btn-primary {
   background: var(--accent);
   box-shadow: var(--shadow-glow);
 }
-[data-theme='vitara'] .btn-primary:hover:not(:disabled) {
+[data-theme^='vitara'] .btn-primary:hover:not(:disabled) {
   background: var(--accent-strong);
   color: var(--accent-ink);
   box-shadow: 0 8px 22px rgba(31, 111, 84, 0.34);
 }
-[data-theme='vitara'] .input:not(.composer-input) {
+[data-theme^='vitara'] .input:not(.composer-input) {
   background: var(--bg-elevated);
   border-color: var(--border-strong);
 }
 
 /* ── Chat ──────────────────────────────────────────────────────────────────────── */
-[data-theme='vitara'] .composer {
+[data-theme^='vitara'] .composer {
   padding: 8px 8px 8px 22px;
   border-color: var(--border-strong);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-lg);
 }
-[data-theme='vitara'] .composer-submit {
+[data-theme^='vitara'] .composer-submit {
   width: 42px;
   height: 42px;
   padding: 0;
   border-radius: 50%;
 }
-[data-theme='vitara'] .chat-hero-text h2 {
+[data-theme^='vitara'] .chat-hero-text h2 {
   font-size: clamp(28px, 3.6vw, 38px);
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
-[data-theme='vitara'] .chat-hero-text p {
+[data-theme^='vitara'] .chat-hero-text p {
   font-size: 15.5px;
 }
-[data-theme='vitara'] .hero-orb {
+[data-theme^='vitara'] .hero-orb {
   box-shadow:
     0 0 44px rgba(31, 111, 84, 0.22),
     0 0 80px rgba(88, 163, 129, 0.14);
 }
-[data-theme='vitara'] .template-card {
+[data-theme^='vitara'] .template-card {
   border-color: transparent;
 }
-[data-theme='vitara'] .template-card:hover {
+[data-theme^='vitara'] .template-card:hover {
   border-color: var(--accent);
 }
-[data-theme='vitara'] .template-card-icon {
+[data-theme^='vitara'] .template-card-icon {
   border-radius: 50%;
 }
-[data-theme='vitara'] .bubble-user {
+[data-theme^='vitara'] .bubble-user {
   background: var(--bg-inset);
   border-color: transparent;
   box-shadow: none;
