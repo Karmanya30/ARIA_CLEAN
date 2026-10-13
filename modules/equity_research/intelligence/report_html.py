@@ -73,7 +73,7 @@ th.est,td.est{background:#faf7ff}th.est{color:var(--est)}td.est{font-style:itali
 .na{border:1px dashed var(--faint);border-radius:8px;padding:8px 12px;margin:8px 0;background:#fafbfc}
 .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.chart{max-width:640px}.chart h4{margin:0 0 2px;font-size:12px;color:var(--muted)}
 .check{margin:3px 0}.check.review b,.check.blocked b{color:var(--amber)}.finding{display:block;margin-left:18px;color:var(--muted);font-size:12px}
-.bar{text-align:right;padding:8px 16px}.bar button{padding:6px 14px;border-radius:8px;border:1px solid #ccd4e3;background:#fff;cursor:pointer}.disc h3{text-transform:none;letter-spacing:0;color:var(--ink);font-size:13px}@page{size:A4;margin:12mm}@media print{.noprint{display:none}.disc{page-break-before:always}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}.disclaimer{font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:8px}
+.bar{text-align:right;padding:8px 16px}.bar button{padding:6px 14px;border-radius:8px;border:1px solid #ccd4e3;background:#fff;cursor:pointer}.disc h3{text-transform:none;letter-spacing:0;color:var(--ink);font-size:13px}@page{size:A4;margin:12mm}@media print{.noprint{display:none}.disc{page-break-before:always}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}.disclaimer{font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:8px}.strip{background:#fdf3e3;color:#6b3a06;border-bottom:1px solid #ecd3a5;font-size:11.5px;line-height:1.4;padding:6px 16px;text-align:center}.strip a{color:inherit;font-weight:600}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:8px 16px;background:rgba(246,248,251,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);scrollbar-width:none}.jump a{flex:none;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}.jump a:hover,.jump a:focus-visible{color:var(--accent);border-color:var(--accent)}section{scroll-margin-top:52px}html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .sev-high{color:var(--red);font-weight:700}.sev-medium{color:var(--amber);font-weight:700}
 @media print{.scroll{overflow:visible}table th,table td,table.tight th,table.tight td,table.wide th,table.wide td,table.wide td.l{font-size:9px;padding:2px 3px}body{background:#fff}section{border-color:#ccc;break-inside:avoid}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -788,18 +788,27 @@ def _quant_section(r: dict) -> str:
         return ""
 
 
+def _scenario_backtest_section(r: dict) -> str:
+    """Historical backtest of the scenarios (code-computed, cached); rendered by scenario_backtest.report. Never breaks the report."""
+    try:
+        from modules.equity_research.scenario_backtest.report import html_section
+        return html_section(r)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 KINDS = {
     "equity_research": ("Equity research report", ("summary", "executive", "company", "industry", "financials", "ratios", "dupont", "common", "fundamentals",
-                                                    "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
-    "financial_model": ("Financial model report", ("summary", "financials", "common", "ratios", "dupont", "fundamentals", "forecast", "scenarios", "assumptions",
+                                                    "forecast", "scenarios", "scenario_backtest", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
+    "financial_model": ("Financial model report", ("summary", "financials", "common", "ratios", "dupont", "fundamentals", "forecast", "scenarios", "scenario_backtest", "assumptions",
                                                     "valuation", "sensitivity", "quant", "verification")),
-    "valuation": ("Valuation report", ("summary", "fundamentals", "forecast", "scenarios", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
+    "valuation": ("Valuation report", ("summary", "fundamentals", "forecast", "scenarios", "scenario_backtest", "assumptions", "valuation", "sensitivity", "debate", "risks", "quant", "verification")),
     "dupont": ("DuPont and ratio analysis", ("financials", "dupont", "ratios", "common", "verification")),
 }
 _SECTIONS = {"summary": _summary, "executive": _executive, "company": _company, "industry": _industry, "financials": _fin_tables, "ratios": _ratios,
              "dupont": _dupont, "common": _common, "forecast": _forecast, "assumptions": _assumptions, "valuation": _valuation,
              "sensitivity": _sensitivity, "debate": _debate, "risks": _risks, "verification": _verification,
-             "scenarios": _scenarios_section, "fundamentals": _fundamentals_section, "quant": _quant_section}
+             "scenarios": _scenarios_section, "scenario_backtest": _scenario_backtest_section, "fundamentals": _fundamentals_section, "quant": _quant_section}
 _RATING_DEFS = {"BUY": "Undervalued: the model's fair value is above the price by at least the buy threshold for its confidence tier.",
                 "HOLD": "Fairly valued: the price is within the band around fair value.",
                 "SELL": "Overvalued: the model's fair value is below the price by at least the sell threshold."}
@@ -879,6 +888,12 @@ def _jump_bar(sections: list[str]) -> str:
     return f'<nav class="jump noprint" aria-label="Sections">{"".join(links)}</nav>' if len(links) > 3 else ""
 
 
+STRIP = (
+    '<div class="strip" role="note" aria-label="Disclaimer">ARIA is an AI research and education tool, not a SEBI-registered adviser; '
+    'nothing here is investment advice. Markets are risky. <a href="/#/disclaimers" target="_blank" rel="noreferrer">Read the full disclaimers</a></div>'
+)
+
+
 def render_html(report: dict, kind: str | None = None, *, printable: bool = False, autoprint: bool = False) -> str:
     kind = kind if kind in KINDS else (report.get("kind") if report.get("kind") in KINDS else "equity_research")
     title, keys = KINDS[kind]
@@ -893,7 +908,7 @@ def render_html(report: dict, kind: str | None = None, *, printable: bool = Fals
     bar = ('<div class="bar noprint"><button onclick="window.print()">Save as PDF / Print</button></div>' if printable else "")
     auto = "<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script>" if autoprint else ""
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{_e(report["title"])} — {_e(title)} — {_e(version)}</title><style>{CSS}</style></head><body>{bar}<div class="page">
+<title>{_e(report["title"])} — {_e(title)} — {_e(version)}</title><style>{CSS}</style></head><body>{STRIP}{bar}<div class="page">
 <header class="cover"><div class="small" style="opacity:.8;letter-spacing:.08em;text-transform:uppercase">{_e(title)}</div><h1>{_e(c["name"])}</h1><div class="sub">{_e(c["symbol"])} · {_e(c["exchange"])} · {_e(c["sector"])} / {_e(c["industry"])}</div>
 <div class="meta"><div><b>Price</b>{_e(price)}</div><div><b>Market cap</b>{_e(fmt(c["market_cap_cr"], "₹ Cr"))}</div><div><b>Report date</b>{_e(c["report_date"])}</div>
 <div><b>Version</b>{_e(version)}</div>{through}<div><b>Verification</b><span class="pill {"ok" if status_ok else "warn"}">{"Passed" if status_ok else "Caveated"}</span></div></div>

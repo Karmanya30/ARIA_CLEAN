@@ -11,6 +11,7 @@ import pytest
 os.environ.setdefault("ARIA_WARMUP", "0")  # no model loading in the API's startup hook during tests
 os.environ.setdefault("ARIA_SENTIMENT", "0")  # tests never load FinBERT unless a test opts in
 os.environ.setdefault("ARIA_FORECAST", "0")  # tests never run the forecast engine unless a test opts in
+os.environ.setdefault("ARIA_SCENARIO_BACKTEST", "0")  # tests never queue the scenario backtest unless a test opts in
 os.environ.setdefault("FI_NEWS_RSS", "0")  # tests never call live news feeds (tests/test_news.py turns them on with canned XML)
 
 # Every module found (via grep) doing `from ai.llm.groq_client import

@@ -21,7 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import avatar, chat, forecast, live, markets, profile, progress, research, transactions, voice
+from api.routes import avatar, chat, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
 app = FastAPI(title="ARIA API")
 
@@ -48,6 +48,9 @@ def _warm_up() -> None:
     from modules.market import live as markets_live
 
     threading.Thread(target=markets_live.start, name="markets-live-start", daemon=True).start()  # not behind the other warm-ups
+    from modules.market import instruments as instrument_catalog
+
+    threading.Thread(target=instrument_catalog.warm, name="instruments-warm", daemon=True).start()  # AMFI file, coin list, stock universe
     t = time.time()
     try:
         import core.orchestrator  # noqa: F401  (imports every module pipeline)
@@ -91,8 +94,10 @@ app.include_router(progress.router)
 app.include_router(avatar.router)
 app.include_router(research.router)
 app.include_router(forecast.router)
+app.include_router(scenario_backtest.router)
 app.include_router(live.router)
 app.include_router(markets.router)
+app.include_router(instruments.router)
 
 
 @app.get("/api/health")

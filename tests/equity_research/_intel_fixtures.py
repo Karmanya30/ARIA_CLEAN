@@ -27,59 +27,77 @@ def _table(cols: list[str], rows: dict[str, list]) -> dict:
     return {"__columns__": cols, **{name: dict(zip(cols, [_s(v) if not isinstance(v, str) else v for v in vals])) for name, vals in rows.items()}}
 
 
-def operating_raw(*, growth: float = 0.10, opm: float = 0.20, minority: float = 1.0, view: str = "consolidated") -> dict:
-    sales = [1000 * (1 + growth) ** i for i in range(7)]
+def _years(y0: int, y1: int) -> tuple[list[str], int]:
+    return [f"Mar {y}" for y in range(y0, y1 + 1)], y1 - y0 + 1
+
+
+def QUARTERS_FOR(y1: int) -> list[str]:
+    """13 quarter-end columns ending Jun of y1 (default y1=2026 reproduces QUARTERS)."""
+    out, y, m = [], y1, 6
+    for _ in range(13):
+        out.append(f"{['Mar', 'Jun', 'Sep', 'Dec'][m // 3 - 1 if m != 12 else 3]} {y}")
+        m -= 3
+        if m <= 0:
+            m, y = m + 12, y - 1
+    return out[::-1]
+
+
+def operating_raw(*, growth: float = 0.10, opm: float = 0.20, minority: float = 1.0, view: str = "consolidated", y0: int = 2020, y1: int = 2026) -> dict:
+    """Operating company. y0..y1 = fiscal-year range (default 2020-2026); a TTM column is always appended."""
+    fys, n = _years(y0, y1)
+    sales = [1000 * (1 + growth) ** i for i in range(n)]
     op = [opm * x for x in sales]
     dep = [0.04 * x for x in sales]
     pbt = [o - d - 10 + 20 for o, d in zip(op, dep)]
     pat = [0.75 * p for p in pbt]
     eps = [p * minority / 100 for p in pat]
-    cols = FYS + ["TTM"]
+    cols = fys + ["TTM"]
     ttm = lambda v: v[-1] * 1.05  # noqa: E731
     pl = {
         "Sales": sales + [ttm(sales)], "Expenses": [a - b for a, b in zip(sales, op)] + [ttm(sales) - ttm(op)],
-        "Operating Profit": op + [ttm(op)], "OPM %": [_s(opm * 100, True)] * 8, "Other Income": [20] * 8,
-        "Interest": [10] * 8, "Depreciation": dep + [ttm(dep)], "Profit before tax": pbt + [ttm(pbt)],
-        "Tax %": [_s(25, True)] * 7 + [""], "Net Profit": pat + [ttm(pat)],
-        "EPS in Rs": [f"{e:.2f}" for e in eps + [ttm(eps)]], "Dividend Payout %": [_s(20, True)] * 7 + [""],
+        "Operating Profit": op + [ttm(op)], "OPM %": [_s(opm * 100, True)] * (n + 1), "Other Income": [20] * (n + 1),
+        "Interest": [10] * (n + 1), "Depreciation": dep + [ttm(dep)], "Profit before tax": pbt + [ttm(pbt)],
+        "Tax %": [_s(25, True)] * n + [""], "Net Profit": pat + [ttm(pat)],
+        "EPS in Rs": [f"{e:.2f}" for e in eps + [ttm(eps)]], "Dividend Payout %": [_s(20, True)] * n + [""],
     }
-    reserves = [500 + 150 * i for i in range(7)]
-    bs = {"Equity Capital": [100] * 7, "Reserves": reserves, "Borrowings": [300] * 7, "Other Liabilities": [400] * 7,
-          "Total Liabilities": [1300 + r for r in reserves], "Fixed Assets": [800] * 7, "CWIP": [50] * 7,
-          "Investments": [100] * 7, "Other Assets": [500 + r for r in reserves], "Total Assets": [1300 + r for r in reserves]}
+    reserves = [500 + 150 * i for i in range(n)]
+    bs = {"Equity Capital": [100] * n, "Reserves": reserves, "Borrowings": [300] * n, "Other Liabilities": [400] * n,
+          "Total Liabilities": [1300 + r for r in reserves], "Fixed Assets": [800] * n, "CWIP": [50] * n,
+          "Investments": [100] * n, "Other Assets": [500 + r for r in reserves], "Total Assets": [1300 + r for r in reserves]}
     cfo = [1.1 * p for p in pat]
     capex = [0.08 * x for x in sales]
-    cf = {"Cash from Operating Activity": cfo, "Cash from Investing Activity": [-c for c in capex], "Cash from Financing Activity": [-50] * 7,
-          "Net Cash Flow": [10] * 7, "Free Cash Flow": [a - b for a, b in zip(cfo, capex)], "CFO/OP": [_s(110, True)] * 7}
-    ratios = {"Debtor Days": [40] * 7, "Inventory Days": [30] * 7, "Days Payable": [33.5] * 7, "Cash Conversion Cycle": [36.5] * 7,
-              "Working Capital Days": [36.5] * 7, "ROCE %": [_s(18, True)] * 7}
+    cf = {"Cash from Operating Activity": cfo, "Cash from Investing Activity": [-c for c in capex], "Cash from Financing Activity": [-50] * n,
+          "Net Cash Flow": [10] * n, "Free Cash Flow": [a - b for a, b in zip(cfo, capex)], "CFO/OP": [_s(110, True)] * n}
+    ratios = {"Debtor Days": [40] * n, "Inventory Days": [30] * n, "Days Payable": [33.5] * n, "Cash Conversion Cycle": [36.5] * n,
+              "Working Capital Days": [36.5] * n, "ROCE %": [_s(18, True)] * n}
     q_sales = [sales[-1] / 4 * (1 + 0.02 * j) for j in range(13)]
     quarterly = {"Sales": q_sales, "Operating Profit": [0.2 * x for x in q_sales], "Net Profit": [0.1 * x for x in q_sales],
                  "EPS in Rs": [f"{0.1 * x / 100:.2f}" for x in q_sales]}
-    return {"profit_loss": _table(cols, pl), "balance_sheet": _table(FYS, bs), "cash_flow": _table(FYS, cf), "ratios": _table(FYS, ratios),
-            "quarterly_results": _table(QUARTERS, quarterly), "view": view}
+    return {"profit_loss": _table(cols, pl), "balance_sheet": _table(fys, bs), "cash_flow": _table(fys, cf), "ratios": _table(fys, ratios),
+            "quarterly_results": _table(QUARTERS_FOR(y1), quarterly), "view": view}
 
 
-def bank_raw(*, view: str = "consolidated") -> dict:
-    rev = [1000 * 1.12 ** i for i in range(7)]
+def bank_raw(*, view: str = "consolidated", y0: int = 2020, y1: int = 2026) -> dict:
+    fys, n = _years(y0, y1)
+    rev = [1000 * 1.12 ** i for i in range(n)]
     pbt = [0.30 * x for x in rev]
     pat = [0.75 * p for p in pbt]
-    cols = FYS + ["TTM"]
+    cols = fys + ["TTM"]
     ttm = lambda v: v[-1] * 1.04  # noqa: E731
     pl = {"Revenue": rev + [ttm(rev)], "Interest": [0.5 * x for x in rev + [ttm(rev)]], "Expenses": [0.3 * x for x in rev + [ttm(rev)]],
           "Financing Profit": [-0.05 * x for x in rev + [ttm(rev)]], "Other Income": [0.5 * x for x in rev + [ttm(rev)]],
-          "Depreciation": [5] * 8, "Profit before tax": pbt + [ttm(pbt)], "Tax %": [_s(25, True)] * 7 + [""],
-          "Net Profit": pat + [ttm(pat)], "EPS in Rs": [f"{p / 100:.2f}" for p in pat + [ttm(pat)]], "Dividend Payout %": [_s(25, True)] * 7 + [""]}
-    res = [800 + 200 * i for i in range(7)]
-    bs = {"Equity Capital": [100] * 7, "Reserves": res, "Deposits": [8000 + 1000 * i for i in range(7)], "Borrowing": [900] * 7,
-          "Other Liabilities": [300] * 7, "Total Liabilities": [10000 + 1200 * i for i in range(7)], "Fixed Assets": [50] * 7,
-          "CWIP": [0] * 7, "Investments": [2000] * 7, "Other Assets": [7000] * 7, "Total Assets": [10000 + 1200 * i for i in range(7)]}
-    cf = {"Cash from Operating Activity": [500] * 7, "Cash from Investing Activity": [-20] * 7, "Cash from Financing Activity": [-100] * 7,
-          "Net Cash Flow": [10] * 7, "Free Cash Flow": [480] * 7}
+          "Depreciation": [5] * (n + 1), "Profit before tax": pbt + [ttm(pbt)], "Tax %": [_s(25, True)] * n + [""],
+          "Net Profit": pat + [ttm(pat)], "EPS in Rs": [f"{p / 100:.2f}" for p in pat + [ttm(pat)]], "Dividend Payout %": [_s(25, True)] * n + [""]}
+    res = [800 + 200 * i for i in range(n)]
+    bs = {"Equity Capital": [100] * n, "Reserves": res, "Deposits": [8000 + 1000 * i for i in range(n)], "Borrowing": [900] * n,
+          "Other Liabilities": [300] * n, "Total Liabilities": [10000 + 1200 * i for i in range(n)], "Fixed Assets": [50] * n,
+          "CWIP": [0] * n, "Investments": [2000] * n, "Other Assets": [7000] * n, "Total Assets": [10000 + 1200 * i for i in range(n)]}
+    cf = {"Cash from Operating Activity": [500] * n, "Cash from Investing Activity": [-20] * n, "Cash from Financing Activity": [-100] * n,
+          "Net Cash Flow": [10] * n, "Free Cash Flow": [480] * n}
     q = {"Revenue": [rev[-1] / 4] * 13, "Net Profit": [pat[-1] / 4 * (1 + 0.01 * j) for j in range(13)], "Gross NPA %": ["1.20%"] * 13,
          "Net NPA %": ["0.40%"] * 13}
-    return {"profit_loss": _table(cols, pl), "balance_sheet": _table(FYS, bs), "cash_flow": _table(FYS, cf),
-            "ratios": {"__columns__": FYS, "ROE %": dict(zip(FYS, ["14%"] * 7))}, "quarterly_results": _table(QUARTERS, q), "view": view}
+    return {"profit_loss": _table(cols, pl), "balance_sheet": _table(fys, bs), "cash_flow": _table(fys, cf),
+            "ratios": {"__columns__": fys, "ROE %": dict(zip(fys, ["14%"] * n))}, "quarterly_results": _table(QUARTERS_FOR(y1), q), "view": view}
 
 
 def weekly(seed: int = 1, n: int = 260, beta: float = 1.2) -> tuple[list[tuple[str, float]], list[tuple[str, float]]]:
@@ -205,3 +223,25 @@ GOOD_JUDGE = {"call": "HOLD", "conviction": 0.5, "swing_factor": "Whether the gr
 
 def good_llm() -> FakeLLM:
     return FakeLLM(analyst=good_analyst, bull=good_side("EBITDA margin"), bear=good_side("Debt / equity"), judge=GOOD_JUDGE)
+
+
+# ── scenario-backtest helpers ───────────────────────────────────────────────
+def tables_from_raw(raw: dict) -> dict:
+    """screener-shaped raw dict -> the numeric tables the backtest cache holds (pl, bs, cf, ratios, quarterly)."""
+    from modules.equity_research.intelligence.data import numeric_table
+
+    return {k: numeric_table(raw[r]) for k, r in (("pl", "profit_loss"), ("bs", "balance_sheet"), ("cf", "cash_flow"),
+                                                  ("ratios", "ratios"), ("quarterly", "quarterly_results"))}
+
+
+def daily_prices(start: str = "2012-01-02", end: str = "2027-12-31", seed: int = 3, drift: float = 0.0004):
+    """Business-day close/adj_close frame and a matching index series (tz-naive)."""
+    import numpy as np
+    import pandas as pd
+
+    idx = pd.bdate_range(start, end)
+    rng = np.random.default_rng(seed)
+    m = rng.normal(drift, 0.01, len(idx))
+    stock = 100 * np.exp(np.cumsum(1.2 * m + rng.normal(0, 0.004, len(idx))))
+    nifty = 10000 * np.exp(np.cumsum(m))
+    return pd.DataFrame({"close": stock, "adj_close": stock}, index=idx), pd.Series(nifty, index=idx, name="adj_close")

@@ -85,9 +85,15 @@ def _with_quant(report: dict) -> dict:
     try:
         from modules.equity_research.forecast.report import attach
 
-        return attach(report)
+        report = attach(report)
     except Exception:  # noqa: BLE001
         logging.getLogger(__name__).warning("quant validation not attached", exc_info=True)
+    try:
+        from modules.equity_research.scenario_backtest.report import attach as attach_sb
+
+        return attach_sb(report)
+    except Exception:  # noqa: BLE001
+        logging.getLogger(__name__).warning("scenario backtest not attached", exc_info=True)
         return report
 
 
@@ -138,12 +144,19 @@ def download_report(report_id: str, owner_id: str, format: str = "html", kind: s
 
 def _markdown(report: dict) -> str:
     md = report["markdown"]
-    if not report.get("quant_validation") or "## Quantitative forecast validation" in md:
-        return md
-    from modules.equity_research.forecast.report import md_section
+    extra = []
+    if report.get("quant_validation") and "## Quantitative forecast validation" not in md:
+        from modules.equity_research.forecast.report import md_section
 
+        extra.append(md_section(report))
+    if report.get("scenario_backtest") and "## Historical backtest of these scenarios" not in md:
+        from modules.equity_research.scenario_backtest.report import md_section as sb_md
+
+        extra.append(sb_md(report))
+    if not extra:
+        return md
     head, sep, tail = md.partition(chr(10) + "## Sources")
-    return head + chr(10) * 2 + md_section(report) + sep + tail
+    return head + chr(10) * 2 + (chr(10) * 2).join(extra) + sep + tail
 
 
 @router.post("/reports/{report_id}/regenerate")

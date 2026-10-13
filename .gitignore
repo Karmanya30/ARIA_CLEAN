@@ -40,3 +40,9 @@ data/forecast_cache/
 data/user_profiles/*.db-wal
 data/user_profiles/*.db-shm
 data/forecast_universe/
+
+# instrument catalogue caches (AMFI NAV file, mfapi history, CoinGecko list)
+data/instruments/
+
+# scenario backtest: generated results, caches and sweep state (large, re-creatable)
+data/scenario_backtest/

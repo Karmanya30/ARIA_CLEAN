@@ -61,6 +61,19 @@ def _queue_forecast(symbol: str, report_id: str | None) -> None:
         logger.exception("could not queue the forecast validation run")
 
 
+def _queue_scenario_backtest(snap: Snapshot) -> None:
+    """Enqueue the historical scenario backtest, saving the statements this report already fetched (no extra requests)."""
+    if os.getenv("ARIA_FORECAST", "1") == "0" or os.getenv("ARIA_SCENARIO_BACKTEST", "1") == "0" or not snap.tables:
+        return
+    try:
+        from modules.equity_research.scenario_backtest import jobs
+
+        meta = {"sector": snap.info.get("sector"), "industry": snap.info.get("industry"), "is_financial": snap.is_financial, "view": snap.view}
+        jobs.submit(snap.target.symbol, snap.tables, meta)
+    except Exception:
+        logger.exception("could not queue the scenario backtest")
+
+
 def _persist(user_id: str, report: dict) -> dict | None:
     """Save the report as the next version for this owner. A storage failure must never lose the report the
     user just waited for, so it is logged and the report is still returned (unsaved)."""
@@ -213,6 +226,7 @@ def run_research(query: str, user_id: str = "default", target: Target | None = N
     report["markdown"] = to_markdown(report)
     meta = _persist(user_id, report)
     _queue_forecast(target.symbol, meta["id"] if meta else None)
+    _queue_scenario_backtest(snap)
     lap("report+save")
     logger.info(f"research report for {target.symbol}: {len(ledger)} facts, status={audit.status}, methods={[m.key for m in val.methods]}; {time.perf_counter() - t0:.1f}s {stages}")
     return {

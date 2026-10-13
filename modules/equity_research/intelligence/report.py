@@ -31,6 +31,9 @@ DISCLAIMER = (
     "buy or sell any security, and ARIA is not a SEBI-registered research analyst or investment adviser. Figures come from "
     "the sources listed and may be delayed, incomplete or wrong; verify before acting."
 )
+# One-line version shown at the top of every page of the app and of every exported report (full text: app #/disclaimers).
+DISCLAIMER_STRIP = ("ARIA is an AI research and education tool, not a SEBI-registered adviser; nothing here is investment advice. "
+                    "Markets are risky. Read the full disclaimers in the ARIA app (Disclaimers page).")
 _SEVERITY = {"high": 0, "medium": 1, "low": 2}
 
 
@@ -411,7 +414,7 @@ def _md_table(columns: list[str], rows: list[list[str]]) -> str:
 
 def to_markdown(report: dict) -> str:
     c, s, val = report["company"], report["stance"], report["valuation"]
-    out = [f"# {report['title']}", "",
+    out = [f"# {report['title']}", "", f"> {DISCLAIMER_STRIP}", "",
            f"Price {fmt(c['price'], '₹')} · Market cap {fmt(c['market_cap_cr'], '₹ Cr')} · {c['sector'] or ''} / {c['industry'] or ''} · "
            f"{c['basis']} statements · as of {c['as_of']} · verification: **{report['status']}**", ""]
     if s["rating"]:
@@ -456,6 +459,10 @@ def to_markdown(report: dict) -> str:
     if report.get("quant_validation"):
         from modules.equity_research.forecast.report import md_section
         out += [md_section(report)]
+    if report.get("scenario_backtest"):
+        from modules.equity_research.scenario_backtest.report import md_section as sb_md
+
+        out += [sb_md(report)]
     out += ["## Assumptions", _md_table(["Assumption", "Value", "Basis"], [[a["label"], a["text"], a["method"]] for a in report["assumptions"]]),
             "## Verification"] + [f"- {'✓' if k['status'] == 'pass' else '⚠'} {k['title']}" + ("" if k["status"] == "pass" else ": " + " ".join(k["findings"])) for k in report["audit"]["checks"]]
     out += ["", "## Sources", *[f"- {x['source']}: {x['count']} figures" for x in report["sources"]], "", f"_{report['disclaimer']}_"]
