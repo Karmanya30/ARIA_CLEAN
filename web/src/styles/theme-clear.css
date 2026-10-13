@@ -1,0 +1,393 @@
+/* "Vitara Clear" -- the fourth UI version: Vitara's brand (deep green, top bar, pill controls) made calmer and easier to read.
+ *   - roomier type and spacing on a 4px grid, one clear hierarchy, 16px body text
+ *   - every text colour >= 4.5:1 (WCAG AA) on its surface in Light and Night (muted ink >= 7:1 on the canvas)
+ *   - gentle motion (a short rise-in on page change, calm skeletons) that switches off for prefers-reduced-motion
+ *   - search up front, empty states that say what to do next, and a tidier phone header
+ * Layout rules come from theme-vitara.css (this id matches [data-theme^='vitara']); the Markets tab's tokens
+ * (--up, --fs-*, --s-*) are re-declared here so that tab works too. Only additions and overrides live in this file. */
+[data-theme='vitara-clear'] {
+  --bg: #f5f7f3;
+  --bg-elevated: #ffffff;
+  --bg-inset: #edf1ec;
+  --border: #dde3da;
+  --border-strong: #bfc9bc;
+  --ink: #131d17;
+  --ink-muted: #46524a;
+  --ink-faint: #56625a;
+
+  --accent: #17624a;
+  --accent-strong: #0e4a37;
+  --accent-soft: rgba(23, 98, 74, 0.1);
+  --accent-ink: #ffffff;
+  --violet: #4f9a7c;
+  --violet-soft: rgba(79, 154, 124, 0.12);
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(19, 29, 23, 0.06);
+  --shadow-md: 0 4px 16px rgba(19, 29, 23, 0.07), 0 1px 2px rgba(19, 29, 23, 0.04);
+  --shadow-lg: 0 16px 40px rgba(19, 29, 23, 0.12);
+  --shadow-glow: 0 2px 10px rgba(23, 98, 74, 0.22);
+
+  --up: #0f6b50;
+  --down: #b3261e;
+  --flat: var(--ink-muted);
+  --viz-1: #17624a;
+  --viz-2: #a35a12;
+  --viz-3: #2a5a99;
+  --viz-4: #7d4590;
+  --viz-5: #7a6200;
+  --viz-6: #476f0e;
+  --viz-7: #9a3355;
+  --viz-8: #0b6b82;
+  --viz-9: #615443;
+  --num: 'tnum' 1;
+
+  /* roomier type scale + the 4px spacing grid the Markets widgets use */
+  --fs-1: 13px;
+  --fs-2: 14.5px;
+  --fs-3: 16px;
+  --fs-4: 19px;
+  --fs-5: 25px;
+  --fs-6: 34px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 28px;
+  --s-8: 40px;
+  --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+  --t-fast: 160ms;
+  --t-med: 260ms;
+  --topbar-h: 72px;
+}
+
+[data-theme='vitara-clear'] body {
+  font-size: 16px;
+  line-height: 1.65;
+}
+[data-theme='vitara-clear'] h1 {
+  font-size: 1.75em;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+[data-theme='vitara-clear'] h2 {
+  letter-spacing: -0.015em;
+}
+[data-theme='vitara-clear'] ::selection {
+  background: rgba(23, 98, 74, 0.2);
+  color: var(--ink);
+}
+[data-theme='vitara-clear'] .num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--num);
+}
+[data-theme='vitara-clear'] :focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+/* ── Top bar: brand, search, tidy tabs, mode switch, new chat ────────────────────── */
+[data-theme='vitara-clear'] .app-sidebar {
+  gap: 14px;
+  padding: 0 28px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+}
+[data-theme='vitara-clear'] .app-name {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+[data-theme='vitara-clear'] .sidebar-nav {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 auto;
+  box-shadow: none;
+}
+[data-theme='vitara-clear'] .sidebar-nav-item {
+  gap: 8px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+[data-theme='vitara-clear'] .sidebar-nav-item.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+[data-theme='vitara-clear'] .sidebar-new-btn {
+  white-space: nowrap;
+  flex: none;
+  padding: 10px 18px;
+  font-weight: 700;
+}
+[data-theme='vitara-clear'] .mode-toggle {
+  order: 3;
+}
+[data-theme='vitara-clear'] .gs-btn {
+  min-width: 150px;
+  min-height: 42px;
+  border-color: var(--border-strong);
+}
+[data-theme='vitara-clear'] .gs-btn svg {
+  color: var(--accent);
+}
+[data-theme='vitara-clear'] .app-main {
+  padding-top: calc(var(--topbar-h) + 44px);
+  padding-bottom: 96px;
+  background: radial-gradient(ellipse 1000px 380px at 50% 0, rgba(23, 98, 74, 0.05), transparent 65%), var(--bg);
+}
+
+/* Between laptop and tablet widths only the open tab keeps its label; the rest are icons (their names are still read aloud). */
+@media (max-width: 1280px) {
+  [data-theme='vitara-clear'] .sidebar-nav-item:not(.active) .sidebar-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  [data-theme='vitara-clear'] .sidebar-nav-item:not(.active) {
+    padding: 9px 12px;
+  }
+  [data-theme='vitara-clear'] .gs-btn {
+    min-width: 0;
+  }
+  [data-theme='vitara-clear'] .gs-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+@media (max-width: 880px) {
+  [data-theme='vitara-clear'] .app-sidebar {
+    flex-wrap: wrap;
+    padding: 12px 16px 10px;
+    gap: 10px;
+  }
+  [data-theme='vitara-clear'] .sidebar-brand {
+    margin-right: auto;
+  }
+  /* phone header: brand left; search, mode and new chat on the right as icons; tabs on their own scrolling row with a fade */
+  [data-theme='vitara-clear'] .sidebar-new-btn {
+    margin-left: 0;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+  [data-theme='vitara-clear'] .sidebar-new-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  [data-theme='vitara-clear'] .gs-btn {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+  [data-theme='vitara-clear'] .gs-kbd {
+    display: none;
+  }
+  [data-theme='vitara-clear'] .sidebar-nav {
+    order: 5;
+    width: 100%;
+    margin: 0;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+  [data-theme='vitara-clear'] .sidebar-nav-item {
+    scroll-snap-align: start;
+    min-height: 44px;
+  }
+  [data-theme='vitara-clear'] .sidebar-nav-item:not(.active) .sidebar-nav-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+  [data-theme='vitara-clear'] .app-main {
+    padding: 20px 16px 72px;
+  }
+}
+
+/* ── Cards, buttons, inputs, tables: one density ─────────────────────────────────── */
+[data-theme='vitara-clear'] .mk-card,
+[data-theme='vitara-clear'] .card {
+  padding: var(--s-5);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme='vitara-clear'] .mk-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+[data-theme='vitara-clear'] .btn {
+  min-height: 44px;
+  font-size: 14.5px;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+[data-theme='vitara-clear'] .btn:hover:not(:disabled) {
+  transform: none;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+[data-theme='vitara-clear'] .btn-primary {
+  background: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+[data-theme='vitara-clear'] .btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-glow);
+}
+[data-theme='vitara-clear'] .input:not(.composer-input) {
+  min-height: 44px;
+  font-size: 15.5px;
+}
+[data-theme='vitara-clear'] .input:focus,
+[data-theme='vitara-clear'] .ix-in:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  outline: none;
+}
+[data-theme='vitara-clear'] .mk-table th,
+[data-theme='vitara-clear'] .mk-table td {
+  padding: 11px 10px;
+}
+[data-theme='vitara-clear'] .mk-table thead th {
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+[data-theme='vitara-clear'] .mk-pillbtn,
+[data-theme='vitara-clear'] .ix-chip {
+  min-height: 40px;
+}
+[data-theme='vitara-clear'] .ix-chip-soft {
+  min-height: 36px;
+}
+[data-theme='vitara-clear'] .mk-chip {
+  padding: 3px 10px;
+}
+[data-theme='vitara-clear'] .ix-page,
+[data-theme='vitara-clear'] .mk-page {
+  gap: var(--s-5);
+}
+
+/* ── Empty states say what to do next; skeletons are calm ────────────────────────── */
+[data-theme='vitara-clear'] .rt-empty,
+[data-theme='vitara-clear'] .pp-empty,
+[data-theme='vitara-clear'] .mk-empty {
+  padding: var(--s-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+  line-height: 1.55;
+}
+[data-theme='vitara-clear'] .mk-skel {
+  background: linear-gradient(90deg, var(--bg-inset) 20%, color-mix(in srgb, var(--bg-inset) 55%, var(--border)) 50%, var(--bg-inset) 80%);
+  background-size: 200% 100%;
+  animation-duration: 1.8s;
+}
+
+/* ── Motion: a short rise-in when a page opens (off for prefers-reduced-motion) ───── */
+@keyframes clear-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+[data-theme='vitara-clear'] .app-main > section,
+[data-theme='vitara-clear'] .app-main > div:not(.back-bar) {
+  animation: clear-rise var(--t-med) var(--ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='vitara-clear'] .app-main > section,
+  [data-theme='vitara-clear'] .app-main > div {
+    animation: none;
+  }
+}
+
+/* ── Night mode for Vitara Clear: soft green-slate, not black. Contrast: ink 14:1, muted 7:1+, accent text 8:1 ── */
+[data-theme='vitara-clear'][data-mode='night'],
+[data-mode='night'] .tp[data-theme='vitara-clear'] {
+  color-scheme: dark;
+
+  --bg: #0f1514;
+  --bg-elevated: #172120;
+  --bg-inset: #1e2a27;
+  --border: #2a3934;
+  --border-strong: #425850;
+  --ink: #e9f0ec;
+  --ink-muted: #a6b7ae;
+  --ink-faint: #94a69d;
+
+  --accent: #4fc79c;
+  --accent-strong: #7fdcb8;
+  --accent-soft: rgba(79, 199, 156, 0.14);
+  --accent-ink: #06150f;
+  --on-solid: #06150f;
+  --violet: #2f9e73;
+  --violet-soft: rgba(47, 158, 115, 0.16);
+
+  --green: #4fc79c;
+  --green-soft: rgba(79, 199, 156, 0.12);
+  --blue: #86b9ff;
+  --blue-soft: rgba(134, 185, 255, 0.12);
+  --emerald: #35d3bd;
+  --emerald-soft: rgba(53, 211, 189, 0.12);
+  --red: #ff8a80;
+  --red-soft: rgba(255, 138, 128, 0.13);
+  --amber: #f2b955;
+  --amber-soft: rgba(242, 185, 85, 0.13);
+  --info-ink: #a4cbff;
+  --info-line: rgba(134, 185, 255, 0.3);
+
+  --up: #4fc79c;
+  --down: #ff8a80;
+  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.025);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 3px 14px rgba(79, 199, 156, 0.18);
+  --backdrop: rgba(2, 8, 6, 0.66);
+  --tile-base: var(--bg-elevated);
+  --tile-k: 0.6;
+
+  --viz-1: #4fc79c;
+  --viz-2: #f0a04c;
+  --viz-3: #6aa8ff;
+  --viz-4: #c08be0;
+  --viz-5: #e0c84c;
+  --viz-6: #9bd04c;
+  --viz-7: #f27a9c;
+  --viz-8: #4cc8e0;
+  --viz-9: #b8a898;
+}
+[data-theme='vitara-clear'][data-mode='night'] body {
+  color-scheme: dark;
+}
+[data-theme='vitara-clear'][data-mode='night'] ::selection {
+  background: rgba(79, 199, 156, 0.35);
+  color: #ffffff;
+}
+[data-theme='vitara-clear'][data-mode='night'] .app-main {
+  background: radial-gradient(ellipse 900px 360px at 50% 0, rgba(79, 199, 156, 0.06), transparent 65%), var(--bg);
+}
+[data-theme='vitara-clear'][data-mode='night'] .btn-primary {
+  color: var(--accent-ink);
+}
+[data-theme='vitara-clear'][data-mode='night'] .rt-viewer iframe {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}

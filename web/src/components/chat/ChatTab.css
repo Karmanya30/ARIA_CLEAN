@@ -3,7 +3,7 @@
   margin: 0 auto;
   /* The page itself scrolls (one scrollbar); min-height keeps the composer at the bottom of a short thread.
    * .app-main pads 40px top / 20px bottom here (see the :has rule below), hence 60px. */
-  min-height: calc(100vh - 60px - var(--topbar-h, 0px));
+  min-height: calc(100vh - 60px - var(--topbar-h, 0px) - var(--strip-h, 0px));
   display: flex;
   flex-direction: column;
 }
@@ -34,9 +34,9 @@
   flex-direction: column;
   /* stays in view while the conversation scrolls with the page */
   position: sticky;
-  top: calc(var(--topbar-h, 0px) + 16px);
+  top: calc(var(--topbar-h, 0px) + var(--strip-h, 0px) + 16px);
   align-self: flex-start;
-  height: calc(100vh - 200px - var(--topbar-h, 0px));
+  height: calc(100vh - 200px - var(--topbar-h, 0px) - var(--strip-h, 0px));
   min-height: 360px;
 }
 /* The real avatar/video content grows to fill the column -- without

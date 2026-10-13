@@ -52,7 +52,7 @@
 /* ── Ticker tape: fixed full-width strip right under the top bar ───────────────── */
 .tape {
   position: fixed;
-  inset: var(--nav-h) 0 auto 0;
+  inset: calc(var(--strip-h, 0px) + var(--nav-h)) 0 auto 0;
   z-index: 25;
   height: var(--tape-h);
   display: flex;

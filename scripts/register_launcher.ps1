@@ -6,6 +6,6 @@ New-Item -Path "$key\shell\open\command" -Force | Out-Null
 Set-ItemProperty -Path $key -Name "(default)" -Value "URL:ARIA Launcher"
 New-ItemProperty -Path $key -Name "URL Protocol" -Value "" -PropertyType String -Force | Out-Null
 Set-ItemProperty -Path "$key\shell\open\command" -Name "(default)" `
-    -Value "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcher`" `"%1`""
+    -Value "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$launcher`" `"%1`""
 Write-Host "Registered aria:// -> $launcher"
 Write-Host "Test it:  Start-Process 'aria://launch'"

@@ -42,7 +42,7 @@
 /* ── Top navigation bar (replaces the left sidebar) ─────────────────────────────── */
 [data-theme^='vitara'] .app-sidebar {
   position: fixed;
-  inset: 0 0 auto 0;
+  inset: var(--strip-h, 0px) 0 auto 0; /* below the disclaimer strip */
   z-index: 30;
   width: auto;
   height: var(--topbar-h);

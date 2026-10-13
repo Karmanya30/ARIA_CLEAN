@@ -1,9 +1,9 @@
 .app-sidebar {
   width: 250px;
   flex-shrink: 0;
-  height: 100vh;
+  height: calc(100vh - var(--strip-h, 0px));
   position: sticky;
-  top: 0;
+  top: var(--strip-h, 0px);
   display: flex;
   flex-direction: column;
   gap: 22px;

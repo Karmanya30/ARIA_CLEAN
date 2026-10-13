@@ -1,0 +1,632 @@
+/* Explore, global search and the instrument drawer. Built on the mk-/sd- building blocks (theme-markets.css, panels.css),
+ * which expect the spacing/type tokens below; they are only defined by the Markets themes, so give every theme a zero-specificity fallback. */
+:where(:root) {
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --fs-1: 12px;
+  --fs-2: 13.5px;
+  --fs-3: 15px;
+  --fs-4: 18px;
+  --fs-5: 24px;
+  --fs-6: 32px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 150ms;
+  --t-med: 250ms;
+  --up: #13795b;
+  --down: #b42318;
+  --flat: var(--ink-muted);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────────── */
+.ix-page {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding-bottom: var(--s-8);
+}
+.ix-head h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--fs-6);
+  letter-spacing: -0.02em;
+}
+.ix-head .mk-sub {
+  max-width: 64ch;
+}
+.ix-h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--fs-4);
+}
+
+/* ── Search (page + palette) ────────────────────────────────────────────────── */
+.ix-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.ix-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 52px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.ix-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ix-field input {
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-3);
+}
+.ix-field input::placeholder {
+  color: var(--ink-muted);
+}
+.ix-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.ix-chip {
+  min-height: 36px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-2);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.ix-chip:hover {
+  background: var(--bg-inset);
+}
+.ix-chip[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.ix-chip-soft {
+  min-height: 32px;
+  background: var(--bg-inset);
+  border-color: var(--border);
+  font-size: var(--fs-1);
+}
+.ix-chip:focus-visible,
+.ix-row:focus-visible,
+.ix-wmain:focus-visible,
+.gs-btn:focus-visible,
+.gs-x:focus-visible,
+.gs-browse:focus-visible,
+.ix-link:focus-visible {
+  outline: 2px solid var(--accent-strong, var(--accent));
+  outline-offset: 2px;
+}
+.ix-results {
+  min-height: 120px;
+}
+.ix-hint p {
+  margin: 0 0 var(--s-2);
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+}
+.ix-list,
+.ix-rows,
+.ix-wl {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ix-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ix-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 52px;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.ix-opt:hover,
+.ix-opt[data-active] {
+  background: var(--bg-inset);
+}
+.ix-opt[data-active] {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.ix-opt-main,
+.ix-row-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ix-opt-main b,
+.ix-row-main b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ix-opt-sub {
+  color: var(--ink-muted);
+  font-size: var(--fs-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ix-tag {
+  flex: none;
+  padding: 2px var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-size: var(--fs-1);
+}
+.ix-empty,
+.ix-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+}
+.ix-empty {
+  padding: var(--s-4) var(--s-2);
+}
+.ix-skels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.ix-emptybox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+}
+.ix-emptybox p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+  max-width: 60ch;
+}
+
+/* ── Browse ─────────────────────────────────────────────────────────────────── */
+.ix-browse {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.ix-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.ix-fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.ix-fld label {
+  color: var(--ink-muted);
+  font-size: var(--fs-1);
+  font-weight: 600;
+}
+.ix-in {
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-3);
+  width: 100%;
+}
+.ix-in:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.ix-rows {
+  display: flex;
+  flex-direction: column;
+}
+.ix-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s-2) var(--s-2);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.ix-row:hover {
+  background: var(--bg-inset);
+}
+.ix-row-px {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 96px;
+  font-size: var(--fs-2);
+}
+.ix-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+}
+.ix-wl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--s-2);
+}
+.ix-wrow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  padding-right: var(--s-2);
+}
+.ix-wmain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-2);
+  text-align: left;
+  cursor: pointer;
+}
+.ix-wmain b {
+  flex-basis: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ix-wskel {
+  width: 70px;
+  --h: 14px;
+}
+
+/* ── Header search button + palette ─────────────────────────────────────────── */
+.gs-btn {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 40px;
+  padding: 0 var(--s-3) 0 var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.gs-btn:hover {
+  border-color: var(--accent);
+  background: var(--bg-inset);
+}
+.gs-kbd {
+  min-width: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--ink-muted);
+  font: 600 11px/18px var(--font-mono);
+  text-align: center;
+}
+[data-theme='classic'] .app-sidebar .gs-btn {
+  width: 100%;
+  justify-content: flex-start;
+  order: 0;
+}
+@media (max-width: 880px) {
+  [data-theme='classic'] .app-sidebar .gs-btn {
+    width: auto;
+  }
+}
+.gs-dlg {
+  width: min(640px, calc(100vw - 24px));
+  max-height: min(680px, calc(100dvh - 24px));
+  margin: 12px auto auto;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+@media (min-width: 700px) {
+  .gs-dlg {
+    margin-top: 12vh;
+  }
+}
+.gs-dlg::backdrop {
+  background: var(--backdrop, rgba(26, 26, 23, 0.4));
+}
+.gs-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-height: inherit;
+  padding: var(--s-4);
+  overflow-y: auto;
+}
+.gs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gs-head h2 {
+  margin: 0;
+  font-size: var(--fs-3);
+}
+.gs-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--ink);
+  cursor: pointer;
+}
+.gs-browse {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--accent-strong, var(--accent));
+  font: inherit;
+  font-size: var(--fs-2);
+  font-weight: 600;
+  cursor: pointer;
+}
+.gs-browse:hover {
+  background: var(--accent-soft);
+}
+@media (max-width: 1280px) {
+  .gs-btn .gs-kbd {
+    display: none;
+  }
+}
+
+/* ── Instrument drawer ──────────────────────────────────────────────────────── */
+.ix-pl {
+  flex-basis: 100%;
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+}
+.ix-prov {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  min-height: 24px;
+}
+.ix-warn {
+  border-color: var(--amber, var(--down));
+  color: var(--ink);
+  background: var(--amber-soft, var(--bg-inset));
+}
+.ix-risks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ix-risks li {
+  padding: 3px var(--s-3);
+  border: 1px solid color-mix(in srgb, var(--amber, #b45309) 45%, var(--border));
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--amber, #b45309) 10%, var(--bg-elevated));
+  color: var(--ink);
+  font-size: var(--fs-1);
+}
+.ix-desc {
+  margin: 0;
+  font-size: var(--fs-3);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+.ix-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong, var(--accent));
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ix-sip,
+.ix-ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.ix-sip-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3);
+}
+.ix-sip-form .ix-fld {
+  flex: 1 1 130px;
+}
+.ix-sip-form .btn {
+  flex: none;
+  justify-content: center;
+  text-align: center;
+}
+.ix-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+}
+.ix-tiles div {
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.ix-tiles dt {
+  color: var(--ink-muted);
+  font-size: var(--fs-1);
+}
+.ix-tiles dd {
+  margin: 0;
+  font-size: var(--fs-4);
+  font-weight: 650;
+}
+.ix-growth {
+  display: block;
+  height: 64px;
+}
+.ix-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.ix-thread:empty {
+  display: none;
+}
+.ix-turn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.ix-q {
+  align-self: flex-end;
+  max-width: 88%;
+  margin: 0;
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  font-size: var(--fs-3);
+}
+.ix-a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.ix-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.ix-err {
+  margin: 0;
+  color: var(--down);
+  font-size: var(--fs-2);
+}
+.ix-askform {
+  display: flex;
+  gap: var(--s-2);
+}
+.ix-askform .ix-in {
+  flex: 1;
+  min-width: 0;
+}
+.ix-send {
+  gap: var(--s-2);
+  justify-content: center;
+  text-align: center;
+}
+.ix-drawer .ix-ask .chat-status {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-2);
+}
+@media (max-width: 600px) {
+  .ix-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ix-row .ix-tag {
+    display: none;
+  }
+}
+@media print {
+  .gs-btn,
+  .gs-dlg {
+    display: none;
+  }
+}
+
+/* Vitara Markets: the bar already holds 8 tabs, so the search button is icon-only until there is room. */
+@media (max-width: 1600px) {
+  [data-theme='vitara-markets'] .gs-label,
+  [data-theme='vitara-markets'] .gs-kbd {
+    display: none;
+  }
+  [data-theme='vitara-markets'] .gs-btn {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+}

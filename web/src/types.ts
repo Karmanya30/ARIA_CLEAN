@@ -260,3 +260,73 @@ export interface SpendingInsightsData {
   suggestions: { title: string; detail: string; saving_per_month: number | null; priority: 'high' | 'medium' | 'low' }[]
   notes: string[]
 }
+
+// ── Universal instrument explorer (GET/POST /api/instruments/*) ──
+export type InstrumentType = 'stock' | 'mf' | 'etf' | 'crypto' | 'bond' | 'index' | 'commodity' | 'currency'
+
+export interface InstrumentMeta {
+  note?: string | null
+  source?: string
+  stale?: boolean
+  as_of?: string
+  total?: number
+  page?: number
+  page_size?: number
+  [key: string]: unknown
+}
+
+export interface InstrumentSummary {
+  id: string
+  symbol: string
+  name: string
+  type: InstrumentType
+  exchange?: string | null
+  currency?: string | null
+  source?: string | null
+  subtitle?: string | null
+  price?: number | null
+  change_pct?: number | null
+}
+
+export interface InstrumentSearchResult { items: InstrumentSummary[]; meta?: InstrumentMeta }
+export interface InstrumentBrowseResult { items: InstrumentSummary[]; meta: InstrumentMeta & { total: number; page: number; page_size: number } }
+
+/** Quote plus whatever facts the instrument type has (day range, NAV, expense ratio ...): all optional. */
+export interface InstrumentQuote {
+  id: string
+  name: string
+  type: InstrumentType
+  price: number | null
+  change: number | null
+  change_pct: number | null
+  currency?: string | null
+  as_of?: string | null
+  delay_note?: string | null
+  stale?: boolean
+  source?: string | null
+  facts?: Record<string, string | number | null>
+  [key: string]: unknown
+}
+
+export interface InstrumentChart { points: { t: number; v: number }[]; meta?: InstrumentMeta }
+
+export interface InstrumentProfile {
+  id?: string
+  description?: string | null
+  summary?: string | null
+  stats?: { label: string; value: string | number | null }[] | Record<string, string | number | null>
+  risk_tags?: (string | { label: string })[]
+  [key: string]: unknown
+}
+
+export interface InstrumentSip {
+  invested: number
+  value: number
+  xirr: number | null
+  cagr: number | null
+  max_drawdown: number | null
+  series?: { t: number; invested?: number; value?: number }[]
+  caveat: string
+}
+
+export type InstrumentRange = '1d' | '5d' | '1m' | '6m' | '1y' | '5y' | 'max'

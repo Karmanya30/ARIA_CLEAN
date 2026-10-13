@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
-import { MODES, THEMES, setTheme, useModeSetting, type ThemeId } from '../../theme'
+import { MODES, THEMES, hasMarkets, setTheme, useModeSetting, type ThemeId } from '../../theme'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
@@ -28,9 +28,9 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
     <section className="settings">
       <h1>Settings</h1>
       <p className="settings-sub">
-        <strong>Appearance</strong> — choose how ARIA looks. It applies instantly and is remembered on this device.
+        <strong>Appearance</strong> — choose a UI version. It applies instantly and is remembered on this device.
       </p>
-      <div className="theme-grid" role="radiogroup" aria-label="Theme">
+      <div className="theme-grid" role="radiogroup" aria-label="UI version">
         {THEMES.map((t) => (
           <label key={t.id} className="theme-card">
             <input type="radio" name="theme" value={t.id} checked={theme === t.id} onChange={() => pick(t.id)} />
@@ -62,9 +62,9 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
           </label>
         ))}
       </div>
-      {theme === 'vitara-markets' && (
+      {hasMarkets(theme) && (
         <>
-          <h2 className="settings-h2">Appearance</h2>
+          <h2 className="settings-h2">Colour mode</h2>
           <div className="seg" role="radiogroup" aria-label="Colour mode">
             {MODES.map((m) => (
               <label key={m.id}>
@@ -97,6 +97,10 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
       </button>
       <p className="settings-sub" role="status" aria-live="polite">
         {status}
+      </p>
+      <h2 className="settings-h2">About ARIA</h2>
+      <p className="settings-sub">
+        ARIA is an AI research and education tool, not a SEBI-registered adviser. <a href="#/disclaimers">Read the full disclaimers</a>.
       </p>
     </section>
   )

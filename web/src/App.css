@@ -1,6 +1,6 @@
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--strip-h, 0px));
   background: var(--bg);
 }
 

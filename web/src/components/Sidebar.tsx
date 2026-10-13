@@ -1,4 +1,4 @@
-import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart } from 'lucide-react'
+import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart, Compass } from 'lucide-react'
 import './Sidebar.css'
 
 export interface NavDef {
@@ -8,6 +8,7 @@ export interface NavDef {
 }
 
 export const MARKETS_TAB: NavDef = { id: 'markets', label: 'Markets', icon: <LineChart size={16} /> }
+export const EXPLORE_TAB: NavDef = { id: 'explore', label: 'Explore', icon: <Compass size={16} /> }
 
 /** Persistent left nav, replacing the old top Header+Tabs bar. Deliberately
  * doesn't clone a multi-conversation "chat history" list or a fake user/
@@ -21,12 +22,16 @@ export function Sidebar({
   onChange,
   onNewSession,
   extra,
+  search,
+  newLabel = 'New session',
 }: {
   tabs: NavDef[]
   active: string
   onChange: (id: string) => void
   onNewSession: () => void
   extra?: React.ReactNode // theme-specific controls (the Markets colour-mode toggle) next to New session
+  search?: React.ReactNode // the global instrument search button, on every page
+  newLabel?: string
 }) {
   return (
     <aside className="app-sidebar">
@@ -37,9 +42,11 @@ export function Sidebar({
         <span className="app-name">ARIA</span>
       </div>
 
+      {search}
+
       <button className="sidebar-new-btn" onClick={onNewSession} type="button">
         <Plus size={15} />
-        New session
+        {newLabel}
       </button>
       {extra}
 

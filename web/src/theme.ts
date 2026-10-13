@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from 'react'
 
-export type ThemeId = 'classic' | 'vitara' | 'vitara-markets'
+export type ThemeId = 'classic' | 'vitara' | 'vitara-markets' | 'vitara-clear'
 
 export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
   { id: 'classic', label: 'Classic', blurb: 'The original ARIA look: left sidebar, cool blue accent, compact cards.' },
@@ -10,7 +10,15 @@ export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
     blurb: 'Warm ivory canvas, top navigation bar, rounded pill controls and a deep green accent.',
   },
   { id: 'vitara-markets', label: 'Vitara Markets', blurb: 'Vitara with a live markets dashboard, ticker tape and charts.' },
+  {
+    id: 'vitara-clear',
+    label: 'Vitara Clear',
+    blurb: 'A calmer, clearer Vitara: roomier type and spacing, higher contrast, gentle motion, search up front and a night mode.',
+  },
 ]
+
+/** Themes that show the Markets tab and the Light/Night switch. */
+export const hasMarkets = (id: ThemeId) => id === 'vitara-markets' || id === 'vitara-clear'
 
 // index.html applies the saved value before first paint (no flash) -- keep the key in sync there.
 const KEY = 'aria_theme'
@@ -33,7 +41,7 @@ export function setTheme(id: ThemeId) {
   }
 }
 
-// ── Colour mode (Vitara Markets only; the CSS rules are scoped to that theme) ──────────────
+// ── Colour mode (Vitara Markets and Vitara Clear; the CSS rules are scoped to those themes) ──────────────
 // 'auto' follows the OS preference live. index.html applies the saved setting before first paint.
 export type ModeSetting = 'light' | 'night' | 'auto'
 export const MODES: { id: ModeSetting; label: string }[] = [

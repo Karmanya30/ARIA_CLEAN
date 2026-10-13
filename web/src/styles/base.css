@@ -21,7 +21,7 @@ body {
 }
 
 #root {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--strip-h, 0px));
 }
 
 h1 {

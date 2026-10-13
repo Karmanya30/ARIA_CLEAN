@@ -1,4 +1,4 @@
-import type { ChatMode, ChatResponse, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction, ValidationLatest } from './types'
+import type { ChatMode, ChatResponse, InstrumentRange, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction, ValidationLatest } from './types'
 
 const BASE = ''
 
@@ -90,7 +90,27 @@ export interface SentimentResult {
   items: { text: string; label: string; net: number }[]
 }
 
+/** Paths for the GET instrument endpoints. They are plain strings so components can feed them to useMarket (cache + refresh). */
+const ix = (id: string) => `/api/instruments/${encodeURIComponent(id)}`
+export const instrumentPaths = {
+  search: (q: string, type = '', limit = 12) =>
+    `/api/instruments/search?q=${encodeURIComponent(q)}${type ? `&type=${type}` : ''}&limit=${limit}`,
+  browse: (p: { type?: string; q?: string; sort?: string; page?: number; pageSize?: number }) =>
+    `/api/instruments/browse?type=${p.type ?? ''}&q=${encodeURIComponent(p.q ?? '')}&sort=${p.sort ?? ''}&page=${p.page ?? 1}&page_size=${p.pageSize ?? 20}`,
+  quote: (id: string) => `${ix(id)}/quote`,
+  chart: (id: string, range: InstrumentRange) => `${ix(id)}/chart?range=${range}`,
+  profile: (id: string) => `${ix(id)}/profile`,
+  sip: (id: string, monthly: number, years: number) => `${ix(id)}/sip?monthly=${monthly}&years=${years}`,
+}
+
 export const api = {
+  /** Ask ARIA about one instrument; the answer has the same shape as a chat reply. `history` is the earlier turns of this drawer conversation. */
+  askInstrument: (id: string, question: string, sessionId: string, history: { role: 'user' | 'assistant'; content: string }[]) =>
+    j<ChatResponse>('/api/instruments/ask', {
+      method: 'POST',
+      body: JSON.stringify({ id, question, session_id: sessionId, owner_id: ownerId(), history }),
+    }),
+
   sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true) =>
     j<ChatResponse>('/api/chat', {
       method: 'POST',

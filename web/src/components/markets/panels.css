@@ -1,12 +1,12 @@
 /* Stock drawer + personal panel (Vitara Markets). Tokens come from theme-markets.css / theme-vitara.css. */
 .sd {
   position: fixed;
-  inset: 0 0 0 auto;
+  inset: var(--strip-h, 0px) 0 0 auto; /* leave the disclaimer strip visible */
   margin: 0;
   padding: 0;
   width: min(560px, 100vw);
   max-width: none;
-  height: 100dvh;
+  height: calc(100dvh - var(--strip-h, 0px));
   max-height: none;
   border: 0;
   border-left: 1px solid var(--border);
