@@ -212,6 +212,41 @@ def dump_blocks(blocks: list[BaseModel]) -> list[dict]:
     return [block.model_dump() for block in blocks]
 
 
+def build_audio_summary(blocks: list[dict]) -> str:
+    """Compact, spoken-friendly summary built from a response's terse
+    structural fields (metric labels/values, risk level, a recommendation's
+    title+rationale) rather than a `text` block's full assembled prose.
+
+    Stage 14: ai/llm/audio_script.py's shortening LLM call used to compress
+    the entire narration string every time -- this gives it a much smaller,
+    already-terse starting point instead, so it lands under the length cap
+    more reliably. Falls back to the first `text` block's raw content only
+    if no structural block is present at all (e.g. a plain tutor
+    explanation or smalltalk reply, which are just a single text block) --
+    saying nothing would be worse than the LLM having more to compress.
+    """
+    parts: list[str] = []
+    fallback_text: str | None = None
+
+    for block in blocks:
+        block_type = block.get("type")
+        if block_type == "metric":
+            unit = f" {block['unit']}" if block.get("unit") else ""
+            parts.append(f"{block['label']}: {block['value']}{unit}")
+        elif block_type == "risk":
+            parts.append(f"Risk level: {block['level']} ({round(block['score'] * 100)}% confidence)")
+        elif block_type == "recommendation":
+            parts.append(f"{block['title']}: {block['rationale']}")
+        elif block_type == "alert":
+            parts.append(block["message"])
+        elif block_type == "text" and fallback_text is None:
+            fallback_text = block["content"]
+
+    if parts:
+        return " ".join(parts)
+    return fallback_text or ""
+
+
 def text_or_error_blocks(text: str) -> list[dict]:
     """Minimal, uniform block wrapping for any pipeline response path that
     doesn't have richer structured data behind it (a plain LLM narration,

@@ -51,7 +51,20 @@ def normalize_currency(text: str) -> str:
     return normalized
 
 
+_groq_client = None
+
+
 def _make_groq_client():
+    # Reused for the life of the process instead of building a fresh
+    # groq.Groq() (and its underlying httpx connection pool) on every call --
+    # every prior request paid a full TCP+TLS handshake to Groq's API that a
+    # kept-alive connection would skip. Groq is otherwise fast (LPU
+    # inference), so handshake overhead was a real chunk of each turn's
+    # measured 1-3s latency, not just noise.
+    global _groq_client
+    if _groq_client is not None:
+        return _groq_client
+
     try:
         import groq
     except Exception as e:
@@ -63,7 +76,8 @@ def _make_groq_client():
     if not api_key:
         raise RuntimeError("GROQ_API_KEY is not set")
 
-    return groq.Groq(api_key=api_key)
+    _groq_client = groq.Groq(api_key=api_key)
+    return _groq_client
 
 
 def _extract_groq_text(response) -> str:
@@ -96,15 +110,17 @@ def _call_groq(prompt: str, system_prompt: str) -> str:
     return text
 
 
-def _call_gemini(prompt: str, system_prompt: str) -> str:
-    """Raises on any failure — caller decides how to handle it.
+_gemini_client = None
 
-    Uses the current `google-genai` SDK (`from google import genai`), not the
-    deprecated `google-generativeai` package.
-    """
+
+def _make_gemini_client():
+    # Same connection-reuse rationale as _make_groq_client() above.
+    global _gemini_client
+    if _gemini_client is not None:
+        return _gemini_client
+
     try:
         from google import genai
-        from google.genai import types
     except Exception as e:
         raise RuntimeError(
             "google-genai SDK not installed. Run: python -m pip install google-genai"
@@ -114,7 +130,24 @@ def _call_gemini(prompt: str, system_prompt: str) -> str:
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY is not set")
 
-    client = genai.Client(api_key=api_key)
+    _gemini_client = genai.Client(api_key=api_key)
+    return _gemini_client
+
+
+def _call_gemini(prompt: str, system_prompt: str) -> str:
+    """Raises on any failure — caller decides how to handle it.
+
+    Uses the current `google-genai` SDK (`from google import genai`), not the
+    deprecated `google-generativeai` package.
+    """
+    try:
+        from google.genai import types
+    except Exception as e:
+        raise RuntimeError(
+            "google-genai SDK not installed. Run: python -m pip install google-genai"
+        ) from e
+
+    client = _make_gemini_client()
     response = client.models.generate_content(
         model=GEMINI_MODEL_NAME,
         contents=prompt,

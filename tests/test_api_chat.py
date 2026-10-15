@@ -64,6 +64,32 @@ def test_history_entries_carry_audio_token_at_top_level(mock_llm):
         _cleanup()
 
 
+def test_send_message_passes_blocks_to_audio_script(mock_llm, monkeypatch):
+    # Stage 14: the TTS shortening call should get the response's `blocks`
+    # too, not just the plain response string, so it can build from the
+    # terse structural fields instead of compressing the full narration.
+    captured = {}
+
+    def fake_generate_audio_script(text, blocks=None):
+        captured["text"] = text
+        captured["blocks"] = blocks
+        return "spoken summary"
+
+    monkeypatch.setattr("ai.llm.audio_script.generate_audio_script", fake_generate_audio_script)
+
+    _cleanup()
+    try:
+        resp = client.post(
+            "/api/chat",
+            json={"query": "what's the weather in Chennai", "session_id": _TEST_SESSION, "mode": "Normal Mode"},
+        )
+        assert resp.status_code == 200
+        assert captured["blocks"] is not None
+        assert isinstance(captured["blocks"], list)
+    finally:
+        _cleanup()
+
+
 def test_clear_empties_history(mock_llm):
     _cleanup()
     try:

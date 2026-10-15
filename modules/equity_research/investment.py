@@ -300,8 +300,43 @@ def _build_investment_blocks(answer: str, stock_data: dict[str, Any]) -> list[di
     return dump_blocks(blocks)
 
 
+# Patterns that signal a broad/general market question rather than a query
+# about a specific listed company.  If any of these match AND no recognisable
+# company name/ticker appears in the query, we return a clear "can't identify
+# company" message instead of letting Yahoo Finance search return whatever
+# stock happens to be trending (which produced the B&C-Speakers-for-IPO bug).
+_GENERIC_MARKET_PATTERNS = re.compile(
+    r"\b("
+    r"upcoming ipo|upcoming ipos|ipo list|ipos in|ipo news|ipo today"
+    r"|market today|market news|market update|market outlook"
+    r"|stock market|share market|nifty|sensex"
+    r"|indices|index fund"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
 def investment_module(query: str) -> dict[str, Any]:
     """Analyze an Indian stock using yfinance, NewsAPI, and Groq."""
+    # Guard: if the query is clearly about the broad market / IPOs in general
+    # (not a specific company), skip company resolution entirely -- Yahoo's
+    # search returns whatever stock is trending for generic terms, which causes
+    # wrong-company answers (e.g. B&C Speakers for "upcoming IPOs").
+    if _GENERIC_MARKET_PATTERNS.search(query):
+        response = (
+            "Insight: Your question is about the broader market or IPO landscape, not a specific listed stock.\n"
+            "Analysis: I don't have a live IPO calendar feed right now. "
+            "For upcoming Indian IPOs, check SEBI's official portal or NSE/BSE IPO sections.\n"
+            "Recommendation: You can ask me about a specific company's stock, fundamentals, or financials instead.\n"
+            "Risk: IPO allocations are lottery-based and listings can be over- or under-priced."
+        )
+        return {
+            "domain": "investment",
+            "query": query,
+            "context": {},
+            "response": response,
+            "blocks": text_or_error_blocks(response),
+        }
     company = detect_company(query)
     if company is None:
         response = (

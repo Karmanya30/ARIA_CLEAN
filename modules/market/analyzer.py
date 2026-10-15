@@ -33,12 +33,29 @@ SECTOR_TICKERS = {
 }
 
 ET_MARKETS_RSS = "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
+ET_IPO_RSS = "https://economictimes.indiatimes.com/markets/ipos/frequently-asked-questions/rssfeeds/14655708.cms"
 
 
 def _pct_change(closes: list[float]) -> float | None:
     if len(closes) < 2 or closes[0] == 0:
         return None
     return (closes[-1] - closes[0]) / closes[0] * 100
+
+
+@lru_cache(maxsize=4)
+def get_ipo_news(limit: int = 8) -> list[str]:
+    """Live Indian IPO headlines via Economic Times' public IPO RSS feed."""
+    try:
+        response = requests.get(
+            ET_IPO_RSS, timeout=8, headers={"User-Agent": "Mozilla/5.0"}
+        )
+        response.raise_for_status()
+        root = ET.fromstring(response.content)
+        titles = [item.findtext("title", "").strip() for item in root.iter("item")]
+        return [t for t in titles if t][:limit]
+    except Exception as exc:
+        logger.warning(f"Economic Times IPO RSS feed unreachable: {exc}")
+        return []
 
 
 @lru_cache(maxsize=8)
@@ -136,14 +153,17 @@ class MarketAnalyzer:
     def analyze(self, query: str) -> dict[str, Any]:
         sector = _detect_sector(query)
         index_name = _detect_index(query)
+        is_ipo = "ipo" in query.lower() or "ipos" in query.lower()
 
         context: dict[str, Any] = {"query": query, "news_headlines": get_market_news()}
+        if is_ipo:
+            context["ipo_news"] = get_ipo_news()
 
         if sector:
             context["sector"] = get_sector_snapshot(sector)
         if index_name:
             context["index"] = get_index_snapshot(index_name)
-        if not sector and not index_name:
+        if not sector and not index_name and not is_ipo:
             # General "how's the market" query -- show both major indices.
             context["nifty"] = get_index_snapshot("nifty")
             context["sensex"] = get_index_snapshot("sensex")

@@ -35,7 +35,21 @@ _SMALLTALK_RE = re.compile(
 
 def _is_smalltalk(query: str) -> bool:
     text = query.strip().lower()
-    return bool(text) and bool(_SMALLTALK_RE.match(text))
+    if not text:
+        return False
+    if _SMALLTALK_RE.match(text):
+        return True
+    # A single phrase from the list matches whole (e.g. "hey"), but a
+    # compound greeting like "Hey, how are you?" is two phrases joined by
+    # punctuation and never matches the anchored regex above -- found live:
+    # it fell through to the tutor pipeline's out-of-scope guard and got
+    # answered with the canned finance-scope disclaimer instead of a
+    # natural reply. Split on the same punctuation the regex already
+    # tolerates and require every clause to be smalltalk on its own, so a
+    # real question tacked onto a greeting ("hey, what's the nifty doing")
+    # still routes normally instead of being swallowed as smalltalk.
+    clauses = [c.strip() for c in re.split(r"[!.,?]+", text) if c.strip()]
+    return bool(clauses) and all(_SMALLTALK_RE.match(c) for c in clauses)
 
 
 def _smalltalk_reply(query: str) -> dict[str, Any]:
@@ -112,12 +126,25 @@ Follow-up query: {query}
     elif domain == "tutor":
         response = tutor_pipeline(query, user_id=session_id)
     elif domain == "market":
-        # domain says market but neither precise check matched (rare) --
-        # equity research is the closer fallback of the two.
-        response = equity_research_pipeline(query, user_id=session_id)
+        # domain says market but neither precise check matched (rare).
+        # Found live: "What about current market analysis?" (no company
+        # name, no broad-market keyword hit) landed here and used to always
+        # go to equity_research_pipeline, which *requires* a company to
+        # analyze -- it just returned "I could not identify the company or
+        # ticker" instead of an actual answer. Only route there if a ticker
+        # actually resolved; a company-less market question belongs in
+        # market_pipeline (Module 3), which is built to answer without one.
+        if ticker:
+            response = equity_research_pipeline(query, user_id=session_id)
+        else:
+            response = market_pipeline(query)
     else:
+        # Falls to tutor_pipeline which has an out-of-scope guard: non-finance
+        # queries (e.g. "who is Ronaldo", "what is SHM") are rejected there
+        # with a polite refusal instead of being answered by the LLM.
         response = tutor_pipeline(query, user_id=session_id)
-        response["domain"] = "general"
+        if response.get("domain") != "out_of_scope":
+            response["domain"] = "general"
 
     save_turn(session_id, query, response)
     return response
