@@ -187,7 +187,7 @@ def _build_movers(df: pd.DataFrame, idx_changes: dict[str, float]) -> tuple[dict
 
 
 def _build_news() -> dict:
-    raw = fetch_news("", limit=30)
+    raw = fetch_news("", limit=None)
     if not raw:
         raise RuntimeError("no news")
     t = sentiment.tone([r["title"] for r in raw])

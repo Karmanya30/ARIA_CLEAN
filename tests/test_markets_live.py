@@ -143,3 +143,16 @@ def test_news_tagging(monkeypatch):
     n = live._build_news()
     assert n["items"][0]["symbols"] == ["RELIANCE.NS"] and n["items"][1]["symbols"] == []
     assert n["items"][0]["sources"] == 3 and n["engine"] in ("finbert", "keywords") and "2 feeds" in n["meta"]["source"]
+
+
+def test_news_dashboard_requests_and_preserves_all_available_stories(monkeypatch):
+    raw = [{"title": f"Enterprise{i} growth", "source": "ET", "url": f"https://example.test/{i}",
+            "age_hours": 1.0, "sources": 1} for i in range(75)]
+
+    def fetch(query, limit):
+        assert query == "" and limit is None
+        return raw
+
+    monkeypatch.setattr(live, "fetch_news", fetch)
+    monkeypatch.setattr(live, "resolve_company", lambda title: None)
+    assert [item["url"] for item in live._build_news()["items"]] == [item["url"] for item in raw]

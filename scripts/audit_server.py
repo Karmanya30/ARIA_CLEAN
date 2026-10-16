@@ -58,7 +58,10 @@ market_live._snap.update({
     "overview": {"items": [{"symbol": "^NSEI", "name": "Nifty 50", "group": "india", "price": 100.0, "change": 1.0, "change_pct": 1.0, "prev_close": 99.0, "currency": "INR", "spark": [99.0, 100.0]}], "last_bar": datetime.now(timezone.utc), "meta": meta},
     "movers": {"gainers": [], "losers": [], "active": [], "meta": meta},
     "sectors": {"sectors": [], "meta": meta},
-    "news": {"items": [], "engine": "keywords", "meta": meta},
+    "news": {"items": [{"title": f"Synthetic enterprise bulletin {i:03d}", "source": "SYNTHETIC AUDIT FIXTURE",
+                       "url": f"https://example.test/news/{i}", "age_hours": 1.0, "sources": 1,
+                       "tone": "neutral", "net": 0.0, "symbols": []} for i in range(75)],
+             "engine": "keywords", "meta": meta},
 })
 from api.routes import markets
 class SyntheticTicker:

@@ -231,12 +231,13 @@ def _keywords(query: str) -> list[str]:
     return [w for w in dict.fromkeys(words) if w not in _STOP and w not in _GENERIC and len(w) > 2]
 
 
-def fetch_news(query: str = "", limit: int = 10, max_age_hours: int = 72, region: str | None = None, google: bool = True) -> list[dict]:
+def fetch_news(query: str = "", limit: int | None = 10, max_age_hours: int = 72, region: str | None = None, google: bool = True) -> list[dict]:
     """Most relevant recent headlines for ``query`` (or a broad briefing when it names nothing specific).
 
     Returns [{title, source, published, url, age_hours, sources}] newest-relevant first; ``sources`` is how many different
     publishers carried the story (more = better corroborated). Never raises. ``region`` limits to "india" or "world";
     ``google=False`` skips the live Google News search (used when the caller already ran its own).
+    ``limit=None`` returns all available recent, deduplicated stories without a per-publisher quota.
     """
     if not settings.FI_NEWS_RSS:
         return []
@@ -293,11 +294,11 @@ def fetch_news(query: str = "", limit: int = 10, max_age_hours: int = 72, region
     out, per_source = [], {}
     cap = 3 if keys else 2  # a broad briefing should not be all one publisher
     for it in merged:
-        if per_source.get(it["source"], 0) >= cap:
+        if limit is not None and per_source.get(it["source"], 0) >= cap:
             continue
         per_source[it["source"]] = per_source.get(it["source"], 0) + 1
         out.append({**{k: it[k] for k in ("title", "source", "published", "url", "age_hours")}, "sources": len(it["publishers"])})
-        if len(out) >= limit:
+        if limit is not None and len(out) >= limit:
             break
     return out
 

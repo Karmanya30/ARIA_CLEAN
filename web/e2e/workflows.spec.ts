@@ -31,6 +31,29 @@ function stored(owner: string) {
 }
 
 for (const version of ['v1', 'v2']) {
+  test(`${version}: news includes stories beyond thirty across pages and search`, async ({ page }) => {
+    await start(page, version)
+    await page.getByRole('tab', { name: 'Settings', exact: true }).click()
+    await page.locator('label').filter({ has: page.locator('input[name=theme][value=vitara-markets]') }).click()
+    await page.getByRole('tab', { name: 'Markets', exact: true }).click()
+    const news = page.getByRole('region', { name: 'Market news', exact: true })
+    await expect(news.locator('.nw-list > li')).toHaveCount(10)
+    await news.getByRole('button', { name: 'Page 8', exact: true }).click()
+    await expect(news.locator('.nw-list > li')).toHaveCount(5)
+    await expect(news.locator('.nw-list')).toContainText('Synthetic enterprise bulletin 074')
+    await expect(news.getByRole('button', { name: 'Next page', exact: true })).toBeDisabled()
+    await news.getByRole('searchbox', { name: 'Search news', exact: true }).fill('074')
+    await expect(news.locator('.nw-list > li')).toHaveCount(1)
+    await news.getByRole('button', { name: 'Analyse: Synthetic enterprise bulletin 074', exact: true }).click()
+    await expect(page.getByRole('dialog')).toContainText('Synthetic enterprise bulletin 074')
+    await page.getByRole('button', { name: 'Close', exact: true }).click()
+    await news.getByRole('button', { name: 'Clear search', exact: true }).click()
+    await expect(news.locator('.nw-list > li')).toHaveCount(10)
+    await page.reload()
+    await expect(news.locator('.nw-list > li')).toHaveCount(10)
+    await expect(news.getByRole('button', { name: 'Page 8', exact: true })).toBeVisible()
+  })
+
   test(`${version}: outdated session service gives recovery instructions and retry opens the app`, async ({ page }) => {
     await page.addInitScript(version => {
       if (window === window.top) localStorage.setItem('aria_version', version)
