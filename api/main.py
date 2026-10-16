@@ -22,6 +22,9 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.resource_limits import ResourceLimits
 from api import auth
+from api.runtime_version import backend_revision
+
+_RUNTIME_REVISION = backend_revision()  # snapshot loaded source, not files edited later
 
 from api.routes import avatar, chat, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
@@ -108,7 +111,7 @@ app.include_router(auth.router)
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "revision": _RUNTIME_REVISION}
 
 
 if __name__ == "__main__":

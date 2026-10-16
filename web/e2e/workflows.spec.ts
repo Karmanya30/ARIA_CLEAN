@@ -31,6 +31,20 @@ function stored(owner: string) {
 }
 
 for (const version of ['v1', 'v2']) {
+  test(`${version}: outdated session service gives recovery instructions and retry opens the app`, async ({ page }) => {
+    await page.addInitScript(version => {
+      if (window === window.top) localStorage.setItem('aria_version', version)
+    }, version)
+    await page.route('**/api/auth/session', route => route.fulfill({ status: 404, json: { detail: 'Not Found' } }))
+    await page.goto('/#/profile')
+    await expect(page.getByRole('alert')).toContainText('backend needs an update')
+    await expect(page.getByRole('alert')).toContainText('ARIA launcher')
+    await expect(page.getByRole('heading', { name: 'Your Finance Profile' })).toHaveCount(0)
+    await page.unroute('**/api/auth/session')
+    await page.getByRole('button', { name: 'Retry connection', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Your Finance Profile' })).toBeVisible()
+  })
+
   test(`${version}: company analysis, sentiment control, progress and profile load retry`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Company intelligence', exact: true }).click()

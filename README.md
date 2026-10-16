@@ -323,3 +323,5 @@ Statement previews now survive API restarts, and imports atomically save transac
 Request bodies, concurrent work, statement parsers and background speech now have explicit limits. Completed speech clips survive backend restarts with expiring local cache tokens. See [resource limits, audio retention and remaining deployment boundaries](reports/RESOURCE_AND_AUDIO_HARDENING.md).
 
 Optional email/password and Google accounts are available with `ARIA_AUTH_MODE=accounts`; the default stays private for the current local application. See [setup, explicit Google linking, account isolation and verified limitations](reports/ACCOUNT_AUTHENTICATION.md).
+
+If startup reports that the backend needs an update, run the ARIA launcher again and use **Retry connection**. The launcher now checks the loaded backend revision and session service, restarting an outdated API from this workspace. See [startup recovery and verification](reports/STARTUP_RECOVERY.md).

@@ -1,6 +1,6 @@
 {
   "overall_status": "PARTIALLY VERIFIED",
-  "recorded_at_utc": "2026-10-16T19:34:46.436555+00:00",
+  "recorded_at_utc": "2026-10-16T20:02:38.442836+00:00",
   "branch": "audit/system-review-20261016",
   "baseline": {
     "passed": 1041,
@@ -8,17 +8,17 @@
     "deselected": 7
   },
   "final_python": {
-    "tests": 1139,
+    "tests": 1143,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "passed": 1139,
-    "seconds": 171.37
+    "passed": 1143,
+    "seconds": 172.86
   },
   "final_browser": {
-    "startTime": "2026-10-16T19:30:44.285Z",
-    "duration": 60400.297,
-    "expected": 16,
+    "startTime": "2026-10-16T19:58:26.378Z",
+    "duration": 63905.706,
+    "expected": 18,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -28,85 +28,85 @@
       "check": "inventory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.15
+      "seconds": 0.2
     },
     {
       "check": "regression",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 176.2
+      "seconds": 178.32
     },
     {
       "check": "build",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 9.58
+      "seconds": 9.45
     },
     {
       "check": "lint",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.73
+      "seconds": 0.65
     },
     {
       "check": "browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 61.73
+      "seconds": 65.14
     },
     {
       "check": "account_browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 31.65
+      "seconds": 32.66
     },
     {
       "check": "restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 34.67
+      "seconds": 32.13
     },
     {
       "check": "account_restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 34.96
+      "seconds": 33.61
     },
     {
       "check": "native_memory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 14.12
+      "seconds": 14.72
     },
     {
       "check": "dependency_consistency",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.81
+      "seconds": 0.8
     },
     {
       "check": "python_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 4.37
+      "seconds": 21.82
     },
     {
       "check": "npm_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 1.8
+      "seconds": 1.66
     },
     {
       "check": "connections",
       "status": "FAIL",
       "exit_code": 1,
-      "seconds": 16.55
+      "seconds": 16.03
     },
     {
       "check": "live_intent",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 19.97
+      "seconds": 19.82
     }
   ],
   "lint_warnings": 73,
@@ -179,16 +179,16 @@
         "resolver_calls": 0,
         "provider_prompt_tokens": 0,
         "provider_output_tokens": 0,
-        "mean_latency_ms": 30.980833333333333
+        "mean_latency_ms": 24.91
       },
       "resolver": {
         "cases": 12,
-        "routing_accuracy": 0.9166666666666666,
-        "route_and_reference_accuracy": 0.8333333333333334,
+        "routing_accuracy": 0.8333333333333334,
+        "route_and_reference_accuracy": 0.75,
         "resolver_calls": 8,
-        "provider_prompt_tokens": 4910,
-        "provider_output_tokens": 1551,
-        "mean_latency_ms": 720.1116666666667
+        "provider_prompt_tokens": 4289,
+        "provider_output_tokens": 1362,
+        "mean_latency_ms": 721.1408333333334
       }
     },
     "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
@@ -198,49 +198,49 @@
       {
         "name": "AMFI NAV",
         "status": "VERIFIED",
-        "seconds": 0.92,
+        "seconds": 0.66,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "mfapi history",
         "status": "VERIFIED",
-        "seconds": 0.5,
+        "seconds": 0.38,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "CoinGecko",
         "status": "VERIFIED",
-        "seconds": 0.64,
+        "seconds": 0.53,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "Yahoo chart",
         "status": "VERIFIED",
-        "seconds": 0.43,
+        "seconds": 0.16,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "FRED",
         "status": "NOT VERIFIED",
-        "seconds": 15.42,
+        "seconds": 15.18,
         "error_type": "ReadTimeout",
         "http_status": null
       },
       {
         "name": "Groq",
         "status": "VERIFIED",
-        "seconds": 1.86,
+        "seconds": 1.78,
         "model": "openai/gpt-oss-120b",
         "synthetic_only": true
       },
       {
         "name": "Gemini",
         "status": "VERIFIED",
-        "seconds": 3.83,
+        "seconds": 3.66,
         "model": "gemini-3.6-flash",
         "synthetic_only": true
       }
@@ -261,7 +261,7 @@
       "retry does not duplicate transactions or overwrite later profile edit",
       "completed audio served across three API lifetimes after source removal"
     ],
-    "database": ".audit\\browser\\restart-7ce88dad4330444ca2b93978379fe5a9\\aria.db"
+    "database": ".audit\\browser\\restart-ebec67e7b66d488ea0b68afff7539c0c\\aria.db"
   },
   "actual_pdf_export": {
     "status": "VERIFIED",
@@ -294,11 +294,11 @@
       "Compressed workbook allocation bounds",
       "Invalid uploaded numeric values rejected before preview storage"
     ],
-    "scope_limit": "Historical statement-import checkpoint; see latest_continuation and account/resource reports for subsequent fixes and remaining limits."
+    "scope_limit": "Historical statement-import checkpoint; see subsequent continuation and startup reports for fixes and remaining limits."
   },
   "final_account_browser": {
-    "startTime": "2026-10-16T19:31:46.036Z",
-    "duration": 30307.78,
+    "startTime": "2026-10-16T19:59:31.533Z",
+    "duration": 31414.476000000002,
     "expected": 4,
     "skipped": 0,
     "unexpected": 0,
@@ -312,21 +312,23 @@
       "account profile persists",
       "revoked old cookie rejected after another restart"
     ],
-    "database": ".audit\\browser\\account-restart-c4a07ed0b86b4af3b993dd9d6cfc18e7\\aria.db"
+    "database": ".audit\\browser\\account-restart-1ea92aef1f4f428bb5264513789533d8\\aria.db"
   },
   "latest_continuation": {
     "reports": [
       "reports/RESOURCE_AND_AUDIO_HARDENING.md",
-      "reports/ACCOUNT_AUTHENTICATION.md"
+      "reports/ACCOUNT_AUTHENTICATION.md",
+      "reports/STARTUP_RECOVERY.md"
     ],
-    "new_python_tests_since_statement_continuation": 45,
+    "new_python_tests_since_statement_continuation": 49,
     "changes": [
       "Pre-parser HTTP body/time and per-worker concurrency/rate limits",
       "Bounded legacy XLS/PDF/text/JSON parsing",
       "Bounded speech queue and expiring durable completed clips",
       "Optional email/password plus Google accounts with explicit linking",
       "Account session revocation, owner/CSRF/websocket checks and separate learning keys",
-      "Missing/nonfinite Yahoo price bars excluded with provenance warning"
+      "Missing/nonfinite Yahoo price bars excluded with provenance warning",
+      "Workspace-verified source-revision restart, session/proxy readiness and session-404 recovery"
     ],
     "default_mode": "private",
     "env_modified": false
@@ -336,5 +338,28 @@
     "control_templates": 546,
     "actual_fastapi_route_count_matched": true,
     "scope": "Static templates are not browser coverage; inventory helper refreshed after final application rerun."
+  },
+  "startup_recovery": {
+    "status": "VERIFIED",
+    "cause": "Old backend returned health 200 but session 404 and was incorrectly reused by launcher",
+    "actual_local_backend_restarted": true,
+    "database_backup": "Ignored local .audit/runtime-recovery directory; no data uploaded",
+    "existing_tables_compared": 10,
+    "existing_row_content_preserved": true,
+    "idempotent_second_launch": true,
+    "new_python_regressions": 4,
+    "new_browser_regressions": 2,
+    "env_modified": false,
+    "live_browser": {
+      "status": "VERIFIED",
+      "url": "http://localhost:5173/#/chat",
+      "session_http_status": 200,
+      "mode": "private",
+      "revision": "d2aaa17e69cb47cad32f2aad56cf8323d8ac2cbb8b25ab61dea54f248f39ecb2",
+      "composer_visible": true,
+      "page_errors": [],
+      "scope": "Real local startup/session service; chat history mocked to avoid creating test records in the real DB; no messages submitted."
+    },
+    "report": "reports/STARTUP_RECOVERY.md"
   }
 }

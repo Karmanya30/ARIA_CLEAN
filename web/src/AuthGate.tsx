@@ -13,12 +13,25 @@ interface GoogleIdentity {
 declare global { interface Window { google?: { accounts: { id: GoogleIdentity } } } }
 
 async function call<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch('/api/auth/' + path, body === undefined ? { cache: 'no-store' } : {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to sign in. Check your details and try again.')
-  return data as T
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 15_000)
+  try {
+    const response = await fetch('/api/auth/' + path, body === undefined ? { cache: 'no-store', signal: controller.signal } : {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: controller.signal,
+    })
+    if (path === 'session' && response.status === 404) {
+      throw new Error('ARIA’s backend needs an update. Run the ARIA launcher again to restart it, then retry the connection.')
+    }
+    let data
+    try { data = await response.json() }
+    catch { throw new Error('ARIA returned an unreadable response. Restart ARIA with the launcher, then retry the connection.') }
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to sign in. Check your details and try again.')
+    return data as T
+  } catch (failure) {
+    if ((failure as Error).name === 'AbortError') throw new Error('ARIA is taking too long to connect. Run the ARIA launcher again, then retry the connection.')
+    if (failure instanceof TypeError) throw new Error('Unable to reach ARIA. Start it with the ARIA launcher, then retry the connection.')
+    throw failure
+  } finally { window.clearTimeout(timeout) }
 }
 
 function GoogleButton({ state, linked, onSuccess, onError }: { state: State; linked: boolean; onSuccess: () => void; onError: (error: string) => void }) {

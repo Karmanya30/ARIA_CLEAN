@@ -2,7 +2,7 @@
 #   - API: port 8000, or the next free port if another app (e.g. Bhauly) holds 8000; the port is passed to vite (ARIA_API_PORT)
 #   - web: port 5173
 #   - with aria://launch-gpu: also the MuseTalk lip-sync server on port 8010 (GPU; the first start takes a few minutes)
-# Re-running is safe: whatever is already running (or still starting) is reused, never started twice.
+# Re-running reuses current services; an outdated API is restarted only after workspace ownership is verified.
 # Called by Launch_ARIA.bat / the aria:// link (see register_launcher.ps1) or directly. The URL argument is ignored except for
 # the strings aria://launch and aria://launch-gpu, so a link on any page can only ever start ARIA, nothing else.
 # Everything is logged to logs\launch.log (+ api/web/musetalk .out/.err.log). A failure shows a message box.
@@ -33,6 +33,16 @@ function Test-Port($port) { [bool](Get-NetTCPConnection -LocalPort $port -State 
 function Test-Http($url, $secs = 3) { try { (Invoke-WebRequest $url -UseBasicParsing -TimeoutSec $secs).StatusCode -eq 200 } catch { $false } }
 function Get-Json($url, $secs = 3) { try { Invoke-RestMethod $url -UseBasicParsing -TimeoutSec $secs } catch { $null } }
 function Test-AriaApi($port) { $j = Get-Json "http://127.0.0.1:$port/openapi.json"; [bool]($j -and $j.info.title -eq "ARIA API") }
+function Test-CurrentApi($base) { $j = Get-Json "$base/api/health"; [bool]($j -and $j.status -eq "ok" -and $j.revision -eq $expectedRevision) }
+function Test-ReadyApi($base) {
+    if (-not (Test-CurrentApi $base)) { return $false }
+    $session = Get-Json "$base/api/auth/session"
+    [bool]($session -and $session.mode -in @("private", "accounts"))
+}
+function Test-OwnedApi($proc) {
+    [bool]($proc -and $proc.CommandLine -match "uvicorn\s+api\.main:app" -and
+        $proc.CommandLine -match [regex]::Escape((Join-Path $root ".venv\Scripts\python.exe")))
+}
 function Find-Proc($exe, $rx) { @(Get-CimInstance Win32_Process -Filter "Name='$exe'" | Where-Object { $_.CommandLine -match $rx }) }
 function Port-Owner($port) {
     $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -60,10 +70,15 @@ if (-not $mutex.WaitOne(0)) { Log "Another ARIA launcher is already running; it 
 try {
     Log "=== launch ($Url) ===" Cyan
     $problems = @()
+    Push-Location -LiteralPath $root
+    try {
+        $expectedRevision = (& $py -c "from api.runtime_version import backend_revision; print(backend_revision())")
+        if ($LASTEXITCODE -ne 0 -or "$expectedRevision" -notmatch "^[0-9a-f]{64}$") { throw "Could not determine the installed ARIA backend version." }
+    } finally { Pop-Location }
 
     # ---- API: reuse an ARIA API (running or still starting), else start one on the first free port from 8000
     $apiProc = $null; $apiPort = $null
-    $starting = Find-Proc "python.exe" "uvicorn\s+api\.main:app" | Select-Object -First 1
+    $starting = Find-Proc "python.exe" "uvicorn\s+api\.main:app" | Where-Object { Test-OwnedApi $_ } | Select-Object -First 1
     if ($starting) { $apiPort = if ($starting.CommandLine -match "--port\s+(\d+)") { [int]$Matches[1] } else { 8000 }; Log "API already running/starting on port $apiPort" }
     if (-not $apiPort) { $apiPort = (8000..8019 | Where-Object { (Test-Port $_) -and (Test-AriaApi $_) } | Select-Object -First 1) }
     if (-not $apiPort) {
@@ -72,6 +87,24 @@ try {
         if ($apiPort -ne 8000) { Log "Port 8000 is used by another app; ARIA API goes on port $apiPort." Yellow }
         Log "Starting API on port $apiPort"
         $apiProc = Start-Hidden $py @("-m", "uvicorn", "api.main:app", "--port", "$apiPort") $root "api"
+    }
+    if (-not (Wait-Ready "ARIA API (port $apiPort)" { Test-Http "http://127.0.0.1:$apiPort/api/health" } 180 $apiProc)) {
+        throw "The ARIA API did not start.`n`n$(Tail (Join-Path $logDir 'api.err.log'))"
+    }
+    if (-not (Test-CurrentApi "http://127.0.0.1:$apiPort")) {
+        $owner = Port-Owner $apiPort
+        if (-not (Test-AriaApi $apiPort) -or -not (Test-OwnedApi $owner)) {
+            throw "The API on port $apiPort is not the current backend for this ARIA workspace. Its process was left running."
+        }
+        $restart = if ($starting -and $owner.ParentProcessId -eq $starting.ProcessId) { $starting } else { $owner }
+        Log "ARIA backend source changed; restarting its API on port $apiPort." Yellow
+        & taskkill /PID $restart.ProcessId /T /F | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Could not stop ARIA's outdated API process." }
+        if (-not (Wait-Ready "API port release" { -not (Test-Port $apiPort) } 20 $null)) { throw "ARIA's API port did not become available." }
+        $apiProc = Start-Hidden $py @("-m", "uvicorn", "api.main:app", "--port", "$apiPort") $root "api"
+    }
+    if (-not (Wait-Ready "current API session service" { Test-ReadyApi "http://127.0.0.1:$apiPort" } 180 $apiProc)) {
+        throw "The updated ARIA session service did not become ready. Check API configuration and logs\api.err.log."
     }
     $env:ARIA_API_PORT = "$apiPort"   # read by web/vite.config.ts
 
@@ -121,21 +154,18 @@ try {
     }
 
     # ---- wait for everything, then open the browser
-    if (-not (Wait-Ready "ARIA API (port $apiPort)" { Test-Http "http://127.0.0.1:$apiPort/api/health" } 180 $apiProc)) {
-        throw "The ARIA API did not start.`n`n$(Tail (Join-Path $logDir 'api.err.log'))"
-    }
     if (-not (Wait-Ready "web (port $WEB_PORT)" { Test-Http "http://localhost:$WEB_PORT" } 90 $webProc)) {
         throw "The web app did not start.`n`n$(Tail (Join-Path $logDir 'web.err.log'))`n$(Tail (Join-Path $logDir 'web.out.log'))"
     }
     # the web app must proxy to the API port chosen above; an older web server may point at a different port
-    if (-not (Test-Http "http://localhost:$WEB_PORT/api/health")) {
+    if (-not (Test-ReadyApi "http://localhost:$WEB_PORT")) {
         $old = @($vite | Where-Object { $_ })
         if (-not $old) { throw "The web app on port $WEB_PORT cannot reach the API on port $apiPort." }
         Log "Web proxy does not reach the API on port $apiPort; restarting ARIA's web server." Yellow
         $old | ForEach-Object { & taskkill /PID $_.ProcessId /T /F | Out-Null }
         Start-Sleep 2
         $webProc = Start-Hidden "cmd.exe" @("/c", "npm run dev -- --port $WEB_PORT --strictPort") (Join-Path $root "web") "web"
-        if (-not (Wait-Ready "web proxy" { Test-Http "http://localhost:$WEB_PORT/api/health" } 60 $webProc)) { throw "The web app cannot reach the API on port $apiPort." }
+        if (-not (Wait-Ready "web proxy" { Test-ReadyApi "http://localhost:$WEB_PORT" } 60 $webProc)) { throw "The web app cannot reach the current API session service on port $apiPort." }
     }
     if ($mtWanted) {
         $ok = Wait-Ready "MuseTalk lip-sync (port $MT_PORT)" { $h = Get-Json "http://127.0.0.1:$MT_PORT/health" 2; [bool]($h -and $h.ready) } 480 $mtProc
