@@ -1,0 +1,17 @@
+# Explore and research company search
+
+Explore now shares a debounced suggestion hook with the company inputs in Company Intelligence and Research reports. Editing a query hides the previous query's suggestions immediately, so Enter cannot select a result for text the user has already replaced. Late responses are ignored by the existing request lifecycle.
+
+Catalogue matching supports partial company names and tickers, known aliases (for example RIL), joined words, reordered search terms, and conservative spelling tolerance for alphabetic words of at least four characters. Exact names, symbols, and aliases rank above fuzzy matches. Short tickers and numeric identifiers are not fuzzy-corrected. The category browser uses the same matching rules. Local matches no longer wait for an unnecessary Yahoo request; lookup remains available for unknown instruments and missing exact tickers.
+
+Company Intelligence now has an accessible company combobox with pointer selection, arrow navigation, Enter, Escape, loading feedback, and unavailable/no-match feedback. Selecting a suggestion supplies its canonical ticker to analysis. Direct name/ticker submission remains available.
+
+Research reports now includes a company search and Generate research report button. Users select a suggested company, then generate through the existing chat/report pipeline. Editing the company clears the selection. Suggestions show names, symbols, and exchanges and are restricted to NSE/BSE equities, matching the report engine's coverage. Selected catalogue symbols retain their exact exchange through target resolution, including BSE numeric symbols, before aliases or external name guessing run. This does not extend reports to global equities or every instrument type.
+
+The changes apply to both active UI versions and the legacy root component tree. The company combobox and suggestion hook are shared source files.
+
+Regression coverage adds ten Python cases for partial names, transposed spelling, joined words, reordered terms, aliases, exact-match precedence, short/numeric precision, exchange filtering, local-only results, category browsing, and exact NSE/BSE report targeting. Six browser workflows cover both versions: Explore query replacement and keyboard selection; company analysis from a completion; and selected-company report generation, saved report retrieval, and refresh. Browser financial data/providers remain synthetic and the API/store are real.
+
+Live localhost browser checks verified Explore suggestions and report-company selection without generating reports in the user's database. Five real catalogue search probes returned HTTP 200: `reli`, `relaince`, `RIL`, `tata consult`, and `hdfcbank`; their top results were RELIANCE.NS, RELIANCE.NS, RELIANCE.NS, TCS.NS, and HDFCBANK.NS. Observed local request times were 48–325 ms, not a latency guarantee. The database was backed up before restarting the source-verified local backend. `.env` was unchanged.
+
+Final sequential rerun: 1,155 Python tests passed and all 30 browser workflows passed (26 private-mode, four account-mode), with no failures or skips in either suite. Build, lint, actual private/account restart persistence, native memory, dependency compatibility, advisory checks, and live intent passed. The external connections check failed only for the existing FRED ReadTimeout. Lint reports 73 warnings; Python reports 104 warnings; both dependency advisory scans reported zero known advisories.

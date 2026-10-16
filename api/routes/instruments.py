@@ -23,9 +23,9 @@ def _get(iid: str) -> dict:
 
 
 @router.get("/search")
-def search(q: str = Query("", max_length=80), type: str = "all", limit: int = Query(20, ge=1, le=50)) -> dict:  # noqa: A002
+def search(q: str = Query("", max_length=80), type: str = "all", limit: int = Query(20, ge=1, le=50), market: str = "all") -> dict:  # noqa: A002
     try:
-        return instruments.search(q, type, limit)
+        return instruments.search(q, type, limit, market)
     except ValueError as exc:
         raise HTTPException(422, str(exc))
 

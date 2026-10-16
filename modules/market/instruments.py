@@ -13,6 +13,7 @@ import re
 import threading
 import time
 from datetime import date, datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Callable
 
@@ -23,6 +24,7 @@ from loguru import logger
 from modules.market import amfi
 from modules.market import instrument_lists as L
 from modules.market.live import YF_LOCK
+from shared.company_resolver import company_aliases
 
 DIR = amfi.DIR
 UNIVERSE = Path(__file__).resolve().parents[2] / "data" / "forecast_universe" / "universe.parquet"
@@ -214,10 +216,11 @@ def _lines(txt: str) -> list[list[str]]:
 
 def _item(type_: str, symbol: str, name: str, exchange: str, currency: str, source: str, subtitle: str, pop: float = 5,
           extra: str = "", **priv: Any) -> dict:
-    hay = f"{name} {symbol} {extra}".lower()
+    aliases = company_aliases(symbol) if type_ == "stock" else ()
+    hay = f"{name} {symbol} {extra} {' '.join(aliases)}".lower()
     return {"id": f"{PREFIX[type_]}:{symbol}", "symbol": symbol, "name": name, "type": type_, "exchange": exchange, "currency": currency,
             "source": source, "subtitle": subtitle, "_hay": hay, "_hay2": re.sub(r"[^a-z0-9]", "", hay), "_pop": pop,
-            "_name": name.lower(), "_sym": symbol.lower(), "_base": re.sub(r"\.(ns|bo)$", "", symbol.lower()),
+            "_name": name.lower(), "_sym": symbol.lower(), "_base": re.sub(r"\.(ns|bo)$", "", symbol.lower()), "_aliases": aliases,
             "_words": set(re.findall(r"[a-z0-9&]+", hay)), **priv}
 
 
@@ -379,12 +382,23 @@ def _score(it: dict, q: str, toks: list[str]) -> float:
     if not toks:
         return 1 + it["_pop"] * 0.4
     hay, hay2 = it["_hay"], it["_hay2"]
+    fuzzy = False
     for t in toks:
         t2 = re.sub(r"[^a-z0-9]", "", t)
-        if t not in hay and not (t2 != t and t2 and t2 in hay2):  # "m&m" also finds "M M"; plain tokens never match across words
+        if t in hay or (t2 and (t2 != t or len(t2) >= 4) and t2 in hay2):
+            continue
+        # Conservative spelling tolerance: short symbols and numeric identifiers must stay precise.
+        if len(t2) >= 4 and t2.isalpha() and any(
+            w.isalpha() and abs(len(w) - len(t2)) <= 2
+            and SequenceMatcher(None, t2, w).ratio() >= 0.8 for w in it["_words"]
+        ):
+            fuzzy = True
+        else:
             return 0
+    if fuzzy:
+        return 30 + it["_pop"] * 0.4
     s = 50
-    if q in (it["_sym"], it["_base"], it["_name"]):
+    if q in (it["_sym"], it["_base"], it["_name"], *it.get("_aliases", ())):
         s = 100
     elif it["_sym"].startswith(q) or it["_base"].startswith(q):
         s = 90
@@ -425,17 +439,21 @@ def _yahoo_lookup(q: str) -> list[dict]:
         return []
 
 
-def search(q: str, type_: str = "all", limit: int = 20) -> dict:
+def search(q: str, type_: str = "all", limit: int = 20, market: str = "all") -> dict:
     raw = (q or "").strip()
     q = raw.lower()
     toks = q.split()
     if type_ not in ("all", *TYPES):
         raise ValueError(f"type must be one of all|{'|'.join(TYPES)}")
+    if market not in ("all", "india"):
+        raise ValueError("market must be all|india")
+    def eligible(it: dict) -> bool:
+        return market == "all" or it["symbol"].endswith((".NS", ".BO"))
     types = TYPES if type_ == "all" else (type_,)
     ranked: list[tuple[float, int, dict]] = []
     counts: dict[str, int] = {}
     for t in types:
-        pool = _pool(t)
+        pool = [it for it in _pool(t) if eligible(it)]
         scored = [(s, it.get("_rank", 0) if t == "mutual_fund" else 0, it) for it in pool if (s := _score(it, q, toks)) > 0]
         counts[t] = len(scored)
         scored.sort(key=lambda x: (-x[0], x[1], len(x[2]["name"])))
@@ -451,10 +469,10 @@ def search(q: str, type_: str = "all", limit: int = 20) -> dict:
         picked.append(it)
     picked = (picked + rest)[:limit]
     yahoo = False
-    ticker_like = raw.isupper() and " " not in raw and not any(q in (i["_sym"], i["_base"]) for i in picked)  # "AAPL" typed, no such symbol here
-    if len(q) >= 2 and (len(picked) < 3 or ticker_like) and type_ in ("all", "stock", "etf", "crypto", "index", "currency"):
+    ticker_like = raw.isupper() and " " not in raw and not any(q in (i["_sym"], i["_base"], *i.get("_aliases", ())) for i in picked)  # "AAPL" typed, no such symbol here
+    if len(q) >= 2 and (not picked or ticker_like) and type_ in ("all", "stock", "etf", "crypto", "index", "currency"):
         have = {i["id"] for i in picked}
-        extra = [i for i in _yahoo_lookup(q) if i["id"] not in have and (type_ == "all" or i["type"] == type_)]
+        extra = [i for i in _yahoo_lookup(q) if i["id"] not in have and eligible(i) and (type_ == "all" or i["type"] == type_)]
         picked = sorted(picked + extra, key=lambda i: -_score(i, q, toks) if toks else 0)[:limit]  # stable: exact ticker rises to the top
         yahoo = bool(extra)
     if type_ in ("all", "crypto") and not _cg[1]:

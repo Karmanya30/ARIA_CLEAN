@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api } from '../../api'
 import type { CompanyIntel, SentimentResult } from '../../api'
 import { ForYou } from '../chat/IntelligenceSummary'
+import { CompanySearch } from '../../../../components/research/CompanySearch'
 import './ResearchTab.css'
 import './IntelligenceTab.css'
 
@@ -29,6 +30,7 @@ function friendly(e: unknown): string {
 /** Standalone company-intelligence score + free-text sentiment, straight from the backend. */
 export function IntelligenceTab() {
   const [q, setQ] = useState('')
+  const [companySymbol, setCompanySymbol] = useState('')
   const [data, setData] = useState<CompanyIntel | null>(null)
   const [busy, setBusy] = useState(false)
   const [step, setStep] = useState(0)
@@ -85,8 +87,9 @@ export function IntelligenceTab() {
       </header>
 
       <section aria-label="Analyse a company">
-        <form className="ri-form" onSubmit={(e) => { e.preventDefault(); void analyse(q) }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Company name or symbol, e.g. Infosys" aria-label="Company" autoComplete="off" />
+        <form className="ri-form" onSubmit={(e) => { e.preventDefault(); void analyse(companySymbol || q) }}>
+          <CompanySearch value={q} disabled={busy} onChange={text => { setQ(text); setCompanySymbol('') }}
+            onPick={item => { setQ(item.name); setCompanySymbol(item.symbol) }} />
           <button type="submit" className="ri-primary" disabled={busy || !q.trim()}>{busy ? 'Analysing…' : 'Analyse'}</button>
         </form>
         {!data && !busy && (
@@ -108,7 +111,7 @@ export function IntelligenceTab() {
 
         {data && i && !busy && (
           <div className="ri-result">
-            <button type="button" className="ri-back" onClick={() => { setData(null); setQ('') }}>← New search</button>
+            <button type="button" className="ri-back" onClick={() => { setData(null); setQ(''); setCompanySymbol('') }}>← New search</button>
             <div className="ri-hero">
               <div className="ri-ring" style={{ ['--p' as string]: i.score, ['--c' as string]: scoreColour(i.score) }} role="img" aria-label={`Score ${Math.round(i.score)} out of 100`}>
                 <span>{Math.round(i.score)}</span><small>/100</small>

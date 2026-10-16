@@ -149,6 +149,45 @@ def test_search_bse_only_stock_uses_the_bo_symbol_and_etf_bond_split():
     assert any(i["id"] == "etf:590147.BO" for i in I.search("MOSILVER")["items"])  # "... Mutual Fund" on BSE series B -> ETF
 
 
+@pytest.mark.parametrize("query", ["reli", "relaince", "relianceindustries", "industries relaince", "RIL"])
+def test_company_search_partial_typo_spacing_and_alias(query):
+    assert I.search(query, "stock")["items"][0]["id"] == "stock:RELIANCE.NS"
+
+
+def test_company_search_exact_match_outranks_fuzzy_and_does_not_guess_short_tickers(monkeypatch):
+    exact = I._item("stock", "RELainCE.NS", "Relaince Ventures", "NSE", "INR", "fixture", "", 1)
+    original = I._pool
+    monkeypatch.setattr(I, "_pool", lambda t: original(t) + ([exact] if t == "stock" else []))
+    assert I.search("relaince", "stock")["items"][0]["id"] == exact["id"]
+    assert I.search("rli", "stock")["items"] == []
+    assert I.search("890235", "stock")["items"] == []
+
+
+def test_company_suggestions_filter_unsupported_exchanges_and_skip_unneeded_network(monkeypatch):
+    calls = []
+    extra = I._item("stock", "RELI", "Reli Global", "NASDAQ", "USD", "fixture", "", 3)
+    monkeypatch.setattr(I, "_yahoo_lookup", lambda q: calls.append(q) or [extra])
+    assert I.search("reli", "stock", market="india")["items"][0]["symbol"] == "RELIANCE.NS"
+    assert calls == []
+    response = client.get('/api/instruments/search', params={"q": "unknown", "type": "stock", "market": "india"})
+    assert response.status_code == 200 and response.json()["items"] == []
+    assert client.get('/api/instruments/search', params={"q": "reli", "market": "invalid"}).status_code == 422
+
+
+def test_browse_filter_accepts_company_misspelling():
+    result = I.browse("stock", q="relaince", prices=False)
+    assert result["items"][0]["symbol"] == "RELIANCE.NS"
+
+
+@pytest.mark.parametrize("symbol", ["RELIANCE.NS", "890234.BO"])
+def test_research_preserves_selected_catalogue_symbol_without_guessing(monkeypatch, symbol):
+    from modules.equity_research.intelligence import data
+    monkeypatch.setattr(data, "search_company", _boom)
+    target = data.resolve_target(f"equity research report on {symbol}")
+    assert target.symbol == symbol
+    assert target.name == I.catalog()["by_id"][f"stock:{symbol}"]["name"]
+
+
 def test_search_type_filter_limit_and_validation():
     r = client.get("/api/instruments/search", params={"q": "fund", "type": "mutual_fund", "limit": 2}).json()
     assert len(r["items"]) == 2 and {i["type"] for i in r["items"]} == {"mutual_fund"}

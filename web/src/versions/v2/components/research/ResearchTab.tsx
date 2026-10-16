@@ -2,6 +2,8 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Download, ExternalLink, RefreshCw, Trash2 } from 'lucide-react'
 import { api } from '../../api'
 import type { ReportMeta, ValidationLatest } from '../../types'
+import { CompanySearch } from '../../../../components/research/CompanySearch'
+import type { InstrumentSummary } from '../../types'
 import './ResearchTab.css'
 
 const DONE = ['ok_beats_baseline', 'no_model_beats_baseline', 'insufficient_evidence', 'data_unavailable', 'failed', 'timeout']
@@ -24,7 +26,9 @@ function money(v: number | null): string {
 /** Saved equity research reports for this device: open one in-app, download it, regenerate it on fresh
  * data (saved as the next version), or delete it. The report itself is the server-rendered HTML document,
  * shown in a script-less sandboxed iframe -- the same document the download contains. */
-export function ResearchTab() {
+export function ResearchTab({ onAsk }: { onAsk: (query: string) => void }) {
+  const [companyQuery, setCompanyQuery] = useState('')
+  const [company, setCompany] = useState<InstrumentSummary | null>(null)
   const [reports, setReports] = useState<ReportMeta[] | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -136,6 +140,16 @@ export function ResearchTab() {
     <div className={selected ? 'rt has-selected' : 'rt'}>
       <aside className="rt-list">
         <h1>Research reports</h1>
+        <form className="rt-create" aria-label="Create a research report" onSubmit={e => {
+          e.preventDefault()
+          if (company) onAsk(`equity research report on ${company.symbol}`)
+        }}>
+          <CompanySearch label="Report company" value={companyQuery}
+            onChange={text => { setCompanyQuery(text); setCompany(null) }}
+            onPick={item => { setCompany(item); setCompanyQuery(item.name) }} />
+          <button type="submit" disabled={!company}>Generate research report</button>
+          <p className="rt-hint">Search by partial name or ticker and select a company. Reports support NSE and BSE stocks.</p>
+        </form>
         <p className="rt-hint">Ask ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.</p>
         {error && <p className="rt-error">{error}</p>}
         {reports.length === 0 && <p className="rt-empty">No saved reports yet. Open Chat and ask for one, for example “equity research report on TCS”. It takes under a minute and appears here.</p>}

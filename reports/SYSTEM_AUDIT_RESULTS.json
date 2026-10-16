@@ -1,6 +1,6 @@
 {
   "overall_status": "PARTIALLY VERIFIED",
-  "recorded_at_utc": "2026-10-16T20:19:34.752921+00:00",
+  "recorded_at_utc": "2026-10-16T20:35:41.098885+00:00",
   "branch": "audit/system-review-20261016",
   "baseline": {
     "passed": 1041,
@@ -8,17 +8,17 @@
     "deselected": 7
   },
   "final_python": {
-    "tests": 1145,
+    "tests": 1155,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "passed": 1145,
-    "seconds": 273.56
+    "passed": 1155,
+    "seconds": 200.69
   },
   "final_browser": {
-    "startTime": "2026-10-16T20:16:46.135Z",
-    "duration": 88736.234,
-    "expected": 20,
+    "startTime": "2026-10-16T20:31:46.406Z",
+    "duration": 75894.08300000001,
+    "expected": 26,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -28,102 +28,85 @@
       "check": "inventory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.34
+      "seconds": 0.96
     },
     {
       "check": "regression",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 281.45
+      "seconds": 206.52
     },
     {
       "check": "build",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 15.27
+      "seconds": 10.19
     },
     {
       "check": "lint",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.94
+      "seconds": 0.65
     },
     {
       "check": "browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 88.74,
-      "attempts": [
-        {
-          "check": "browser",
-          "status": "FAIL",
-          "exit_code": 1,
-          "seconds": 1.95,
-          "reason": "Port occupied by focused news test; no full-suite tests ran",
-          "log": ".audit/rerun/browser.log"
-        },
-        {
-          "status": "PASS",
-          "exit_code": 0,
-          "seconds": 88.74,
-          "log": ".audit/rerun/browser-retry.log"
-        }
-      ],
-      "note": "Full browser suite rerun independently after focused test cleanup"
+      "seconds": 76.93
     },
     {
       "check": "account_browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 48.18
+      "seconds": 31.1
     },
     {
       "check": "restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 56.11
+      "seconds": 31.68
     },
     {
       "check": "account_restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 55.52
+      "seconds": 30.3
     },
     {
       "check": "native_memory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 31.71
+      "seconds": 12.95
     },
     {
       "check": "dependency_consistency",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 1.49
+      "seconds": 0.78
     },
     {
       "check": "python_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 20.16
+      "seconds": 9.41
     },
     {
       "check": "npm_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 2.56
+      "seconds": 1.56
     },
     {
       "check": "connections",
       "status": "FAIL",
       "exit_code": 1,
-      "seconds": 16.71
+      "seconds": 16.12
     },
     {
       "check": "live_intent",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 27.53
+      "seconds": 18.85
     }
   ],
   "lint_warnings": 73,
@@ -196,16 +179,16 @@
         "resolver_calls": 0,
         "provider_prompt_tokens": 0,
         "provider_output_tokens": 0,
-        "mean_latency_ms": 44.435
+        "mean_latency_ms": 23.105
       },
       "resolver": {
         "cases": 12,
-        "routing_accuracy": 0.9166666666666666,
-        "route_and_reference_accuracy": 0.8333333333333334,
+        "routing_accuracy": 0.8333333333333334,
+        "route_and_reference_accuracy": 0.75,
         "resolver_calls": 8,
-        "provider_prompt_tokens": 4910,
-        "provider_output_tokens": 1516,
-        "mean_latency_ms": 771.2091666666666
+        "provider_prompt_tokens": 4289,
+        "provider_output_tokens": 1390,
+        "mean_latency_ms": 731.6933333333333
       }
     },
     "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
@@ -215,49 +198,49 @@
       {
         "name": "AMFI NAV",
         "status": "VERIFIED",
-        "seconds": 0.5,
+        "seconds": 0.56,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "mfapi history",
         "status": "VERIFIED",
-        "seconds": 0.43,
+        "seconds": 0.34,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "CoinGecko",
         "status": "VERIFIED",
-        "seconds": 0.47,
+        "seconds": 0.45,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "Yahoo chart",
         "status": "VERIFIED",
-        "seconds": 0.38,
+        "seconds": 0.25,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "FRED",
         "status": "NOT VERIFIED",
-        "seconds": 15.4,
+        "seconds": 15.37,
         "error_type": "ReadTimeout",
         "http_status": null
       },
       {
         "name": "Groq",
         "status": "VERIFIED",
-        "seconds": 1.98,
+        "seconds": 1.47,
         "model": "openai/gpt-oss-120b",
         "synthetic_only": true
       },
       {
         "name": "Gemini",
         "status": "VERIFIED",
-        "seconds": 5.25,
+        "seconds": 3.37,
         "model": "gemini-3.6-flash",
         "synthetic_only": true
       }
@@ -278,7 +261,7 @@
       "retry does not duplicate transactions or overwrite later profile edit",
       "completed audio served across three API lifetimes after source removal"
     ],
-    "database": ".audit\\browser\\restart-b6fd3a53be6b44ad914b453ffc1585cc\\aria.db"
+    "database": ".audit\\browser\\restart-484be0e521564efe8da6942dad436179\\aria.db"
   },
   "actual_pdf_export": {
     "status": "VERIFIED",
@@ -314,8 +297,8 @@
     "scope_limit": "Historical statement-import checkpoint; see subsequent continuation and startup reports for fixes and remaining limits."
   },
   "final_account_browser": {
-    "startTime": "2026-10-16T20:14:54.207Z",
-    "duration": 46363.197,
+    "startTime": "2026-10-16T20:33:03.404Z",
+    "duration": 30000.993000000002,
     "expected": 4,
     "skipped": 0,
     "unexpected": 0,
@@ -329,16 +312,17 @@
       "account profile persists",
       "revoked old cookie rejected after another restart"
     ],
-    "database": ".audit\\browser\\account-restart-df72410257c449ec931bf78596d8e86a\\aria.db"
+    "database": ".audit\\browser\\account-restart-2c142ecc99ce4c7eb7937d49d1838eae\\aria.db"
   },
   "latest_continuation": {
     "reports": [
       "reports/RESOURCE_AND_AUDIO_HARDENING.md",
       "reports/ACCOUNT_AUTHENTICATION.md",
       "reports/STARTUP_RECOVERY.md",
-      "reports/NEWS_FEED.md"
+      "reports/NEWS_FEED.md",
+      "reports/SEARCH_AUTOCOMPLETE.md"
     ],
-    "new_python_tests_since_statement_continuation": 51,
+    "new_python_tests_since_statement_continuation": 61,
     "changes": [
       "Pre-parser HTTP body/time and per-worker concurrency/rate limits",
       "Bounded legacy XLS/PDF/text/JSON parsing",
@@ -346,15 +330,16 @@
       "Optional email/password plus Google accounts with explicit linking",
       "Account session revocation, owner/CSRF/websocket checks and separate learning keys",
       "Missing/nonfinite Yahoo price bars excluded with provenance warning",
-      "Workspace-verified backend revision restart and session readiness",
-      "All available recent dashboard news without article-count or publisher quota"
+      "Workspace-verified backend restart and session readiness",
+      "Dashboard news without article-count or publisher quotas",
+      "Partial, alias and conservative typo matching; shared Explore/company suggestions; selected-company research generation"
     ],
     "default_mode": "private",
     "env_modified": false
   },
   "inventory": {
     "route_declarations": 72,
-    "control_templates": 546,
+    "control_templates": 547,
     "actual_fastapi_route_count_matched": true,
     "scope": "Static templates are not browser coverage; inventory helper refreshed after final application rerun."
   },
@@ -394,5 +379,54 @@
     },
     "new_python_tests": 2,
     "new_browser_tests": 2
+  },
+  "search_autocomplete": {
+    "report": "reports/SEARCH_AUTOCOMPLETE.md",
+    "new_python_cases": 10,
+    "new_browser_workflows": 6,
+    "scope": "Explore all instrument types; analysis and report company suggestions limited to NSE/BSE stocks",
+    "live_local": {
+      "status": "VERIFIED",
+      "checks": [
+        {
+          "query": "reli",
+          "http": 200,
+          "milliseconds": 185,
+          "suggestions": 20,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "relaince",
+          "http": 200,
+          "milliseconds": 325,
+          "suggestions": 7,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "RIL",
+          "http": 200,
+          "milliseconds": 48,
+          "suggestions": 10,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "tata consult",
+          "http": 200,
+          "milliseconds": 107,
+          "suggestions": 1,
+          "top": "TCS.NS"
+        },
+        {
+          "query": "hdfcbank",
+          "http": 200,
+          "milliseconds": 184,
+          "suggestions": 2,
+          "top": "HDFCBANK.NS"
+        }
+      ],
+      "page_errors": [],
+      "real_reports_generated": false
+    },
+    "env_modified": false
   }
 }

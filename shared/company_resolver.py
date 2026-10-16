@@ -89,6 +89,12 @@ _COMPANY_MAP: dict[str, str] = {
 }
 
 
+def company_aliases(symbol: str) -> tuple[str, ...]:
+    """Known name variants for autocomplete; never choose a company for the user."""
+    slug = re.sub(r"\.(NS|BO)$", "", symbol.upper())
+    return tuple(alias for alias, ticker in _COMPANY_MAP.items() if ticker == slug)
+
+
 def resolve_company(text: str) -> str | None:
     """
     Given a user's natural language query or company mention, return
