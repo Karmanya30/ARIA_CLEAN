@@ -18,12 +18,9 @@ from shared import human_state, user_store
 from shared.understand import goal, normalize, spelled, suggest
 from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
-from shared.domain_guard import (
-    CONFIDENCE_THRESHOLD,
-    build_refusal_response,
-    classify_domain,
-    validate_output,
-)
+from shared.domain_guard import validate_output
+from shared.intent_resolver import current_interpretation
+from shared.dialogue import act as dialogue_act, clean as clean_reply, confirmation, general_task, CONVERSATION_SYSTEM
 
 # Casual greetings/small-talk with no real question in them -- found live:
 # these fell through to modules/tutor/pipeline.py's generic fallback, whose
@@ -78,8 +75,8 @@ def _smalltalk_reply(query: str) -> dict[str, Any]:
             "greeting or small talk, not a real question. Reply the way a person "
             "would -- one or two short, warm sentences. No bullet points, no "
             "'Insight:'/'Analysis:' style sections, no definitions, no lecture. "
-            "Naturally invite them to ask about their finances, a concept, or "
-            "the market."
+            "Answer identity/capability questions truthfully. Do not force a financial topic or "
+            "repeatedly ask how you can help. You can help with general questions too."
             + (f"\n\n{voice}" if (voice := current_voice_block()) else "")
         ),
     )
@@ -118,30 +115,49 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     it is what history and the response show."""
     shown = original or query
 
-    if mode in ("Conversational Mode", "Live Avatar"):  # spoken follow-ups ("what about taxes on it?") need their subject back
-        from ai.llm.groq_client import generate_response
+    if interpreted := current_interpretation.get():
+        route = interpreted.intent
+        standalone = interpreted.standalone_query
+        if route == "finance":
+            # The model supplies intent only; fact extraction always sees the user's words.
+            response = _with_news(shown, finance_pipeline, user_id=session_id, intent_query=standalone)
+        elif route == "market":
+            response = market_pipeline(standalone)
+        elif route == "equity_research":
+            ticker = resolve_company(standalone)
+            response = company_intelligence(standalone) if is_intelligence_query(standalone, ticker) else None
+            if not response:
+                response = equity_research_pipeline(standalone, user_id=session_id)
+        elif route == "tutor":
+            response = _with_news(standalone, tutor_pipeline, user_id=session_id)
+        else:
+            response = _with_news(standalone, _general_reply)
+        response["query"] = shown
+        save_turn(session_id, shown, response)
+        return response
 
-        session = get_session(session_id)
-        history = session.get("history", [])[-3:]  # Last 3 turns
-        if history:
-            history_str = ""
-            for i, turn in enumerate(history):
-                history_str += f"User: {turn['query']}\n"
+    if general_task(query):
+        get_session(session_id).pop("finance_pending", None)
+        response = _general_reply(query)
+        response["query"] = shown
+        save_turn(session_id, shown, response)
+        return response
 
-            prompt = f"""
-Given this chat history:
-{history_str}
-
-Rewrite the user's follow-up query to be fully self-contained.
-If it refers to a company or topic from the history, explicitly include it in the new query.
-If it is already standalone, return it exactly as is.
-Return ONLY the rewritten query. Do not add any conversational text.
-
-Follow-up query: {query}
-"""
-            rewritten = generate_response(prompt, system_prompt="You rewrite queries. Output ONLY the rewritten query.")
-            if rewritten and not rewritten.lower().startswith("error"):
-                query = rewritten.strip('"\' \n')
+    # Historical evidence is assembled for every mode by execute_turn.
+    from shared.conversation_memory import active_context, _FOLLOWUP
+    evidence = active_context.get()
+    if re.search(r"\b(it|its|this company|that company)\b", query, re.I) and not resolve_company(query):
+        subjects = {ticker for turn in get_session(session_id).get("history", [])[-2:]
+                    if (ticker := resolve_company(turn["query"]))}
+        if len(subjects) == 1:
+            query = f"{query} (company: {next(iter(subjects))})"
+    ticker = resolve_company(query)
+    needs_research = is_equity_research_query(query, ticker) or is_broad_market_query(query) or is_intelligence_query(query, ticker)
+    if evidence and evidence["text"] and _FOLLOWUP.search(query) and not needs_research and not _is_smalltalk(query) and not get_session(session_id).get("finance_pending") and not finance_intent(query) and not finance_statement(query):
+        response = _with_news(query, _general_reply)
+        response["query"] = shown
+        save_turn(session_id, shown, response)
+        return response
 
     if _is_smalltalk(query):
         response = _smalltalk_reply(query)
@@ -173,49 +189,19 @@ Follow-up query: {query}
     elif domain == "finance":
         response = _with_news(query, finance_pipeline, user_id=session_id)
     elif domain == "tutor":
-        # "what is the weather in Paris" matches the generic "what is ..." tutor pattern, so the off-topic guard must see these too
-        guard = classify_domain(query)
-        if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
-            response = build_refusal_response(query, guard)
-            response["query"] = shown
-            save_turn(session_id, shown, response)
-            return response
+        # Category classification is not a safety check and must not block valid questions.
         response = _with_news(query, tutor_pipeline, user_id=session_id)
     elif domain == "market":
         # domain says market but neither precise check matched (rare) --
         # equity research is the closer fallback of the two.
         response = equity_research_pipeline(query, user_id=session_id)
     else:
-        # Nothing above matched -- the query didn't hit any finance/market
-        # keyword or precise company/ticker check. This is exactly the
-        # "could be genuinely off-topic" tier, so it's where
-        # shared/domain_guard.py's pre-check applies: a confidently
-        # non-finance query (e.g. "write me a Python program", "who won
-        # the cricket match") is refused here, before spending a real LLM
-        # call on it. An ambiguous or guard-unavailable query (including
-        # every existing test, whose mocked LLM doesn't return classifier
-        # JSON) falls through unchanged to tutor_pipeline's general
-        # fallback, whose prompt (ai/llm/prompt_templates.py's
-        # tutor_prompt) already answers while pivoting toward a finance/
-        # business/company/management angle instead of hard-refusing every
-        # borderline question -- see shared/domain_guard.py's docstring for
-        # the full three-tier rationale.
-        # no keyword route hit: a close match to a known question becomes a "did you mean", with no model call
         if suggestions := suggest(query):
             response = {"domain": "clarify", "query": shown, "response": "Did you mean: " + " / ".join(suggestions) + "?", "suggestions": suggestions}
             save_turn(session_id, shown, response)
             return response
-        guard = classify_domain(query)
-        if guard["available"] and guard["allowed"] is False and guard["confidence"] >= CONFIDENCE_THRESHOLD:
-            response = build_refusal_response(query, guard)
-            response["query"] = shown
-            save_turn(session_id, shown, response)
-            return response
-
-        response = _with_news(query, tutor_pipeline, user_id=session_id)
-        response["domain"] = "general"
-        if guard["available"]:
-            response["domain_guard"] = guard
+        else:
+            response = _with_news(query, _general_reply)
 
     if pending_before and get_session(session_id).get("finance_pending") is pending_before:
         get_session(session_id).pop("finance_pending")  # our question went unanswered for a turn: stop expecting a bare reply
@@ -235,7 +221,62 @@ Follow-up query: {query}
     return response
 
 
+def _general_reply(query: str) -> dict[str, Any]:
+    from ai.llm.groq_client import generate_response
+    from shared.conversation_memory import augment
+    system = CONVERSATION_SYSTEM
+    if voice := current_voice_block():
+        system += "\n\n" + voice
+    reply = generate_response(augment(query, system), system_prompt=system)
+    return {"domain": "general", "query": query, "response": reply}
+
+
+def _dialogue_reply(query: str, kind: str, session_id: str) -> dict[str, Any]:
+    """Short social replies never become a lesson, a new valuation or an invented fact."""
+    session = get_session(session_id)
+    pending = session.get("finance_pending")
+    if pending and pending.get("confirm") and confirmation(query) is not None:
+        response = finance_pipeline(query, user_id=session_id)
+    elif pending and kind == "decline":
+        session.pop("finance_pending", None)
+        response = {"domain": "smalltalk", "response": "No problem. We can leave that there."}
+    elif pending and kind == "clarify":
+        response = _general_reply(query)
+    elif pending and pending.get("confirm"):
+        response = {"domain": "smalltalk", "response": "I haven't changed it. Say yes to confirm the proposed update, or no to keep the current value."}
+    elif pending:
+        # An acknowledgement is not a numeric answer. Keep the question recoverable.
+        field = pending.get("field", "missing detail").replace("_", " ").replace(".", " ")
+        response = {"domain": "smalltalk", "response": f"Okay. When you're ready, share your {field} so I can continue."}
+    elif kind == "acknowledge":
+        history = session.get("history", [])
+        previous = str(history[-1]["response"].get("response", "")) if history else ""
+        offer = re.search(r"(?:would you like|shall i|want me to|should i|can i)\b[^?]*\?\s*$", previous, re.I)
+        if offer and clean_reply(query) in {"ok", "okay", "sounds good", "alright"}:
+            response = _general_reply(query)
+        else:
+            response = {"domain": "smalltalk", "response": "You're welcome." if "thank" in query.lower() or clean_reply(query) in ("thx", "ty") else "Okay."}
+    elif kind == "decline":
+        if session.get("history") and clean_reply(query) in {"no", "nope", "nah", "n", "nahi"}:
+            response = _general_reply(query)
+        else:
+            response = {"domain": "smalltalk", "response": "No problem. We can leave that there."}
+    elif not session.get("history"):
+        response = {"domain": "smalltalk", "response": "What would you like me to explain?" if kind == "clarify" else "What would you like to continue with?"}
+    else:
+        # The current context contains both sides of the preceding exchange.
+        response = _general_reply(query)
+    response["query"] = query
+    save_turn(session_id, query, response)
+    return response
+
+
 def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode", correct: bool = True) -> dict[str, Any]:
+    from core.session import execute_turn
+    return execute_turn(session_id, query, lambda: _handle_query(query, session_id, mode, correct))
+
+
+def _handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode", correct: bool = True) -> dict[str, Any]:
     """Read how the user seems to feel (shared/human_state.py), then answer with a matching tone. A self-harm message gets a
     fixed caring reply with no model and no finance, even when tone adaptation is off. Routing and tools get the spelling-,
     text-speak- and Hinglish-normalised query (shared/understand.py; amounts are never altered); the tone layer, history and
@@ -246,7 +287,34 @@ def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mo
         response = {"domain": "care", "query": query, "response": human_state.CARE_REPLY, "tone": {"strategy": "care", "format": "prose"}}
         save_turn(session_id, query, response)
         return response
-    response = _tone_and_handle(query, text, session, session_id, mode)
+    if kind := dialogue_act(query):
+        return _dialogue_reply(query, kind, session_id)
+    if general_task(text):
+        return _handle(text, session_id, mode, original=query)
+    from shared.intent_resolver import resolve
+    ticker = resolve_company(text)
+    clear_route = bool(_is_smalltalk(text) or finance_intent(text) or finance_statement(text)
+                       or is_equity_research_query(text, ticker) or is_broad_market_query(text)
+                       or is_intelligence_query(text, ticker) or _CONCEPT_QUESTION.match(text.lower()))
+    interpreted, diagnostic = resolve(text, session.get("history", []), session.get("finance_pending"), clear_route=clear_route)
+    if interpreted and interpreted.intent == "clarify":
+        response = {"domain": "clarify", "query": query, "response": interpreted.clarification_question,
+                    "intent_resolution": diagnostic}
+        save_turn(session_id, query, response)
+        return response
+    if interpreted:
+        from shared.conversation_memory import context_for
+        token = current_interpretation.set(interpreted)
+        try:
+            # Retrieve evidence for the resolved subject too, rather than a bare pronoun.
+            with context_for(session_id, interpreted.standalone_query):
+                response = _tone_and_handle(query, text, session, session_id, mode)
+        finally:
+            current_interpretation.reset(token)
+    else:
+        response = _tone_and_handle(query, text, session, session_id, mode)
+    if diagnostic["attempted"]:
+        response["intent_resolution"] = diagnostic
     if spelled(changes) and response.get("domain") not in ("refused", "clarify", "care", "smalltalk"):
         response["corrected_query"] = text
     return response
@@ -270,7 +338,7 @@ def _tone_and_handle(query: str, text: str, session: dict, session_id: str, mode
             block = human_state.style_block(state, plan, goals, new_prefs, episodes)
         if plan:
             episodes = human_state.add_episode(episodes, state, plan, date.today().isoformat())
-        support = bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision") and not hit and not finance_statement(text)
+        support = current_interpretation.get() is None and bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision") and not hit and not finance_statement(text)
         if plan or new_prefs != prefs:
             user_store.save_style(owner, new_prefs, episodes)
         session["human"] = state["trajectory"]
@@ -279,7 +347,7 @@ def _tone_and_handle(query: str, text: str, session: dict, session_id: str, mode
         logger.warning(f"tone layer skipped: {type(exc).__name__}")
         block, plan = None, None
     with human_state.voice(block, plan):
-        if plan and plan["strategy"] == "ask":  # a bare "Fine." is a check-in moment: fixed warm reply, no model, no routing
+        if current_interpretation.get() is None and plan and plan["strategy"] == "ask":  # a bare "Fine." is a check-in moment: fixed warm reply, no model, no routing
             response = {"domain": "smalltalk", "query": query, "response": human_state.check_in(len(session.get("history", [])), state["hinglish"])}
             save_turn(session_id, query, response)
         elif support:

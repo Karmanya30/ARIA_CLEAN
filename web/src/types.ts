@@ -322,9 +322,13 @@ export interface InstrumentProfile {
 export interface InstrumentSip {
   invested: number
   value: number
-  xirr: number | null
-  cagr: number | null
-  max_drawdown: number | null
+  xirr_pct: number | null
+  cagr_pct: number | null
+  worst_drawdown_pct: number | null
+  gain?: number | null
+  gain_pct?: number | null
+  installments?: number
+  years_used?: number
   series?: { t: number; invested?: number; value?: number }[]
   caveat: string
 }

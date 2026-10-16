@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import Field
 
 from modules.finance.schemas import FinanceProfile
 
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/api/profile", tags=["profile"])
 
 
 class ProfileRequest(FinanceProfile):
-    session_id: str
+    session_id: str = Field(min_length=1, max_length=200)
 
 
 def _view(owner: str) -> dict[str, Any]:

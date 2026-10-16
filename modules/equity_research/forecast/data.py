@@ -155,7 +155,11 @@ def _fetch(symbol: str) -> pd.DataFrame:
 
 
 def _clean(df: pd.DataFrame) -> pd.DataFrame:
-    return df[~df.index.duplicated(keep="last")].sort_index()
+    d = df[~df.index.duplicated(keep="last")].sort_index()
+    # Missing provider bars are not observations. Never forward-fill a price
+    # or feed NaN/inf to models; retain finite outliers for quality reporting.
+    prices = [column for column in ("open", "high", "low", "close", "adj_close") if column in d]
+    return d.loc[np.isfinite(d[prices]).all(axis=1)]
 
 
 def load_series(index_symbol: str, force: bool = False) -> pd.Series:
@@ -171,6 +175,9 @@ def load_series(index_symbol: str, force: bool = False) -> pd.Series:
         s = _clean(_fetch(index_symbol))["adj_close"].dropna()
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         s.to_frame("adj_close").to_parquet(p)
+    s = s[np.isfinite(s) & (s > 0)]
+    if s.empty:
+        raise DataUnavailable(f"{index_symbol}: no usable adjusted prices", "bad_data")
     _SERIES_MEM[mkey] = (time.time(), s)
     return s
 
@@ -209,6 +216,7 @@ def quality_report(df: pd.DataFrame) -> DataQuality:
     w: list[str] = []
     dups = int(df.index.duplicated().sum())
     d = _clean(df)
+    invalid = len(df[~df.index.duplicated(keep="last")]) - len(d)
     gaps = int((d.index.to_series().diff().dt.days > 5).sum())
     zero_vol = int((d["volume"].fillna(0) <= 0).sum())
     r = np.log(d["adj_close"]).diff()
@@ -221,6 +229,7 @@ def quality_report(df: pd.DataFrame) -> DataQuality:
     ok = bad == 0
     for cond, msg in [
         (dups, f"{dups} duplicate timestamps removed (kept last)."),
+        (invalid, f"{invalid} bars with missing/nonfinite prices excluded; no prices imputed."),
         (gaps, f"{gaps} gaps longer than 5 calendar days."),
         (zero_vol, f"{zero_vol} zero-volume days."),
         (outliers, f"{outliers} returns beyond 8x rolling MAD flagged (kept, not removed)."),
@@ -272,6 +281,11 @@ def load_history(symbol: str, *, force: bool = False) -> tuple[pd.DataFrame, Dat
     if _fresh(p, force) and mp.exists():
         df = pd.read_parquet(p)
         side = json.loads(mp.read_text())
+        cleaned = _clean(df)
+        invalid = len(df) - len(cleaned)
+        if invalid:
+            side["quality"]["warnings"].append(f"{invalid} cached bars with missing/nonfinite prices excluded; no prices imputed.")
+        df = cleaned
     else:
         try:
             raw = _fetch(symbol)

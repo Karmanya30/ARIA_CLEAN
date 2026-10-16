@@ -87,7 +87,7 @@ export function Onboarding({ onSaved, onAsk }: { onSaved: () => void; onAsk: (q:
       {step === 0 && (
         <form onSubmit={next}>
           <label htmlFor="onb-income">What is your monthly income (₹, after tax)?</label>
-          <input id="onb-income" className="input" inputMode="decimal" autoComplete="off" placeholder="e.g. 80,000 or 80k" value={income} onChange={(e) => setIncome(e.target.value)} autoFocus />
+          <input id="onb-income" className="input" inputMode="decimal" autoComplete="off" placeholder="e.g. 80,000 or 80k" value={income} onChange={(e) => setIncome(e.target.value)} />
           {income && !inc && <p className="ri-sub" role="status">Try a plain number, like 80000 or 80k.</p>}
           {nav('Next')}
         </form>

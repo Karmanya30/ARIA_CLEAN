@@ -1,8 +1,8 @@
 """Saved equity research reports: history, viewing, download, regenerate, delete.
 
 Reports are created by the chat pipeline (modules/equity_research/intelligence) and stored by
-shared/user_store.py. ARIA has no accounts, so every call carries the device-level ``owner_id``
-(a random UUID the frontend keeps in localStorage) and only that owner's reports are visible.
+shared/user_store.py. Every call carries an ``owner_id``: an account ID checked against the
+server session in account mode, or a device capability in private mode.
 The GET endpoints take it as a query parameter so the same URLs work for an <iframe> and a plain
 download link, neither of which can send custom headers.
 """

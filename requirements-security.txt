@@ -1,0 +1,9 @@
+# Minimum patched transitive versions identified by pip-audit, 2026-10-16.
+# Constraints do not install unused optional packages.
+starlette>=1.4.0
+curl-cffi>=0.15.0
+GitPython>=3.1.60
+multidict>=6.9.1
+setuptools>=83.0.0
+tornado>=6.5.9
+urllib3>=2.8.0

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
@@ -12,6 +12,7 @@ import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
+import { NormalModeOrb } from './NormalModeOrb'
 import './ChatTab.css'
 
 const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)']
@@ -65,6 +66,9 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
   const [profileVer, setProfileVer] = useState(0)
+  // Ref to the hidden <audio> element used for TTS playback — passed to NormalModeOrb
+  // so the canvas visualiser can tap into the Web Audio API analyser.
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
@@ -170,7 +174,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       <select
         id="chat-mode"
         aria-label="Mode"
-        className="input chat-mode-select"
+        className="chat-mode-select"
         value={mode}
         onChange={(e) => setMode(e.target.value as ChatMode)}
       >
@@ -180,8 +184,8 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
           </option>
         ))}
       </select>
-      <button className="btn" onClick={clearChat} type="button">
-        Clear Chat
+      <button className="btn" onClick={clearChat} type="button" aria-label="Clear chat">
+        Clear
       </button>
       {isSplitLayout && (
         <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
@@ -250,11 +254,13 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       <h1 className="sr-only">ARIA chat</h1>
       {topbar}
 
-      {showHero && (
-        <div className="chat-stage">
-          <div className="hero-orb" />
-        </div>
-      )}
+      {/* Hidden audio element — NormalModeOrb taps the Web Audio API via this ref */}
+      <audio ref={ttsAudioRef} style={{ display: 'none' }} />
+
+      {/* Orb is ALWAYS visible in Normal Mode — full-size when idle, compact when chatting */}
+      <div className={`chat-orb-sticky${!showHero ? ' orb-compact' : ''}`}>
+        <NormalModeOrb speaking={sending} audioRef={ttsAudioRef} />
+      </div>
 
       {showHero ? (
         <div className="chat-idle-block">

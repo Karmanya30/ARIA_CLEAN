@@ -81,6 +81,8 @@ def _boom(*a, **k):
 
 @pytest.fixture(autouse=True)
 def offline(monkeypatch, tmp_path):
+    # Instrument tests assert text/grounding; background speech has its own tests.
+    monkeypatch.setattr("api.routes.instruments.register_later", lambda fn: "synthetic-audio")
     uni = tmp_path / "universe.parquet"
     UNIVERSE.to_parquet(uni)
     for mod in (amfi, I):
@@ -258,6 +260,9 @@ def test_profile_has_plain_language_stats_and_tags():
     p = client.get("/api/instruments/mf:122639/profile").json()
     assert "mutual fund" in p["what_is"].lower() and p["key_stats"] and p["disclaimer"]
     assert any(t["tag"] == "Equity fund" for t in p["risk_tags"]) and p["stats"].get("return_1y_pct") is not None
+    assert p["stats"].get("cagr_since_start_pct") is not None
+    assert any(r["label"] == "Category" for r in p["key_stats"])
+    assert any(r["label"] == "CAGR since start" for r in p["key_stats"])
     assert set(p["key_stats"][0]) == {"label", "value"}
     c = client.get("/api/instruments/crypto:BTC-USD/profile").json()
     assert any("legal tender" in t["tag"] for t in c["risk_tags"])
@@ -268,7 +273,8 @@ def test_simulate_sip_flat_price_and_known_growth():
     idx = pd.bdate_range("2021-01-01", "2026-10-12")
     flat = [(d.date().isoformat(), 100.0) for d in idx]
     r = I.simulate_sip(flat, 1000, 5)
-    assert r["invested"] == r["installments"] * 1000 and r["value"] == pytest.approx(r["invested"]) and abs(r["xirr_pct"]) < 0.01
+    assert r["installments"] == 60
+    assert r["invested"] == 60 * 1000 and r["value"] == pytest.approx(r["invested"]) and abs(r["xirr_pct"]) < 0.01
     assert r["worst_drawdown_pct"] == 0 and r["years_used"] == pytest.approx(5.0, abs=0.05)
     grow = [(d.date().isoformat(), 100.0 + i * 100.0 / len(idx)) for i, d in enumerate(idx)]
     g = I.simulate_sip(grow, 1000, 5)
@@ -281,6 +287,7 @@ def test_sip_endpoint_shape_validation_and_short_history():
     s = client.get("/api/instruments/mf:122639/sip", params={"monthly": 5000, "years": 5}).json()
     for k in ("invested", "value", "xirr_pct", "cagr_pct", "worst_drawdown_pct", "caveat", "installments", "series"):
         assert k in s
+    assert s["installments"] == 60 and s["invested"] == 300000
     assert "does not predict" in s["caveat"] and s["invested"] == s["installments"] * 5000
     assert client.get("/api/instruments/currency:USDINR=X/sip").status_code == 422
     assert client.get("/api/instruments/stock:RELIANCE.NS/sip", params={"years": 99}).status_code == 422
@@ -305,7 +312,7 @@ def test_ask_is_grounded_and_has_the_chat_shape(mock_llm):
     assert f"{q['price']:,.2f}" in r["response"] and r["response"].strip().endswith("This is not investment advice.")
     assert r["grounding"]["passed"] and not r["grounding"]["fallback"]
     assert "How is it doing?" in mock_llm.calls[0] and "FACTS" in mock_llm.calls[0]
-    hist = client.get("/api/chat/history", params={"session_id": "s-inst"}).json()["history"]
+    hist = client.get("/api/chat/history", params={"session_id": "s-inst", "owner_id": "o1"}).json()["history"]
     assert hist and hist[-1]["query"] == "How is it doing?"
 
 
@@ -330,11 +337,35 @@ def test_ask_survives_model_failure_and_missing_data(mock_llm, monkeypatch):
     assert client.post("/api/instruments/ask", json={"id": "mf:122639", "question": "", "session_id": "s"}).status_code == 422
 
 
+def test_ask_directly_answers_since_start_cagr_without_model(mock_llm):
+    r = client.post("/api/instruments/ask", json={"id": "mf:122639", "question": "whats the cagr since start of this fund", "session_id": "s-cagr"}).json()
+    assert mock_llm.calls == []
+    assert not r["grounding"]["fallback"] and r["grounding"]["passed"]
+    assert "CAGR since the available history starts" in r["response"]
+    assert "Not available right now" not in r["response"]
+    assert "profile (TypeError)" not in r["response"]
+    assert "This is not investment advice." in r["response"]
+
+
+def test_grounding_requires_explicit_scale_units():
+    assert instrument_chat.ungrounded("Price is 98765", "volatility 99.0495") == [98765]
+    assert instrument_chat.ungrounded("Gain is 300%", "investment 300000") == [300]
+    assert instrument_chat.ungrounded("Investment is 300 thousand", "investment 300000") == []
+
+
+def test_user_question_numbers_are_not_quote_evidence(mock_llm):
+    mock_llm.set_response("The target price is 98765.")
+    r = client.post("/api/instruments/ask", json={"id": "stock:RELIANCE.NS", "question": "Will the target reach 98765?", "session_id": "untrusted-number"}).json()
+    assert r["grounding"]["fallback"] and "98765" not in r["response"]
+
+
 def test_ask_rejects_rupee_sign_for_foreign_currency(mock_llm):
     q = I.quote(I.resolve("crypto:BTC-USD"))
     mock_llm.set_response(f"Bitcoin is at ₹{q['price']:,.0f}.")
     r = client.post("/api/instruments/ask", json={"id": "crypto:BTC-USD", "question": "price?", "session_id": "s5"}).json()
-    assert r["grounding"]["fallback"] and "₹" not in r["response"]
+    assert r["grounding"]["passed"] and not r["grounding"]["fallback"]
+    assert "₹" not in r["response"] and "USD" in r["response"]
+    assert not mock_llm.calls  # Deterministic quote cannot inherit the model's currency error.
 
 
 @pytest.mark.network

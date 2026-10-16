@@ -7,8 +7,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from loguru import logger
+
 from ai.llm.groq_client import generate_response
-from ai.llm.prompt_templates import tutor_prompt
 from modules.tutor import orchestrator as m2_orchestrator
 from shared.ner import extract_entities
 
@@ -18,7 +19,11 @@ def build_context(query: str) -> dict[str, Any]:
 
 
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
-    result = m2_orchestrator.handle(user_id, query)
+    try:
+        result = m2_orchestrator.handle(user_id, query)
+    except FileNotFoundError:
+        logger.warning("Tutor resources unavailable; using conversational fallback")
+        result = None
     if result is not None:
         taxal = result["taxal"]
         response_text = (
@@ -40,10 +45,11 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
 
     # No confident concept match -- generic tutor prompt (still useful for
     # greetings, meta-questions, etc.) rather than a hard failure.
-    context = build_context(query)
-    prompt = tutor_prompt(query, context)
-    answer = generate_response(prompt)
-    return {"domain": "tutor", "query": query, "context": context, "response": answer}
+    # No finance concept was retrieved: answer normally rather than forcing a finance lesson.
+    from shared.dialogue import CONVERSATION_SYSTEM
+    from shared.conversation_memory import augment
+    answer = generate_response(augment(query, CONVERSATION_SYSTEM), system_prompt=CONVERSATION_SYSTEM)
+    return {"domain": "tutor", "query": query, "context": {}, "response": answer}
 
 
 def run(query: str, user_id: str = "default", *args: Any, **kwargs: Any) -> dict[str, Any]:

@@ -1,0 +1,27 @@
+........................................................................ [ 27%]
+.........................F.............................................. [ 54%]
+........................................................................ [ 81%]
+.........................................F........                       [100%]
+================================== FAILURES ===================================
+_________________________________ test_speed __________________________________
+tests\test_human_state.py:194: in test_speed
+    assert time.perf_counter() - t < 0.5
+E   assert (236238.3731843 - 236237.7377872) < 0.5
+E    +  where 236238.3731843 = <built-in function perf_counter>()
+E    +    where <built-in function perf_counter> = time.perf_counter
+___________ test_general_question_and_missing_evidence_receive_help ___________
+tests\test_conversation_memory.py:199: in test_general_question_and_missing_evidence_receive_help
+    assert "tools" in __import__("inspect").getsource(__import__("core.orchestrator", fromlist=["_general_reply"])._general_reply)
+E   assert 'tools' in 'def _general_reply(query: str) -> dict[str, Any]:\n    from ai.llm.groq_client import generate_response\n    from sha...e(augment(query, system), system_prompt=system)\n    return {"domain": "general", "query": query, "response": reply}\n'
+E    +  where 'def _general_reply(query: str) -> dict[str, Any]:\n    from ai.llm.groq_client import generate_response\n    from sha...e(augment(query, system), system_prompt=system)\n    return {"domain": "general", "query": query, "response": reply}\n' = <function getsource at 0x000001EB1BCB39C0>(<function _general_reply at 0x000001EB4DFFF420>)
+E    +    where <function getsource at 0x000001EB1BCB39C0> = <module 'inspect' from 'C:\\Users\\jtmah\\anaconda3\\Lib\\inspect.py'>.getsource
+E    +      where <module 'inspect' from 'C:\\Users\\jtmah\\anaconda3\\Lib\\inspect.py'> = __import__('inspect')
+E    +    and   <function _general_reply at 0x000001EB4DFFF420> = <module 'core.orchestrator' from 'E:\\ARIA\\core\\orchestrator.py'>._general_reply
+E    +      where <module 'core.orchestrator' from 'E:\\ARIA\\core\\orchestrator.py'> = __import__('core.orchestrator', fromlist=['_general_reply'])
+---------------------------- Captured stderr call -----------------------------
+2026-10-16 17:01:58.538 | INFO     | shared.conversation_memory:build_context:360 - context_assembled
+2026-10-16 17:01:58.542 | INFO     | core.orchestrator:_tone_and_handle:287 - tone strategy=None
+=========================== short test summary info ===========================
+FAILED tests/test_human_state.py::test_speed - assert (236238.3731843 - 23623...
+FAILED tests/test_conversation_memory.py::test_general_question_and_missing_evidence_receive_help
+2 failed, 264 passed, 2 warnings in 90.73s (0:01:30)

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Layers } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
 import { MODES, THEMES, hasMarkets, setTheme, useModeSetting, type ThemeId } from '../../theme'
+import { VERSIONS, getVersion, setVersion, type VersionId } from '../../version'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
@@ -10,10 +11,19 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
   const [tone, setTone] = useState(adaptTone)
   const [status, setStatus] = useState('')
   const [mode, setMode] = useModeSetting()
+  const [currentVersion] = useState<VersionId>(getVersion)
+  const [pendingVersion, setPendingVersion] = useState<VersionId | null>(null)
 
   function pick(id: ThemeId) {
     setTheme(id)
     onTheme(id)
+  }
+
+  function switchVersion(id: VersionId) {
+    if (id === currentVersion) return
+    setPendingVersion(id)
+    // Small delay so the user sees the selection before reload
+    setTimeout(() => setVersion(id), 400)
   }
 
   function forget() {
@@ -89,8 +99,8 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
         <span>Adapt tone to how I feel</span>
       </label>
       <p className="settings-sub">
-        ARIA reads your messages on this device only to choose a calmer or simpler way of answering. It never shows a mood label
-        back to you, and you can turn it off any time.
+        ARIA uses your messages to choose a calmer or simpler way of answering. Messages are processed by the backend and
+        configured AI providers. This preference is saved on this device, and you can turn it off any time.
       </p>
       <button type="button" className="btn" onClick={forget}>
         Forget how I like to talk
@@ -102,6 +112,69 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
       <p className="settings-sub">
         ARIA is an AI research and education tool, not a SEBI-registered adviser. <a href="#/disclaimers">Read the full disclaimers</a>.
       </p>
+
+      <h2 className="settings-h2 version-h2">
+        <Layers size={17} aria-hidden="true" />
+        App Version
+      </h2>
+      <p className="settings-sub">
+        <strong>Switch version</strong> — reload to a different build of ARIA. All your data and settings are kept.
+      </p>
+      <div className="version-grid" role="radiogroup" aria-label="App version">
+        {VERSIONS.map((v) => {
+          const isActive = (pendingVersion ?? currentVersion) === v.id
+          return (
+            <label
+              key={v.id}
+              className={`version-card${!v.available ? ' version-card--disabled' : ''}${isActive ? ' version-card--active' : ''}`}
+            >
+              <input
+                type="radio"
+                name="app-version"
+                value={v.id}
+                checked={isActive}
+                disabled={!v.available}
+                onChange={() => v.available && switchVersion(v.id)}
+              />
+              <span className="version-preview" style={{ '--v-accent': v.accent } as React.CSSProperties}>
+                <span className="version-preview-bar" />
+                <span className="version-preview-dots">
+                  <i /><i /><i />
+                </span>
+                <span className="version-preview-lines">
+                  <i /><i style={{ width: '60%' }} />
+                </span>
+              </span>
+              <span className="version-meta">
+                <span className="version-top">
+                  <strong>{v.label}</strong>
+                  <span
+                    className={`version-tag version-tag--${
+                      v.tag === 'Stable' ? 'stable' :
+                      v.tag === 'Latest' ? 'latest' :
+                      'soon'
+                    }`}
+                  >
+                    {v.tag}
+                  </span>
+                </span>
+                {v.date && (
+                  <span className="version-date">
+                    {new Date(v.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+                {isActive && v.available && (
+                  <span className="version-active-badge">
+                    <Check size={12} /> Active
+                  </span>
+                )}
+              </span>
+              <span className="version-blurb">{v.blurb}</span>
+              {!v.available && <span className="version-coming-overlay">Coming soon</span>}
+            </label>
+          )
+        })}
+      </div>
     </section>
   )
 }

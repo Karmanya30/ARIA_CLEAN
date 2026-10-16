@@ -36,6 +36,7 @@ REQUEST_TIMEOUT = 15
 
 _AVATAR_DIR = Path(__file__).resolve().parents[2] / "interface" / "avatar"
 _PERSONA_CACHE_FILE = _AVATAR_DIR / ".tavus_persona_cache.json"
+_PERSONA_POLICY_VERSION = 2
 
 _NGROK_URL: str | None = None
 _ACTIVE_CONVERSATION_ID: str | None = None
@@ -174,7 +175,7 @@ def _get_or_create_persona(base_url: str) -> str:
     if _PERSONA_CACHE_FILE.exists():
         try:
             cached = json.loads(_PERSONA_CACHE_FILE.read_text())
-            if cached.get("base_url") == base_url and cached.get("persona_id"):
+            if cached.get("base_url") == base_url and cached.get("persona_id") and cached.get("policy_version") == _PERSONA_POLICY_VERSION:
                 logger.info(f"Reusing cached Tavus persona: {cached['persona_id']}")
                 return cached["persona_id"]
             old = cached.get("persona_id")
@@ -186,7 +187,8 @@ def _get_or_create_persona(base_url: str) -> str:
         "system_prompt": (
             "You are ARIA, an AI-powered personal finance assistant covering "
             "personal finance, financial education, market analysis, and "
-            "equity research. Keep spoken answers concise and conversational."
+            "equity research, and general questions. Use the previous exchange to understand short replies. "
+            "Never reject a benign question just because it is outside finance. Keep spoken answers concise and conversational."
         ),
         "context": "The user is interacting through a conversational video interface.",
         "layers": {
@@ -202,7 +204,7 @@ def _get_or_create_persona(base_url: str) -> str:
 
     persona_id = resp.json()["persona_id"]
     logger.info(f"Created Tavus persona: {persona_id}")
-    _PERSONA_CACHE_FILE.write_text(json.dumps({"base_url": base_url, "persona_id": persona_id}))
+    _PERSONA_CACHE_FILE.write_text(json.dumps({"base_url": base_url, "persona_id": persona_id, "policy_version": _PERSONA_POLICY_VERSION}))
     if old and old != persona_id:
         _delete_persona(old)
     return persona_id
@@ -210,6 +212,7 @@ def _get_or_create_persona(base_url: str) -> str:
 
 class TavusStartRequest(BaseModel):
     session_id: str
+    owner_id: str | None = None
 
 
 @router.post("/api/tavus/start")
@@ -221,7 +224,18 @@ def start_tavus(req: TavusStartRequest, port: int = 8000) -> dict[str, str]:
         ngrok_url = _get_ngrok_url(port)
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    from shared.user_store import current_owner
+    from shared.conversation_memory import conversation
+    token = current_owner.set(req.owner_id)
+    try:
+        conversation(req.session_id)
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
+    finally:
+        current_owner.reset(token)
     base_url = f"{ngrok_url}/v1/{req.session_id}"
+    if req.owner_id:
+        base_url += f"/owner/{quote(req.owner_id, safe='')}"
     logger.info(f"Using Custom LLM Base URL: {base_url}")
 
     headers = {"x-api-key": TAVUS_API_KEY, "Content-Type": "application/json"}
@@ -334,8 +348,9 @@ async def _stream_sse(text: str, model: str) -> AsyncIterator[str]:
     yield "data: [DONE]\n\n"
 
 
+@router.post("/v1/{session_id}/owner/{owner_id}/chat/completions")
 @router.post("/v1/{session_id}/chat/completions")
-async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest):
+async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest, owner_id: str | None = None):
     # Note: no separate transcript store needed here. Tavus's callback and
     # the React frontend's own /api/chat both run in this one process now
     # (unlike the old Streamlit-subprocess split, which needed a SQLite
@@ -348,12 +363,17 @@ async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest):
     user_messages = [m for m in req.messages if m.role == "user"]
     query = user_messages[-1].content if user_messages else ""
 
-    logger.info(f"Tavus queried ARIA [{session_id}]: {query}")
+    logger.info("Tavus chat request")
 
     try:
         from ai.llm.spoken import spoken_version
 
-        result = handle_query(query, session_id=session_id, mode="Normal Mode")
+        from shared.user_store import current_owner
+        token = current_owner.set(owner_id)
+        try:
+            result = handle_query(query, session_id=session_id, mode="Normal Mode")
+        finally:
+            current_owner.reset(token)
         # the replica reads this aloud: labelled sections and bullets become a few natural sentences
         response_text = spoken_version(query, result.get("response", "I could not generate a response."))
     except Exception:

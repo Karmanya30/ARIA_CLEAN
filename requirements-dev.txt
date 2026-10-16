@@ -1,5 +1,6 @@
 # Dev/test-only tooling -- not needed to run the app, only to develop it.
 -r requirements.txt
 pytest==9.0.3
+pip-audit==2.10.1
 matplotlib==3.10.8   # ARIA_Evaluation.ipynb's plotting cells only
 xlwt==1.3.0  # builds a real .xls for the statement-import test

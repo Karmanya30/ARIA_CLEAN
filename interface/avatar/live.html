@@ -67,6 +67,7 @@ const $ = (id) => document.getElementById(id);
 const stateEl = $("state"), latencyEl = $("latency"), captionEl = $("caption"), micBtn = $("mic"), textEl = $("text"), stopBtn = $("stop");
 const params = new URLSearchParams(location.search);
 const SESSION = params.get("session_id") || "live";
+const OWNER = params.get("owner_id") || localStorage.getItem("aria_owner_id");
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const HEADAUDIO = "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/";
 const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -435,7 +436,7 @@ function ask(text) {
   // ("…please") become a new question that cancelled the real one.
   speaking = true; quietSince = 0;
   stopRec();
-  ws.send(JSON.stringify({ type: "user", text, session_id: SESSION, turn }));
+  ws.send(JSON.stringify({ type: "user", text, session_id: SESSION, owner_id: OWNER, turn }));
 }
 
 function finishSpeaking() {

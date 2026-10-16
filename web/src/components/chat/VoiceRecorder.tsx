@@ -48,13 +48,27 @@ export function VoiceRecorder({ onTranscribed }: { onTranscribed: (text: string)
     <div className="voice-recorder">
       <button
         type="button"
-        className={recording ? 'voice-btn recording' : 'voice-btn'}
+        className={`voice-btn${recording ? ' recording' : ''}${busy ? ' busy' : ''}`}
         onClick={recording ? stop : start}
         disabled={busy}
-        title={recording ? 'Stop recording' : 'Ask ARIA by voice'}
+        title={busy ? 'Transcribing…' : recording ? 'Stop recording' : 'Ask ARIA by voice'}
+        aria-label={busy ? 'Transcribing' : recording ? 'Stop recording' : 'Record voice message'}
       >
-        {recording ? <Square size={16} /> : <Mic size={16} />}
-        {busy ? 'Transcribing…' : recording ? 'Stop' : 'Ask by voice'}
+        {recording ? (
+          <>
+            <Square size={14} />
+            {/* Waveform bars */}
+            <span className="voice-wave" aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <span key={i} className="voice-bar" style={{ animationDelay: `${(i - 1) * 90}ms` }} />
+              ))}
+            </span>
+          </>
+        ) : busy ? (
+          <span className="voice-spinner" aria-hidden="true" />
+        ) : (
+          <Mic size={16} />
+        )}
       </button>
       {error && <span className="voice-error">{error}</span>}
     </div>

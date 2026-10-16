@@ -1,0 +1,265 @@
+{
+  "dataset": "12 independently specified synthetic cases with expected routes/required reference terms",
+  "live_model": "openai/gpt-oss-120b",
+  "modes": {
+    "baseline": {
+      "cases": 12,
+      "routing_accuracy": 0.5833333333333334,
+      "route_and_reference_accuracy": 0.3333333333333333,
+      "resolver_calls": 0,
+      "mean_latency_ms": 92.83916666666666,
+      "results": [
+        {
+          "id": "same_company_report",
+          "expected": "equity_research",
+          "actual": "equity_research",
+          "route_correct": true,
+          "reference_correct": false,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 126.71
+        },
+        {
+          "id": "second_company",
+          "expected": "equity_research",
+          "actual": "general",
+          "route_correct": false,
+          "reference_correct": false,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 105.8
+        },
+        {
+          "id": "inherited_market_task",
+          "expected": "market",
+          "actual": "market",
+          "route_correct": true,
+          "reference_correct": false,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 80.33
+        },
+        {
+          "id": "lesson_not_live_macro",
+          "expected": "tutor",
+          "actual": "market",
+          "route_correct": false,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 89.92
+        },
+        {
+          "id": "personal_payment_followup",
+          "expected": "finance",
+          "actual": "general",
+          "route_correct": false,
+          "reference_correct": false,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 111.9
+        },
+        {
+          "id": "ambiguous_comparison",
+          "expected": "clarify",
+          "actual": "general",
+          "route_correct": false,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 88.89
+        },
+        {
+          "id": "no_referent",
+          "expected": "clarify",
+          "actual": "general",
+          "route_correct": false,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 83.64
+        },
+        {
+          "id": "coding_followup",
+          "expected": "general",
+          "actual": "general",
+          "route_correct": true,
+          "reference_correct": false,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 95.26
+        },
+        {
+          "id": "acknowledgement",
+          "expected": "smalltalk",
+          "actual": "smalltalk",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 83.0
+        },
+        {
+          "id": "clear_lesson",
+          "expected": "tutor",
+          "actual": "tutor",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 84.01
+        },
+        {
+          "id": "clear_calculation",
+          "expected": "finance",
+          "actual": "finance",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 86.95
+        },
+        {
+          "id": "clear_creative_task",
+          "expected": "general",
+          "actual": "general",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 77.66
+        }
+      ]
+    },
+    "resolver": {
+      "cases": 12,
+      "routing_accuracy": 0.8333333333333334,
+      "route_and_reference_accuracy": 0.75,
+      "resolver_calls": 8,
+      "mean_latency_ms": 838.5391666666666,
+      "results": [
+        {
+          "id": "same_company_report",
+          "expected": "equity_research",
+          "actual": "equity_research",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "resolved",
+          "resolver_called": true,
+          "latency_ms": 1637.86
+        },
+        {
+          "id": "second_company",
+          "expected": "equity_research",
+          "actual": "equity_research",
+          "route_correct": true,
+          "reference_correct": false,
+          "intent_status": "resolved",
+          "resolver_called": true,
+          "latency_ms": 1172.51
+        },
+        {
+          "id": "inherited_market_task",
+          "expected": "market",
+          "actual": "market",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "resolved",
+          "resolver_called": true,
+          "latency_ms": 1093.8
+        },
+        {
+          "id": "lesson_not_live_macro",
+          "expected": "tutor",
+          "actual": "general",
+          "route_correct": false,
+          "reference_correct": true,
+          "intent_status": "resolved",
+          "resolver_called": true,
+          "latency_ms": 977.6
+        },
+        {
+          "id": "personal_payment_followup",
+          "expected": "finance",
+          "actual": "clarify",
+          "route_correct": false,
+          "reference_correct": false,
+          "intent_status": "clarification",
+          "resolver_called": true,
+          "latency_ms": 1040.42
+        },
+        {
+          "id": "ambiguous_comparison",
+          "expected": "clarify",
+          "actual": "clarify",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "clarification",
+          "resolver_called": true,
+          "latency_ms": 1344.78
+        },
+        {
+          "id": "no_referent",
+          "expected": "clarify",
+          "actual": "clarify",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "clarification",
+          "resolver_called": true,
+          "latency_ms": 1755.74
+        },
+        {
+          "id": "coding_followup",
+          "expected": "general",
+          "actual": "general",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "resolved",
+          "resolver_called": true,
+          "latency_ms": 899.04
+        },
+        {
+          "id": "acknowledgement",
+          "expected": "smalltalk",
+          "actual": "smalltalk",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 33.29
+        },
+        {
+          "id": "clear_lesson",
+          "expected": "tutor",
+          "actual": "tutor",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 40.21
+        },
+        {
+          "id": "clear_calculation",
+          "expected": "finance",
+          "actual": "finance",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 35.46
+        },
+        {
+          "id": "clear_creative_task",
+          "expected": "general",
+          "actual": "general",
+          "route_correct": true,
+          "reference_correct": true,
+          "intent_status": "fast_path",
+          "resolver_called": false,
+          "latency_ms": 31.76
+        }
+      ]
+    }
+  },
+  "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
+}

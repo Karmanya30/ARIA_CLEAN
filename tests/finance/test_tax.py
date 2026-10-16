@@ -40,3 +40,16 @@ def test_zero_income_does_not_crash():
     result = tax_new(0)
     assert result.total_tax == 0.0
     assert result.effective_rate == 0.0
+
+
+def test_old_regime_does_not_get_new_regime_marginal_relief():
+    result = tax_old(550_100)
+    assert result.taxable_income == 500_100
+    assert result.tax_before_cess == 12_520
+    assert result.total_tax == 13_020.8
+
+
+def test_old_regime_resident_senior_exemptions():
+    assert tax_old(1_000_000, age=59).total_tax == 106_600
+    assert tax_old(1_000_000, age=60).total_tax == 104_000
+    assert tax_old(1_000_000, age=80).total_tax == 93_600

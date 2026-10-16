@@ -1,0 +1,14 @@
+[
+  {"id":"same_company_report","history":[["Research report on TCS","We reviewed TCS valuation and investment risks."]],"query":"Do the same for Infosys","intent":"equity_research","required_terms":["infosys","report"]},
+  {"id":"second_company","history":[["Which company should we examine?","The choices are TCS first and Infosys second. We can prepare a valuation report for either."]],"query":"Research the second one","intent":"equity_research","required_terms":["infosys","valuation"]},
+  {"id":"inherited_market_task","history":[["Analyze Sensex performance this week","We reviewed its weekly performance."]],"query":"Same for Nifty","intent":"market","required_terms":["nifty","week"]},
+  {"id":"lesson_not_live_macro","history":[["Explain compound interest using a simple analogy","We used an everyday analogy, not current market data."]],"query":"Use the same explanation style for inflation","intent":"tutor","required_terms":["inflation"]},
+  {"id":"personal_payment_followup","history":[["I am considering a car costing 10 lakh","We can calculate whether the car payment fits your budget using your saved financial profile."]],"query":"Could you check whether that payment fits my budget?","intent":"finance","required_terms":["car"]},
+  {"id":"ambiguous_comparison","history":[["Compare the options","We have two companies and two possible valuation methods. Which comparison do you want?"]],"query":"Use the other one","intent":"clarify","required_terms":[]},
+  {"id":"no_referent","history":[],"query":"Help me work out my next step","intent":"clarify","required_terms":[]},
+  {"id":"coding_followup","history":[["Explain compound interest","We discussed how to calculate compound interest."]],"query":"The same thing in Python","intent":"general","required_terms":["python","interest"]},
+  {"id":"acknowledgement","history":[["Explain SIP","A SIP is a regular investment plan."]],"query":"ok","intent":"smalltalk","required_terms":[]},
+  {"id":"clear_lesson","history":[],"query":"What is compound interest?","intent":"tutor","required_terms":[]},
+  {"id":"clear_calculation","history":[],"query":"Can I afford a car of 10 lakh?","intent":"finance","required_terms":[]},
+  {"id":"clear_creative_task","history":[],"query":"Write a poem about rain","intent":"general","required_terms":[]}
+]

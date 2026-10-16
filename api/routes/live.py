@@ -35,9 +35,11 @@ _AVATAR_DIR = Path(__file__).resolve().parents[2] / "interface" / "avatar"
 SYSTEM = (
     "You are ARIA, a warm Indian AI assistant for personal finance, investing, companies, management and "
     "consultancy, speaking out loud in a live video call. Answer in plain spoken English: short sentences, no "
-    "markdown, lists, emojis, tables or symbols, and write numbers the way they are said. Use rupees, never "
-    "dollars. Keep it under 70 words unless the user asks for more, then offer to go deeper. If a question is "
-    "off-topic, answer briefly and bring it back to money, business or careers. If you do not have fresh data "
+    "markdown, lists, emojis, tables or symbols, and write numbers the way they are said. Use rupees for "
+    "new Indian money examples; preserve currencies stated in the question or evidence. Keep it "
+    "under 70 words unless the user asks for more, then offer to go deeper. If a question is "
+    "about a general topic, answer it directly without forcing a money or business connection. Use the last "
+    "exchange to understand short replies. Acknowledge 'ok' briefly; continue or clarify when asked. If you do not have fresh data "
     "for a question, say so plainly instead of guessing."
 )
 
@@ -73,14 +75,10 @@ def speakable(text: str) -> str:
 
 
 def _messages(session_id: str, text: str) -> list[dict]:
-    from core.session import get_session
+    from shared.conversation_memory import augment
+    return [{"role": "system", "content": SYSTEM},
+            {"role": "user", "content": augment(text, SYSTEM)}]
 
-    msgs = [{"role": "system", "content": SYSTEM}]
-    for turn in get_session(session_id).get("history", [])[-HISTORY_TURNS:]:
-        msgs.append({"role": "user", "content": str(turn.get("query", ""))[:600]})
-        msgs.append({"role": "assistant", "content": str((turn.get("response") or {}).get("response", ""))[:600]})
-    msgs.append({"role": "user", "content": text})
-    return msgs
 
 
 TROUBLE = "Sorry, I'm having trouble reaching my thinking service right now. Please ask me again in a moment."
@@ -141,8 +139,29 @@ def _stream_llm(messages: list[dict], put, stop: threading.Event) -> None:
 
 
 async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asyncio.Lock) -> None:
+    from shared import conversation_memory as memory
+    from core.session import get_session
+    request = memory.begin(session_id, text)
+    token = memory.active_request.set(request)
+    try:
+        with memory.context_for(session_id, text):
+            spoken = await _reply_impl(ws, text, session_id, turn, lock)
+        result = request.get("result") or spoken
+        memory.complete(session_id, text, result)
+        state = get_session(session_id)
+        memory.checkpoint(session_id, state)
+        state.update(memory.load(session_id))
+        async with lock:
+            await ws.send_json({"type": "done", "turn": turn, "text": spoken["response"], "timings": spoken["timings"]})
+    except BaseException:
+        memory.fail(request)
+        raise
+    finally:
+        memory.active_request.reset(token)
+
+
+async def _reply_impl(ws: WebSocket, text: str, session_id: str, turn: int, lock: asyncio.Lock) -> dict:
     from ai.speech.live_tts import synthesize
-    from core.session import save_turn
 
     loop = asyncio.get_running_loop()
     t0 = time.perf_counter()
@@ -170,14 +189,13 @@ async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asy
     speaker = asyncio.create_task(speak())
     full, buf, first = "", "", True
     try:
-        messages, direct, from_modules = _messages(session_id, text), None, False
+        messages, direct = _messages(session_id, text), None
         from core.orchestrator import is_smalltalk
 
         if not is_smalltalk(text):  # everything else is answered by the real modules, with live news where it matters
             written = await _ask_modules(text, session_id, chunks, lambda: send({"type": "thinking", "turn": turn}))
             timings["modules_ms"] = ms()
             if written:
-                from_modules = True  # the orchestrator already saved the written answer to the history
                 if needs_rewrite(written):
                     messages = [{"role": "system", "content": SPOKEN_SYSTEM},
                                 {"role": "user", "content": spoken_prompt(text, written)}]
@@ -210,10 +228,8 @@ async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asy
         await speaker
         timings["total_ms"] = ms()
         answer = speakable(full)
-        if not from_modules:
-            save_turn(session_id, text, {"domain": "live_avatar", "query": text, "response": answer})
-        await send({"type": "done", "turn": turn, "text": answer, "timings": timings})
         logger.info(f"Live avatar turn: {timings}")
+        return {"domain": "live_avatar", "query": text, "response": answer, "timings": timings}
     except asyncio.CancelledError:
         stop.set()
         speaker.cancel()
@@ -229,13 +245,31 @@ async def live_socket(ws: WebSocket) -> None:
     try:
         while True:
             msg = await ws.receive_json()
+            from api import auth
+            if auth.mode() == "accounts":
+                account = auth.principal(ws)  # also observes logout/expiry during a live socket
+                if account is None or (msg.get("type") == "user" and msg.get("owner_id") != account["id"]):
+                    await ws.close(code=1008, reason="Account session is unavailable or does not match.")
+                    return
             if msg.get("type") in ("interrupt", "user") and task and not task.done():
                 task.cancel()
             if msg.get("type") == "user" and str(msg.get("text", "")).strip():
                 # The page numbers its own turns (it also bumps the number on an interrupt); echoing its number
                 # back is what lets it drop chunks of a reply it has moved on from.
                 turn = int(msg["turn"]) if str(msg.get("turn", "")).isdigit() else turn + 1
-                task = asyncio.create_task(_reply(ws, str(msg["text"]).strip()[:1000], str(msg.get("session_id") or "live"), turn, lock))
+                from shared.user_store import current_owner
+                token = current_owner.set(msg.get("owner_id"))
+                try:
+                    if auth.mode() == "accounts":
+                        from shared.conversation_memory import conversation
+                        try:
+                            conversation(str(msg.get("session_id") or "live"))
+                        except PermissionError:
+                            await ws.close(code=1008, reason="This conversation belongs to another account.")
+                            return
+                    task = asyncio.create_task(_reply(ws, str(msg["text"]).strip()[:1000], str(msg.get("session_id") or "live"), turn, lock))
+                finally:
+                    current_owner.reset(token)
             elif msg.get("type") == "ping":
                 async with lock:
                     await ws.send_json({"type": "pong"})

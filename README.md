@@ -305,3 +305,21 @@ tests/           pytest suite, mirrors the modules/ layout
 
 See `ARIA Requirements.pdf` for the original BTP report spec this
 implementation is scoped against.
+
+
+### Persistent conversation context
+
+Chat transcripts and task state now persist in the existing SQLite database. Relevant older turns and saved research are retrieved with lexical and local semantic search before narration. The active browser conversation survives tab closure. General questions receive help instead of category-based refusals. See [implementation, migration, configuration, validation and limitations](reports/CONTEXT_MEMORY_IMPLEMENTATION.md). No new memory service is required; `.env.example` documents the optional context settings.
+
+
+### Selective intent resolution
+
+Ambiguous follow-ups can use a bounded structured interpretation call to the same configured Groq model before routing. Clear requests retain the existing paths. Generated interpretations do not authorize changes or become user profile facts. See [implementation, configuration, actual routing measurements and limitations](reports/INTENT_RESOLVER.md).
+
+See [the system audit, verified workflows, remaining gaps and rerun instructions](reports/SYSTEM_AUDIT.md). The browser suite starts an isolated API/database with synthetic providers: `cd web` then `npm run test:e2e`. For the full audit, run `.venv\Scripts\python.exe -m scripts.run_system_audit`; add `--live` to permit synthetic LLM probes. Local evidence and backups are excluded from Git under `.audit/`.
+
+Statement previews now survive API restarts, and imports atomically save transactions, optional profile changes and retry results. See [import reliability, privacy/expiry, schema and concurrency verification](reports/STATEMENT_IMPORT_RELIABILITY.md).
+
+Request bodies, concurrent work, statement parsers and background speech now have explicit limits. Completed speech clips survive backend restarts with expiring local cache tokens. See [resource limits, audio retention and remaining deployment boundaries](reports/RESOURCE_AND_AUDIO_HARDENING.md).
+
+Optional email/password and Google accounts are available with `ARIA_AUTH_MODE=accounts`; the default stays private for the current local application. See [setup, explicit Google linking, account isolation and verified limitations](reports/ACCOUNT_AUTHENTICATION.md).

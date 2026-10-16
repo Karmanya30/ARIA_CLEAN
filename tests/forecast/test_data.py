@@ -82,6 +82,26 @@ def test_benchmark_and_sector_failures_are_tolerated(fake):
     assert any("benchmark" in w for w in meta.quality.warnings) and any("sector" in w for w in meta.quality.warnings)
 
 
+def test_missing_and_nonfinite_price_bars_are_excluded_with_warning(fake):
+    raw = synth_raw()
+    raw.iloc[-1, raw.columns.get_loc("Close")] = np.nan
+    raw.iloc[-2, raw.columns.get_loc("Adj Close")] = np.inf
+    fake.frames = {"TCS.NS": raw}
+    df, meta = D.load_history("TCS.NS")
+    assert len(df) == len(raw) - 2
+    assert np.isfinite(df[D.COLS[:5]]).all().all()
+    assert meta.last_bar == str(raw.index[-3].date())
+    assert any("2 bars with missing/nonfinite" in w for w in meta.quality.warnings)
+    # Also sanitize an older cache, without changing its provider timestamp.
+    cached = pd.read_parquet(D._path("TCS.NS"))
+    cached.iloc[-1, cached.columns.get_loc("close")] = np.nan
+    cached.to_parquet(D._path("TCS.NS"))
+    replay, cached_meta = D.load_history("TCS.NS")
+    assert len(replay) == len(df) - 1
+    assert cached_meta.retrieved_at_utc == meta.retrieved_at_utc
+    assert any("cached bars with missing/nonfinite" in w for w in cached_meta.quality.warnings)
+
+
 def test_insufficient_history_raises(fake):
     fake.frames = {"NEW.NS": synth_raw(n=MIN_BARS - 1, split_at=100, div_at=200)}
     with pytest.raises(D.DataUnavailable):

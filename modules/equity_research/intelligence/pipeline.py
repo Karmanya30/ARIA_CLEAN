@@ -52,7 +52,7 @@ def no_data(query: str, target: Target, warnings: list[str]) -> dict[str, Any]:
 
 def _queue_forecast(symbol: str, report_id: str | None) -> None:
     """Enqueue the forecast validation run (background process); never slows or breaks the report."""
-    if os.getenv("ARIA_FORECAST", "1") == "0":
+    if os.getenv("ARIA_AUTH_MODE", "private") == "accounts" or os.getenv("ARIA_FORECAST", "1") == "0":
         return
     try:
         from modules.equity_research.forecast import jobs
@@ -63,7 +63,7 @@ def _queue_forecast(symbol: str, report_id: str | None) -> None:
 
 def _queue_scenario_backtest(snap: Snapshot) -> None:
     """Enqueue the historical scenario backtest, saving the statements this report already fetched (no extra requests)."""
-    if os.getenv("ARIA_FORECAST", "1") == "0" or os.getenv("ARIA_SCENARIO_BACKTEST", "1") == "0" or not snap.tables:
+    if os.getenv("ARIA_AUTH_MODE", "private") == "accounts" or os.getenv("ARIA_FORECAST", "1") == "0" or os.getenv("ARIA_SCENARIO_BACKTEST", "1") == "0" or not snap.tables:
         return
     try:
         from modules.equity_research.scenario_backtest import jobs

@@ -1,60 +1,12 @@
-"""
-ARIA Domain Intelligence & Query Guard.
+"""Advisory domain classification for legacy diagnostics.
 
-Why this module exists: narrowing ARIA's own RAG/training data to finance
-content does NOT stop the underlying LLM from answering totally unrelated
-questions (cricket scores, coding help, capital cities, ...) -- the model's
-own pretrained general knowledge is still there regardless of what ARIA's
-knowledge base contains. RAG limitation != LLM limitation. The fix has to
-be an explicit domain gate in front of the LLM, not a hope that narrow
-retrieval alone will narrow its answers.
+The legacy `allowed` field means membership of the financial topic list,
+not permission to answer a user. General questions and conversational replies
+are valid. Chat routing must not use this classifier to refuse them. Safety,
+privacy and authorization checks are separate and remain applicable.
 
-Architecture (see core/orchestrator.py for where this plugs in):
-
-    User Query
-        |
-        v
-    Domain Classifier (classify_domain) -- cheap/small model, not the main
-        |                                   narration model
-        v
-    +---------------------+---------------------------+
-    | confidently in-scope| confidently OUT of scope   |
-    | or ambiguous         | (allowed=False AND         |
-    | (confidence < 0.80   |  confidence >= 0.80)       |
-    | either way)           |                            |
-    +----------+-----------+-------------+---------------+
-               |                         |
-               v                         v
-      existing module routing      polite refusal
-      (core/orchestrator.py's       (build_refusal_response) --
-      precise equity/market/        the main LLM is never called
-      finance/tutor dispatch,       at all for these, saving cost
-      unchanged) -- genuinely
-      ambiguous queries land in
-      that dispatch's own
-      "general" fallback, whose
-      prompt (ai/llm/prompt_
-      templates.py's tutor_prompt)
-      already answers while
-      pivoting toward a finance/
-      business/company/management
-      angle instead of hard-
-      refusing every borderline
-      question.
-               |
-               v
-      Output Guard (validate_output) -- reuses the same classifier on the
-      generated answer as a non-blocking safety-net check, attached to the
-      response as metadata for transparency/demo purposes rather than
-      silently rewriting an already-generated answer.
-
-Fails open by design: if the classifier call errors, times out, or the
-model doesn't return parseable JSON (e.g. in tests, where the mocked LLM
-returns a canned non-JSON string), classify_domain() returns an
-"unavailable" result (`available: False`) and the caller (core/
-orchestrator.py) falls through to its pre-existing keyword-based routing
-untouched -- this guard only ever *adds* a gate, it never becomes a single
-point of failure for the whole app.
+`build_refusal_response` remains available for compatibility, but the chat
+orchestrator does not invoke it. Output classification is metadata only.
 """
 from __future__ import annotations
 

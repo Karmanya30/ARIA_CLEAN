@@ -5,9 +5,20 @@ mock_llm below, which patches every module that imported
 from __future__ import annotations
 
 import os
+import tempfile
+from pathlib import Path
 
 import pytest
 
+# Set before API/store imports: even legacy tests with fixed owner IDs must
+# never open the application's configured database. Keep fixtures/KB readable.
+_test_storage = tempfile.TemporaryDirectory(prefix="aria-pytest-", ignore_cleanup_errors=True)
+os.environ["DB_URL"] = "sqlite:///" + (Path(_test_storage.name) / "regression.db").as_posix()
+os.environ["ARIA_EXPENSIVE_REQUESTS_PER_MINUTE"] = "0"  # isolated limit tests supply their own rate
+os.environ["ARIA_AUTH_MODE"] = "private"  # account tests explicitly opt in; ignore deployment mode
+
+os.environ.setdefault("ARIA_INTENT_RESOLVER", "0")  # intent tests opt in explicitly; no live calls in regressions
+os.environ.setdefault("ARIA_MEMORY_SEMANTIC", "0")  # no embedding model loads unless a test opts in
 os.environ.setdefault("ARIA_WARMUP", "0")  # no model loading in the API's startup hook during tests
 os.environ.setdefault("ARIA_SENTIMENT", "0")  # tests never load FinBERT unless a test opts in
 os.environ.setdefault("ARIA_FORECAST", "0")  # tests never run the forecast engine unless a test opts in
@@ -56,6 +67,7 @@ def mock_llm(monkeypatch):
 
     fake = _MockLLM()
     monkeypatch.setattr(groq_client, "generate_response", fake)
+    monkeypatch.setattr(groq_client, "generate_structured", lambda *args, **kwargs: None)
 
     for module_path in _IMPORTERS:
         try:

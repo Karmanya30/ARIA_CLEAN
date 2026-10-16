@@ -53,10 +53,15 @@ def ungrounded(reply: str, source: str) -> list[float]:
     calendar numbers are allowed)."""
     allowed = _nums(source)
     bad = []
-    for n in _nums(reply):
+    units = {"k": 1e3, "thousand": 1e3, "lakh": 1e5, "lakhs": 1e5, "lac": 1e5,
+             "crore": 1e7, "crores": 1e7, "million": 1e6, "billion": 1e9, "trillion": 1e12}
+    for match in _NUM.finditer(reply):
+        n = float(match.group().replace(",", ""))
         if (n == int(n) and (n <= 31 or n in _OK_INTS or 1900 <= n <= 2100)):
             continue
-        if any(abs(n * k - f) <= max(0.011, 0.006 * abs(f)) or abs(n - f * k) <= max(0.011, 0.006 * abs(n)) for f in allowed for k in _SCALES):
+        unit = re.match(r"\s*(thousand|lakhs?|lac|crores?|million|billion|trillion|k)\b", reply[match.end():], re.I)
+        scaled = n * units[unit.group(1).lower()] if unit else n
+        if any(abs(scaled - f) <= max(0.011, 0.006 * abs(f)) for f in allowed):
             continue
         bad.append(n)
     return bad
@@ -142,6 +147,11 @@ def plain_summary(facts: dict, why: str) -> str:
         bits.append(f"worst fall in the last year {st['max_drawdown_1y_pct']:.1f}%")
     if bits:
         parts.append("History: " + "; ".join(bits) + ". " + I.CAVEAT)
+    if st.get("cagr_since_start_pct") is not None:
+        start, end = st.get("first_date"), st.get("last_date")
+        period = f" from {start} to {end}" if start and end else ""
+        parts.append(f"Since-start CAGR: {st['cagr_since_start_pct']:+.2f}%{period}. Total return over the same history was {st.get('return_since_start_pct'):+.2f}%." if st.get("return_since_start_pct") is not None
+                     else f"Since-start CAGR: {st['cagr_since_start_pct']:+.2f}%{period}.")
     if facts.get("risk_tags"):
         parts.append("Risks: " + " ".join(facts["risk_tags"][:3]))
     if facts.get("unavailable"):
@@ -164,6 +174,45 @@ def _history_text(history: list[dict] | None) -> str:
     return ("\nEARLIER IN THIS CONVERSATION (context only):\n" + "\n".join(lines) + "\n") if lines else ""
 
 
+def _direct_answer(facts: dict, question: str) -> str | None:
+    """Answer high-confidence numeric questions directly from fetched facts, without needing a model round trip."""
+    ql = question.lower()
+    if re.search(r"\b(target|fair value|should i buy|should i sell|buy|sell|hold)\b", ql):
+        return None
+    i, q, st = facts["instrument"], facts["quote"], facts.get("return_and_risk_stats", {})
+    name = q.get("name") or i["name"]
+    as_of = str(q.get("as_of") or st.get("last_date") or "")[:10]
+    if re.search(r"\bcagr\b|compound annual", ql) and re.search(r"since start|inception|launch|start", ql):
+        cagr = st.get("cagr_since_start_pct")
+        if cagr is None:
+            return None
+        start, end = st.get("first_date"), st.get("last_date")
+        total = st.get("return_since_start_pct")
+        line = f"{name}'s CAGR since the available history starts is {cagr:+.2f}%"
+        if start and end:
+            line += f", measured from {start} to {end}"
+        line += "."
+        if total is not None:
+            line += f" The total return over that same period is {total:+.2f}%."
+        return line + "\n\nThis is not investment advice."
+    if re.search(r"\b(returns?|performance)\b", ql):
+        bits = [f"{lab} {st[k]:+.2f}%" for k, lab in (("return_1y_pct", "1-year return"), ("cagr_3y_pct", "3-year CAGR"),
+                                                       ("cagr_5y_pct", "5-year CAGR"), ("cagr_since_start_pct", "since-start CAGR"))
+                if st.get(k) is not None]
+        if bits:
+            date_note = f" as of {as_of}" if as_of else ""
+            return f"For {name}{date_note}: " + "; ".join(bits) + f". {I.CAVEAT}\n\nThis is not investment advice."
+    # A target/forecast is not a request for today's quote.
+    if re.search(r"\b(nav|price|level|quote)\b", ql) and not re.search(r"\b(target|forecast|predict|future|next)\b", ql) and q.get("price") is not None:
+        label = "NAV" if i["type"] == "mutual_fund" else "yield" if q.get("yield") is not None else "price"
+        rupee = "₹" if i["currency"] == "INR" and label != "yield" else ""
+        unit = "%" if label == "yield" else (f" {i['currency']}" if i["currency"] and i["currency"] != "INR" else "")
+        move = f", {q['change_pct']:+.2f}% versus the previous reading" if q.get("change_pct") is not None else ""
+        date_note = f" as of {as_of}" if as_of else ""
+        return f"{name}'s latest {label} is {rupee}{_f(q['price'], 4 if abs(q['price']) < 1 else 2)}{unit}{move}{date_note}.\n\nThis is not investment advice."
+    return None
+
+
 def ask(it: dict, question: str, owner_id: str | None = None, history: list[dict] | None = None) -> dict[str, Any]:
     """ChatResponse-shaped dict ({"domain","query","response",...}) answering `question` about instrument `it`."""
     import ai.llm.groq_client as llm
@@ -171,11 +220,15 @@ def ask(it: dict, question: str, owner_id: str | None = None, history: list[dict
     facts = gather(it, owner_id)
     ftxt = json.dumps(facts, default=str, ensure_ascii=False)
     hist = _history_text(history)
-    source = ftxt + " " + question + " " + hist
+    # User text and previous model replies are not numeric evidence.
+    source = ftxt
     no_data = facts["quote"].get("price") is None and not facts.get("return_and_risk_stats")
     grounded, fallback, text = True, False, ""
+    direct = _direct_answer(facts, question)
     if no_data:
         text, fallback = plain_summary(facts, "I don't have live data for this instrument right now, so I won't guess."), True
+    elif direct:
+        text = direct
     else:
         prompt = PROMPT.format(history=hist, question=question, facts=ftxt)
         problem = ""
@@ -190,7 +243,7 @@ def ask(it: dict, question: str, owner_id: str | None = None, history: list[dict
                       "Rewrite it using only numbers copied from FACTS and do not use the rupee sign unless the instrument is priced in INR."
         else:
             grounded, fallback = False, True
-            text = plain_summary(facts, "I could not produce a fully checked explanation just now, so here is a summary of the data I fetched.")
+            text = plain_summary(facts, "Here is what I can verify from the data I fetched.")
     if "not investment advice" not in text.lower():
         text += "\n\nThis is not investment advice."
     return {"domain": "instrument", "query": question, "response": text,

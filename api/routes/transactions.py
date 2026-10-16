@@ -4,13 +4,14 @@ list (see modules/finance/pipeline.py's _load_transactions)."""
 from __future__ import annotations
 
 import random
-import time
-import uuid
 from datetime import date, timedelta
+from typing import Literal
 from typing import Any
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic import ValidationError
+from sqlalchemy.exc import OperationalError
 
 from modules.finance.statement_import import EXPENSE_KEYS as _EXPENSE
 
@@ -18,12 +19,12 @@ router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
 
 class TransactionRequest(BaseModel):
-    session_id: str
-    date: str
-    category: str
-    amount: float
-    merchant: str | None = None
-    channel: str | None = None
+    session_id: str = Field(min_length=1, max_length=200)
+    date: date
+    category: Literal["housing", "food", "transport", "utilities", "emi", "entertainment", "medical", "other"]
+    amount: float = Field(gt=0, le=1e11, allow_inf_nan=False)
+    merchant: str | None = Field(None, max_length=300)
+    channel: Literal["upi", "card", "cash", "netbanking"] | None = None
 
 
 @router.get("")
@@ -46,22 +47,24 @@ def add_transaction(req: TransactionRequest) -> dict[str, str]:
     from shared.user_store import add_transaction
 
     add_transaction(
-        req.session_id, date=req.date, category=req.category, amount=req.amount,
+        req.session_id, date=req.date.isoformat(), category=req.category, amount=req.amount,
         merchant=req.merchant, channel=req.channel,
     )
     return {"status": "added"}
 
 
 _MAX_BYTES = 5 * 1024 * 1024
-_TTL = 600
-_imports: dict[str, tuple[float, str, list[dict], dict]] = {}  # import_id -> (expires, session_id, rows, suggested)
 
 
 @router.post("/parse")
 def parse_statement_file(file: UploadFile = File(...), session_id: str = Form(...)) -> dict[str, Any]:
-    """Parse an uploaded statement/transaction file in memory. The file itself is never stored; only the
-    normalized transactions are kept server-side for 10 minutes (so /import can use them), then dropped."""
+    """Parse in memory; keep an owner-scoped normalized preview with a 10-minute expiry.
+    The original file is never stored. The preview survives worker/API restarts."""
     from modules.finance import statement_import as si
+    from shared import statement_store
+
+    if not session_id.strip() or len(session_id) > 200:
+        raise HTTPException(422, "session_id must be nonblank and at most 200 characters")
 
     data = file.file.read(_MAX_BYTES + 1)
     if len(data) > _MAX_BYTES:
@@ -73,11 +76,7 @@ def parse_statement_file(file: UploadFile = File(...), session_id: str = Form(..
         raise HTTPException(exc.status, exc.message)
     except Exception:  # never leak internals or file contents
         raise HTTPException(422, "Sorry, I couldn't read that file. Try CSV or Excel.")
-    now = time.time()
-    for k in [k for k, v in _imports.items() if v[0] < now]:
-        del _imports[k]
-    import_id = uuid.uuid4().hex
-    _imports[import_id] = (now + _TTL, session_id, parsed["rows"], info["suggested_profile"])
+    import_id = statement_store.create(session_id, parsed["rows"], info["suggested_profile"])
     return {
         "filename": file.filename, "format": parsed["format"], "rows_total": len(parsed["rows"]),
         "importable": sum(1 for r in parsed["rows"] if r["direction"] == "debit" and r["category"] != "investment" and r["category"] in (*_EXPENSE, "emi")),
@@ -87,8 +86,8 @@ def parse_statement_file(file: UploadFile = File(...), session_id: str = Form(..
 
 
 class ImportRequest(BaseModel):
-    session_id: str
-    import_id: str
+    session_id: str = Field(min_length=1, max_length=200)
+    import_id: str = Field(min_length=1, max_length=200)
     apply_to_profile: bool = False
 
 
@@ -97,39 +96,18 @@ def import_statement(req: ImportRequest) -> dict[str, Any]:
     """Save a parsed statement's expense/EMI debits (and salary-like credits, as kind=income) as transactions,
     skipping ones already stored, in one bulk insert; only when apply_to_profile is true, also its suggested
     expenses/income into the profile."""
-    from modules.finance.statement_import import to_store_category
-    from shared.user_store import add_transactions, get_financial_profile, get_transactions, save_financial_profile
+    from shared import statement_store
 
-    entry = _imports.get(req.import_id)
-    if not entry or entry[0] < time.time() or entry[1] != req.session_id:
-        raise HTTPException(404, "That import has expired. Please upload the file again.")
-    _, _, rows, suggested = entry
-    seen = {(t["date"], round(t["amount"], 2), (t["merchant"] or "").lower(), t["kind"]) for t in get_transactions(req.session_id, kind=None)}
-    batch, duplicates = [], 0
-    for r in rows:
-        income = r["direction"] == "credit" and r["category"] == "income"
-        if not income and (r["direction"] != "debit" or r["category"] == "investment" or r["category"] not in (*_EXPENSE, "emi")):
-            continue
-        kind = "income" if income else "expense"
-        key = (r["date"], r["amount"], r["merchant"].lower(), kind)
-        if key in seen:
-            duplicates += 1
-            continue
-        seen.add(key)
-        batch.append({"date": r["date"], "category": "income" if income else to_store_category(r["category"]),
-                      "amount": r["amount"], "merchant": r["merchant"], "channel": "statement", "kind": kind})
-    add_transactions(req.session_id, batch)
-    imported = len(batch)
-    fields = {k: v for k, v in suggested.items() if v}
-    if req.apply_to_profile and fields:
-        # the spending averages leave EMIs out, so without the EMI the surplus and savings rate would be overstated
-        emis = [r for r in rows if r["direction"] == "debit" and r["category"] == "emi"]
-        if emis and not (get_financial_profile(req.session_id) or {}).get("loans"):
-            d0, d1 = min(r["date"] for r in rows), max(r["date"] for r in rows)
-            months = (int(d1[:4]) - int(d0[:4])) * 12 + int(d1[5:7]) - int(d0[5:7]) + 1
-            fields["loans"] = [{"kind": "other", "emi": round(sum(r["amount"] for r in emis) / months)}]
-        save_financial_profile(req.session_id, source="form", **fields)
-    return {"imported": imported, "duplicates": duplicates, "profile_updated": bool(req.apply_to_profile and fields)}
+    if not req.session_id.strip():
+        raise HTTPException(422, "session_id must not be blank")
+    try:
+        return statement_store.import_preview(req.session_id, req.import_id, req.apply_to_profile)
+    except statement_store.PreviewExpired as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(422, "The statement averages exceed supported profile limits. Import without updating the profile, or use a shorter statement.") from exc
+    except OperationalError as exc:
+        raise HTTPException(503, "Import is temporarily unavailable. Please retry the same preview.") from exc
 
 
 @router.delete("")
@@ -140,15 +118,19 @@ def clear_all_transactions(session_id: str) -> dict[str, str]:
     return {"status": "cleared"}
 
 
+class SampleRequest(BaseModel):
+    session_id: str = Field(min_length=1, max_length=200)
+
+
 @router.post("/sample")
-def load_sample_transactions(req: dict[str, str]) -> dict[str, str]:
+def load_sample_transactions(req: SampleRequest) -> dict[str, str]:
     """Deterministic synthetic transactions spanning two months, including
     one deliberate outlier -- enough to clear anomaly.py's MIN_TRANSACTIONS
     (10) and give the forecaster a real multi-month sequence, so trying the
     forecast/anomaly models doesn't require manually adding 15+ rows."""
     from shared.user_store import add_transaction
 
-    session_id = req["session_id"]
+    session_id = req.session_id
     rng = random.Random(f"sample_txns_{session_id}")
     today = date.today()
     rows = [

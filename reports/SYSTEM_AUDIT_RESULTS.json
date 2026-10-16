@@ -1,0 +1,340 @@
+{
+  "overall_status": "PARTIALLY VERIFIED",
+  "recorded_at_utc": "2026-10-16T19:34:46.436555+00:00",
+  "branch": "audit/system-review-20261016",
+  "baseline": {
+    "passed": 1041,
+    "failed": 5,
+    "deselected": 7
+  },
+  "final_python": {
+    "tests": 1139,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 1139,
+    "seconds": 171.37
+  },
+  "final_browser": {
+    "startTime": "2026-10-16T19:30:44.285Z",
+    "duration": 60400.297,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "final_runner_checks": [
+    {
+      "check": "inventory",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 0.15
+    },
+    {
+      "check": "regression",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 176.2
+    },
+    {
+      "check": "build",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 9.58
+    },
+    {
+      "check": "lint",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 0.73
+    },
+    {
+      "check": "browser",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 61.73
+    },
+    {
+      "check": "account_browser",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 31.65
+    },
+    {
+      "check": "restart",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 34.67
+    },
+    {
+      "check": "account_restart",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 34.96
+    },
+    {
+      "check": "native_memory",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 14.12
+    },
+    {
+      "check": "dependency_consistency",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 0.81
+    },
+    {
+      "check": "python_advisories",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 4.37
+    },
+    {
+      "check": "npm_advisories",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 1.8
+    },
+    {
+      "check": "connections",
+      "status": "FAIL",
+      "exit_code": 1,
+      "seconds": 16.55
+    },
+    {
+      "check": "live_intent",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 19.97
+    }
+  ],
+  "lint_warnings": 73,
+  "python_known_advisory_records": 0,
+  "npm_advisories": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "native_memory": {
+    "fixture": "10 source turns + 30 distractors, cross-conversation, synthetic only",
+    "semantic": "1",
+    "queries": 10,
+    "recall_at_5": 1.0,
+    "mrr_at_5": 0.9,
+    "results": [
+      {
+        "query": "Acme WACC",
+        "rank": 1
+      },
+      {
+        "query": "Copperfin exit multiple",
+        "rank": 1
+      },
+      {
+        "query": "Orion audit date",
+        "rank": 1
+      },
+      {
+        "query": "Nimbus debt cap",
+        "rank": 1
+      },
+      {
+        "query": "Cedar revenue target",
+        "rank": 1
+      },
+      {
+        "query": "Falcon margin",
+        "rank": 1
+      },
+      {
+        "query": "Harbor customer concentration",
+        "rank": 1
+      },
+      {
+        "query": "Willow investment thesis",
+        "rank": 1
+      },
+      {
+        "query": "cash reserve for emergencies",
+        "rank": 2
+      },
+      {
+        "query": "investment horizon until leaving work",
+        "rank": 2
+      }
+    ],
+    "baseline": "No executable pre-change retrieval benchmark was recorded; no improvement claim."
+  },
+  "intent": {
+    "model": "openai/gpt-oss-120b",
+    "modes": {
+      "baseline": {
+        "cases": 12,
+        "routing_accuracy": 0.5833333333333334,
+        "route_and_reference_accuracy": 0.3333333333333333,
+        "resolver_calls": 0,
+        "provider_prompt_tokens": 0,
+        "provider_output_tokens": 0,
+        "mean_latency_ms": 30.980833333333333
+      },
+      "resolver": {
+        "cases": 12,
+        "routing_accuracy": 0.9166666666666666,
+        "route_and_reference_accuracy": 0.8333333333333334,
+        "resolver_calls": 8,
+        "provider_prompt_tokens": 4910,
+        "provider_output_tokens": 1551,
+        "mean_latency_ms": 720.1116666666667
+      }
+    },
+    "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
+  },
+  "live_connections": {
+    "results": [
+      {
+        "name": "AMFI NAV",
+        "status": "VERIFIED",
+        "seconds": 0.92,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "mfapi history",
+        "status": "VERIFIED",
+        "seconds": 0.5,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "CoinGecko",
+        "status": "VERIFIED",
+        "seconds": 0.64,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "Yahoo chart",
+        "status": "VERIFIED",
+        "seconds": 0.43,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "FRED",
+        "status": "NOT VERIFIED",
+        "seconds": 15.42,
+        "error_type": "ReadTimeout",
+        "http_status": null
+      },
+      {
+        "name": "Groq",
+        "status": "VERIFIED",
+        "seconds": 1.86,
+        "model": "openai/gpt-oss-120b",
+        "synthetic_only": true
+      },
+      {
+        "name": "Gemini",
+        "status": "VERIFIED",
+        "seconds": 3.83,
+        "model": "gemini-3.6-flash",
+        "synthetic_only": true
+      }
+    ],
+    "limitations": "Connectivity/schema only; not market accuracy, freshness, grounded answers or browser voice/video. Tavus and ngrok not started."
+  },
+  "actual_backend_restart": {
+    "status": "VERIFIED",
+    "checks": [
+      "profile SQLite values",
+      "profile after backend restart",
+      "transactions after backend restart",
+      "chat retry replay after restart",
+      "history count remains one",
+      "wrong owner rejected after restart",
+      "pending statement preview survives restart",
+      "import receipt survives another restart",
+      "retry does not duplicate transactions or overwrite later profile edit",
+      "completed audio served across three API lifetimes after source removal"
+    ],
+    "database": ".audit\\browser\\restart-7ce88dad4330444ca2b93978379fe5a9\\aria.db"
+  },
+  "actual_pdf_export": {
+    "status": "VERIFIED",
+    "route": "saved report PDF download",
+    "http_status": 200,
+    "bytes": 1419619,
+    "pages": 23,
+    "synthetic_company_text_verified": true,
+    "browser": "Playwright Chromium, headless",
+    "limits": "API export; print dialog and every browser PDF control were not exercised.",
+    "verification_scope": "Preceding audit; not repeated in statement-import continuation."
+  },
+  "limits": [
+    "Private mode remains the default and trusts device-owner capabilities; optional accounts are not enabled in .env.",
+    "Live Google consent is unverified; Google browser tests use a local adapter and RSA tests use local certificate keys.",
+    "Account mode blocks unscoped paid-video/compute controls; email verification/recovery/MFA/roles remain open.",
+    "FRED remains a recorded real connection failure; physical voice/video is not exercised.",
+    "Native parser CPU/memory sandboxing, deployment-wide quotas and in-flight speech resumption remain open.",
+    "Not every financial tax case, model answer, UI control or platform is verified."
+  ],
+  "report": "reports/SYSTEM_AUDIT.md",
+  "continuation": {
+    "report": "reports/STATEMENT_IMPORT_RELIABILITY.md",
+    "new_tests": 19,
+    "changes": [
+      "Durable normalized statement previews and retry receipts",
+      "Atomic transaction/profile/receipt commit and rollback",
+      "Thread/process deduplication and replay across API restarts",
+      "Explicit expense-breakdown replacement",
+      "Compressed workbook allocation bounds",
+      "Invalid uploaded numeric values rejected before preview storage"
+    ],
+    "scope_limit": "Historical statement-import checkpoint; see latest_continuation and account/resource reports for subsequent fixes and remaining limits."
+  },
+  "final_account_browser": {
+    "startTime": "2026-10-16T19:31:46.036Z",
+    "duration": 30307.78,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "python_warnings": 104,
+  "actual_account_restart": {
+    "status": "VERIFIED",
+    "checks": [
+      "account cookie survives actual API restart",
+      "account profile persists",
+      "revoked old cookie rejected after another restart"
+    ],
+    "database": ".audit\\browser\\account-restart-c4a07ed0b86b4af3b993dd9d6cfc18e7\\aria.db"
+  },
+  "latest_continuation": {
+    "reports": [
+      "reports/RESOURCE_AND_AUDIO_HARDENING.md",
+      "reports/ACCOUNT_AUTHENTICATION.md"
+    ],
+    "new_python_tests_since_statement_continuation": 45,
+    "changes": [
+      "Pre-parser HTTP body/time and per-worker concurrency/rate limits",
+      "Bounded legacy XLS/PDF/text/JSON parsing",
+      "Bounded speech queue and expiring durable completed clips",
+      "Optional email/password plus Google accounts with explicit linking",
+      "Account session revocation, owner/CSRF/websocket checks and separate learning keys",
+      "Missing/nonfinite Yahoo price bars excluded with provenance warning"
+    ],
+    "default_mode": "private",
+    "env_modified": false
+  },
+  "inventory": {
+    "route_declarations": 72,
+    "control_templates": 546,
+    "actual_fastapi_route_count_matched": true,
+    "scope": "Static templates are not browser coverage; inventory helper refreshed after final application rerun."
+  }
+}

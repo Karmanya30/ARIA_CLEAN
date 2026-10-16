@@ -1,0 +1,248 @@
+/* "Vitara Markets" -- Vitara (theme-vitara.css matches data-theme^='vitara') plus a live-markets layer.
+ * Only additions live here. Contrast of --up / --down is >= 5:1 on the #f8f5ee canvas. */
+[data-theme='vitara-markets'] {
+  --up: #13795b;
+  --down: #b42318;
+  --flat: var(--ink-muted);
+  /* categorical series colours (donut, cash-flow bars) */
+  --viz-1: #1f6f54;
+  --viz-2: #b4691f;
+  --viz-3: #2f5f9e;
+  --viz-4: #8a4f9e;
+  --viz-5: #8a6d00;
+  --viz-6: #4d7c0f;
+  --viz-7: #a33a5b;
+  --viz-8: #0e7490;
+  --viz-9: #6b5b4a;
+  --num: 'tnum' 1;
+
+  --tape-h: 36px;
+  --nav-h: 72px;
+  --topbar-h: calc(var(--nav-h) + var(--tape-h)); /* pages that fill the viewport subtract nav + tape */
+
+  /* type scale */
+  --fs-1: 12px;
+  --fs-2: 13.5px;
+  --fs-3: 15px;
+  --fs-4: 18px;
+  --fs-5: 24px;
+  --fs-6: 32px;
+  /* 4px spacing grid */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 150ms;
+  --t-med: 250ms;
+}
+
+[data-theme='vitara-markets'] .app-sidebar {
+  height: var(--nav-h);
+}
+[data-theme='vitara-markets'] .num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--num);
+}
+
+/* ── Ticker tape: fixed full-width strip right under the top bar ───────────────── */
+.tape {
+  position: fixed;
+  inset: calc(var(--strip-h, 0px) + var(--nav-h)) 0 auto 0;
+  z-index: 25;
+  height: var(--tape-h);
+  display: flex;
+  align-items: center;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-1);
+  overflow: hidden;
+}
+.tape-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+}
+.tape-list {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-2);
+  margin: 0;
+  list-style: none;
+  animation: tape-scroll 90s linear infinite;
+}
+.tape[data-motion='off'] .tape-list,
+.tape-track:hover .tape-list,
+.tape-track:focus-within .tape-list {
+  animation-play-state: paused;
+}
+@keyframes tape-scroll {
+  to {
+    transform: translateX(-100%);
+  }
+}
+.tape-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 28px;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.tape-item:hover {
+  background: var(--bg-inset);
+}
+.tape-item b {
+  font-weight: 600;
+}
+.tape-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 28px;
+  margin: 0 var(--s-2);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.tape-note {
+  padding: 0 var(--s-4);
+  color: var(--ink-muted);
+}
+.tape-skel {
+  flex: 1;
+  margin: 0 var(--s-4);
+}
+.tape :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+@media (max-width: 880px) {
+  [data-theme='vitara-markets'] {
+    --topbar-h: 0px;
+  }
+  [data-theme='vitara-markets'] .app-sidebar {
+    height: auto;
+  }
+  .tape {
+    position: static;
+    inset: auto;
+  }
+  .tape-track {
+    overflow-x: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tape-list {
+    animation: none;
+  }
+  .tape-track {
+    overflow-x: auto;
+  }
+  .tape-toggle {
+    display: none;
+  }
+}
+
+/* ── Shared building blocks for the dashboard widgets ───────────────────────────── */
+.mk-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--s-5);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+.mk-card:hover {
+  box-shadow: var(--shadow-md);
+}
+.mk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+.mk-up {
+  color: var(--up);
+}
+.mk-down {
+  color: var(--down);
+}
+.mk-flat {
+  color: var(--flat);
+}
+.mk-skel {
+  display: block;
+  height: var(--h, 16px);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-inset) 25%, var(--border) 50%, var(--bg-inset) 75%);
+  background-size: 200% 100%;
+  animation: mk-shimmer 1.4s linear infinite;
+}
+@keyframes mk-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk-skel {
+    animation: none;
+  }
+  .mk-card {
+    transition: none;
+  }
+}
+
+/* ── Light / Night switch in the top bar (next to "New session") ─────────────────── */
+.mode-toggle {
+  order: 3;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--ink);
+  transition: background var(--t-fast) var(--ease);
+}
+.mode-toggle:hover {
+  background: var(--bg-inset);
+}
+.mode-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* the top bar holds brand + nav pill + mode toggle + New session: let the nav give way instead of pushing the toggle off-screen */
+[data-theme='vitara-markets'] .app-sidebar .sidebar-nav { min-width: 0; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
+[data-theme='vitara-markets'] .app-sidebar .sidebar-new-btn { white-space: nowrap; flex: none; }
+[data-theme='vitara-markets'] .app-sidebar .mode-toggle { order: 3; flex: none; }

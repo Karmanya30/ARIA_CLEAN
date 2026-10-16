@@ -56,7 +56,7 @@ export function MessageBubble({
       </div>
 
       <div className="bubble bubble-assistant">
-        <span className="bubble-avatar bubble-avatar-assistant">
+        <span className="bubble-avatar">
           <Sparkles size={15} />
         </span>
         <div className="bubble-content">

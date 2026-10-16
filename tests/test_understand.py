@@ -104,7 +104,7 @@ def route_label(query: str, correct: bool = True) -> tuple[str, dict]:
     get_session(sid)["adapt_tone"] = False
     with mock.patch.multiple(orchestrator, company_intelligence=stub("company_intelligence"), equity_research_pipeline=stub("equity_research"),
                              market_pipeline=stub("market"), finance_pipeline=stub("finance"), tutor_pipeline=stub("tutor"),
-                             classify_domain=lambda q: {"available": False}, validate_output=lambda *a: {"available": False},
+                             validate_output=lambda *a: {"available": False},
                              _smalltalk_reply=lambda q: {"domain": "smalltalk", "query": q, "response": "hi"}):
         response = orchestrator.handle_query(query, session_id=sid, correct=correct)
     clear_session(sid)

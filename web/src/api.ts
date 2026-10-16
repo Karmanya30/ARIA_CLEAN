@@ -1,5 +1,6 @@
 import type { ChatMode, ChatResponse, InstrumentRange, FinanceProfile, ForYouData, ProfileState, ProfileSummary, ProgressState, ReportMeta, StatementImportResult, SpendingInsightsData, StatementPreview, Transaction, ValidationLatest } from './types'
 
+import { accountOwner } from './authState'
 const BASE = ''
 
 // FastAPI's HTTPException serializes as {"detail": "message"}. Surfacing
@@ -37,9 +38,10 @@ export function setAdaptTone(on: boolean) {
 }
 
 /** Device-level id that owns saved research reports. The chat session id resets per browser tab, so
- * reports are keyed by this instead (ARIA has no accounts). Falls back to a per-page id if storage is blocked. */
+ * reports use the signed-in account when enabled, otherwise this private device capability. */
 let memoryOwner: string | null = null
 export function ownerId(): string {
+  if (accountOwner()) return accountOwner()!
   try {
     const existing = localStorage.getItem(OWNER_KEY)
     if (existing) return existing
@@ -66,19 +68,19 @@ export interface CompanyIntel {
   domain: string
   company: { name: string; symbol: string }
   intelligence: {
-    score: number
-    band: string
-    coverage: number
+    score: number | null
+    band: string | null
+    coverage: number        // 0–1 fraction of max weight used
     low_evidence: boolean
-    components: { name: string; weight: number; value: number }[]
+    components: { name: string; weight: number; value: number | null }[]  // value is 0–1 fraction or null if not rated
     divergences: { id: string; severity: string; text: string; evidence: string }[]
   }
   scorecard: {
-    pillars: { name: string; rating: string; points: number; reasons: { sign: string; text: string }[] }[]
-    overlay: { tone: string; reading: string }
+    pillars: { name: string; rating: string; points: number; reasons: { sign: number; text: string }[] }[]  // sign: +1/-1/0
+    overlay: { tone: string; reading: string; weak: string[]; strong: string[] }
   }
-  news: { title: string; source: string; date: string; direction: string; net: number }[]
-  call: { available: boolean; period?: string; net?: number; themes?: Record<string, { text: string; label: string | null; net: number | null }[]> }
+  news: { title: string; source: string; date: string; direction: string | null; net: number | null }[]
+  call: { available: boolean; period?: string; net?: number | null; themes?: Record<string, { text: string; label: string | null; net: number | null }[]> }
   response: string
   for_you?: ForYouData | null
 }
@@ -111,21 +113,21 @@ export const api = {
       body: JSON.stringify({ id, question, session_id: sessionId, owner_id: ownerId(), history }),
     }),
 
-  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true) =>
+  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, systemContext?: string) =>
     j<ChatResponse>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ query, session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone(), correct }),
+      body: JSON.stringify({ query, request_id: crypto.randomUUID(), session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone(), correct, ...(systemContext ? { system_context: systemContext } : {}) }),
     }),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(
-      `/api/chat/history?session_id=${encodeURIComponent(sessionId)}`,
+      `/api/chat/history?session_id=${encodeURIComponent(sessionId)}&owner_id=${encodeURIComponent(ownerId())}`,
     ),
 
   clearChat: (sessionId: string) =>
     j<{ status: string }>('/api/chat/clear', {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
+      body: JSON.stringify({ session_id: sessionId, owner_id: ownerId() }),
     }),
 
   // multipart: the browser sets the Content-Type (with boundary) itself
@@ -186,7 +188,7 @@ export const api = {
   loadSampleTransactions: (sessionId: string) =>
     j<{ status: string; count: string }>('/api/transactions/sample', {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
+      body: JSON.stringify({ session_id: sessionId, owner_id: ownerId() }),
     }),
 
   getProgress: (sessionId: string) =>
@@ -228,7 +230,7 @@ export const api = {
   startTavus: (sessionId: string) =>
     j<{ conversation_id: string; conversation_url: string; embed_url: string }>('/api/tavus/start', {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
+      body: JSON.stringify({ session_id: sessionId, owner_id: ownerId() }),
     }),
 
   // Pass the id you started: a bare end would stop whichever call is active now, possibly a newer one.

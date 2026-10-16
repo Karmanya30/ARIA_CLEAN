@@ -2,6 +2,11 @@
 env
 .venv/
 __pycache__/
+.audit/
+.tmp_pytest*/
+*.bak
+web/test-results/
+web/playwright-report/
 *.py[cod]
 
 # local binaries / logs / runtime DB — never commit these

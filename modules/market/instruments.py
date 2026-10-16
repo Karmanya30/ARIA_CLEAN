@@ -348,7 +348,7 @@ def resolve(iid: str) -> dict:
             if it["symbol"] == rest:
                 return it
         meta, hist, _ = amfi.history(rest)  # AMFI file down, or a scheme it no longer lists
-        if not meta:
+        if not meta or str(meta.get("scheme_code", "")) != rest:
             raise NotFound(f"no mutual fund with scheme code {rest}")
         return _item("mutual_fund", rest, meta.get("scheme_name", rest), "AMFI", "INR", "mfapi.in", meta.get("fund_house", ""),
                      _mf={"code": rest, "name": meta.get("scheme_name", rest), "amc": meta.get("fund_house", ""), "category": meta.get("scheme_category", ""),
@@ -658,7 +658,8 @@ def _quote_yahoo(it: dict) -> dict:
             if info.get(src) is not None:
                 q[k] = info[src]
     if t == "crypto" and cg:
-        q["source"] += " + CoinGecko"
+        if "CoinGecko" not in q["source"]:
+            q["source"] += " + CoinGecko"
         q.update(market_cap=cg.get("market_cap"), volume_24h=cg.get("total_volume"), market_cap_rank=cg.get("market_cap_rank"),
                  high_24h=_r(cg.get("high_24h")), low_24h=_r(cg.get("low_24h")), circulating_supply=cg.get("circulating_supply"))
     elif t == "crypto":
@@ -773,7 +774,12 @@ def return_stats(series: list[tuple[str, float]], crypto: bool = False) -> dict:
     s = pd.Series([p for _, p in series], index=pd.to_datetime([d for d, _ in series]))
     s = s[~s.index.duplicated()].sort_index()
     last_d, last = s.index[-1], float(s.iloc[-1])
-    out: dict[str, Any] = {"first_date": s.index[0].date().isoformat(), "last_date": last_d.date().isoformat()}
+    first_d, first = s.index[0], float(s.iloc[0])
+    out: dict[str, Any] = {"first_date": first_d.date().isoformat(), "last_date": last_d.date().isoformat()}
+    all_days = max((last_d - first_d).days, 0)
+    if first > 0 and all_days >= 30:
+        out["return_since_start_pct"] = _pct((last / first - 1) * 100)
+        out["cagr_since_start_pct"] = _pct(((last / first) ** (365.25 / all_days) - 1) * 100)
     for name, days in (("1m", 30), ("3m", 91), ("6m", 182), ("1y", 365), ("3y", 1095), ("5y", 1825)):
         target = last_d - pd.Timedelta(days=days)
         if s.index[0] <= target + pd.Timedelta(days=5):
@@ -810,11 +816,13 @@ def simulate_sip(series: list[tuple[str, float]], monthly: float, years: float) 
     if s.empty:
         raise NoData("no usable prices")
     end = s.index[-1]
-    w = s[s.index >= end - pd.DateOffset(years=years)]
-    first = w.groupby([w.index.year, w.index.month]).head(1)
+    monthly_first = s.groupby([s.index.year, s.index.month]).head(1)
+    requested_installments = max(1, int(round(years * 12)))
+    first = monthly_first.tail(requested_installments)
     n = len(first)
     if n < 3:
         raise NoData("not enough price history for a SIP simulation (need at least 3 months)")
+    w = s[s.index >= first.index[0]]
     units = pd.Series(0.0, index=w.index)
     units[first.index] = monthly / first.values
     cum = units.cumsum()
@@ -826,7 +834,7 @@ def simulate_sip(series: list[tuple[str, float]], monthly: float, years: float) 
     run = value[cum > 0]
     inv_path = pd.Series(monthly, index=first.index).cumsum()
     return {"monthly": monthly, "installments": n, "start": w.index[0].date().isoformat(), "end": end.date().isoformat(),
-            "years_used": round(days / 365.25, 2), "invested": round(invested, 2), "value": round(final, 2),
+            "years_used": round(n / 12, 2), "invested": round(invested, 2), "value": round(final, 2),
             "gain": round(final - invested, 2), "gain_pct": _pct((final / invested - 1) * 100),
             "xirr_pct": _pct(x * 100) if x is not None else None,
             "cagr_pct": _pct(((float(w.iloc[-1]) / float(w.iloc[0])) ** (365.25 / days) - 1) * 100) if days >= 30 else None,
@@ -892,8 +900,11 @@ def profile(it: dict) -> dict:
 
     def add(label: str, value: Any, unit: str = "") -> None:
         if value is not None and value != "":
-            num = f"{value:,}" if isinstance(value, int) else f"{value:,.2f}" if abs(value) >= 1 else f"{value:.6g}"
-            rows.append({"label": label, "value": f"{num}{unit}" if isinstance(value, (int, float)) else str(value)})
+            if isinstance(value, (int, float)):
+                num = f"{value:,}" if isinstance(value, int) else f"{value:,.2f}" if abs(value) >= 1 else f"{value:.6g}"
+                rows.append({"label": label, "value": f"{num}{unit}"})
+            else:
+                rows.append({"label": label, "value": str(value)})
 
     what = _TYPE_WHAT.get(t, "").format(ex=it["exchange"] or "stock")
     if t == "mutual_fund":
@@ -931,6 +942,7 @@ def profile(it: dict) -> dict:
         info = _info(it["symbol"]) if t in ("stock", "etf") else {}
         desc = (info.get("longBusinessSummary") or "")[:600]
     for k, label in (("return_1y_pct", "1-year return"), ("cagr_3y_pct", "3-year CAGR"), ("cagr_5y_pct", "5-year CAGR"),
+                     ("cagr_since_start_pct", "CAGR since start"),
                      ("volatility_1y_pct", "1-year volatility"), ("max_drawdown_1y_pct", "Worst fall, last year")):
         add(label, stats.get(k), "%")
     tags += _vol_tag(stats.get("volatility_1y_pct"))

@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import { VersionRouter } from './VersionRouter.tsx'
+import { AuthGate } from './AuthGate'
 
 // Deliberately not wrapped in <StrictMode>: it double-invokes effects in
 // dev to help find bugs, which is fine for most components but not for
@@ -9,4 +10,4 @@ import App from './App.tsx'
 // cleanup, and never create a replacement, leaving a dead embed and a
 // wasted API call every time. Not worth the dev-time diagnostic value
 // here versus the cost/correctness risk.
-createRoot(document.getElementById('root')!).render(<App />)
+createRoot(document.getElementById('root')!).render(<AuthGate><VersionRouter /></AuthGate>)
