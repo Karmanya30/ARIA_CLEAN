@@ -11,6 +11,7 @@ export function VoiceDisk({ audioToken }: { audioToken?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const graph = useRef<{ context: AudioContext; analyser: AnalyserNode; source: MediaElementAudioSourceNode } | null>(null)
   const [status, setStatus] = useState('Ready to talk')
+  const [capturePhase, setCapturePhase] = useState('idle')
 
   const prepareAnalysis = useCallback(() => {
     const audio = audioRef.current
@@ -34,6 +35,20 @@ export function VoiceDisk({ audioToken }: { audioToken?: string }) {
   // Connect before playback: changing the output route in a play event can
   // interrupt Chromium's media stream, particularly around seeks/autoplay.
   useLayoutEffect(prepareAnalysis, [prepareAnalysis])
+
+  useEffect(() => {
+    const prepareReply = () => {
+      audioRef.current?.pause()
+      void graph.current?.context.resume().catch(() => {})
+    }
+    window.addEventListener('aria:voice-capture-start', prepareReply)
+    const captureState = (event: Event) => setCapturePhase((event as CustomEvent<string>).detail)
+    window.addEventListener('aria:voice-capture-state', captureState)
+    return () => {
+      window.removeEventListener('aria:voice-capture-start', prepareReply)
+      window.removeEventListener('aria:voice-capture-state', captureState)
+    }
+  }, [])
 
   const startAnalysis = useCallback(() => {
     prepareAnalysis()
@@ -143,7 +158,10 @@ export function VoiceDisk({ audioToken }: { audioToken?: string }) {
       <canvas ref={canvasRef} aria-hidden="true" />
       <div className="hero-orb voice-disk"><BrandMark /></div>
     </div>
-    <p className="voice-disk-status" role="status">{audioToken ? status : 'Ready to talk'}</p>
+    <p className="voice-disk-status" role="status">{capturePhase === 'requesting' ? 'Opening microphone…'
+      : capturePhase === 'recording' ? 'Listening…'
+      : capturePhase === 'transcribing' ? 'Preparing your reply…'
+      : audioToken ? status : 'Ready to talk'}</p>
     <p className="voice-disk-caption">Voice volume shapes the disk. Frequencies shape the waves.</p>
     <audio ref={audioRef} controls autoPlay hidden={!audioToken} src={audioToken ? api.audioUrl(audioToken) : undefined}
       aria-label="ARIA voice playback" onPlay={startAnalysis}

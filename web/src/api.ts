@@ -146,10 +146,11 @@ export const api = {
       body: JSON.stringify({ session_id: ownerId(), import_id: importId, apply_to_profile: applyToProfile }),
     }),
 
-  transcribe: async (blob: Blob): Promise<{ text: string }> => {
+  transcribe: async (blob: Blob, signal?: AbortSignal): Promise<{ text: string }> => {
     const form = new FormData()
-    form.append('file', blob, 'recording.webm')
-    const res = await fetch('/api/voice/transcribe', { method: 'POST', body: form })
+    const extension = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm'
+    form.append('file', blob, `recording.${extension}`)
+    const res = await fetch('/api/voice/transcribe', { method: 'POST', body: form, signal })
     if (!res.ok) throw new Error(await extractErrorDetail(res))
     return res.json()
   },

@@ -31,27 +31,32 @@ function Composer({
   onQueryChange,
   onSubmit,
   disabled,
+  onVoiceSubmit,
 }: {
   variant: 'centered' | 'pinned'
   query: string
   onQueryChange: (v: string) => void
   onSubmit: () => void
   disabled: boolean
+  onVoiceSubmit?: (text: string) => void | Promise<void>
 }) {
+  const [voiceBusy, setVoiceBusy] = useState(false)
   return (
     <div className={`composer composer-${variant}`}>
-      <VoiceRecorder onTranscribed={onQueryChange} />
+      <VoiceRecorder key={onVoiceSubmit ? 'conversation' : 'normal'} disabled={disabled}
+        conversational={!!onVoiceSubmit} onTranscribed={onVoiceSubmit ?? onQueryChange} onBusyChange={setVoiceBusy} />
       <input
         aria-label="Message ARIA"
         className="input composer-input"
         placeholder="Message ARIA…"
         value={query}
+        disabled={disabled || voiceBusy}
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') onSubmit()
         }}
       />
-      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || !query.trim()} type="button" aria-label="Send message">
+      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || voiceBusy || !query.trim()} type="button" aria-label="Send message">
         <Send size={15} />
       </button>
     </div>
@@ -62,6 +67,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   const [mode, setMode] = useState<ChatMode>('Normal Mode')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
+  const [captureEpoch, setCaptureEpoch] = useState(0)
   const [sending, setSending] = useState(false)
   // The message being answered: shown at once, so pressing Send visibly does something even on the first
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
@@ -139,6 +145,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   }
 
   async function clearChat() {
+    setCaptureEpoch(value => value + 1)
     await api.clearChat(sessionId)
     setHistory([])
     if (isTavus) setMode('Normal Mode')
@@ -243,7 +250,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} onVoiceSubmit={isConversational ? text => send(text) : undefined} />
             )}
           </div>
         </div>
@@ -274,7 +281,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             </div>
             <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
             <Onboarding onSaved={() => setProfileVer((v) => v + 1)} onAsk={send} />
-            <Composer variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+            <Composer key={sessionId + ':' + captureEpoch} variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             <TemplateCards onPick={send} />
           </div>
         </div>
@@ -298,7 +305,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             </div>
           </div>
           <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
-          <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+          <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
         </>
       )}
     </div>

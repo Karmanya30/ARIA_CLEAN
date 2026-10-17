@@ -1,6 +1,6 @@
 {
   "overall_status": "PARTIALLY VERIFIED",
-  "recorded_at_utc": "2026-10-17T17:17:38.930291+00:00",
+  "recorded_at_utc": "2026-10-17T17:37:53.195720+00:00",
   "branch": "audit/system-review-20261016",
   "baseline": {
     "passed": 1041,
@@ -13,12 +13,12 @@
     "errors": 0,
     "skipped": 0,
     "passed": 1158,
-    "seconds": 222.51
+    "seconds": 179.67
   },
   "final_browser": {
-    "startTime": "2026-10-17T17:11:24.512Z",
-    "duration": 113809.709,
-    "expected": 30,
+    "startTime": "2026-10-17T17:32:27.831Z",
+    "duration": 116946.899,
+    "expected": 34,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -28,85 +28,85 @@
       "check": "inventory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.24
+      "seconds": 0.23
     },
     {
       "check": "regression",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 228.45
+      "seconds": 186.09
     },
     {
       "check": "build",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 10.73
+      "seconds": 10.74
     },
     {
       "check": "lint",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.73
+      "seconds": 0.74
     },
     {
       "check": "browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 114.94
+      "seconds": 118.27
     },
     {
       "check": "account_browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 60.79
+      "seconds": 34.5
     },
     {
       "check": "restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 74.39
+      "seconds": 38.88
     },
     {
       "check": "account_restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 33.58
+      "seconds": 39.42
     },
     {
       "check": "native_memory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 14.22
+      "seconds": 17.27
     },
     {
       "check": "dependency_consistency",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 1.0
+      "seconds": 1.13
     },
     {
       "check": "python_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 4.55
+      "seconds": 22.67
     },
     {
       "check": "npm_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 2.16
+      "seconds": 1.64
     },
     {
       "check": "connections",
       "status": "FAIL",
       "exit_code": 1,
-      "seconds": 16.11
+      "seconds": 16.38
     },
     {
       "check": "live_intent",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 19.08
+      "seconds": 22.43
     }
   ],
   "lint_warnings": 74,
@@ -179,7 +179,7 @@
         "resolver_calls": 0,
         "provider_prompt_tokens": 0,
         "provider_output_tokens": 0,
-        "mean_latency_ms": 26.291666666666668
+        "mean_latency_ms": 31.211666666666662
       },
       "resolver": {
         "cases": 12,
@@ -187,8 +187,8 @@
         "route_and_reference_accuracy": 0.8333333333333334,
         "resolver_calls": 8,
         "provider_prompt_tokens": 4910,
-        "provider_output_tokens": 1507,
-        "mean_latency_ms": 708.8583333333332
+        "provider_output_tokens": 1529,
+        "mean_latency_ms": 706.9425
       }
     },
     "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
@@ -198,49 +198,49 @@
       {
         "name": "AMFI NAV",
         "status": "VERIFIED",
-        "seconds": 0.98,
+        "seconds": 0.62,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "mfapi history",
         "status": "VERIFIED",
-        "seconds": 0.37,
+        "seconds": 0.42,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "CoinGecko",
         "status": "VERIFIED",
-        "seconds": 0.45,
+        "seconds": 1.07,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "Yahoo chart",
         "status": "VERIFIED",
-        "seconds": 0.25,
+        "seconds": 0.31,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "FRED",
         "status": "NOT VERIFIED",
-        "seconds": 15.2,
+        "seconds": 15.35,
         "error_type": "ReadTimeout",
         "http_status": null
       },
       {
         "name": "Groq",
         "status": "VERIFIED",
-        "seconds": 1.75,
+        "seconds": 1.97,
         "model": "openai/gpt-oss-120b",
         "synthetic_only": true
       },
       {
         "name": "Gemini",
         "status": "VERIFIED",
-        "seconds": 3.98,
+        "seconds": 4.65,
         "model": "gemini-3.6-flash",
         "synthetic_only": true
       }
@@ -261,7 +261,7 @@
       "retry does not duplicate transactions or overwrite later profile edit",
       "completed audio served across three API lifetimes after source removal"
     ],
-    "database": ".audit\\browser\\restart-10f4dab8980c443eaa6bbf6e485a6954\\aria.db"
+    "database": ".audit\\browser\\restart-cf3637de5e4349d2a0736c10e690f3c7\\aria.db"
   },
   "actual_pdf_export": {
     "status": "VERIFIED",
@@ -297,8 +297,8 @@
     "scope_limit": "Historical statement-import checkpoint; see subsequent continuation and startup reports for fixes and remaining limits."
   },
   "final_account_browser": {
-    "startTime": "2026-10-17T17:13:19.679Z",
-    "duration": 59450.721999999994,
+    "startTime": "2026-10-17T17:34:26.031Z",
+    "duration": 33250.617,
     "expected": 4,
     "skipped": 0,
     "unexpected": 0,
@@ -312,7 +312,7 @@
       "account profile persists",
       "revoked old cookie rejected after another restart"
     ],
-    "database": ".audit\\browser\\account-restart-222c4bde59514c05951f2b428810fa73\\aria.db"
+    "database": ".audit\\browser\\account-restart-4924e6a1208b4b3e8573ec696746d0ae\\aria.db"
   },
   "latest_continuation": {
     "reports": [
@@ -323,7 +323,8 @@
       "reports/SEARCH_AUTOCOMPLETE.md",
       "reports/LOCAL_ACCOUNT_SETUP.md",
       "reports/BRANDING.md",
-      "reports/CONVERSATIONAL_VOICE_DISK.md"
+      "reports/CONVERSATIONAL_VOICE_DISK.md",
+      "reports/CONVERSATIONAL_VOICE_TOGGLE.md"
     ],
     "new_python_tests_since_statement_continuation": 64,
     "changes": [
@@ -339,7 +340,8 @@
       "Offline provisioning of a confirmed private owner with unchanged data; preserve imported active chat",
       "Remove redundant Explore category panel; isolate private browser tests from deployment auth mode",
       "Shared reference-based ARIA emblem, theme-aware wordmark, browser icons and self-contained financial report branding",
-      "Replace the conversational doll with a shared audio-measured disk, one voice player and lifecycle/reduced-motion handling"
+      "Replace the conversational doll with a shared audio-measured disk, one voice player and lifecycle/reduced-motion handling",
+      "Conversational two-click microphone capture, automatic transcript submission/reply playback and cancellation/track cleanup"
     ],
     "default_mode": "private",
     "env_modified": true,
@@ -714,5 +716,27 @@
         }
       ]
     }
+  },
+  "conversational_voice_toggle": {
+    "report": "reports/CONVERSATIONAL_VOICE_TOGGLE.md",
+    "source": "web/src/components/chat/VoiceRecorder.tsx",
+    "browser": "Full Chromium, synthetic microphone device with real getUserMedia/MediaRecorder and multipart upload",
+    "controlled_providers": [
+      "Transcription endpoint response",
+      "Chat answer",
+      "Reply WAV audio"
+    ],
+    "repeated_focused_checks": {
+      "startTime": "2026-10-17T17:27:33.490Z",
+      "duration": 55744.352,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "new_browser_workflows": 4,
+    "scope": "Browser integration; no physical microphone quality or live speech-provider accuracy claim",
+    "env_modified": false,
+    "data_migration": false
   }
 }
