@@ -341,7 +341,8 @@
       "Remove redundant Explore category panel; isolate private browser tests from deployment auth mode",
       "Shared reference-based ARIA emblem, theme-aware wordmark, browser icons and self-contained financial report branding",
       "Replace the conversational doll with a shared audio-measured disk, one voice player and lifecycle/reduced-motion handling",
-      "Conversational two-click microphone capture, automatic transcript submission/reply playback and cancellation/track cleanup"
+      "Conversational two-click microphone capture, automatic transcript submission/reply playback and cancellation/track cleanup",
+      "Make the conversational Speak toggle prominent beneath the disk and verify live initial-viewport visibility"
     ],
     "default_mode": "private",
     "env_modified": true,
@@ -738,5 +739,131 @@
     "scope": "Browser integration; no physical microphone quality or live speech-provider accuracy claim",
     "env_modified": false,
     "data_migration": false
+  },
+  "voice_control_visibility": {
+    "verified_at_utc": "2026-10-17T17:44:53.407837+00:00",
+    "full_regression_checkpoint": "7a0692c",
+    "change": "Large Speak control beneath disk; single conversational recorder; typed composer remains available",
+    "targeted_browser": {
+      "startTime": "2026-10-17T17:42:00.854Z",
+      "duration": 36702.47,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "live_localhost": {
+      "status": "PASS",
+      "checks": [
+        {
+          "version": "v1",
+          "width": 1440,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 1440,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 390,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 670.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 390,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 670.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 1440,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 1440,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 390,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 690.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 390,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 690.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        }
+      ]
+    },
+    "build": "PASS",
+    "lint": "PASS with warnings",
+    "backend_suite_repeated": false,
+    "financial_questions_submitted_live": false
   }
 }

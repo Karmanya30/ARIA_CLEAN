@@ -10,4 +10,11 @@
 .voice-disk-status { margin: 8px 0; color: var(--ink); font-weight: 600; }
 .voice-disk-caption { max-width: 290px; margin: 0 0 18px; text-align: center; color: var(--ink-muted); font-size: 13px; line-height: 1.5; }
 .voice-disk-panel audio { width: min(100%, 310px); }
+.voice-disk-controls { margin: 4px 0 12px; }
+.voice-disk-controls .voice-btn { min-width: 190px; min-height: 52px; padding: 12px 24px; border-radius: 28px; font-size: 16px; color: var(--ink); background: var(--accent-soft, #d5f4e8); border-color: var(--accent, #3ecf8e); }
+.voice-disk-panel:has(.voice-disk-controls) .voice-disk-stage { width: min(100%, 360px); }
+.voice-disk-controls .voice-error { left: 50%; transform: translateX(-50%); }
+@media (max-width: 640px), (max-height: 780px) {
+  .voice-disk-panel:has(.voice-disk-controls) .voice-disk-stage { width: min(100%, 260px); }
+}
 @media (prefers-reduced-motion: reduce) { .voice-disk-stage .voice-disk { transform: translate(-50%, -50%); } }

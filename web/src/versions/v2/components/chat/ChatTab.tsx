@@ -31,6 +31,7 @@ function Composer({
   onSubmit,
   disabled,
   onVoiceSubmit,
+  hideVoice = false,
 }: {
   variant: 'centered' | 'pinned'
   query: string
@@ -38,12 +39,13 @@ function Composer({
   onSubmit: () => void
   disabled: boolean
   onVoiceSubmit?: (text: string) => void | Promise<void>
+  hideVoice?: boolean
 }) {
   const [voiceBusy, setVoiceBusy] = useState(false)
   return (
     <div className={`composer composer-${variant}`}>
-      <VoiceRecorder key={onVoiceSubmit ? 'conversation' : 'normal'} disabled={disabled}
-        conversational={!!onVoiceSubmit} onTranscribed={onVoiceSubmit ?? onQueryChange} onBusyChange={setVoiceBusy} />
+      {!hideVoice && <VoiceRecorder key={onVoiceSubmit ? 'conversation' : 'normal'} disabled={disabled}
+        conversational={!!onVoiceSubmit} onTranscribed={onVoiceSubmit ?? onQueryChange} onBusyChange={setVoiceBusy} />}
       <input
         aria-label="Message ARIA"
         className="input composer-input"
@@ -67,6 +69,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
   const [captureEpoch, setCaptureEpoch] = useState(0)
+  const [captureBusy, setCaptureBusy] = useState(false)
   const [sending, setSending] = useState(false)
   // The message being answered: shown at once, so pressing Send visibly does something even on the first
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
@@ -207,7 +210,10 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
         <div className="chat-split-body">
           <div className="chat-avatar-col">
             {isTavus && <TavusVideo session={tavusSession} />}
-            {isConversational && <ConversationalAvatar audioToken={latestAudioToken} />}
+            {isConversational && <ConversationalAvatar audioToken={latestAudioToken} voiceControl={
+              <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
+                onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
+            } />}
             {isLive && (
               <iframe
                 className="live-avatar-frame"
@@ -246,7 +252,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} onVoiceSubmit={isConversational ? text => send(text) : undefined} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>
         </div>

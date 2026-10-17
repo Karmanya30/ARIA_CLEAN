@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { api } from '../../api'
 import { BrandMark } from '../brand/BrandLogo'
 import './ConversationalAvatar.css'
 import './VoiceDisk.css'
 
 /** Uses the same audio element for audible speech and its measured visualization. */
-export function VoiceDisk({ audioToken }: { audioToken?: string }) {
+export function VoiceDisk({ audioToken, voiceControl }: { audioToken?: string; voiceControl?: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -162,7 +163,8 @@ export function VoiceDisk({ audioToken }: { audioToken?: string }) {
       : capturePhase === 'recording' ? 'Listening…'
       : capturePhase === 'transcribing' ? 'Preparing your reply…'
       : audioToken ? status : 'Ready to talk'}</p>
-    <p className="voice-disk-caption">Voice volume shapes the disk. Frequencies shape the waves.</p>
+    {voiceControl && <div className="voice-disk-controls">{voiceControl}</div>}
+    <p className="voice-disk-caption">{voiceControl ? 'Click Speak to listen. Click again to stop and get a reply.' : 'Voice volume shapes the disk. Frequencies shape the waves.'}</p>
     <audio ref={audioRef} controls autoPlay hidden={!audioToken} src={audioToken ? api.audioUrl(audioToken) : undefined}
       aria-label="ARIA voice playback" onPlay={startAnalysis}
       onPause={event => setStatus(event.currentTarget.ended || event.currentTarget.currentTime >= event.currentTarget.duration

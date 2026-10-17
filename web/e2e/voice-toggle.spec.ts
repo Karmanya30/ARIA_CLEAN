@@ -71,6 +71,8 @@ for (const version of ['v1', 'v2']) {
       await route.fulfill({ json: { domain: 'general', response: 'Keep savings for unexpected expenses.', audio_token: 'toggle-reply' } })
     })
     await page.route('**/api/audio/toggle-reply', route => route.fulfill({ contentType: 'audio/wav', body: replyAudio() }))
+    await expect(page.getByRole('region', { name: 'ARIA conversational voice' }).getByRole('button', { name: 'Start listening', exact: true })).toBeVisible()
+    await expect(page.locator('.composer .voice-recorder')).toHaveCount(0)
     await page.getByRole('button', { name: 'Start listening', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Stop listening', exact: true })).toHaveAttribute('aria-pressed', 'true')
     await captured(page)
