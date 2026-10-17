@@ -1,4 +1,5 @@
 import './NewsFeed.css'
+import { BrandMark } from '../../../../components/brand/BrandLogo'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
@@ -9,7 +10,6 @@ import {
   TrendingDown,
   TrendingUp,
   X,
-  Sparkles,
   BarChart2,
   MessageSquare,
   Newspaper,
@@ -205,7 +205,7 @@ function NewsModal({
 
         <section className="nw-ask-section" aria-label="Ask ARIA about this news">
           <div className="sd-h">
-            <h3><Sparkles size={16} aria-hidden="true" /> Ask ARIA about this news</h3>
+            <h3><BrandMark className="aria-news-mark" /> Ask ARIA about this news</h3>
           </div>
           <div className="nw-quick-qs">
             {quickQs.map((q) => (
@@ -219,7 +219,7 @@ function NewsModal({
                   <p className="nw-q">{t.q}</p>
                   {t.loading
                     ? <span className="mk-skel" style={{ '--h': '80px' } as React.CSSProperties} role="status" aria-label="ARIA is thinking" />
-                    : <div className="nw-answer"><Sparkles size={13} aria-hidden="true" className="nw-aria-icon" /><p>{t.a}</p></div>
+                    : <div className="nw-answer"><BrandMark className="aria-news-mark nw-aria-icon" /><p>{t.a}</p></div>
                   }
                 </div>
               ))}
@@ -274,7 +274,7 @@ function NewsQAPanel({ onClose, initialQ, headlines }: {
   return (
     <div className="nw-qa-panel">
       <div className="nw-qa-header">
-        <Sparkles size={16} aria-hidden="true" />
+        <BrandMark className="aria-news-mark" />
         <span>Ask ARIA about Today's News</span>
         <button type="button" className="sd-x nw-qa-close" onClick={onClose} aria-label="Close Q&A">✕</button>
       </div>
@@ -290,7 +290,7 @@ function NewsQAPanel({ onClose, initialQ, headlines }: {
             <p className="nw-q">{t.q}</p>
             {t.loading
               ? <span className="mk-skel" style={{ '--h': '80px' } as React.CSSProperties} role="status" />
-              : <div className="nw-answer"><Sparkles size={13} aria-hidden="true" className="nw-aria-icon" /><p>{t.a}</p></div>
+              : <div className="nw-answer"><BrandMark className="aria-news-mark nw-aria-icon" /><p>{t.a}</p></div>
             }
           </div>
         ))}

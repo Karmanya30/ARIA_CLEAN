@@ -1,0 +1,20 @@
+.aria-brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; color: var(--ink, inherit); line-height: 1; }
+.aria-brand-mark { display: block; width: 42px; height: 42px; flex: none; object-fit: contain; }
+.aria-brand-copy { display: flex; flex-direction: column; gap: 7px; }
+.aria-brand-wordmark { font-family: var(--font-display, system-ui), sans-serif; font-size: 23px; font-weight: 600; letter-spacing: .23em; padding-right: .01em; }
+.aria-brand-tagline { color: var(--ink-muted, currentColor); opacity: .8; font: 500 9px/1.5 var(--font-body, system-ui), sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.aria-brand--stacked { flex-direction: column; gap: 12px; text-align: center; }
+.aria-brand--stacked .aria-brand-mark { width: 86px; height: 86px; }
+.aria-brand--stacked .aria-brand-wordmark { font-size: 32px; padding-left: .23em; }
+.aria-auth-brand { display: flex; width: 100%; margin-bottom: 25px; }
+.aria-assistant-mark { width: 29px; height: 29px; }
+.aria-inline-mark { display: inline-block; vertical-align: middle; width: 23px; height: 23px; }
+.aria-news-mark { display: inline-block; vertical-align: middle; width: 18px; height: 18px; }
+.bubble-assistant .bubble-avatar:has(img.aria-brand-mark) { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.chat-brand { margin: 0 0 14px; }
+.settings-brand { margin: 4px 0 16px; }
+@media (max-width: 640px) {
+  [data-theme^='vitara'] .sidebar-brand .aria-brand { gap: 5px; }
+  [data-theme^='vitara'] .sidebar-brand .aria-brand-mark { width: 34px; height: 34px; }
+  [data-theme^='vitara'] .sidebar-brand .aria-brand-wordmark { font-size: 17px; letter-spacing: .14em; }
+}

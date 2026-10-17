@@ -1,4 +1,5 @@
-import { User, Sparkles } from 'lucide-react'
+import { BrandMark } from '../../../../components/brand/BrandLogo'
+import { User } from 'lucide-react'
 import type { HistoryTurn } from '../../types'
 import { ResponseCard } from './ResponseCard'
 import { ResearchReport } from './ResearchReport'
@@ -57,7 +58,7 @@ export function MessageBubble({
 
       <div className="bubble bubble-assistant">
         <span className="bubble-avatar">
-          <Sparkles size={15} />
+          <BrandMark className="aria-assistant-mark" />
         </span>
         <div className="bubble-content">
           <ResponseCard text={response.response} />

@@ -24,6 +24,7 @@ from config import settings
 from modules.equity_research.intelligence.data import _ttl_cache
 from modules.equity_research.intelligence.facts import fmt
 from modules.equity_research.intelligence.report_html import CSS, _disclosure, _e, _number, _table, bars, tag
+from shared.branding import report_brand
 
 API = "https://api.mfapi.in/mf"
 AMFI_NAV = "https://portal.amfiindia.com/spages/NAVAll.txt"
@@ -472,7 +473,7 @@ def render_fund_html(r: dict, *, printable: bool = False, autoprint: bool = Fals
     bar = '<div class="bar noprint"><button onclick="window.print()">Save as PDF / Print</button></div>' if printable else ""
     auto = "<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script>" if autoprint else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{_e(r["title"])} — {_e(version)}</title>'
-            f'<style>{CSS}</style></head><body>{bar}<div class="page"><header class="cover"><div class="small" style="opacity:.8;letter-spacing:.08em;text-transform:uppercase">Mutual fund analysis</div>'
+            f'<style>{CSS}</style></head><body>{bar}<div class="page"><header class="cover">{report_brand()}<div class="small" style="opacity:.8;letter-spacing:.08em;text-transform:uppercase">Mutual fund analysis</div>'
             f'<h1>{_e(c["name"])}</h1><div class="sub">{_e(f["category"])} · {_e(f["fund_house"])} · AMFI code {_e(c["symbol"])}</div><div class="meta"><div><b>Latest NAV</b>{_e(fmt(f["nav"], "₹"))}</div>'
             f'<div><b>NAV date</b>{_e(f["nav_date"])}</div><div><b>History from</b>{_e(f["inception"])}</div><div><b>Report date</b>{_e(c["report_date"])}</div><div><b>Version</b>{_e(version)}</div></div>'
             f'<p class="small" style="opacity:.85;margin:12px 0 0">{_e(c["ai_disclosure"])} Mutual fund investments are subject to market risks. Not investment advice; see the disclosures on the last page.</p></header>'

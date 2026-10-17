@@ -189,3 +189,9 @@ The later continuation adds `audio_artifacts`, `auth_accounts`, `auth_sessions`,
 ## Local installation activation
 
 The operator approved provisioning the most recently active private profile to a dummy login. Account mode is enabled in the local `.env`; private mode remains the code default. Original profile/report/conversation records remain unchanged and unrelated owners are not claimed. Credentials and database/environment backups are local ignored artifacts. See LOCAL_ACCOUNT_SETUP.md.
+
+## Branding continuation
+
+The supplied ARIA logo now provides a shared transparent emblem and theme-aware wordmark across login, navigation, chat, market insights/news Q&A, Settings and browser icons. Equity and fund report covers embed the logo so their downloaded HTML/PDF does not depend on a website connection. See [branding assets, exact image prompt and validation](BRANDING.md).
+
+Thirteen isolated visual checks passed: two login modes, ten desktop/mobile theme/version combinations and standalone report/PDF branding. These are limited visual checks, not broad mobile or accessibility certification. The real localhost account was rechecked after a database backup and backend refresh: the saved profile and three reports remained available, login survived refresh, and logout denied subsequent data access. No financial record migration was required. The final rerun's exact test and provider outcomes are recorded in `SYSTEM_AUDIT_RESULTS.json`.

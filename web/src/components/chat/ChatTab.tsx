@@ -1,3 +1,4 @@
+import { BrandLogo } from '../../components/brand/BrandLogo'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
@@ -266,6 +267,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
         <div className="chat-idle-block">
           <div className="chat-idle-inner">
             <div className="chat-hero-text">
+              <BrandLogo className="chat-brand" />
               <h2>{greeting()} — what can I help with?</h2>
               <p>Ask about your finances, learn a concept, or check the market. ARIA routes it to the right module automatically.</p>
             </div>

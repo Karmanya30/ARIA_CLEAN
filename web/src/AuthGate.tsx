@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { setAccountOwner } from './authState'
+import { BrandLogo } from './components/brand/BrandLogo'
 import './auth.css'
 
 interface User { id: string; email: string }
@@ -123,7 +124,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     } catch (failure) { setError((failure as Error).message) }
     finally { setBusy(false) }
   }
-  if (!state) return <main className="aria-auth"><section><h1>ARIA</h1>{error ? <><p role="alert">{error}</p><button onClick={() => void load()}>Retry connection</button></> : <p>Loading ARIA…</p>}</section></main>
+  if (!state) return <main className="aria-auth"><section><BrandLogo stacked tagline className="aria-auth-brand" /><h1>ARIA</h1>{error ? <><p role="alert">{error}</p><button onClick={() => void load()}>Retry connection</button></> : <p>Loading ARIA…</p>}</section></main>
   if (state.mode === 'private') return children
   if (state.user) return <Fragment key={state.user.id}>
     <details className="aria-account"><summary>Account</summary><p>{state.user.email}</p>
@@ -133,7 +134,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <button disabled={busy} onClick={() => void logout(true)}>Sign out all devices</button>
     </details>{children}
   </Fragment>
-  return <main className="aria-auth"><section><h1>{signup ? 'Create your ARIA account' : 'Sign in to ARIA'}</h1>
+  return <main className="aria-auth"><section><BrandLogo stacked tagline className="aria-auth-brand" /><h1>{signup ? 'Create your ARIA account' : 'Sign in to ARIA'}</h1>
     <p>Your financial profile and conversations belong to your account.</p>
     <form onSubmit={(event) => void submit(event)}>
       <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>

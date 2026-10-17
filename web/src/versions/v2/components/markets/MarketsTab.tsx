@@ -1,6 +1,6 @@
 import './MarketsTab.css'
 import { useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { BrandMark } from '../../../../components/brand/BrandLogo'
 import { useMarket } from '../../hooks/useMarket'
 import { IndexCard } from './IndexCard'
 import { MarketStatusBar } from './MarketStatusBar'
@@ -82,7 +82,7 @@ export function MarketsTab({ onAsk, onOpenStock, selectedSymbol }: { onAsk: (q: 
 
       <div className="mk-grid">
         <section className="mk-card mk-insight mk-span-12" aria-label="ARIA insight of the moment">
-          <h2><Sparkles size={16} aria-hidden="true" /> ARIA insight of the moment</h2>
+          <h2><BrandMark className="aria-inline-mark" /> ARIA insight of the moment</h2>
           <p className="mk-insight-t">{text ? `${text}.` : 'Insight will appear when market data loads.'}</p>
           {b && (
             <div className="mk-breadth">

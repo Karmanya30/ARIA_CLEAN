@@ -1,4 +1,5 @@
-import { Sparkles, MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart, Compass } from 'lucide-react'
+import { MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart, Compass } from 'lucide-react'
+import { BrandLogo } from './brand/BrandLogo'
 import './Sidebar.css'
 
 export interface NavDef {
@@ -36,10 +37,7 @@ export function Sidebar({
   return (
     <aside className="app-sidebar">
       <div className="sidebar-brand">
-        <span className="app-mark">
-          <Sparkles size={16} />
-        </span>
-        <span className="app-name">ARIA</span>
+        <BrandLogo />
       </div>
 
       {search}

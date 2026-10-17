@@ -1,3 +1,4 @@
+import { BrandLogo } from '../../components/brand/BrandLogo'
 import { useState } from 'react'
 import { Check, Layers } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
@@ -109,6 +110,7 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
         {status}
       </p>
       <h2 className="settings-h2">About ARIA</h2>
+      <BrandLogo tagline className="settings-brand" />
       <p className="settings-sub">
         ARIA is an AI research and education tool, not a SEBI-registered adviser. <a href="#/disclaimers">Read the full disclaimers</a>.
       </p>
