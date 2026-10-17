@@ -78,7 +78,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const identity = next.user?.id ?? 'private'
         try {
           const previous = localStorage.getItem('aria_account_session_owner')
-          if ((previous && previous !== identity) || (next.user && previous !== identity)) {
+          // An offline admin may provision the existing private owner as an account.
+          // Preserve that owner's current chat; the server still checks conversation ownership.
+          const importedPrivateOwner = previous === 'private' && next.user?.id === localStorage.getItem('aria_owner_id')
+          if (!importedPrivateOwner && ((previous && previous !== identity) || (next.user && previous !== identity))) {
             localStorage.removeItem('aria_session_id')
             sessionStorage.removeItem('aria_session_id')
           }

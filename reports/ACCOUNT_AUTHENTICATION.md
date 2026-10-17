@@ -1,10 +1,10 @@
 # Optional account authentication — 2026-10-17
 
-Email/password and Google sign-in are implemented behind `ARIA_AUTH_MODE=accounts`. The default remains `private`, as requested. `.env` has not been changed; existing private-mode profiles, UUIDs and conversations are not automatically assigned to an account.
+Email/password and Google sign-in are implemented behind `ARIA_AUTH_MODE=accounts`. The code default remains `private`. The original implementation checkpoint did not change `.env` or assign private records to accounts. The later operator-authorized [local account setup](LOCAL_ACCOUNT_SETUP.md) enables accounts in this installation and provisions the explicitly selected existing private owner; unrelated owners remain untouched.
 
 ## Enable and configure
 
-For the current local single-user application, keep `ARIA_AUTH_MODE=private`. `python -m api.main` now binds `127.0.0.1` by default, matching the existing launcher; `ARIA_BIND_HOST` permits an intentional override. Private mode has no account boundary and is not an internet deployment configuration.
+For a local single-user installation without login, use `ARIA_AUTH_MODE=private`; this operator's installation now uses `accounts`. `python -m api.main` binds `127.0.0.1` by default, matching the existing launcher; `ARIA_BIND_HOST` permits an intentional override. Private mode has no account boundary and is not an internet deployment configuration.
 
 To enable accounts, set the following in your local environment and restart the API:
 

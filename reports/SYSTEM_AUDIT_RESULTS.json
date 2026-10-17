@@ -1,6 +1,6 @@
 {
   "overall_status": "PARTIALLY VERIFIED",
-  "recorded_at_utc": "2026-10-16T20:35:41.098885+00:00",
+  "recorded_at_utc": "2026-10-17T12:18:18.715720+00:00",
   "branch": "audit/system-review-20261016",
   "baseline": {
     "passed": 1041,
@@ -8,17 +8,17 @@
     "deselected": 7
   },
   "final_python": {
-    "tests": 1155,
+    "tests": 1158,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "passed": 1155,
-    "seconds": 200.69
+    "passed": 1158,
+    "seconds": 198.24
   },
   "final_browser": {
-    "startTime": "2026-10-16T20:31:46.406Z",
-    "duration": 75894.08300000001,
-    "expected": 26,
+    "startTime": "2026-10-17T12:15:37.996Z",
+    "duration": 93525.228,
+    "expected": 28,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -28,85 +28,107 @@
       "check": "inventory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.96
+      "seconds": 1.41
     },
     {
       "check": "regression",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 206.52
+      "seconds": 204.47
     },
     {
       "check": "build",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 10.19
+      "seconds": 12.81
     },
     {
       "check": "lint",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.65
+      "seconds": 0.85
     },
     {
       "check": "browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 76.93
+      "seconds": 93.53,
+      "attempts": [
+        {
+          "check": "browser",
+          "status": "FAIL",
+          "exit_code": 1,
+          "seconds": 226.75,
+          "reason": "Obsolete Explore browse-row selector after requested panel removal; isolated test process stopped",
+          "log": ".audit/rerun/browser.log"
+        },
+        {
+          "status": "FAIL",
+          "reason": "Independent retry inherited newly enabled account mode; stopped and private test-server env made explicit",
+          "log": ".audit/local-demo-migration/browser-final.log"
+        },
+        {
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 93.53,
+          "log": ".audit/local-demo-migration/browser-final-private.log"
+        }
+      ],
+      "note": "Complete private browser suite rerun after updating obsolete selector and isolating auth mode"
     },
     {
       "check": "account_browser",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 31.1
+      "seconds": 37.78
     },
     {
       "check": "restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 31.68
+      "seconds": 40.92
     },
     {
       "check": "account_restart",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 30.3
+      "seconds": 46.8
     },
     {
       "check": "native_memory",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 12.95
+      "seconds": 22.57
     },
     {
       "check": "dependency_consistency",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 0.78
+      "seconds": 1.99
     },
     {
       "check": "python_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 9.41
+      "seconds": 26.21
     },
     {
       "check": "npm_advisories",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 1.56
+      "seconds": 10.88
     },
     {
       "check": "connections",
       "status": "FAIL",
       "exit_code": 1,
-      "seconds": 16.12
+      "seconds": 16.37
     },
     {
       "check": "live_intent",
       "status": "PASS",
       "exit_code": 0,
-      "seconds": 18.85
+      "seconds": 21.35
     }
   ],
   "lint_warnings": 73,
@@ -179,16 +201,16 @@
         "resolver_calls": 0,
         "provider_prompt_tokens": 0,
         "provider_output_tokens": 0,
-        "mean_latency_ms": 23.105
+        "mean_latency_ms": 36.37416666666667
       },
       "resolver": {
         "cases": 12,
         "routing_accuracy": 0.8333333333333334,
         "route_and_reference_accuracy": 0.75,
         "resolver_calls": 8,
-        "provider_prompt_tokens": 4289,
-        "provider_output_tokens": 1390,
-        "mean_latency_ms": 731.6933333333333
+        "provider_prompt_tokens": 4910,
+        "provider_output_tokens": 1510,
+        "mean_latency_ms": 665.8583333333333
       }
     },
     "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
@@ -198,14 +220,14 @@
       {
         "name": "AMFI NAV",
         "status": "VERIFIED",
-        "seconds": 0.56,
+        "seconds": 0.65,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "mfapi history",
         "status": "VERIFIED",
-        "seconds": 0.34,
+        "seconds": 0.39,
         "http_status": 200,
         "schema_checked": true
       },
@@ -219,28 +241,28 @@
       {
         "name": "Yahoo chart",
         "status": "VERIFIED",
-        "seconds": 0.25,
+        "seconds": 0.28,
         "http_status": 200,
         "schema_checked": true
       },
       {
         "name": "FRED",
         "status": "NOT VERIFIED",
-        "seconds": 15.37,
+        "seconds": 15.45,
         "error_type": "ReadTimeout",
         "http_status": null
       },
       {
         "name": "Groq",
         "status": "VERIFIED",
-        "seconds": 1.47,
+        "seconds": 1.61,
         "model": "openai/gpt-oss-120b",
         "synthetic_only": true
       },
       {
         "name": "Gemini",
         "status": "VERIFIED",
-        "seconds": 3.37,
+        "seconds": 4.79,
         "model": "gemini-3.6-flash",
         "synthetic_only": true
       }
@@ -261,7 +283,7 @@
       "retry does not duplicate transactions or overwrite later profile edit",
       "completed audio served across three API lifetimes after source removal"
     ],
-    "database": ".audit\\browser\\restart-484be0e521564efe8da6942dad436179\\aria.db"
+    "database": ".audit\\browser\\restart-c133ffbce6024de588bc76becbfb898a\\aria.db"
   },
   "actual_pdf_export": {
     "status": "VERIFIED",
@@ -275,7 +297,7 @@
     "verification_scope": "Preceding audit; not repeated in statement-import continuation."
   },
   "limits": [
-    "Private mode remains the default and trusts device-owner capabilities; optional accounts are not enabled in .env.",
+    "Code defaults to private mode; the operator explicitly enabled local accounts and provisioned the selected existing owner. Unrelated private records were not merged.",
     "Live Google consent is unverified; Google browser tests use a local adapter and RSA tests use local certificate keys.",
     "Account mode blocks unscoped paid-video/compute controls; email verification/recovery/MFA/roles remain open.",
     "FRED remains a recorded real connection failure; physical voice/video is not exercised.",
@@ -297,8 +319,8 @@
     "scope_limit": "Historical statement-import checkpoint; see subsequent continuation and startup reports for fixes and remaining limits."
   },
   "final_account_browser": {
-    "startTime": "2026-10-16T20:33:03.404Z",
-    "duration": 30000.993000000002,
+    "startTime": "2026-10-17T12:14:19.635Z",
+    "duration": 36482.913,
     "expected": 4,
     "skipped": 0,
     "unexpected": 0,
@@ -312,7 +334,7 @@
       "account profile persists",
       "revoked old cookie rejected after another restart"
     ],
-    "database": ".audit\\browser\\account-restart-2c142ecc99ce4c7eb7937d49d1838eae\\aria.db"
+    "database": ".audit\\browser\\account-restart-079b950a45434fabb0fa56616a92c55c\\aria.db"
   },
   "latest_continuation": {
     "reports": [
@@ -320,9 +342,10 @@
       "reports/ACCOUNT_AUTHENTICATION.md",
       "reports/STARTUP_RECOVERY.md",
       "reports/NEWS_FEED.md",
-      "reports/SEARCH_AUTOCOMPLETE.md"
+      "reports/SEARCH_AUTOCOMPLETE.md",
+      "reports/LOCAL_ACCOUNT_SETUP.md"
     ],
-    "new_python_tests_since_statement_continuation": 61,
+    "new_python_tests_since_statement_continuation": 64,
     "changes": [
       "Pre-parser HTTP body/time and per-worker concurrency/rate limits",
       "Bounded legacy XLS/PDF/text/JSON parsing",
@@ -330,16 +353,19 @@
       "Optional email/password plus Google accounts with explicit linking",
       "Account session revocation, owner/CSRF/websocket checks and separate learning keys",
       "Missing/nonfinite Yahoo price bars excluded with provenance warning",
-      "Workspace-verified backend restart and session readiness",
-      "Dashboard news without article-count or publisher quotas",
-      "Partial, alias and conservative typo matching; shared Explore/company suggestions; selected-company research generation"
+      "Source-verified startup recovery",
+      "Uncapped recent dashboard news",
+      "Company autocomplete and canonical ticker selection",
+      "Offline provisioning of a confirmed private owner with unchanged data; preserve imported active chat",
+      "Remove redundant Explore category panel; isolate private browser tests from deployment auth mode"
     ],
     "default_mode": "private",
-    "env_modified": false
+    "env_modified": true,
+    "local_installation_mode": "accounts"
   },
   "inventory": {
     "route_declarations": 72,
-    "control_templates": 547,
+    "control_templates": 529,
     "actual_fastapi_route_count_matched": true,
     "scope": "Static templates are not browser coverage; inventory helper refreshed after final application rerun."
   },
@@ -428,5 +454,41 @@
       "real_reports_generated": false
     },
     "env_modified": false
+  },
+  "local_account_setup": {
+    "report": "reports/LOCAL_ACCOUNT_SETUP.md",
+    "status": "VERIFIED",
+    "mode": "accounts",
+    "operator_selected": "most recently active private owner with three reports",
+    "existing_records": {
+      "financial_profiles": 1,
+      "transactions": 0,
+      "research_reports": 3,
+      "conversation_style": 1,
+      "chat_conversations": 1,
+      "audio_artifacts": 1
+    },
+    "original_tables_unchanged": 12,
+    "original_records_rewritten": false,
+    "backup": "Ignored local .audit directory; credentials and DB are not published",
+    "live_browser": {
+      "status": "VERIFIED",
+      "mode": "accounts",
+      "profile_matches_sqlite": true,
+      "existing_reports": 3,
+      "chat_session_preserved": true,
+      "refresh_persists_login": true,
+      "logout_denies_data": true,
+      "page_errors": [],
+      "google_configured": false
+    },
+    "new_python_tests": 3,
+    "new_browser_workflows": 2,
+    "env_modified": true,
+    "changed_env_keys": [
+      "ARIA_AUTH_MODE",
+      "ARIA_APP_ORIGIN",
+      "ARIA_AUTH_ALLOW_SIGNUP"
+    ]
   }
 }

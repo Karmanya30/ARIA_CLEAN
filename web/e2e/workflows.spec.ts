@@ -31,6 +31,21 @@ function stored(owner: string) {
 }
 
 for (const version of ['v1', 'v2']) {
+  test(`${version}: login preserves the imported private owner's active chat`, async ({ page }) => {
+    await start(page, version)
+    const original = await page.evaluate(() => ({ owner: localStorage.getItem('aria_owner_id'), session: localStorage.getItem('aria_session_id') }))
+    expect(original.owner).toBeTruthy()
+    expect(original.session).toBeTruthy()
+    await page.route('**/api/auth/session', route => route.fulfill({ json: {
+      mode: 'accounts', user: { id: original.owner, email: 'synthetic-import@example.test' },
+      google_client_id: '', allow_signup: false,
+    } }))
+    await page.reload()
+    await expect(page.getByRole('heading', { name: 'Your Finance Profile' })).toBeVisible()
+    expect(await page.evaluate(() => localStorage.getItem('aria_session_id'))).toBe(original.session)
+    await page.unroute('**/api/auth/session')
+  })
+
   test(`${version}: explore completes misspelled names and never picks stale suggestions`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Explore', exact: true }).click()
@@ -242,7 +257,9 @@ for (const version of ['v1', 'v2']) {
   test(`${version}: explore drawer, chart range, watchlist persistence and close`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Explore', exact: true }).click()
-    await page.locator('.ix-row').filter({ hasText: 'Reliance' }).first().click()
+    await expect(page.getByRole('region', { name: 'Browse by category', exact: true })).toHaveCount(0)
+    await page.getByRole('combobox', { name: 'Search all instruments', exact: true }).fill('Reliance')
+    await page.getByRole('option', { name: /Reliance Industries/ }).click()
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByRole('button', { name: 'Max', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Max', exact: true })).toHaveAttribute('aria-pressed', 'true')

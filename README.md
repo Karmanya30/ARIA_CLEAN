@@ -48,8 +48,11 @@ removed and reported). The chat shows the usual 4-section summary plus an expand
 Every report is **saved** (SQLite, same database as the profile) as a new version per company, listed
 in the **Research reports** tab, re-openable later, downloadable (HTML -- print to PDF --, Markdown, or
 all-data JSON) and regenerable on fresh data (`/api/research/reports`, `.../{id}/html`, `.../download`,
-`.../regenerate`). ARIA has no accounts, so history belongs to a device-level id kept in the browser's
-`localStorage`; clearing site data or switching browsers starts a new history.
+`.../regenerate`). With `ARIA_AUTH_MODE=accounts`, reports belong to a signed-in email/password account
+(Google sign-in is optional when configured). Default private mode uses a device-level id in browser
+`localStorage`; clearing site data or switching browsers starts a new private history. Existing private
+records can be explicitly provisioned to an account using the offline administrator tool; they are never
+silently merged. See [account setup](reports/ACCOUNT_AUTHENTICATION.md) and [local provisioning](reports/LOCAL_ACCOUNT_SETUP.md).
 The document separates ACTUAL, CALCULATED, ESTIMATE, ASSUMPTION, SOURCE TEXT and AI INTERPRETATION, shows
 actual vs forecast columns, a WACC x terminal-growth grid, bull/base/bear scenarios, a seeded Monte Carlo
 interval, and lists what the data sources cannot provide (segments, geography, industry size, precedent deals) instead of guessing.
