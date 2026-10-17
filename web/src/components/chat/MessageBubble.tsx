@@ -29,6 +29,7 @@ export function MessageBubble({
   onOpenProfile,
   onAsk,
   isLast,
+  audioControls = true,
 }: {
   turn: HistoryTurn
   sessionId: string
@@ -37,6 +38,7 @@ export function MessageBubble({
   onOpenProfile?: () => void
   onAsk?: (query: string) => void
   isLast?: boolean
+  audioControls?: boolean
 }) {
   const { response } = turn
   const company = typeof response.company === 'string' ? response.company : (response.company as { name?: string } | undefined)?.name
@@ -128,7 +130,7 @@ export function MessageBubble({
             </div>
           )}
 
-          {turn.audio_token && (
+          {audioControls && turn.audio_token && (
             <audio controls src={api.audioUrl(turn.audio_token)} className="bubble-audio" onError={(e) => { e.currentTarget.style.display = 'none' }} onLoadedMetadata={(e) => { if (!e.currentTarget.duration) e.currentTarget.style.display = 'none' }} />
           )}
         </div>

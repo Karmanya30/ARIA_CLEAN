@@ -146,7 +146,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
 
   const financeTurns = history.filter((t) => t.response.domain === 'finance').length
   const latestAudioToken = [...history].reverse().find((t) => t.audio_token)?.audio_token ?? undefined
-  // Conversational/Tavus modes have a real avatar or video to show, so
+  // Voice and video modes have a disk, live avatar or video to show, so
   // they get a large dedicated left column for it -- "large view" was
   // the specific ask. Normal Mode has nothing to put there (just the
   // small decorative orb during its own idle state), so it keeps the
@@ -225,6 +225,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     <MessageBubble
                       key={i}
                       turn={turn}
+                      audioControls={!isConversational}
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}

@@ -8,8 +8,24 @@ test.beforeEach(async ({ page }) => {
   diagnostics.set(page, data)
   page.on('pageerror', e => data.errors.push(e.message))
   page.on('requestfailed', r => data.failedRequests.push(`${r.method()} ${r.url()} ${r.failure()?.errorText}`))
+  await page.addInitScript(() => {
+    const events: unknown[] = []
+    Object.assign(window, { voiceEvents: events })
+    for (const name of ['play', 'pause', 'ended', 'emptied', 'seeking', 'seeked', 'error', 'loadedmetadata']) {
+      document.addEventListener(name, event => {
+        const audio = event.target
+        if (audio instanceof HTMLAudioElement && audio.getAttribute('aria-label') === 'ARIA voice playback')
+          events.push({ name, time: audio.currentTime, duration: audio.duration, paused: audio.paused, ended: audio.ended, ready: audio.readyState })
+      }, true)
+    }
+  })
 })
 test.afterEach(async ({ page }, info) => {
+  const voiceEvents = await page.evaluate(() => (window as Window & { voiceEvents?: unknown[] }).voiceEvents).catch(() => [])
+  if (voiceEvents?.length) {
+    await info.attach('voice-playback-events', { body: JSON.stringify(voiceEvents), contentType: 'application/json' })
+    if (info.status !== info.expectedStatus) console.log(JSON.stringify(voiceEvents))
+  }
   await info.attach('browser-diagnostics', { body: JSON.stringify(diagnostics.get(page), null, 2), contentType: 'application/json' })
   expect(diagnostics.get(page)?.errors).toEqual([])
 })
@@ -31,6 +47,86 @@ function stored(owner: string) {
 }
 
 for (const version of ['v1', 'v2']) {
+  test(`${version}: conversational disk measures voice amplitude and frequency and stops on pause`, async ({ page }) => {
+    // A quiet 220 Hz segment followed by a louder 880 Hz segment, using actual browser decoding/Web Audio.
+    const sampleRate = 24000
+    const samples = sampleRate * 20
+    const wav = Buffer.alloc(44 + samples * 2)
+    wav.write('RIFF', 0); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8)
+    wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22)
+    wav.writeUInt32LE(sampleRate, 24); wav.writeUInt32LE(sampleRate * 2, 28)
+    wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36)
+    wav.writeUInt32LE(samples * 2, 40)
+    for (let i = 0; i < samples; i++) {
+      const loud = i >= sampleRate * 8
+      wav.writeInt16LE(Math.round(Math.sin(2 * Math.PI * (loud ? 880 : 220) * i / sampleRate) * (loud ? .4 : .05) * 32767), 44 + i * 2)
+    }
+    await page.route('**/api/chat/history?*', route => route.fulfill({ json: { history: [{
+      query: 'Explain saving', response: { domain: 'general', response: 'A synthetic voice reply.' }, audio_token: 'disk-test',
+    }] } }))
+    await page.route('**/api/audio/disk-test', route => {
+      const range = route.request().headers().range?.match(/^bytes=(\d+)-(\d*)$/)
+      if (!range) return route.fulfill({ contentType: 'audio/wav', body: wav, headers: { 'Accept-Ranges': 'bytes' } })
+      const first = Number(range[1])
+      const last = range[2] ? Math.min(Number(range[2]), wav.length - 1) : wav.length - 1
+      return route.fulfill({ status: 206, contentType: 'audio/wav', body: wav.subarray(first, last + 1),
+        headers: { 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${first}-${last}/${wav.length}` } })
+    })
+    await start(page, version)
+    await page.getByRole('tab', { name: 'Chat', exact: true }).click()
+    await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('Conversational Mode')
+    const panel = page.getByRole('region', { name: 'ARIA conversational voice' })
+    await expect(panel).toBeVisible()
+    await expect(page.locator('iframe.avatar-embed')).toHaveCount(0)
+    const audio = panel.locator('audio')
+    const stage = panel.locator('.voice-disk-stage')
+    // A trusted click establishes the same browser activation as using the real playback controls.
+    await panel.locator('.voice-disk-status').click()
+    await audio.evaluate(async (el: HTMLAudioElement) => { el.currentTime = .2; await el.play() })
+    await expect.poll(async () => Number(await stage.getAttribute('data-rms'))).toBeGreaterThan(.025)
+    await expect.poll(async () => Number(await stage.getAttribute('data-centroid'))).toBeLessThan(400)
+    const quiet = Number(await stage.getAttribute('data-rms'))
+    await audio.evaluate(async (el: HTMLAudioElement) => { el.currentTime = 9; await el.play() })
+    await expect.poll(async () => Number(await stage.getAttribute('data-rms'))).toBeGreaterThan(quiet * 4)
+    await expect.poll(async () => Number(await stage.getAttribute('data-centroid'))).toBeGreaterThan(650)
+    await test.info().attach('voice-disk-desktop', { body: await panel.screenshot(), contentType: 'image/png' })
+    await audio.evaluate((el: HTMLAudioElement) => el.pause())
+    await expect(stage).toHaveAttribute('data-playing', 'false')
+    await expect(stage).toHaveAttribute('data-rms', '0.00000')
+    await expect(panel.getByRole('status')).toHaveText('Voice paused')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await audio.evaluate(async (el: HTMLAudioElement) => { el.currentTime = 9; await el.play() })
+    await expect.poll(async () => Number(await stage.getAttribute('data-rms'))).toBeGreaterThan(.2)
+    await expect.poll(() => stage.evaluate(el => el.style.getPropertyValue('--voice-scale'))).toBe('1')
+    await audio.evaluate((el: HTMLAudioElement) => el.pause())
+    await page.getByRole('button', { name: /^Clear chat$/i }).click()
+    await expect(audio).toBeHidden()
+    await expect(stage).toHaveAttribute('data-rms', '0.00000')
+    await expect(panel.getByRole('status')).toHaveText('Ready to talk')
+    await page.setViewportSize({ width: 390, height: 900 })
+    const bounds = await stage.boundingBox()
+    expect(bounds).toBeTruthy()
+    expect(bounds!.x).toBeGreaterThanOrEqual(0)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(391)
+    await test.info().attach('voice-disk-mobile', { body: await panel.screenshot(), contentType: 'image/png' })
+    const shortWav = Buffer.from(wav.subarray(0, 44 + sampleRate * 2))
+    shortWav.writeUInt32LE(shortWav.length - 8, 4)
+    shortWav.writeUInt32LE(shortWav.length - 44, 40)
+    await page.route('**/api/audio/disk-test-end', route => route.fulfill({ contentType: 'audio/wav', body: shortWav }))
+    await page.route('**/api/chat', route => route.fulfill({ json: {
+      domain: 'general', response: 'A second synthetic reply.', audio_token: 'disk-test-end',
+    } }))
+    await page.getByRole('textbox', { name: 'Message ARIA', exact: true }).fill('Speak again')
+    await page.getByRole('button', { name: 'Send message', exact: true }).click()
+    await expect(audio).toBeVisible()
+    await audio.evaluate(async (el: HTMLAudioElement) => { await el.play() })
+    await expect.poll(async () => Number(await stage.getAttribute('data-rms'))).toBeGreaterThan(.025)
+    await expect.poll(() => audio.evaluate((el: HTMLAudioElement) => el.ended)).toBe(true)
+    await expect(panel.getByRole('status')).toHaveText('Ready to talk')
+    await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('Normal Mode')
+    await expect(panel).toHaveCount(0)
+  })
+
   test(`${version}: login preserves the imported private owner's active chat`, async ({ page }) => {
     await start(page, version)
     const original = await page.evaluate(() => ({ owner: localStorage.getItem('aria_owner_id'), session: localStorage.getItem('aria_session_id') }))
