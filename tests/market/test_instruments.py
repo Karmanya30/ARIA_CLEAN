@@ -82,7 +82,7 @@ def _boom(*a, **k):
 @pytest.fixture(autouse=True)
 def offline(monkeypatch, tmp_path):
     # Instrument tests assert text/grounding; background speech has its own tests.
-    monkeypatch.setattr("api.routes.instruments.register_later", lambda fn: "synthetic-audio")
+    monkeypatch.setattr("modules.qa.present.register_later", lambda fn: "synthetic-audio")
     uni = tmp_path / "universe.parquet"
     UNIVERSE.to_parquet(uni)
     for mod in (amfi, I):

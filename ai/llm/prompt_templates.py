@@ -277,6 +277,8 @@ Instructions:
 - Provide useful insights.
 - State when live market data is unavailable.
 - Avoid fabricating prices or recent events.
+- For a question about "today", answer from today_change_pct / today_trend against the previous close; the five-day figures are a separate, longer trend. Say the data is delayed.
+- Use only numbers that appear in the Context; do not add sector averages or other figures from memory.
 
 Return EXACTLY this format:
 Insight: <Key trend or observation>

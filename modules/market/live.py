@@ -262,6 +262,13 @@ def start() -> None:
     threading.Thread(target=_loop, name="markets-live", daemon=True).start()
 
 
+def peek(kind: str) -> dict | None:
+    """The latest snapshot if one is loaded; never starts the refresher or touches the network."""
+    with _snap_lock:
+        snap = _snap.get(kind)
+    return None if snap is None else {**snap, "meta": dict(snap["meta"])}
+
+
 def snapshot(kind: str) -> dict:
     """Copy of the latest snapshot; {warming: True} with empty lists (and a start()) when nothing has loaded yet."""
     with _snap_lock:

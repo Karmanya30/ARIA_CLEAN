@@ -4,6 +4,7 @@ import { Check, Layers } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
 import { MODES, THEMES, hasMarkets, setTheme, useModeSetting, type ThemeId } from '../../theme'
 import { VERSIONS, getVersion, setVersion, type VersionId } from '../../version'
+import { AvatarSettings } from '../avatar/AvatarSettings'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
@@ -109,6 +110,7 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
       <p className="settings-sub" role="status" aria-live="polite">
         {status}
       </p>
+      <AvatarSettings />
       <h2 className="settings-h2">About ARIA</h2>
       <BrandLogo tagline className="settings-brand" />
       <p className="settings-sub">

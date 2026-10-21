@@ -50,6 +50,8 @@ _BROAD_MARKET_TERMS = (
     "rupee against", "rupee vs", "rupee fall", "rupee slip", "rupee weak", "rupee deprec", "rupee record",
     # everyday "what's going on" phrasing, India and abroad. Still no bare "news": "Reliance news" is a single-stock question.
     "market today", "markets today", "indian market", "share market", "market outlook", "market news", "market update",
+    "market moving", "markets moving", "market moves", "market falling", "market rally", "market crash", "market drop", "market selloff",
+    "market sell-off", "why is the market", "why are markets", "watch this week", "week ahead",
     "news today", "latest news", "world news", "top news", "top headlines", "headlines",
 )
 _INDIVIDUAL_STOCK_TERMS = (

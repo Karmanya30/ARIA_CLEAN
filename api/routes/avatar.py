@@ -351,14 +351,12 @@ async def _stream_sse(text: str, model: str) -> AsyncIterator[str]:
 @router.post("/v1/{session_id}/owner/{owner_id}/chat/completions")
 @router.post("/v1/{session_id}/chat/completions")
 async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest, owner_id: str | None = None):
-    # Note: no separate transcript store needed here. Tavus's callback and
-    # the React frontend's own /api/chat both run in this one process now
-    # (unlike the old Streamlit-subprocess split, which needed a SQLite
-    # TavusTurn table just to cross a process boundary) -- handle_query()
-    # already calls core.session.save_turn() internally, so the turn
-    # lands in the same history GET /api/chat/history serves, and the
-    # frontend can poll that one endpoint for both text and voice turns.
-    from core.orchestrator import handle_query
+    # The same answer pipeline as the text chat (modules/qa/pipeline.py), in the Tavus mode: the turn is saved in the
+    # history GET /api/chat/history serves, and the replica reads the short spoken version aloud.
+    import asyncio
+
+    from modules.qa import pipeline
+    from modules.qa.models import Channel, ChatMode, QARequest
 
     user_messages = [m for m in req.messages if m.role == "user"]
     query = user_messages[-1].content if user_messages else ""
@@ -366,18 +364,12 @@ async def tavus_chat_completions(session_id: str, req: ChatCompletionRequest, ow
     logger.info("Tavus chat request")
 
     try:
-        from ai.llm.spoken import spoken_version
-
-        from shared.user_store import current_owner
-        token = current_owner.set(owner_id)
-        try:
-            result = handle_query(query, session_id=session_id, mode="Normal Mode")
-        finally:
-            current_owner.reset(token)
-        # the replica reads this aloud: labelled sections and bullets become a few natural sentences
-        response_text = spoken_version(query, result.get("response", "I could not generate a response."))
+        result = await asyncio.to_thread(
+            lambda: pipeline.answer(QARequest(query=query, session_id=session_id, owner_id=owner_id, mode=ChatMode.TAVUS,
+                                              channel=Channel.AVATAR)).to_dict())
+        response_text = result.get("spoken") or result.get("response") or "I could not generate a response."
     except Exception:
-        logger.exception("Error in orchestrator while handling Tavus query")
+        logger.exception("Error in the answer pipeline while handling Tavus query")
         response_text = "I'm sorry, I encountered an internal error while processing that."
 
     if req.stream:

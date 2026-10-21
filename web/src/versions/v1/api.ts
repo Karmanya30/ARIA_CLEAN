@@ -105,19 +105,40 @@ export const instrumentPaths = {
   sip: (id: string, monthly: number, years: number) => `${ix(id)}/sip?monthly=${monthly}&years=${years}`,
 }
 
+/** Where a question comes from and what the user is looking at. Every question in the app is asked through `api.ask`, which
+ * posts to the one answer pipeline (modules/qa/pipeline.py): same understanding, memory, grounding and disclaimers whatever
+ * the screen or mode. */
+export type AskChannel = 'chat' | 'voice' | 'avatar' | 'instrument' | 'report' | 'market_chip'
+export interface AskContext { instrument_id?: string; company?: string; report_id?: string; page?: string; headline?: string }
+export interface AskParams {
+  query: string
+  sessionId: string
+  mode?: ChatMode
+  channel?: AskChannel
+  context?: AskContext
+  correct?: boolean
+  history?: { role: 'user' | 'assistant'; content: string }[]
+}
+const ask = (p: AskParams) =>
+  j<ChatResponse>('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      query: p.query, request_id: crypto.randomUUID(), session_id: p.sessionId, mode: p.mode ?? 'Normal Mode', owner_id: ownerId(),
+      adapt_tone: adaptTone(), correct: p.correct ?? true, channel: p.channel ?? 'chat',
+      ...(p.context ? { context: p.context } : {}), ...(p.history ? { history: p.history } : {}),
+    }),
+  })
+
 export const api = {
+  ask,
+
   /** Ask ARIA about one instrument; the answer has the same shape as a chat reply. `history` is the earlier turns of this drawer conversation. */
   askInstrument: (id: string, question: string, sessionId: string, history: { role: 'user' | 'assistant'; content: string }[]) =>
-    j<ChatResponse>('/api/instruments/ask', {
-      method: 'POST',
-      body: JSON.stringify({ id, question, session_id: sessionId, owner_id: ownerId(), history }),
-    }),
+    ask({ query: question, sessionId, channel: 'instrument', context: { instrument_id: id, page: 'explore' }, history }),
 
-  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true) =>
-    j<ChatResponse>('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ query, request_id: crypto.randomUUID(), session_id: sessionId, mode, owner_id: ownerId(), adapt_tone: adaptTone(), correct }),
-    }),
+  /** `headline` = the news item the question is about (market chips); it is context, never part of the question. */
+  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, headline?: string) =>
+    ask({ query, sessionId, mode, correct, channel: headline ? 'market_chip' : 'chat', context: headline ? { headline } : undefined }),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(

@@ -14,7 +14,7 @@ _TEST_SESSION = "__pytest_api_chat__"
 @pytest.fixture(autouse=True)
 def no_background_speech(monkeypatch):
     # Chat tests assert token persistence; speech synthesis is tested separately.
-    monkeypatch.setattr("api.routes.chat.register_later", lambda fn: uuid.uuid4().hex)
+    monkeypatch.setattr("modules.qa.present.register_later", lambda fn: uuid.uuid4().hex)
 
 
 def _cleanup():

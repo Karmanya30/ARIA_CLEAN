@@ -207,8 +207,7 @@ def test_general_question_and_missing_evidence_receive_help(monkeypatch):
 def test_system_context_path_is_persisted_and_scoped(monkeypatch):
     from fastapi.testclient import TestClient
     from api.main import app
-    from api.routes import chat
-    monkeypatch.setattr(chat, "register_later", lambda fn: "audio-test")
+    monkeypatch.setattr("modules.qa.present.register_later", lambda fn: "audio-test")
     monkeypatch.setattr("ai.llm.groq_client.generate_response", lambda *a, **k: "News answer.")
     client = TestClient(app)
     payload = {"query": "Explain this", "session_id": "news", "owner_id": "alice", "system_context": "headline", "request_id": "r"}

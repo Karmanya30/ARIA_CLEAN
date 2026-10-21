@@ -129,7 +129,7 @@ function NewsModal({
     setQuestion('')
     setTimeout(() => threadRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 80)
     try {
-      const systemContext = `You are analysing a market news headline for an investor.\n\nHeadline: "${item.title}"\nSource: ${item.source}\nSentiment: ${item.tone} (score: ${item.net.toFixed(2)})\nRelated stocks: ${item.symbols.join(', ') || 'none'}\n\nAnswer the user's question specifically about this headline and its investment implications. Be concise and relevant.`
+      const systemContext = `Market news item.\nHeadline: "${item.title}"\nSource: ${item.source}\nSentiment: ${item.tone} (score: ${item.net.toFixed(2)})\nRelated stocks: ${item.symbols.join(', ') || 'none'}`
       const res = await api.sendMessage(
         q,
         'news-' + Date.now(),
@@ -258,10 +258,11 @@ function NewsQAPanel({ onClose, initialQ, headlines }: {
         ? `\n\nCurrent market news headlines:\n${headlines.slice(0, 15).map((h, i) => `${i + 1}. ${h}`).join('\n')}`
         : ''
       const res = await api.sendMessage(
-        `You are a market news analyst. Answer based on current market conditions.${ctx}\n\nUser question: ${q}`,
+        q,
         'news-qa-' + Date.now(),
         'Normal Mode',
         false,
+        ctx.trim() || undefined,
       )
       setThread((t) => t.map((x, i) => (i === idx ? { ...x, a: res.response, loading: false } : x)))
       setTimeout(() => threadRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 80)

@@ -131,7 +131,7 @@ def test_legacy_learning_state_cannot_be_claimed_by_selecting_its_id(accounts):
 
 def test_chat_progress_and_audio_are_account_scoped(accounts, mock_llm, monkeypatch, tmp_path):
     user = register(accounts)
-    monkeypatch.setattr("api.routes.chat.register_later", lambda fn: None)
+    monkeypatch.setattr("modules.qa.present.register_later", lambda fn: None)
     session = uuid.uuid4().hex
     payload = {"session_id": session, "owner_id": user["id"], "query": "hello"}
     assert accounts.post("/api/chat", json=payload).status_code == 200

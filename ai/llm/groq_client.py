@@ -16,6 +16,7 @@ import os
 import json
 import re
 import time
+from contextvars import ContextVar
 from typing import Iterator
 
 from loguru import logger
@@ -90,8 +91,15 @@ def _extract_groq_text(response) -> str:
         return str(response)
 
 
+# Per-turn model-call counters, set by modules/qa/pipeline.py so each answer's log line shows how much of its time was the model.
+llm_stats: ContextVar[dict | None] = ContextVar("aria_llm_stats", default=None)
+
+
 def _record_usage(provider: str, model: str, response, elapsed: float) -> None:
     """Log numeric provider telemetry only; never prompt content or credentials."""
+    if (stats := llm_stats.get()) is not None:
+        stats["llm_calls"] = stats.get("llm_calls", 0) + 1
+        stats["llm_ms"] = stats.get("llm_ms", 0) + round(elapsed * 1000)
     usage = getattr(response, "usage", None) if provider == "groq" else getattr(response, "usage_metadata", None)
     def value(obj, name, default=None):
         return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)

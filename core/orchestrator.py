@@ -1,6 +1,9 @@
 """Thin orchestrator for ARIA."""
 
+import contextvars
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from typing import Any
 
@@ -20,6 +23,7 @@ from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
 from shared.domain_guard import validate_output
 from shared.intent_resolver import current_interpretation
+from modules.qa.models import active_focus
 from shared.dialogue import act as dialogue_act, clean as clean_reply, confirmation, general_task, CONVERSATION_SYSTEM
 
 # Casual greetings/small-talk with no real question in them -- found live:
@@ -143,6 +147,24 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
         save_turn(session_id, shown, response)
         return response
 
+    focus = active_focus.get()
+    if focus and (focus.context.instrument_id or focus.context.headline) and not _is_smalltalk(query):
+        # The user is looking at one instrument / news item: same understanding, memory, tone and persistence as everywhere,
+        # but the subject is already known, so the question is answered from that item's facts (modules/qa/focus.py).
+        from modules.qa import focus as qa_focus
+        history = None if get_session(session_id).get("history") else focus.history
+        if focus.context.instrument_id:
+            response = qa_focus.instrument_answer(focus.context.instrument_id, query, focus.owner_id, history)
+        else:
+            response = qa_focus.headline_answer(focus.context.headline, query, history)
+        if not response["grounding"].get("deterministic") and (guard := _output_guard(query, response.get("response", "")))["available"]:
+            response["domain_guard_output"] = guard
+        response["query"] = shown
+        save_turn(session_id, shown, response)
+        return response
+    if focus and _ABOUT_IT.search(query) and not _is_smalltalk(query) and not resolve_company(query) and (hint := _focus_company(focus)):
+        query = f"{query} (company: {hint})"  # "is it expensive?" on a company/report page means that company
+
     # Historical evidence is assembled for every mode by execute_turn.
     from shared.conversation_memory import active_context, _FOLLOWUP
     evidence = active_context.get()
@@ -211,14 +233,35 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # it. Non-blocking: attaches metadata for transparency/demo purposes,
     # never rewrites or discards the answer -- see shared/domain_guard.py's
     # validate_output docstring for why.
-    # (skipped in the Live Avatar: it is a transparency extra that costs a model call, and a spoken reply is already late)
-    output_guard = validate_output(query, response.get("response", "")) if mode != "Live Avatar" else {"available": False}
+    # Same for every mode: bounded wait, so a slow classifier costs a missing tag, never a late reply.
+    output_guard = _output_guard(query, response.get("response", ""))
     if output_guard["available"]:
         response["domain_guard_output"] = output_guard
 
     response["query"] = shown
     save_turn(session_id, shown, response)
     return response
+
+
+_ABOUT_IT = re.compile(r"\b(it|its|this|that|the company|the stock|the report|p/?e|pe ratio|price|valuation|revenue|profit|debt|expensive|cheap|risks?|outlook|score|sentiment|management)\b", re.I)
+
+
+def _focus_company(focus) -> str | None:
+    from modules.qa.focus import company_hint
+    return company_hint(focus.context)
+
+
+_GUARD_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="aria-guard")
+GUARD_TIMEOUT_S = float(os.getenv("ARIA_OUTPUT_GUARD_TIMEOUT_S", "3"))
+
+
+def _output_guard(query: str, text: str) -> dict[str, Any]:
+    future = _GUARD_POOL.submit(contextvars.copy_context().run, validate_output, query, text)
+    try:
+        return future.result(timeout=GUARD_TIMEOUT_S)
+    except Exception as exc:  # timeout or classifier failure: the tag is a transparency extra, never required
+        logger.warning(f"output guard skipped: {type(exc).__name__}")
+        return {"available": False}
 
 
 def _general_reply(query: str) -> dict[str, Any]:
@@ -291,6 +334,8 @@ def _handle_query(query: str, session_id: str = "default", mode: str = "Normal M
         return _dialogue_reply(query, kind, session_id)
     if general_task(text):
         return _handle(text, session_id, mode, original=query)
+    if (focus := active_focus.get()) and (focus.context.instrument_id or focus.context.headline):
+        return _tone_and_handle(query, text, session, session_id, mode)  # the subject is the item in focus: nothing to resolve
     from shared.intent_resolver import resolve
     ticker = resolve_company(text)
     clear_route = bool(_is_smalltalk(text) or finance_intent(text) or finance_statement(text)

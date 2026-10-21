@@ -1,11 +1,11 @@
 # Starts ARIA if it is not already running, then opens Edge:
 #   - API: port 8000, or the next free port if another app (e.g. Bhauly) holds 8000; the port is passed to vite (ARIA_API_PORT)
 #   - web: port 5173
-#   - with aria://launch-gpu: also the MuseTalk lip-sync server on port 8010 (GPU; the first start takes a few minutes)
+#   - with aria://launch-gpu: also the local avatar engine (avatar_engine/: MuseTalk lip-sync + Piper voice) on port 8010 (GPU; about 40 s)
 # Re-running reuses current services; an outdated API is restarted only after workspace ownership is verified.
 # Called by Launch_ARIA.bat / the aria:// link (see register_launcher.ps1) or directly. The URL argument is ignored except for
 # the strings aria://launch and aria://launch-gpu, so a link on any page can only ever start ARIA, nothing else.
-# Everything is logged to logs\launch.log (+ api/web/musetalk .out/.err.log). A failure shows a message box.
+# Everything is logged to logs\launch.log (+ api/web/avatar_engine .out/.err.log, logs\avatar_engine.log). A failure shows a message box.
 # Test switches: ARIA_NO_BROWSER=1 (don't open Edge), ARIA_LAUNCH_NOGUI=1 (no message boxes).
 param([string]$Url = "aria://launch")
 
@@ -123,32 +123,32 @@ try {
         $webProc = Start-Hidden "cmd.exe" @("/c", "npm run dev -- --port $WEB_PORT --strictPort") (Join-Path $root "web") "web"
     }
 
-    # ---- MuseTalk (GPU lip-sync)
+    # ---- avatar engine (GPU lip-sync, MuseTalk 1.5)
     $mtProc = $null; $mtWanted = $false
     if ($gpu) {
         $mtWanted = $true
         $mtDir = if ($env:MUSETALK_DIR) { $env:MUSETALK_DIR } else { "E:\musetalk\MuseTalk" }
         $health = Get-Json "http://127.0.0.1:$MT_PORT/health"
-        if ($health -and $null -ne $health.ready) { Log "MuseTalk already running on port $MT_PORT (ready=$($health.ready))" }
-        elseif (Find-Proc "python.exe" "musetalk_server\.py") { Log "MuseTalk is already starting" }
-        elseif (Test-Port $MT_PORT) { $problems += "Port $MT_PORT is used by another app, so the lip-sync server cannot start."; $mtWanted = $false }
+        if ($health -and $null -ne $health.ready) { Log "Avatar engine already running on port $MT_PORT (ready=$($health.ready))" }
+        elseif (Find-Proc "python.exe" "avatar_engine\.server") { Log "Avatar engine is already starting" }
+        elseif (Test-Port $MT_PORT) { $problems += "Port $MT_PORT is used by another app, so the avatar engine cannot start."; $mtWanted = $false }
         else {
-            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\face.png") |
+            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\start_avatar_engine.bat", "$root\avatar_engine\server.py", "$root\interface\avatar\face.png") |
                 Where-Object { -not (Test-Path $_) }
-            if ($missing) { $problems += "Lip-sync server files are missing: " + ($missing -join ", "); $mtWanted = $false }
+            if ($missing) { $problems += "Avatar engine files are missing: " + ($missing -join ", "); $mtWanted = $false }
             else {
                 try {
                     $mem = (& nvidia-smi "--query-gpu=memory.used,memory.total" "--format=csv,noheader,nounits" 2>$null | Select-Object -First 1) -split ",\s*"
                     $free = [int]$mem[1] - [int]$mem[0]
                     Log "GPU memory free: $free MiB"
-                    if ($free -lt 3000) { Log "Warning: only $free MiB of GPU memory is free (another program is using it); MuseTalk needs about 3 GB." Yellow }
+                    if ($free -lt 3000) { Log "Warning: only $free MiB of GPU memory is free (another program is using it); the avatar engine needs about 4 GB." Yellow }
                 } catch { Log "Warning: nvidia-smi not available; is the NVIDIA driver installed?" Yellow }
-                $os = Get-CimInstance Win32_OperatingSystem   # MuseTalk fails mid-sentence if Windows runs out of memory (commit)
+                $os = Get-CimInstance Win32_OperatingSystem   # the avatar engine fails mid-sentence if Windows runs out of memory (commit)
                 $freeGb = [math]::Round($os.FreeVirtualMemory / 1MB, 1)
                 Log "Windows memory (RAM + page file) free: $freeGb GB"
-                if ($freeGb -lt 6) { Log "Warning: Windows memory is nearly full ($freeGb GB free), lip-sync may stop mid-sentence. Close big programs (python jobs such as Bhauly) first." Yellow }
-                Log "Starting MuseTalk on port $MT_PORT (first start takes a few minutes: loading models to the GPU)"
-                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\start_musetalk.bat`"") $root "musetalk"
+                if ($freeGb -lt 6) { Log "Warning: Windows memory is nearly full ($freeGb GB free), the avatar may stall. Close big programs (python jobs such as Bhauly) first." Yellow }
+                Log "Starting the avatar engine on port $MT_PORT (loading models to the GPU, about 40 s)"
+                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\start_avatar_engine.bat`"") $root "avatar_engine"
             }
         }
     }
@@ -168,8 +168,8 @@ try {
         if (-not (Wait-Ready "web proxy" { Test-ReadyApi "http://localhost:$WEB_PORT" } 60 $webProc)) { throw "The web app cannot reach the current API session service on port $apiPort." }
     }
     if ($mtWanted) {
-        $ok = Wait-Ready "MuseTalk lip-sync (port $MT_PORT)" { $h = Get-Json "http://127.0.0.1:$MT_PORT/health" 2; [bool]($h -and $h.ready) } 480 $mtProc
-        if (-not $ok) { $problems += "The lip-sync server did not start.`n`n$(Tail (Join-Path $logDir 'musetalk.err.log'))`n(logs\musetalk.err.log)" }
+        $ok = Wait-Ready "avatar engine (port $MT_PORT)" { $h = Get-Json "http://127.0.0.1:$MT_PORT/health" 2; [bool]($h -and $h.ready) } 480 $mtProc
+        if (-not $ok) { $problems += "The avatar engine did not start.`n`n$(Tail (Join-Path $logDir 'avatar_engine.log'))`n(logs\avatar_engine.log)" }
     }
 
     if (-not $env:ARIA_NO_BROWSER) {
@@ -179,7 +179,7 @@ try {
         $msg = "ARIA is running at http://localhost:$WEB_PORT, but:`n`n" + ($problems -join "`n`n") + "`n`nARIA uses the standard avatar instead."
         Log $msg Red; Show-Box $msg "Warning"
     } else {
-        Log "ARIA is ready: http://localhost:$WEB_PORT (API port $apiPort$(if ($mtWanted) { ", lip-sync on $MT_PORT" }))" Green
+        Log "ARIA is ready: http://localhost:$WEB_PORT (API port $apiPort$(if ($mtWanted) { ", avatar engine on $MT_PORT" }))" Green
         Start-Sleep 3
     }
 } catch {
