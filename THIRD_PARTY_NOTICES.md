@@ -99,3 +99,22 @@ Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/L
 | AMFI daily NAV file (portal.amfiindia.com) | Active scheme list and categories (scheme lookup, category ranks) | Public data published by AMFI. |
 
 Reports state each source and its data-through date on their disclosure page.
+
+(`Local Avatar (Live Face)` and `LiveTalking Avatar (Local)`) use. Nothing listed here is bundled in the repository.
+
+## Local avatar modes: LiveTalking avatar mode (`LiveTalking Avatar (Local)`)
+
+| Component | Where | Licence | Notes |
+|---|---|---|---|
+| LiveTalking (github.com/lipku/LiveTalking) | `E:\LiveTalking\src`, own Python env `E:\LiveTalking\env` | Apache-2.0 | Run as a separate local process on port 8020. Its README asks that videos published on Chinese platforms carry a watermark/logo; if LiveTalking recordings are ever published there, add one. |
+| Sample avatar `wav2lip256_avatar1` | `E:\LiveTalking\src\data\avatars` | **No licence, provenance or model release known** | Local personal/demo use only. Never commit it, never redistribute it, never use it commercially or in a published recording. Swap in a face with a signed release before any wider use. The UI credits it as a sample avatar. |
+| `wav2lip256.pth` (Wav2Lip 256 weights) | `E:\LiveTalking\src\models\wav2lip.pth` | Wav2Lip lineage: **non-commercial / research use** | Personal use only. Not for a commercial deployment. |
+| MuseTalk (optional model for LiveTalking, and avatar_engine) | `E:\MuseTalk` | MIT | Third-party parts (e.g. whisper, dwpose, face-parse, sd-vae, syncnet weights) follow their own licences; check each before redistribution. |
+| Piper TTS (`piper-tts`) | pip package in `E:\LiveTalking\env`, separate local process | GPL-3.0 | Used only as a separate process; ARIA code is not linked against it. |
+| Voice `en_US-kristin-medium` | `models\tts\piper\` | Public domain (LibriVox recordings) | Default voice of the LiveTalking mode. |
+
+## Voice flagged in the existing avatar engine (not changed)
+
+`avatar_engine`'s default voice `en_US-hfc_female-medium` is licensed **CC BY-NC-SA** (non-commercial, share-alike,
+attribution). Fine for personal use; change it (for example to `en_US-kristin-medium`) before any commercial use.
+The voices `en_US-ryan` (CC BY-NC-SA) and `en_US-lessac` (restrictive terms) were rejected for the LiveTalking mode.

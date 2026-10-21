@@ -1,0 +1,86 @@
+{
+  "updated": "2026-10-21T21:20:42.427755+05:30",
+  "note": "percent done = sum(weight * done_pct / 100). Agents: update done_pct and status of your own packages after each milestone (re-read the file first; edit only your entries).",
+  "packages": [
+    {
+      "id": "WP0",
+      "name": "Disk and env prep",
+      "weight": 4,
+      "done_pct": 100,
+      "status": "done",
+      "owner": "A"
+    },
+    {
+      "id": "WP1",
+      "name": "LiveTalking install",
+      "weight": 12,
+      "done_pct": 100,
+      "status": "done: env E:\\LiveTalking\\env, torch 2.9.1 cu128 cuda True, commit c726943",
+      "owner": "A"
+    },
+    {
+      "id": "WP2",
+      "name": "Weights and sample avatar",
+      "weight": 8,
+      "done_pct": 100,
+      "status": "done: weights, avatar, junctions, MODELS.md with SHA256",
+      "owner": "A"
+    },
+    {
+      "id": "WP3",
+      "name": "Service adapter (Piper plugin, serve, bat)",
+      "weight": 14,
+      "done_pct": 100,
+      "status": "done: live run verified (health, offer/answer, echo audio+video, interrupt, localhost only)",
+      "owner": "B"
+    },
+    {
+      "id": "WP4",
+      "name": "Benchmark",
+      "weight": 10,
+      "done_pct": 100,
+      "status": "done: BENCHMARKS.md written; lip-sync lag not reliably measured",
+      "owner": "A"
+    },
+    {
+      "id": "WP5",
+      "name": "Front end panel and hook",
+      "weight": 16,
+      "done_pct": 100,
+      "status": "done: hook+panel verified against mock and the real service (first frame 1.3-2.4 s, human->speaking 2.1 s, barge-in 0.14 s, no console errors)",
+      "owner": "C"
+    },
+    {
+      "id": "WP6",
+      "name": "Shared-file wiring (6th mode)",
+      "weight": 6,
+      "done_pct": 100,
+      "status": "done: web wiring (3 types, 3 ChatTab, vite proxy) + backend enum ChatMode.LIVETALKING; commit pending",
+      "owner": "C+D"
+    },
+    {
+      "id": "WP7",
+      "name": "Launchers (both) and matrix",
+      "weight": 14,
+      "done_pct": 100,
+      "status": "launcher done; matrix run with real service for N, G, shortcuts, aria://launch-gpu (S3 not simulated)",
+      "owner": "D"
+    },
+    {
+      "id": "WP8",
+      "name": "Tests",
+      "weight": 9,
+      "done_pct": 100,
+      "status": "done: livetalking plugin tests, qa mode test, web unit tests 15/15, launcher matrix, full suite 1206 passed (1 timing-flaky forecast test passed alone)",
+      "owner": "B+C+D"
+    },
+    {
+      "id": "WP9",
+      "name": "Docs and licensing",
+      "weight": 7,
+      "done_pct": 100,
+      "status": "done: notices, launch doc, README fresh-checkout note, rollback documented",
+      "owner": "D"
+    }
+  ]
+}

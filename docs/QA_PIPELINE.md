@@ -59,7 +59,7 @@ and the Tavus embed talk to the WebSocket / callback directly.
 
 Files:
 
-* `modules/qa/models.py` - `ChatMode` (the five mode strings, one enum), `Channel`, `QAContext`, `QARequest`, `QAResponse` (ChatResponse-compatible, extra fields allowed), `Focus`.
+* `modules/qa/models.py` - `ChatMode` (the six mode strings, one enum), `Channel`, `QAContext`, `QARequest`, `QAResponse` (ChatResponse-compatible, extra fields allowed), `Focus`.
 * `modules/qa/pipeline.py` - `answer(req)`; `lookup(req, fetch)` for the deterministic company-intelligence endpoint; `understand()`.
 * `modules/qa/focus.py` - context providers and the single grounded answer loop (`grounded_answer`) used by the instrument drawer and the news item chips.
 * `modules/qa/trust.py` - `ungrounded()`, `enforce()` (invented-numbers guard for every fetched-data route), `finalize()` (disclaimer, accuracy caveat, tags), `DEGRADED`.
@@ -87,7 +87,7 @@ Rules every channel now gets:
 
 | Entry point | Before | After |
 |---|---|---|
-| `POST /api/chat`, all 5 modes | orchestrator, mode ignored (except one skip) | `pipeline.answer`, channel `chat`, mode in `ChatMode` |
+| `POST /api/chat`, all 6 modes | orchestrator, mode ignored (except one skip) | `pipeline.answer`, channel `chat`, mode in `ChatMode` |
 | `POST /api/chat` + `system_context` / `context.headline` | bypassed router and normaliser, private prompt | `pipeline.answer`, channel `market_chip`, same understanding / persistence, headline as untrusted facts, number guard |
 | `POST /api/chat` + `context.instrument_id` | n/a | same as `/api/instruments/ask` |
 | `POST /api/chat` + `context.company` / `report_id` | n/a | resolves "it" / "this company" for the page in focus |
