@@ -1,0 +1,13 @@
+/* LiveTalking panel extras; everything else reuses the Local Avatar classes (AvatarStage.css). */
+.lt-sound {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 0; font: inherit; font-size: 14px; font-weight: 600;
+  color: #fff; background: rgba(10, 18, 28, .85); cursor: pointer; white-space: nowrap;
+}
+.lt-sound:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lt-caption { max-height: 45%; overflow: auto; }
+@media (max-width: 640px) {
+  .lt-caption { max-height: none; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .lt-sound { left: 4px; right: 4px; bottom: 4px; transform: none; min-height: 28px; padding: 2px 4px; font-size: 10.5px; justify-content: center; white-space: normal; }
+  .lt-sound svg { display: none; }
+}
