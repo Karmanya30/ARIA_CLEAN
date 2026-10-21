@@ -14,7 +14,7 @@ export interface AvatarReply { id: number; query: string; response: ChatResponse
 const LABEL: Record<string, string> = { idle: 'Ready', thinking: 'Thinking', speaking: 'Speaking', listening: 'Listening', unavailable: 'Unavailable' }
 
 /** The spoken version of a reply: the backend's rewrite (ai/llm/spoken.py) if it answers in time, else a local short version. */
-async function spokenFor(reply: AvatarReply): Promise<string> {
+export async function spokenFor(reply: AvatarReply): Promise<string> {
   const written = String(reply.response.response ?? '')
   if (typeof reply.response.spoken === 'string' && reply.response.spoken.trim()) return conciseSpoken(reply.response.spoken, 110) // the pipeline already made it
   try {

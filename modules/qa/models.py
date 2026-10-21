@@ -9,13 +9,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ChatMode(StrEnum):
-    """The five chat modes (the strings are what the front end sends). A mode only changes PRESENTATION."""
+    """The six chat modes (the strings are what the front end sends). A mode only changes PRESENTATION."""
 
     NORMAL = "Normal Mode"
     CONVERSATIONAL = "Conversational Mode"
     LIVE = "Live Avatar (Free)"
     TAVUS = "Tavus CVI Mode (WebRTC)"
     LOCAL = "Local Avatar (Live Face)"
+    LIVETALKING = "LiveTalking Avatar (Local)"
 
     @classmethod
     def parse(cls, value: str | None) -> "ChatMode":
@@ -28,7 +29,7 @@ class ChatMode(StrEnum):
     @property
     def speaks(self) -> bool:
         """The server itself produces a short spoken rewrite (the avatar reads it aloud)."""
-        return self in (ChatMode.LIVE, ChatMode.TAVUS)
+        return self in (ChatMode.LIVE, ChatMode.TAVUS, ChatMode.LIVETALKING)
 
 
 class Channel(StrEnum):
