@@ -52,7 +52,3 @@ data/instruments/
 
 # scenario backtest: generated results, caches and sweep state (large, re-creatable)
 data/scenario_backtest/
-
-# local avatar engine replicas/samples (photos of people, generated media)
-data/avatar/
-models/avatar/

@@ -1,4 +1,4 @@
-export type ChatMode = 'Normal Mode' | 'Conversational Mode' | 'Live Avatar (Free)' | 'Tavus CVI Mode (WebRTC)' | 'Local Avatar (Live Face)'
+export type ChatMode = 'Normal Mode' | 'Conversational Mode' | 'Live Avatar (Free)' | 'Tavus CVI Mode (WebRTC)'
 
 export interface RiskInfo {
   label: string
@@ -152,12 +152,6 @@ export interface ChatResponse {
   missing_field?: string
   corrected_query?: string
   context?: { news_headlines?: string[] } & Record<string, unknown>
-  /** Spoken version of the answer (avatar modes) and the pipeline's trust tags (modules/qa). */
-  spoken?: string
-  degraded?: boolean
-  qa?: { pipeline: string; channel: string; mode: string; route?: string; normalized_query: string; corrected: boolean; latency_ms: Record<string, number> }
-  trust?: { disclaimer: string; accuracy_caveat: string; advice_domain: boolean }
-  grounding?: { numbers_checked: boolean; passed: boolean; fallback: boolean; unavailable: string[] }
   [key: string]: unknown
 }
 

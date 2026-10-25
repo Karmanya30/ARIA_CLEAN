@@ -13,11 +13,9 @@ import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
-import { LocalAvatarPanel } from '../../../../components/avatar/LocalAvatarPanel'
-import type { AvatarReply } from '../../../../components/avatar/AvatarStage'
 import './ChatTab.css'
 
-const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)', 'Local Avatar (Live Face)']
+const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)']
 
 function greeting(): string {
   const hour = new Date().getHours()
@@ -77,16 +75,12 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
   const [profileVer, setProfileVer] = useState(0)
-  // The newest fresh reply, for the Local Avatar to speak (history loaded on open is not re-spoken).
-  const [lastReply, setLastReply] = useState<AvatarReply | null>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
   // Free streaming voice mode (api/routes/live.py + interface/avatar/live.html): the call UI lives in the iframe,
   // and its turns are saved to the same session history this column shows.
   const isLive = mode === 'Live Avatar (Free)'
-  // Local Avatar (Live Face): the engine on this computer speaks replies with a lip-synced face; falls back to the disk.
-  const isLocal = mode === 'Local Avatar (Live Face)'
   const showHero = history.length === 0 && !isTavus && !pending
   // Hooks can't be called conditionally, so this always runs -- `enabled`
   // is what actually gates starting/ending the paid call.
@@ -135,7 +129,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     try {
       const response = await api.sendMessage(trimmed, sessionId, mode, correct)
       setHistory((h) => [...h, { query: trimmed, response, audio_token: response.audio_token }])
-      setLastReply((r) => ({ id: (r?.id ?? 0) + 1, query: trimmed, response }))
     } catch (err) {
       setHistory((h) => [
         ...h,
@@ -169,7 +162,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // small decorative orb during its own idle state), so it keeps the
   // simpler single centered column instead of wasting half the screen
   // on empty space.
-  const isSplitLayout = isTavus || isConversational || isLive || isLocal
+  const isSplitLayout = isTavus || isConversational || isLive
 
   const pendingTurn = pending && (
     <div className="message-pair">
@@ -203,7 +196,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       </button>
       {isSplitLayout && (
         <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
-          <ArrowLeft size={15} aria-hidden="true" /> {isConversational || isLocal ? 'Back to chat' : 'End and go back'}
+          <ArrowLeft size={15} aria-hidden="true" /> {isConversational ? 'Back to chat' : 'End and go back'}
         </button>
       )}
     </div>
@@ -218,10 +211,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
           <div className="chat-avatar-col">
             {isTavus && <TavusVideo session={tavusSession} />}
             {isConversational && <ConversationalAvatar audioToken={latestAudioToken} voiceControl={
-              <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
-                onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
-            } />}
-            {isLocal && <LocalAvatarPanel reply={lastReply} thinking={sending} audioToken={latestAudioToken} voiceControl={
               <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
                 onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
             } />}
@@ -249,7 +238,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     <MessageBubble
                       key={i}
                       turn={turn}
-                      audioControls={!isConversational && !isLocal}
+                      audioControls={!isConversational}
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
@@ -263,7 +252,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational || isLocal} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>
         </div>

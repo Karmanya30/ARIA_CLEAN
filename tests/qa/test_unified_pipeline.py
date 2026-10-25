@@ -1,4 +1,4 @@
-"""One answer pipeline for every entry point: the SAME question goes through POST /api/chat in all five modes,
+"""One answer pipeline for every entry point: the SAME question goes through POST /api/chat in all four modes,
 /api/instruments/ask, the market-chip (news item) form of /api/chat, the Tavus callback, the Live Avatar socket and the
 company-intelligence endpoint, and each of them must reach modules.qa.pipeline with equivalent normalised input and get
 the same grounding / disclaimer treatment. Network and model are stubbed."""
@@ -191,7 +191,6 @@ def test_history_is_saved_per_owner_for_every_channel_and_other_owners_are_refus
     mock_llm.set_response("Infosys is an IT company. Its price is 1500.5.")
     owner, sessions = "alice-" + uuid.uuid4().hex[:6], {}
     for name, body, url in (("chat", {"query": QUESTION, "mode": "Normal Mode"}, "/api/chat"),
-                            ("local", {"query": QUESTION, "mode": "Local Avatar (Live Face)"}, "/api/chat"),
                             ("instrument", {"question": QUESTION, "id": IT["id"]}, "/api/instruments/ask"),
                             ("chip", {"query": QUESTION, "system_context": "a headline"}, "/api/chat")):
         sessions[name] = _sid()

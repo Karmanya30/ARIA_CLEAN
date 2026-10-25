@@ -9,13 +9,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ChatMode(StrEnum):
-    """The five chat modes (the strings are what the front end sends). A mode only changes PRESENTATION."""
+    """The four chat modes (the strings are what the front end sends). A mode only changes PRESENTATION."""
 
     NORMAL = "Normal Mode"
     CONVERSATIONAL = "Conversational Mode"
     LIVE = "Live Avatar (Free)"
     TAVUS = "Tavus CVI Mode (WebRTC)"
-    LOCAL = "Local Avatar (Live Face)"
 
     @classmethod
     def parse(cls, value: str | None) -> "ChatMode":

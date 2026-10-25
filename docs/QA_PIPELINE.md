@@ -11,7 +11,6 @@ Every place a user question or utterance was answered, or an LLM answer was gene
 |---|---|---|---|---|---|---|---|---|
 | `POST /api/chat` (5 modes) | `query`, `session_id`, `mode`, `owner_id`, `correct`, `adapt_tone` | `shared.understand.normalize` (typo / text-speak / Hinglish), crisis check, dialogue acts, small talk, intent resolver, keyword router | `core.orchestrator.handle_query` -> finance / tutor / market / equity research / company intelligence / general | session memory (`conversation_memory.context_for`), finance profile, tone profile, live news for time-sensitive questions | `core.session.execute_turn` + `save_turn` (per owner, replay by `request_id`) | output guard (LLM domain check) only; no disclaimer text; no number check | module-specific; raw `Error: ...` strings could reach the user | `mode` ignored except `"Live Avatar"` skipped the output guard; TTS clip made for every mode in the adapter |
 | `POST /api/chat` with `system_context` (news chip) | same + a news preamble | only the crisis check; the router, normaliser, dialogue acts were **bypassed** | direct `generate_response` with a private prompt | memory `augment` | `execute_turn` | none | "I'm sorry, I couldn't generate..." | none |
-| `POST /api/chat/spoken` | `query`, `text` | none | `ai.llm.spoken.spoken_version` | none | none | none | falls back to the written text | Local Avatar only |
 | `GET /api/chat/history`, `/context`, `POST /clear` | session, owner | n/a | n/a (read / clear; clear also ends Tavus) | n/a | n/a | n/a | 403 on a foreign owner | none |
 | `POST /api/instruments/ask` | `id`, `question`, `session_id`, `history` | **none** (no normaliser, no crisis, no small talk, no tone) | `modules/market/instrument_chat.ask`: its own prompt, facts from quote / profile / SIP / saved report / news | the instrument facts, client `history` (last 3 turns) | `execute_turn` + `save_turn`, session `"<chat session>:<instrument>"` | **the only place with the invented-numbers guard**, facts-only fallback, "This is not investment advice." | model dead -> facts-only summary | none |
 | Live Avatar (Free) `WS /api/live/ws` | `text`, `session_id`, `owner_id` | small talk: none; else the orchestrator | small talk: **its own system prompt streamed from the LLM**; else `handle_query(mode="Live Avatar")` then a streamed spoken rewrite; on failure a **direct ungrounded LLM stream** | memory `augment` | manual `memory.begin/complete`; the saved response was the *spoken* text with domain `live_avatar` | none | `TROUBLE` apology | spoken style, fillers, no output guard |
@@ -32,7 +31,7 @@ and all call `ai.llm.groq_client.generate_response` (Groq -> Gemini -> two small
 retries, timeouts and the dead-backend cool-down live.
 
 Front end call sites: `web/src/api.ts` (and the copies in `versions/v1`, `versions/v2`): `sendMessage` (Chat tab, news modal),
-`askInstrument` (Explore drawer "Ask ARIA"), `spokenText` (Local Avatar), `companyIntel`; the Live Avatar page `interface/avatar/live.html`
+`askInstrument` (Explore drawer "Ask ARIA"), `companyIntel`; the Live Avatar page `interface/avatar/live.html`
 and the Tavus embed talk to the WebSocket / callback directly.
 
 ## 2. After the change
@@ -59,7 +58,7 @@ and the Tavus embed talk to the WebSocket / callback directly.
 
 Files:
 
-* `modules/qa/models.py` - `ChatMode` (the five mode strings, one enum), `Channel`, `QAContext`, `QARequest`, `QAResponse` (ChatResponse-compatible, extra fields allowed), `Focus`.
+* `modules/qa/models.py` - `ChatMode` (the four mode strings, one enum), `Channel`, `QAContext`, `QARequest`, `QAResponse` (ChatResponse-compatible, extra fields allowed), `Focus`.
 * `modules/qa/pipeline.py` - `answer(req)`; `lookup(req, fetch)` for the deterministic company-intelligence endpoint; `understand()`.
 * `modules/qa/focus.py` - context providers and the single grounded answer loop (`grounded_answer`) used by the instrument drawer and the news item chips.
 * `modules/qa/trust.py` - `ungrounded()`, `enforce()` (invented-numbers guard for every fetched-data route), `finalize()` (disclaimer, accuracy caveat, tags), `DEGRADED`.
@@ -81,7 +80,7 @@ Rules every channel now gets:
 | Errors | raw `Error: ...` text is replaced by `trust.DEGRADED`; an unknown instrument is a 404, a foreign conversation 403, a reused `request_id` for another message 409 |
 | Retries, timeouts, cache | one LLM chain (`generate_response`: Groq -> Gemini -> two smaller Groq models, one retry on 429 / 503); the instrument and company caches in `modules/market/instruments.py` and `shared/news.py` apply to all channels |
 | Metrics | `qa.answer` log line + `response.qa.latency_ms` (`understand_ms`, `answer_ms`, `trust_ms`, `total_ms`) |
-| Mode | `Normal`, `Conversational`, `Local Avatar`: written answer + background audio clip (the Local Avatar asks `/api/chat/spoken` for the short version); `Live Avatar`, `Tavus`: additionally a server-made `spoken` version; the written `response` is identical in all five |
+| Mode | `Normal`, `Conversational`: written answer + background audio clip; `Live Avatar`, `Tavus`: additionally a server-made `spoken` version; the written `response` is identical in all five |
 
 ## 3. Entry points: before / after
 
@@ -91,7 +90,6 @@ Rules every channel now gets:
 | `POST /api/chat` + `system_context` / `context.headline` | bypassed router and normaliser, private prompt | `pipeline.answer`, channel `market_chip`, same understanding / persistence, headline as untrusted facts, number guard |
 | `POST /api/chat` + `context.instrument_id` | n/a | same as `/api/instruments/ask` |
 | `POST /api/chat` + `context.company` / `report_id` | n/a | resolves "it" / "this company" for the page in focus |
-| `POST /api/chat/spoken` | `spoken_version` | `present.spoken_text` (same function the avatar modes use) |
 | `POST /api/instruments/ask` | own prompt and guard, no normalisation | adapter: `pipeline.answer`, channel `instrument`, focus `instrument_id` |
 | `WS /api/live/ws` | own small-talk prompt, own persistence, ungrounded fallback | adapter: `pipeline.answer` (mode Live, channel avatar); fillers and chunking only |
 | Tavus callback | orchestrator + spoken rewrite | adapter: `pipeline.answer` (mode Tavus, channel avatar), reads `spoken` |

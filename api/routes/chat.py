@@ -64,19 +64,6 @@ def send_message(req: ChatRequest) -> dict[str, Any]:
     return answer_http(req.to_qa())
 
 
-class SpokenRequest(BaseModel):
-    query: str = Field("", max_length=20000)
-    text: str = Field(min_length=1, max_length=40000)
-
-
-@router.post("/spoken")
-def spoken_reply(req: SpokenRequest) -> dict[str, str]:
-    """What ARIA would say aloud for a written reply -- the same short spoken rewrite the Tavus and Live Avatar modes use,
-    for the Local Avatar mode (the written answer stays on screen; only this is spoken)."""
-    from modules.qa.present import spoken_text
-
-    return {"spoken": spoken_text(req.query, req.text)}
-
 
 @router.get("/history")
 def get_history(session_id: str, owner_id: str | None = None) -> dict[str, Any]:

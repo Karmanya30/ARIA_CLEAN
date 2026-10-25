@@ -140,9 +140,6 @@ export const api = {
   sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, headline?: string) =>
     ask({ query, sessionId, mode, correct, channel: headline ? 'market_chip' : 'chat', context: headline ? { headline } : undefined }),
 
-  /** What ARIA would say aloud for a written reply (short spoken rewrite; the Local Avatar speaks this, not the full text). */
-  spokenText: (query: string, text: string) =>
-    j<{ spoken: string }>('/api/chat/spoken', { method: 'POST', body: JSON.stringify({ query, text }) }),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(
