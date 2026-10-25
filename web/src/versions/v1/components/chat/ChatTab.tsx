@@ -13,12 +13,11 @@ import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
-import { LiveTalkingPanel } from '../../../../components/livetalking/LiveTalkingPanel'
 import { LocalAvatarPanel } from '../../../../components/avatar/LocalAvatarPanel'
 import type { AvatarReply } from '../../../../components/avatar/AvatarStage'
 import './ChatTab.css'
 
-const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)', 'Local Avatar (Live Face)', 'LiveTalking Avatar (Local)']
+const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)', 'Local Avatar (Live Face)']
 
 function greeting(): string {
   const hour = new Date().getHours()
@@ -88,8 +87,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   const isLive = mode === 'Live Avatar (Free)'
   // Local Avatar (Live Face): the engine on this computer speaks replies with a lip-synced face; falls back to the disk.
   const isLocal = mode === 'Local Avatar (Live Face)'
-  // LiveTalking Avatar (Local): the LiveTalking service on this computer (WebRTC) speaks replies; falls back to the disk.
-  const isLiveTalking = mode === 'LiveTalking Avatar (Local)'
   const showHero = history.length === 0 && !isTavus && !pending
   // Hooks can't be called conditionally, so this always runs -- `enabled`
   // is what actually gates starting/ending the paid call.
@@ -172,7 +169,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // small decorative orb during its own idle state), so it keeps the
   // simpler single centered column instead of wasting half the screen
   // on empty space.
-  const isSplitLayout = isTavus || isConversational || isLive || isLocal || isLiveTalking
+  const isSplitLayout = isTavus || isConversational || isLive || isLocal
 
   const pendingTurn = pending && (
     <div className="message-pair">
@@ -206,7 +203,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       </button>
       {isSplitLayout && (
         <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
-          <ArrowLeft size={15} aria-hidden="true" /> {isConversational || isLocal || isLiveTalking ? 'Back to chat' : 'End and go back'}
+          <ArrowLeft size={15} aria-hidden="true" /> {isConversational || isLocal ? 'Back to chat' : 'End and go back'}
         </button>
       )}
     </div>
@@ -225,10 +222,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                 onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
             } />}
             {isLocal && <LocalAvatarPanel reply={lastReply} thinking={sending} audioToken={latestAudioToken} voiceControl={
-              <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
-                onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
-            } />}
-            {isLiveTalking && <LiveTalkingPanel reply={lastReply} thinking={sending} audioToken={latestAudioToken} voiceControl={
               <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
                 onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
             } />}
@@ -256,7 +249,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     <MessageBubble
                       key={i}
                       turn={turn}
-                      audioControls={!isConversational && !isLocal && !isLiveTalking}
+                      audioControls={!isConversational && !isLocal}
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
@@ -270,7 +263,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational || isLocal || isLiveTalking} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational || isLocal} />
             )}
           </div>
         </div>

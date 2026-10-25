@@ -1,4 +1,4 @@
-"""One answer pipeline for every entry point: the SAME question goes through POST /api/chat in all six modes,
+"""One answer pipeline for every entry point: the SAME question goes through POST /api/chat in all five modes,
 /api/instruments/ask, the market-chip (news item) form of /api/chat, the Tavus callback, the Live Avatar socket and the
 company-intelligence endpoint, and each of them must reach modules.qa.pipeline with equivalent normalised input and get
 the same grounding / disclaimer treatment. Network and model are stubbed."""
@@ -152,7 +152,7 @@ def test_the_mode_never_changes_the_written_answer(mock_llm):
     written = {m: _chat(m)["response"] for m in MODES}
     assert len(set(written.values())) == 1
     spoken = {m: _chat(m).get("spoken") for m in MODES}
-    assert [m for m, s in spoken.items() if s] == [ChatMode.LIVE.value, ChatMode.TAVUS.value, ChatMode.LIVETALKING.value]  # only these three add a spoken version
+    assert [m for m, s in spoken.items() if s] == [ChatMode.LIVE.value, ChatMode.TAVUS.value]  # only these two add a spoken version
 
 
 def test_unknown_mode_strings_fall_back_to_normal_and_legacy_live_is_accepted():
