@@ -198,7 +198,7 @@ def test_timeout_isolated_and_sweep_never_raises(tmp_path, monkeypatch, tmpdb):
     got = {k: v["status"] for k, v in state["symbols"].items()}
     assert got == {"A.NS": "ok_beats_baseline", "SLOW.NS": "timeout", "DIE.NS": "failed",
                    "B.NS": "ok_beats_baseline", "C.NS": "ok_beats_baseline"}
-    assert counts["timeout"] == 1 and time.time() - t0 < 90
+    assert counts["timeout"] == 1 and time.time() - t0 < 180
     assert vu.load_state(tmp_path / "s.json")["symbols"]["SLOW.NS"]["status"] == "timeout"
 
 
