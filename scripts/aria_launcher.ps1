@@ -2,10 +2,6 @@
 #   - API: port 8000, or the next free port if another app (e.g. Bhauly) holds 8000; the port is passed to vite (ARIA_API_PORT)
 #   - web: port 5173
 #   - with aria://launch-gpu: also the local avatar engine (avatar_engine/: MuseTalk lip-sync + Piper voice) on port 8010 (GPU; about 40 s)
-#     and the LiveTalking avatar service (E:\LiveTalking, Wav2Lip + Piper, WebRTC) on port 8020, started AFTER the engine is ready
-#     (never two models loading at once) and only if enough GPU memory is free. See docs\LIVETALKING_LAUNCH.md.
-#     Knobs: ARIA_LIVETALKING=0 (skip LiveTalking = rollback), ARIA_GPU_AVATARS=both|engine|livetalking (default both),
-#     LIVETALKING_DIR (default E:\LiveTalking), LT_MODEL=wav2lip|musetalk (as in start_livetalking.bat), ARIA_LT_MIN_FREE_MB (default 2000 / 5000 for musetalk)
 # Re-running reuses current services; an outdated API is restarted only after workspace ownership is verified.
 # Called by Launch_ARIA.bat / the aria:// link (see register_launcher.ps1) or directly. The URL argument is ignored except for
 # the strings aria://launch and aria://launch-gpu, so a link on any page can only ever start ARIA, nothing else.
@@ -19,7 +15,7 @@ $logDir = Join-Path $root "logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $logFile = Join-Path $logDir "launch.log"
 $gpu = $Url -like "aria://launch-gpu*"
-$MT_PORT = 8010; $WEB_PORT = 5173; $LT_PORT = 8020
+$MT_PORT = 8010; $WEB_PORT = 5173
 $py = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { $py = "python" }
 $env:PYTHONIOENCODING = "utf-8"; $env:PYTHONUNBUFFERED = "1"
@@ -51,9 +47,6 @@ function Find-Proc($exe, $rx) { @(Get-CimInstance Win32_Process -Filter "Name='$
 function Port-Owner($port) {
     $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($c) { Get-CimInstance Win32_Process -Filter "ProcessId=$($c.OwningProcess)" }
-}
-function Get-FreeVramMb {
-    try { $m = (& nvidia-smi "--query-gpu=memory.used,memory.total" "--format=csv,noheader,nounits" 2>$null | Select-Object -First 1) -split ",\s*"; [int]$m[1] - [int]$m[0] } catch { $null }
 }
 function Start-Hidden($file, $argList, $dir, $name) {
     Start-Process -WindowStyle Hidden -FilePath $file -ArgumentList $argList -WorkingDirectory $dir -PassThru `
@@ -131,12 +124,8 @@ try {
     }
 
     # ---- avatar engine (GPU lip-sync, MuseTalk 1.5)
-    $avatars = if ($env:ARIA_GPU_AVATARS) { "$($env:ARIA_GPU_AVATARS)".Trim().ToLower() } else { "both" }
-    if ($avatars -notin @("both", "engine", "livetalking")) { Log "ARIA_GPU_AVATARS='$avatars' is not both|engine|livetalking; using both." Yellow; $avatars = "both" }
-    $ltEnabled = $env:ARIA_LIVETALKING -ne "0"
-    if ($gpu -and -not $ltEnabled) { Log "ARIA_LIVETALKING=0: the LiveTalking avatar is skipped." }
     $mtProc = $null; $mtWanted = $false
-    if ($gpu -and $avatars -ne "livetalking") {
+    if ($gpu) {
         $mtWanted = $true
         $mtDir = if ($env:MUSETALK_DIR) { $env:MUSETALK_DIR } else { "E:\musetalk\MuseTalk" }
         $health = Get-Json "http://127.0.0.1:$MT_PORT/health"
@@ -183,58 +172,14 @@ try {
         if (-not $ok) { $problems += "The avatar engine did not start.`n`n$(Tail (Join-Path $logDir 'avatar_engine.log'))`n(logs\avatar_engine.log)" }
     }
 
-    # ---- LiveTalking avatar (6th chat mode): only after the engine is ready, so two models never load at once
-    $ltProc = $null; $ltWanted = $false
-    if ($gpu -and $ltEnabled -and $avatars -ne "engine") {
-        $ltWanted = $true
-        $ltDir = if ($env:LIVETALKING_DIR) { $env:LIVETALKING_DIR } else { "E:\LiveTalking" }
-        if (Test-Path "$ltDir\app.py") { $ltDir = Split-Path -Parent $ltDir }   # tolerate the checkout (src) being given
-        $ltModel = if ($env:LT_MODEL) { "$($env:LT_MODEL)".ToLower() } else { "wav2lip" }
-        $ltAvatar = if ($env:LT_AVATAR) { $env:LT_AVATAR } else { "wav2lip256_avatar1" }
-        $ltVoice = if ($env:LT_VOICE) { $env:LT_VOICE } else { "$root\models\tts\piper\en_US-kristin-medium.onnx" }
-        $ltMin = if ($env:ARIA_LT_MIN_FREE_MB) { [int]$env:ARIA_LT_MIN_FREE_MB } elseif ($ltModel -eq "musetalk") { 5000 } else { 2000 }
-        $ltHealth = { Test-Http "http://127.0.0.1:$LT_PORT/health" 2 }
-        $ltOwner = if (Test-Port $LT_PORT) { Port-Owner $LT_PORT }
-        $ltStarting = Find-Proc "cmd.exe" "start_livetalking\.bat" | Select-Object -First 1   # our own bat only: another LiveTalking on a different port is not ours
-        if ($ltOwner -and ($ltOwner.CommandLine -match "livetalking_adapter\.serve" -or (& $ltHealth))) { Log "LiveTalking already running on port $LT_PORT" }
-        elseif ($ltOwner) { $problems += "Port $LT_PORT is used by another app (PID $($ltOwner.ProcessId)), so the LiveTalking avatar cannot start."; $ltWanted = $false }
-        elseif ($ltStarting) { Log "LiveTalking is already starting" }
-        else {
-            $missing = @("$ltDir\env\python.exe", "$ltDir\src\app.py", "$ltDir\src\data\avatars\$ltAvatar", $ltVoice, "$PSScriptRoot\start_livetalking.bat") +
-                       @(if ($ltModel -eq "wav2lip") { "$ltDir\src\models\wav2lip.pth" }) | Where-Object { -not (Test-Path $_) }
-            if ($missing) { $problems += "LiveTalking files are missing: " + ($missing -join ", "); $ltWanted = $false }
-            else {
-                $free = Get-FreeVramMb
-                if ($null -eq $free) { Log "Warning: nvidia-smi not available; skipping the GPU memory check for LiveTalking." Yellow }
-                else {
-                    Log "GPU memory free before LiveTalking: $free MiB (needs $ltMin for $ltModel)"
-                    if ($free -lt $ltMin) { $problems += "LiveTalking was not started: only $free MiB of GPU memory is free, it needs $ltMin MiB. Close GPU programs or use ARIA_GPU_AVATARS=livetalking."; $ltWanted = $false }
-                }
-                if ($ltWanted) {
-                    Log "Starting LiveTalking on port $LT_PORT (loading the model to the GPU)"
-                    $env:LIVETALKING_DIR = "$ltDir\src"   # start_livetalking.bat expects the checkout, not the install root
-                    $ltT0 = Get-Date; $ltProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\start_livetalking.bat`"") $root "livetalking_bat"   # the bat itself writes logs\livetalking.out/err.log
-                    $null = $ltProc.Handle   # keeps ExitCode readable after an early exit
-                }
-            }
-        }
-        if ($ltWanted) {
-            if (-not (Wait-Ready "LiveTalking (port $LT_PORT)" $ltHealth 300 $ltProc)) {
-                $ltWanted = $false
-                $errLog = Join-Path $logDir 'livetalking.err.log'; $fresh = (Test-Path $errLog) -and ((Get-Item $errLog).LastWriteTime -ge $ltT0)
-                $problems += "The LiveTalking avatar did not start.`n`n$(Tail (Join-Path $logDir 'livetalking_bat.out.log') 4)`n$(if ($fresh) { Tail $errLog } else { '(no new output in logs\livetalking.err.log; it may be locked by another LiveTalking run)' })`n(logs\livetalking.err.log)"
-            }
-        }
-    }
-
     if (-not $env:ARIA_NO_BROWSER) {
         try { Start-Process "msedge.exe" "http://localhost:$WEB_PORT" } catch { Start-Process "http://localhost:$WEB_PORT" }
     }
     if ($problems) {
-        $msg = "ARIA is running at http://localhost:$WEB_PORT, but:`n`n" + ($problems -join "`n`n") + "`n`nARIA uses the standard avatar for anything that did not start."
+        $msg = "ARIA is running at http://localhost:$WEB_PORT, but:`n`n" + ($problems -join "`n`n") + "`n`nARIA uses the standard avatar instead."
         Log $msg Red; Show-Box $msg "Warning"
     } else {
-        Log "ARIA is ready: http://localhost:$WEB_PORT (API port $apiPort$(if ($mtWanted) { ", avatar engine on $MT_PORT" })$(if ($ltWanted) { ", LiveTalking on $LT_PORT" }))" Green
+        Log "ARIA is ready: http://localhost:$WEB_PORT (API port $apiPort$(if ($mtWanted) { ", avatar engine on $MT_PORT" }))" Green
         Start-Sleep 3
     }
 } catch {
