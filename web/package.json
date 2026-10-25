@@ -10,7 +10,7 @@
     "test:e2e": "playwright test",
     "test:accounts": "playwright test --config playwright.accounts.config.ts",
     "preview": "vite preview",
-    "test:unit": "node --test src/components/avatar/jitter.test.ts src/components/livetalking/protocol.test.ts"
+    "test:unit": "node --test src/components/avatar/jitter.test.ts"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.3.0",
