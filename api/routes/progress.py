@@ -27,11 +27,16 @@ def get_progress(session_id: str) -> dict[str, Any]:
     concepts = json.loads(CONCEPTS_KB_FILE.read_text(encoding="utf-8"))
     names = {c["id"]: c["canonical_name"] for c in concepts}
 
+    # Only concepts the learner has actually been quizzed on: the knowledge model gives every one of the 50 concepts a
+    # starting estimate after the first answer, and listing them all made Progress look like 50 topics had been studied.
+    tried: dict[str, list[bool]] = {}
+    for h in state.get("history", []):
+        tried.setdefault(h["concept_id"], []).append(bool(h["is_correct"]))
     engaged = sorted(
         (
-            {"concept_id": cid, "name": names.get(cid, cid), "mastery": score}
-            for cid, score in state.get("mastery", {}).items()
-            if score > 0
+            {"concept_id": cid, "name": names.get(cid, cid), "mastery": state.get("mastery", {}).get(cid, 0.0),
+             "answered": len(results), "correct": sum(results)}
+            for cid, results in tried.items()
         ),
         key=lambda item: item["mastery"],
         reverse=True,

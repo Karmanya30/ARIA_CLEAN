@@ -235,6 +235,8 @@ export interface ProgressItem {
   concept_id: string
   name: string
   mastery: number
+  answered?: number
+  correct?: number
 }
 
 export interface ProgressState {

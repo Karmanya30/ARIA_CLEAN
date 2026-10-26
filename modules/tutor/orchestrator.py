@@ -28,10 +28,22 @@ def _last_n_accuracy(history: list[dict], n: int = 5) -> float:
     return sum(1 for h in last if h["is_correct"]) / len(last)
 
 
-def handle(user_id: str, query: str) -> dict[str, Any] | None:
+def concept_by_id(concept_id: str | None) -> dict | None:
+    import json
+
+    from config.paths import CONCEPTS_KB_FILE
+
+    if not concept_id:
+        return None
+    return next((c for c in json.loads(CONCEPTS_KB_FILE.read_text(encoding="utf-8")) if c["id"] == concept_id), None)
+
+
+def handle(user_id: str, query: str, force_quiz: bool = False, fallback_concept_id: str | None = None) -> dict[str, Any] | None:
     """Returns None if the query doesn't confidently match any concept in
-    the knowledge base -- the caller should ask the user to rephrase."""
-    concept = retriever.best(query)
+    the knowledge base -- the caller should ask the user to rephrase.
+    `force_quiz`: the learner asked to be quizzed; `fallback_concept_id`: the concept to use when the request names none
+    ("quiz me on this")."""
+    concept = retriever.best(query) or (concept_by_id(fallback_concept_id) if force_quiz else None)
     if concept is None:
         return None
 
@@ -58,7 +70,10 @@ def handle(user_id: str, query: str) -> dict[str, Any] | None:
     taxal = explainer.explain(concept["canonical_name"], level, action=action)
 
     quiz_item = None
-    if action == "ask_quiz":
+    # A cold-start learner is never picked for a quiz by the teaching policy, and mastery only moves on quiz answers, so
+    # the Progress page stayed empty for ever: the first explanation of a concept always comes with a quiz to try.
+    first_time = not any(h["concept_id"] == concept["id"] for h in history)
+    if force_quiz or action == "ask_quiz" or first_time:
         quiz_item = quiz_engine.generate_quiz(concept["canonical_name"], concept["id"], level)
 
     response = TutorResponse(

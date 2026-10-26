@@ -15,7 +15,7 @@ from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
 from modules.finance.pipeline import finance_intent, finance_statement, run_pipeline as finance_pipeline
 from modules.market.pipeline import run_pipeline as market_pipeline
-from modules.tutor.pipeline import run_pipeline as tutor_pipeline
+from modules.tutor.pipeline import is_quiz_request, run_pipeline as tutor_pipeline
 from shared.company_resolver import resolve_company
 from shared import human_state, user_store
 from shared.understand import goal, normalize, spelled, suggest
@@ -176,7 +176,7 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
             query = f"{query} (company: {next(iter(subjects))})"
     ticker = resolve_company(query)
     needs_research = is_equity_research_query(query, ticker) or is_broad_market_query(query) or is_intelligence_query(query, ticker)
-    if evidence and evidence["text"] and _FOLLOWUP.search(query) and not needs_research and not _is_smalltalk(query) and not get_session(session_id).get("finance_pending") and not finance_intent(query) and not finance_statement(query):
+    if evidence and evidence["text"] and _FOLLOWUP.search(query) and not needs_research and not is_quiz_request(query) and not _is_smalltalk(query) and not get_session(session_id).get("finance_pending") and not finance_intent(query) and not finance_statement(query):
         response = _with_news(query, _general_reply)
         response["query"] = shown
         save_turn(session_id, shown, response)
@@ -203,7 +203,9 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # queries to the general fallback. is_broad_market_query and
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
-    if not by_intent and (not ticker or mentions_fund(query)) and not is_broad_market_query(query) and (response := _data_lookup(shown, query, session_id)):
+    if not by_intent and is_quiz_request(query):
+        response = _with_news(query, tutor_pipeline, user_id=session_id)  # "quiz me" is always a lesson check, never a market question
+    elif not by_intent and (not ticker or mentions_fund(query)) and not is_broad_market_query(query) and (response := _data_lookup(shown, query, session_id)):
         pass  # a data question about a name outside the hard-coded list: instrument catalogue, then web search
     elif is_intelligence_query(query, ticker) and (response := company_intelligence(query)):
         pass
