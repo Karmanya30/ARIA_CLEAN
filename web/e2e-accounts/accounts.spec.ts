@@ -108,7 +108,7 @@ test('Google account signs in through the browser adapter and survives refresh',
   await page.getByRole('tab', { name: 'Research reports', exact: true }).click()
   await expect(page.frameLocator('iframe[title="Equity research report"]').locator('body')).toContainText('Test')
   const downloaded = page.waitForEvent('download')
-  await page.getByTitle('Download all data (JSON)', { exact: true }).click()
+  await page.getByTitle('Download HTML', { exact: true }).click()
   expect(await (await downloaded).failure()).toBeNull()
   await page.getByRole('tab', { name: 'Your Profile', exact: true }).click()
   await page.reload()

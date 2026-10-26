@@ -59,11 +59,14 @@ Chat modes: Normal, Conversational, Live Avatar (Free, MuseTalk on port 8010), T
 10. **Browser test harness was broken** by the earlier pipeline refactor (`scripts/audit_server.py` patched removed attributes). Repaired; SpeechRecognition is disabled in both browser specs so no test can listen to the real microphone.
 11. **A stale Screener page was presented as current**: Tata Elxsi's consolidated page stops in 2015, so "revenue" came back as 2012-2015. `get_screener_data` now uses the standalone page when it is more recent (test added).
 12. Bing tracking links in web-search sources are unwrapped to the real address.
-13. Dividend per share, dividend yield, EPS and book value added to stock quotes (the dividend-yield question had no data).
+13. **Learning loop was dead** (Progress could never fill, "quiz me" did nothing, Progress listed 50 concepts after one answer): fixed; see commit 493e403.
+14. **Research-report chat reply lost its figures** (the number check had no access to the report it summarised): fixed.
+15. **Coverage sweep re-run**: unscored companies in the backtest dropped from 143 "retry" to 21 and scored companies rose by 75; validation failures fell from 243 to 104; summary PDF regenerated.
+16. Dividend per share, dividend yield, EPS and book value added to stock quotes (the dividend-yield question had no data).
 
 ## 4. Test results
 
-* Python suite: 1216 passed, 0 failed (the count includes the new `tests/qa/test_lookup.py` and a cache test).
+* Python suite: 1220 passed, 0 failed (the count includes the new `tests/qa/test_lookup.py` and a cache test).
 * Web build and type check: clean.
 * Browser suites: 34 of 34 (workflows, voice toggle) and 4 of 4 (accounts) pass.
 * API route sweep: 37 GET routes called against live data; every non-2xx was a parameter I left out, plus `markets/quote` for a non-existent symbol, which correctly returns 503 with a stale-data body.

@@ -105,3 +105,11 @@ def test_a_stale_consolidated_page_falls_back_to_the_fresher_standalone_one(monk
     assert sa.get_screener_data("X", consolidated=True) is new
     monkeypatch.setattr(sa, "_get_screener_data", lambda name, consolidated=False: new)
     assert sa.get_screener_data("X", consolidated=True) is new
+
+
+def test_a_research_report_reply_is_checked_against_the_report_it_summarises():
+    from modules.qa import trust
+
+    resp = {"domain": "equity_research", "value": 2422.08, "company": "TCS", "report": {"valuation": {"fair_value": 2422.08, "price": 2535.0}},
+            "response": "Insight: the fair value is 2,422.08 against a price of 2,535."}
+    assert trust.enforce(resp)["passed"] and "2,535" in resp["response"]

@@ -84,7 +84,7 @@ def _evidence(resp: dict[str, Any]) -> tuple[str | None, bool]:
     if d in ("market", "investment") and resp.get("context"):
         return json.dumps(resp["context"], default=str, ensure_ascii=False), True
     if d == "equity_research" and (resp.get("normalized_data") or resp.get("value") is not None):
-        keep = {k: resp.get(k) for k in ("company", "metric", "value", "normalized_data", "context") if resp.get(k) is not None}
+        keep = {k: resp.get(k) for k in ("company", "metric", "value", "normalized_data", "context", "report", "fund_report") if resp.get(k) is not None}
         return json.dumps(keep, default=str, ensure_ascii=False), True
     return None, False
 
