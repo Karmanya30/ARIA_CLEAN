@@ -234,6 +234,10 @@ tuning one means editing that one CSS file and listing it in
 `web/src/theme.ts`. Generated report documents carry their own styling
 and look the same in every theme.
 
+### Deployment
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the container setup (`Dockerfile`, `docker-compose.yml`), the settings a public site needs, and the known limits.
+
 ### Production build
 
 ```bash

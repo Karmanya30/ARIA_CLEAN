@@ -114,6 +114,15 @@ def health() -> dict[str, str]:
     return {"status": "ok", "revision": _RUNTIME_REVISION}
 
 
+# Deployment: when the web app has been built (cd web && npm run build) this process serves it too, so one container is the
+# whole product. Mounted last so every /api, /avatar and /embed route above keeps priority. ARIA_SERVE_WEB=0 turns it off.
+_WEB_DIST = Path(__file__).resolve().parents[1] / "web" / "dist"
+if (_WEB_DIST / "index.html").exists() and os.environ.get("ARIA_SERVE_WEB", "1") != "0":
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=_WEB_DIST, html=True), name="web")
+
+
 if __name__ == "__main__":
     import uvicorn
 

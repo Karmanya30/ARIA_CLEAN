@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc -b
+      - run: npm run build
+
+  # The Python suite needs the trained models, so it takes several minutes; run it from the Actions tab (workflow_dispatch).
+  python:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install torch==2.13.0 --extra-index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: |
+          python -m scripts.generate_synthetic_transactions
+          python -m modules.finance.train.train_xgb_risk
+          python -m modules.finance.train.train_lstm_spend
+          python -m scripts.build_concept_kb
+          python -m scripts.generate_kt_sequences
+          python -m modules.tutor.train.train_lstm_kt
+          python -m modules.tutor.train.train_dqn_teacher
+      - run: python -m pytest tests -q -m "not network"
