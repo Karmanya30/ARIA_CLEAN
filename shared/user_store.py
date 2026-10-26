@@ -20,6 +20,7 @@ import json
 import os
 import uuid
 from contextvars import ContextVar
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from typing import Any
 
@@ -159,11 +160,55 @@ class ForecastRun(Base):
     result_json = Column(Text, nullable=True)
 
 
-# Who a saved report belongs to. ARIA has no accounts, and the chat session id resets per
-# browser tab, so history is keyed by a device-level id the frontend keeps in localStorage.
+# Who a saved report belongs to: the account in authenticated mode, or the
+# device capability in private mode. Chat conversation IDs remain separate.
 # The chat route sets it for the duration of a request; anything that doesn't falls back to
 # the session id it was given. (A ContextVar keeps core/orchestrator.py untouched.)
 current_owner: ContextVar[str | None] = ContextVar("aria_report_owner", default=None)
+authenticated_account: ContextVar[str | None] = ContextVar("aria_authenticated_account", default=None)
+
+
+class AudioArtifactRecord(Base):
+    """Expiring token metadata; audio bytes live in the managed local cache."""
+    __tablename__ = "audio_artifacts"
+    token = Column(String, primary_key=True)
+    status = Column(String, nullable=False, default="pending")
+    expires_at = Column(Float, nullable=False, index=True)
+    size = Column(Integer, nullable=False, default=0)
+    owner_id = Column(String, nullable=True, index=True)
+
+
+class AccountRecord(Base):
+    __tablename__ = "auth_accounts"
+    id = Column(String, primary_key=True)
+    email = Column(String, nullable=False, unique=True)
+    password_hash = Column(Text, nullable=True)
+    google_sub = Column(String, nullable=True, unique=True)
+
+
+class AuthSessionRecord(Base):
+    __tablename__ = "auth_sessions"
+    token_hash = Column(String, primary_key=True)
+    account_id = Column(String, nullable=False, index=True)
+    expires_at = Column(Float, nullable=False, index=True)
+
+
+class AuthThrottleRecord(Base):
+    __tablename__ = "auth_throttles"
+    key = Column(String, primary_key=True)
+    attempts = Column(Integer, nullable=False)
+    expires_at = Column(Float, nullable=False, index=True)
+
+
+class StatementPreviewRecord(Base):
+    """Owner-scoped, expiring normalized preview and transactional retry receipts."""
+    __tablename__ = "statement_previews"
+    id = Column(String, primary_key=True)
+    owner_id = Column(String, nullable=False, index=True)
+    expires_at = Column(Float, nullable=False, index=True)
+    rows_json = Column(Text, nullable=False)
+    suggested_json = Column(Text, nullable=False)
+    results_json = Column(Text, nullable=False, default="{}")
 
 _engine = create_engine(DB_URL, connect_args={"check_same_thread": False, "timeout": 30})  # 30 s busy timeout: forecast child processes write too
 if DB_URL.startswith("sqlite"):
@@ -190,6 +235,7 @@ def _migrate_add_missing_columns() -> None:
             "ALTER TABLE financial_profiles ADD COLUMN sources_json TEXT DEFAULT '{}'",
             "ALTER TABLE transactions ADD COLUMN kind VARCHAR DEFAULT 'expense'",
             "ALTER TABLE research_reports ADD COLUMN kind VARCHAR DEFAULT 'equity_research'",
+            "ALTER TABLE audio_artifacts ADD COLUMN owner_id VARCHAR",
         ):
             try:
                 conn.exec_driver_sql(statement)
@@ -222,16 +268,17 @@ def get_financial_profile(user_id: str) -> dict[str, Any] | None:
         }
 
 
-def save_financial_profile(user_id: str, source: str = "chat", **fields: Any) -> None:
+def save_financial_profile(user_id: str, source: str = "chat", *, _session=None, **fields: Any) -> None:
     """Partial update. Profile facts (the FinanceProfile fields) are validated and get a source stamp; a None
-    value deletes that fact; expenses/assets merge key by key. Other kwargs (risk_*) are plain columns."""
+    value deletes that fact; expenses/assets merge key by key. Other kwargs (risk_*) are plain columns.
+    An internal caller may supply _session to join an atomic operation; it owns commit/rollback."""
     from modules.finance.schemas import FinanceProfile
 
     if "risk_top_features" in fields and not isinstance(fields["risk_top_features"], str):
         fields["risk_top_features"] = json.dumps(fields["risk_top_features"])
     facts = {k: fields.pop(k) for k in list(fields) if k in FinanceProfile.model_fields}
     valid = FinanceProfile(**{k: v for k, v in facts.items() if v is not None}).model_dump(exclude_none=True)
-    with _SessionLocal() as session:
+    with (nullcontext(_session) if _session is not None else _SessionLocal()) as session:
         row = session.get(FinancialProfile, user_id)
         if row is None:
             row = FinancialProfile(user_id=user_id)
@@ -263,7 +310,8 @@ def save_financial_profile(user_id: str, source: str = "chat", **fields: Any) ->
             if hasattr(row, key):
                 setattr(row, key, value)
         row.updated_at = datetime.now(timezone.utc)
-        session.commit()
+        if _session is None:
+            session.commit()
 
 
 # ── Module 1: transactions (Profile tab entry -> feeds forecast + anomaly) ─
@@ -317,6 +365,7 @@ def get_transactions(user_id: str, kind: str | None = "expense") -> list[dict[st
 def clear_transactions(user_id: str) -> None:
     with _SessionLocal() as session:
         session.query(TransactionRecord).filter(TransactionRecord.user_id == user_id).delete()
+        session.query(StatementPreviewRecord).filter(StatementPreviewRecord.owner_id == user_id).delete()
         session.commit()
 
 
@@ -325,7 +374,8 @@ def delete_financial_profile(user_id: str) -> None:
         row = session.get(FinancialProfile, user_id)
         if row is not None:
             session.delete(row)
-            session.commit()
+        session.query(StatementPreviewRecord).filter(StatementPreviewRecord.owner_id == user_id).delete()
+        session.commit()
 
 
 # ── Conversation style (human state engine) ─────────────────────────────
@@ -355,7 +405,17 @@ def delete_style(owner_id: str) -> None:
 
 
 # ── Module 2: learning / mastery state ──────────────────────────────────
+def _learning_key(user_id: str) -> str:
+    if os.getenv("ARIA_AUTH_MODE", "private") != "accounts":
+        return user_id
+    account = authenticated_account.get()
+    if not account:
+        raise PermissionError("An authenticated account is required for learning state")
+    return f"account:{account}:{user_id}"
+
+
 def get_learning_state(user_id: str) -> dict[str, Any]:
+    user_id = _learning_key(user_id)
     with _SessionLocal() as session:
         row = session.get(LearningState, user_id)
         if row is None:
@@ -369,6 +429,7 @@ def get_learning_state(user_id: str) -> dict[str, Any]:
 def save_learning_state(
     user_id: str, mastery: dict[str, float], history: list[dict[str, Any]]
 ) -> None:
+    user_id = _learning_key(user_id)
     with _SessionLocal() as session:
         row = session.get(LearningState, user_id)
         if row is None:

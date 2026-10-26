@@ -220,7 +220,7 @@ def tax_compare(p: dict) -> dict[str, Any] | None:
     if p.get("monthly_income") is None:
         return None
     annual = p["monthly_income"] * 12
-    new, old = tax.tax_new(annual), tax.tax_old(annual, p.get("used_80c") or 0.0, p.get("used_80d") or 0.0)
+    new, old = tax.tax_new(annual), tax.tax_old(annual, p.get("used_80c") or 0.0, p.get("used_80d") or 0.0, age=p.get("age"))
     better = "new" if new.total_tax <= old.total_tax else "old"
     return {"better": better, "saving": round(abs(new.total_tax - old.total_tax)), "new_tax": new.total_tax, "old_tax": old.total_tax}
 

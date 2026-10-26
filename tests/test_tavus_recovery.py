@@ -79,3 +79,11 @@ def test_end_with_an_id_only_ends_that_call(tavus):
     assert fake.ended == ["old-call"] and "new-call" in fake.active
     client.post("/api/tavus/end")  # no body: ends the active call, as before
     assert fake.ended[-1] == "new-call"
+
+
+def test_cached_voice_persona_receives_updated_conversation_policy(tavus):
+    fake = tavus(FakeTavus(), cached_persona="previous-policy")
+    assert avatar._get_or_create_persona("https://tunnel.test/v1/s1") == "p1"
+    assert fake.created == 1
+    assert avatar._get_or_create_persona("https://tunnel.test/v1/s1") == "p1"
+    assert fake.created == 1

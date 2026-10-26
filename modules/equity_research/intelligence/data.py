@@ -675,8 +675,14 @@ _INTENT_WORDS = re.compile(
 
 
 def resolve_target(query: str) -> Target | None:
-    """Alias table first (no network), then Yahoo search via the existing
+    """Preserve a selected catalogue ticker, then aliases, then Yahoo search via the existing
     ``search_company``. Only NSE/BSE listings are supported."""
+    symbol = _INTENT_WORDS.sub(" ", query).strip().upper()
+    if re.fullmatch(r"[A-Z0-9&-]+\.(NS|BO)", symbol):
+        from modules.market.instruments import catalog
+        item = catalog()["by_id"].get(f"stock:{symbol}")
+        if item:
+            return Target(slug=re.sub(r"\.(NS|BO)$", "", symbol), symbol=symbol, name=item["name"])
     slug = resolve_company(query)
     if slug:
         return Target(slug=slug, symbol=f"{slug}.NS", name=slug)

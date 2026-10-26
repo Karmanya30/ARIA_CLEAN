@@ -61,7 +61,7 @@ export function StatementUpload({ onImported, onAsk }: { onImported: (profileUpd
           onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); read(e.dataTransfer.files[0]) }}
         >
-          <p>Upload a bank or card statement (PDF, Excel, CSV or any text export). We read it on this device's session only; the file itself isn't stored.</p>
+          <p>Upload a bank or card statement (PDF, Excel, CSV or any text export). The source file isn't stored. A temporary preview is saved for import and expires after 10 minutes.</p>
           <p className="su-or">Drag a file here, or</p>
           <input ref={input} id="su-file" className="sr-only" type="file" accept={ACCEPT} onChange={(e) => read(e.target.files?.[0])} disabled={busy} />
           <label htmlFor="su-file" className="btn btn-primary su-pick">Choose file</label>

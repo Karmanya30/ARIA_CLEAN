@@ -1,0 +1,869 @@
+{
+  "overall_status": "PARTIALLY VERIFIED",
+  "recorded_at_utc": "2026-10-17T17:37:53.195720+00:00",
+  "branch": "audit/system-review-20261016",
+  "baseline": {
+    "passed": 1041,
+    "failed": 5,
+    "deselected": 7
+  },
+  "final_python": {
+    "tests": 1158,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 1158,
+    "seconds": 179.67
+  },
+  "final_browser": {
+    "startTime": "2026-10-17T17:32:27.831Z",
+    "duration": 116946.899,
+    "expected": 34,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "final_runner_checks": [
+    {
+      "check": "inventory",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 0.23
+    },
+    {
+      "check": "regression",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 186.09
+    },
+    {
+      "check": "build",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 10.74
+    },
+    {
+      "check": "lint",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 0.74
+    },
+    {
+      "check": "browser",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 118.27
+    },
+    {
+      "check": "account_browser",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 34.5
+    },
+    {
+      "check": "restart",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 38.88
+    },
+    {
+      "check": "account_restart",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 39.42
+    },
+    {
+      "check": "native_memory",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 17.27
+    },
+    {
+      "check": "dependency_consistency",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 1.13
+    },
+    {
+      "check": "python_advisories",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 22.67
+    },
+    {
+      "check": "npm_advisories",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 1.64
+    },
+    {
+      "check": "connections",
+      "status": "FAIL",
+      "exit_code": 1,
+      "seconds": 16.38
+    },
+    {
+      "check": "live_intent",
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 22.43
+    }
+  ],
+  "lint_warnings": 74,
+  "python_known_advisory_records": 0,
+  "npm_advisories": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "native_memory": {
+    "fixture": "10 source turns + 30 distractors, cross-conversation, synthetic only",
+    "semantic": "1",
+    "queries": 10,
+    "recall_at_5": 1.0,
+    "mrr_at_5": 0.9,
+    "results": [
+      {
+        "query": "Acme WACC",
+        "rank": 1
+      },
+      {
+        "query": "Copperfin exit multiple",
+        "rank": 1
+      },
+      {
+        "query": "Orion audit date",
+        "rank": 1
+      },
+      {
+        "query": "Nimbus debt cap",
+        "rank": 1
+      },
+      {
+        "query": "Cedar revenue target",
+        "rank": 1
+      },
+      {
+        "query": "Falcon margin",
+        "rank": 1
+      },
+      {
+        "query": "Harbor customer concentration",
+        "rank": 1
+      },
+      {
+        "query": "Willow investment thesis",
+        "rank": 1
+      },
+      {
+        "query": "cash reserve for emergencies",
+        "rank": 2
+      },
+      {
+        "query": "investment horizon until leaving work",
+        "rank": 2
+      }
+    ],
+    "baseline": "No executable pre-change retrieval benchmark was recorded; no improvement claim."
+  },
+  "intent": {
+    "model": "openai/gpt-oss-120b",
+    "modes": {
+      "baseline": {
+        "cases": 12,
+        "routing_accuracy": 0.5833333333333334,
+        "route_and_reference_accuracy": 0.3333333333333333,
+        "resolver_calls": 0,
+        "provider_prompt_tokens": 0,
+        "provider_output_tokens": 0,
+        "mean_latency_ms": 31.211666666666662
+      },
+      "resolver": {
+        "cases": 12,
+        "routing_accuracy": 0.9166666666666666,
+        "route_and_reference_accuracy": 0.8333333333333334,
+        "resolver_calls": 8,
+        "provider_prompt_tokens": 4910,
+        "provider_output_tokens": 1529,
+        "mean_latency_ms": 706.9425
+      }
+    },
+    "limitations": "Small labelled routing fixture, no answer-quality claims. Latency includes local persistence/context; cold import excluded. No private data or real tool execution."
+  },
+  "live_connections": {
+    "results": [
+      {
+        "name": "AMFI NAV",
+        "status": "VERIFIED",
+        "seconds": 0.62,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "mfapi history",
+        "status": "VERIFIED",
+        "seconds": 0.42,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "CoinGecko",
+        "status": "VERIFIED",
+        "seconds": 1.07,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "Yahoo chart",
+        "status": "VERIFIED",
+        "seconds": 0.31,
+        "http_status": 200,
+        "schema_checked": true
+      },
+      {
+        "name": "FRED",
+        "status": "NOT VERIFIED",
+        "seconds": 15.35,
+        "error_type": "ReadTimeout",
+        "http_status": null
+      },
+      {
+        "name": "Groq",
+        "status": "VERIFIED",
+        "seconds": 1.97,
+        "model": "openai/gpt-oss-120b",
+        "synthetic_only": true
+      },
+      {
+        "name": "Gemini",
+        "status": "VERIFIED",
+        "seconds": 4.65,
+        "model": "gemini-3.6-flash",
+        "synthetic_only": true
+      }
+    ],
+    "limitations": "Connectivity/schema only; not market accuracy, freshness, grounded answers or browser voice/video. Tavus and ngrok not started."
+  },
+  "actual_backend_restart": {
+    "status": "VERIFIED",
+    "checks": [
+      "profile SQLite values",
+      "profile after backend restart",
+      "transactions after backend restart",
+      "chat retry replay after restart",
+      "history count remains one",
+      "wrong owner rejected after restart",
+      "pending statement preview survives restart",
+      "import receipt survives another restart",
+      "retry does not duplicate transactions or overwrite later profile edit",
+      "completed audio served across three API lifetimes after source removal"
+    ],
+    "database": ".audit\\browser\\restart-cf3637de5e4349d2a0736c10e690f3c7\\aria.db"
+  },
+  "actual_pdf_export": {
+    "status": "VERIFIED",
+    "route": "saved report PDF download",
+    "http_status": 200,
+    "bytes": 1419619,
+    "pages": 23,
+    "synthetic_company_text_verified": true,
+    "browser": "Playwright Chromium, headless",
+    "limits": "API export; print dialog and every browser PDF control were not exercised.",
+    "verification_scope": "Preceding audit; not repeated in statement-import continuation."
+  },
+  "limits": [
+    "Code defaults to private mode; the operator explicitly enabled local accounts and provisioned the selected existing owner. Unrelated private records were not merged.",
+    "Live Google consent is unverified; Google browser tests use a local adapter and RSA tests use local certificate keys.",
+    "Account mode blocks unscoped paid-video/compute controls; email verification/recovery/MFA/roles remain open.",
+    "FRED remains a recorded real connection failure; physical voice/video is not exercised.",
+    "Native parser CPU/memory sandboxing, deployment-wide quotas and in-flight speech resumption remain open.",
+    "Not every financial tax case, model answer, UI control or platform is verified."
+  ],
+  "report": "reports/SYSTEM_AUDIT.md",
+  "continuation": {
+    "report": "reports/STATEMENT_IMPORT_RELIABILITY.md",
+    "new_tests": 19,
+    "changes": [
+      "Durable normalized statement previews and retry receipts",
+      "Atomic transaction/profile/receipt commit and rollback",
+      "Thread/process deduplication and replay across API restarts",
+      "Explicit expense-breakdown replacement",
+      "Compressed workbook allocation bounds",
+      "Invalid uploaded numeric values rejected before preview storage"
+    ],
+    "scope_limit": "Historical statement-import checkpoint; see subsequent continuation and startup reports for fixes and remaining limits."
+  },
+  "final_account_browser": {
+    "startTime": "2026-10-17T17:34:26.031Z",
+    "duration": 33250.617,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "python_warnings": 104,
+  "actual_account_restart": {
+    "status": "VERIFIED",
+    "checks": [
+      "account cookie survives actual API restart",
+      "account profile persists",
+      "revoked old cookie rejected after another restart"
+    ],
+    "database": ".audit\\browser\\account-restart-4924e6a1208b4b3e8573ec696746d0ae\\aria.db"
+  },
+  "latest_continuation": {
+    "reports": [
+      "reports/RESOURCE_AND_AUDIO_HARDENING.md",
+      "reports/ACCOUNT_AUTHENTICATION.md",
+      "reports/STARTUP_RECOVERY.md",
+      "reports/NEWS_FEED.md",
+      "reports/SEARCH_AUTOCOMPLETE.md",
+      "reports/LOCAL_ACCOUNT_SETUP.md",
+      "reports/BRANDING.md",
+      "reports/CONVERSATIONAL_VOICE_DISK.md",
+      "reports/CONVERSATIONAL_VOICE_TOGGLE.md"
+    ],
+    "new_python_tests_since_statement_continuation": 64,
+    "changes": [
+      "Pre-parser HTTP body/time and per-worker concurrency/rate limits",
+      "Bounded legacy XLS/PDF/text/JSON parsing",
+      "Bounded speech queue and expiring durable completed clips",
+      "Optional email/password plus Google accounts with explicit linking",
+      "Account session revocation, owner/CSRF/websocket checks and separate learning keys",
+      "Missing/nonfinite Yahoo price bars excluded with provenance warning",
+      "Source-verified startup recovery",
+      "Uncapped recent dashboard news",
+      "Company autocomplete and canonical ticker selection",
+      "Offline provisioning of a confirmed private owner with unchanged data; preserve imported active chat",
+      "Remove redundant Explore category panel; isolate private browser tests from deployment auth mode",
+      "Shared reference-based ARIA emblem, theme-aware wordmark, browser icons and self-contained financial report branding",
+      "Replace the conversational doll with a shared audio-measured disk, one voice player and lifecycle/reduced-motion handling",
+      "Conversational two-click microphone capture, automatic transcript submission/reply playback and cancellation/track cleanup",
+      "Make the conversational Speak toggle prominent beneath the disk and verify live initial-viewport visibility"
+    ],
+    "default_mode": "private",
+    "env_modified": true,
+    "local_installation_mode": "accounts"
+  },
+  "inventory": {
+    "route_declarations": 72,
+    "control_templates": 529,
+    "actual_fastapi_route_count_matched": true,
+    "scope": "Static templates are not browser coverage; inventory helper refreshed after final application rerun."
+  },
+  "startup_recovery": {
+    "status": "VERIFIED",
+    "cause": "Old backend returned health 200 but session 404 and was incorrectly reused by launcher",
+    "actual_local_backend_restarted": true,
+    "database_backup": "Ignored local .audit/runtime-recovery directory; no data uploaded",
+    "existing_tables_compared": 10,
+    "existing_row_content_preserved": true,
+    "idempotent_second_launch": true,
+    "new_python_regressions": 4,
+    "new_browser_regressions": 2,
+    "env_modified": false,
+    "live_browser": {
+      "status": "VERIFIED",
+      "url": "http://localhost:5173/#/chat",
+      "session_http_status": 200,
+      "mode": "private",
+      "revision": "d2aaa17e69cb47cad32f2aad56cf8323d8ac2cbb8b25ab61dea54f248f39ecb2",
+      "composer_visible": true,
+      "page_errors": [],
+      "scope": "Real local startup/session service; chat history mocked to avoid creating test records in the real DB; no messages submitted."
+    },
+    "report": "reports/STARTUP_RECOVERY.md"
+  },
+  "news_feed": {
+    "report": "reports/NEWS_FEED.md",
+    "article_limit": null,
+    "publisher_quota": null,
+    "page_size": 10,
+    "freshness_hours": 72,
+    "live_local": {
+      "http": 200,
+      "articles": 3070,
+      "page_errors": []
+    },
+    "new_python_tests": 2,
+    "new_browser_tests": 2
+  },
+  "search_autocomplete": {
+    "report": "reports/SEARCH_AUTOCOMPLETE.md",
+    "new_python_cases": 10,
+    "new_browser_workflows": 6,
+    "scope": "Explore all instrument types; analysis and report company suggestions limited to NSE/BSE stocks",
+    "live_local": {
+      "status": "VERIFIED",
+      "checks": [
+        {
+          "query": "reli",
+          "http": 200,
+          "milliseconds": 185,
+          "suggestions": 20,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "relaince",
+          "http": 200,
+          "milliseconds": 325,
+          "suggestions": 7,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "RIL",
+          "http": 200,
+          "milliseconds": 48,
+          "suggestions": 10,
+          "top": "RELIANCE.NS"
+        },
+        {
+          "query": "tata consult",
+          "http": 200,
+          "milliseconds": 107,
+          "suggestions": 1,
+          "top": "TCS.NS"
+        },
+        {
+          "query": "hdfcbank",
+          "http": 200,
+          "milliseconds": 184,
+          "suggestions": 2,
+          "top": "HDFCBANK.NS"
+        }
+      ],
+      "page_errors": [],
+      "real_reports_generated": false
+    },
+    "env_modified": false
+  },
+  "local_account_setup": {
+    "report": "reports/LOCAL_ACCOUNT_SETUP.md",
+    "status": "VERIFIED",
+    "mode": "accounts",
+    "operator_selected": "most recently active private owner with three reports",
+    "existing_records": {
+      "financial_profiles": 1,
+      "transactions": 0,
+      "research_reports": 3,
+      "conversation_style": 1,
+      "chat_conversations": 1,
+      "audio_artifacts": 1
+    },
+    "original_tables_unchanged": 12,
+    "original_records_rewritten": false,
+    "backup": "Ignored local .audit directory; credentials and DB are not published",
+    "live_browser": {
+      "status": "VERIFIED",
+      "mode": "accounts",
+      "profile_matches_sqlite": true,
+      "existing_reports": 3,
+      "chat_session_preserved": true,
+      "refresh_persists_login": true,
+      "logout_denies_data": true,
+      "page_errors": [],
+      "google_configured": false
+    },
+    "new_python_tests": 3,
+    "new_browser_workflows": 2,
+    "env_modified": true,
+    "changed_env_keys": [
+      "ARIA_AUTH_MODE",
+      "ARIA_APP_ORIGIN",
+      "ARIA_AUTH_ALLOW_SIGNUP"
+    ]
+  },
+  "branding": {
+    "report": "reports/BRANDING.md",
+    "browser_preview": {
+      "status": "PASS",
+      "checks": [
+        {
+          "surface": "login",
+          "mode": "light",
+          "logo_loaded": true
+        },
+        {
+          "surface": "login",
+          "mode": "night",
+          "logo_loaded": true
+        },
+        {
+          "version": "v1",
+          "theme": "classic",
+          "mode": "light",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "theme": "vitara",
+          "mode": "light",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "theme": "vitara-markets",
+          "mode": "night",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "theme": "vitara-clear",
+          "mode": "light",
+          "width": 390,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "theme": "vitara-clear",
+          "mode": "night",
+          "width": 390,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "theme": "classic",
+          "mode": "light",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "theme": "vitara",
+          "mode": "light",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "theme": "vitara-markets",
+          "mode": "night",
+          "width": 1440,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "theme": "vitara-clear",
+          "mode": "light",
+          "width": 390,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "theme": "vitara-clear",
+          "mode": "night",
+          "width": 390,
+          "logo_loaded": true,
+          "brand_within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "surface": "report",
+          "self_contained_logo": true,
+          "pdf_rendered": true
+        }
+      ]
+    },
+    "live_local_account_recheck": {
+      "status": "VERIFIED",
+      "mode": "accounts",
+      "profile_matches_sqlite": true,
+      "existing_reports": 3,
+      "chat_session_preserved": true,
+      "refresh_persists_login": true,
+      "logout_denies_data": true,
+      "page_errors": [],
+      "google_configured": false
+    },
+    "image_preparation": "Built-in image tool with supplied reference and transparent background; browser canvas resizing",
+    "data_migration": false
+  },
+  "conversational_voice_disk": {
+    "report": "reports/CONVERSATIONAL_VOICE_DISK.md",
+    "source": "web/src/components/chat/VoiceDisk.tsx",
+    "input": "Actual HTMLAudioElement speech playback, not a simulated speaking flag",
+    "mapping": [
+      "RMS amplitude to scale/glow",
+      "Logarithmic FFT bands to bars",
+      "Spectral centroid to angle",
+      "Time-domain waveform to outer ring"
+    ],
+    "browser_cases": [
+      {
+        "name": "v1: conversational disk measures voice amplitude and frequency and stops on pause",
+        "outcome": [
+          "expected"
+        ]
+      },
+      {
+        "name": "v2: conversational disk measures voice amplitude and frequency and stops on pause",
+        "outcome": [
+          "expected"
+        ]
+      }
+    ],
+    "data_migration": false,
+    "environment_changed": false,
+    "scope": "Conversational Mode only; synthetic decoded audio with a trusted user gesture; microphone/TTS quality and live video remain outside this result",
+    "earlier_browser_attempt": {
+      "stats": {
+        "startTime": "2026-10-17T16:58:45.451Z",
+        "duration": 143706.47,
+        "expected": 29,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "finding": "One voice case paused early when its analyser was connected during the play event; connect the graph before playback"
+    },
+    "post_fix_repeated_voice_checks": {
+      "startTime": "2026-10-17T17:01:45.000Z",
+      "duration": 62886.840000000004,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "theme_preview": {
+      "status": "PASS",
+      "checks": [
+        {
+          "version": "v1",
+          "mode": "light",
+          "width": 1440,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "mode": "light",
+          "width": 390,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "mode": "night",
+          "width": 1440,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v1",
+          "mode": "night",
+          "width": 390,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "mode": "light",
+          "width": 1440,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "mode": "light",
+          "width": 390,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "mode": "night",
+          "width": 1440,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        },
+        {
+          "version": "v2",
+          "mode": "night",
+          "width": 390,
+          "signal_measured": true,
+          "within_viewport": true,
+          "page_errors": []
+        }
+      ]
+    }
+  },
+  "conversational_voice_toggle": {
+    "report": "reports/CONVERSATIONAL_VOICE_TOGGLE.md",
+    "source": "web/src/components/chat/VoiceRecorder.tsx",
+    "browser": "Full Chromium, synthetic microphone device with real getUserMedia/MediaRecorder and multipart upload",
+    "controlled_providers": [
+      "Transcription endpoint response",
+      "Chat answer",
+      "Reply WAV audio"
+    ],
+    "repeated_focused_checks": {
+      "startTime": "2026-10-17T17:27:33.490Z",
+      "duration": 55744.352,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "new_browser_workflows": 4,
+    "scope": "Browser integration; no physical microphone quality or live speech-provider accuracy claim",
+    "env_modified": false,
+    "data_migration": false
+  },
+  "voice_control_visibility": {
+    "verified_at_utc": "2026-10-17T17:44:53.407837+00:00",
+    "full_regression_checkpoint": "7a0692c",
+    "change": "Large Speak control beneath disk; single conversational recorder; typed composer remains available",
+    "targeted_browser": {
+      "startTime": "2026-10-17T17:42:00.854Z",
+      "duration": 36702.47,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "live_localhost": {
+      "status": "PASS",
+      "checks": [
+        {
+          "version": "v1",
+          "width": 1440,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 1440,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 390,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 670.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v1",
+          "width": 390,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 670.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 1440,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 1440,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 294.59375,
+            "y": 735,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 390,
+          "mode": "light",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 690.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        },
+        {
+          "version": "v2",
+          "width": 390,
+          "mode": "night",
+          "label": "Speak",
+          "speakBounds": {
+            "x": 100,
+            "y": 690.796875,
+            "width": 190,
+            "height": 52
+          },
+          "within_initial_viewport": true
+        }
+      ]
+    },
+    "build": "PASS",
+    "lint": "PASS with warnings",
+    "backend_suite_repeated": false,
+    "financial_questions_submitted_live": false
+  }
+}

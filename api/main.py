@@ -18,21 +18,29 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.resource_limits import ResourceLimits
+from api import auth
+from api.runtime_version import backend_revision
+
+_RUNTIME_REVISION = backend_revision()  # snapshot loaded source, not files edited later
 
 from api.routes import avatar, chat, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
-app = FastAPI(title="ARIA API")
+auth.mode()  # reject misspelled modes rather than falling back to private access
+app = FastAPI(title="ARIA API", dependencies=[Depends(auth.authorize)])
+app.add_middleware(ResourceLimits)
 
 # The Vite dev server (default :5173) and the built static frontend served
 # from this same process both need to reach the API; a public ngrok tunnel
 # (Tavus mode only) adds an extra origin the browser sees requests come
-# back through -- allow_origins="*" is fine here since there's no cookie
-# auth anywhere in this app to leak.
+# back through. Private mode keeps the existing non-cookie behavior;
+# account mode permits credentials only from its configured exact origin.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[auth.origin()] if auth.mode() == "accounts" else ["*"],
+    allow_credentials=auth.mode() == "accounts",
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -98,14 +106,24 @@ app.include_router(scenario_backtest.router)
 app.include_router(live.router)
 app.include_router(markets.router)
 app.include_router(instruments.router)
+app.include_router(auth.router)
 
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "revision": _RUNTIME_REVISION}
+
+
+# Deployment: when the web app has been built (cd web && npm run build) this process serves it too, so one container is the
+# whole product. Mounted last so every /api, /avatar and /embed route above keeps priority. ARIA_SERVE_WEB=0 turns it off.
+_WEB_DIST = Path(__file__).resolve().parents[1] / "web" / "dist"
+if (_WEB_DIST / "index.html").exists() and os.environ.get("ARIA_SERVE_WEB", "1") != "0":
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=_WEB_DIST, html=True), name="web")
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("api.main:app", host=os.getenv("ARIA_BIND_HOST", "127.0.0.1"), port=8000, reload=False)

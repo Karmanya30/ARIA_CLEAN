@@ -7,7 +7,10 @@ from __future__ import annotations
 
 
 def sip_future_value(monthly: float, years: float, annual_return_pct: float) -> float:
-    """Future value of a monthly SIP, contribution at end of each period."""
+    """Monthly SIP annuity due: contribution at the beginning of each month.
+
+    Nominal annual return / 12; rounded whole-month tenure; no fees or tax.
+    """
     if monthly <= 0 or years <= 0:
         return 0.0
     r = annual_return_pct / 12 / 100

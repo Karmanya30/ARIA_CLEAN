@@ -11,13 +11,23 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import re
+import zipfile
 from datetime import date, datetime, timedelta
 from typing import Any
 
 SUPPORTED = ".csv, .tsv, .txt, .xlsx, .xlsm, .xls, .pdf, .json, .ofx"
 EXPENSE_KEYS = ("food", "rent", "transport", "utilities", "entertainment", "health", "education", "other")
 MAX_ROWS = 20000
+MAX_XLSX_EXPANDED_BYTES = 50 * 1024 * 1024
+MAX_XLSX_MEMBERS = 2000
+MAX_XLSX_SHEETS = 32
+MAX_GRID_COLUMNS = 128
+MAX_GRID_CELLS = 1_000_000
+MAX_PDF_PAGES = 100
+MAX_PDF_TEXT_CHARS = 2_000_000
+MAX_PDF_PAGE_STREAM_BYTES = 8 * 1024 * 1024
 _STORE_CAT = {"rent": "housing", "health": "medical", "education": "other"}
 
 
@@ -247,6 +257,8 @@ def _text_rows(lines: list[str]) -> tuple[list[dict], int]:
 
 
 def _finalize(raws: list[dict], skipped: int, warnings: list[str]) -> dict:
+    if any(not math.isfinite(r["amt"]) or abs(r["amt"]) > 1e11 or round(abs(r["amt"]), 2) <= 0 for r in raws):
+        raise StatementError("A transaction amount is invalid or outside supported limits. Please check the statement amounts.")
     undecided = [r for r in raws if r["dir"] is None]
     has_neg = any(r["amt"] < 0 for r in undecided)
     if undecided and not has_neg:
@@ -290,27 +302,82 @@ def _delimited(text: str) -> list[list[str]]:
         dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
     except csv.Error:
         dialect = csv.excel
-    return list(csv.reader(io.StringIO(text), dialect))
+    grid, cells = [], 0
+    for row in csv.reader(io.StringIO(text), dialect):
+        cells += len(row)
+        if len(row) > MAX_GRID_COLUMNS or len(grid) >= MAX_ROWS + 1000 or cells > MAX_GRID_CELLS:
+            raise StatementError("This table is too large. Please upload a shorter period with fewer columns.", 413)
+        grid.append(row)
+    return grid
 
 
 def _xlsx_grids(data: bytes) -> list[list[list[Any]]]:
     import openpyxl
 
+    # XLSX/XLSM are ZIP containers. Enforce expansion limits before the
+    # workbook library allocates shared strings, styles or sheet grids.
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            members = archive.infolist()
+            if len(members) > MAX_XLSX_MEMBERS or sum(m.file_size for m in members) > MAX_XLSX_EXPANDED_BYTES:
+                raise StatementError("This Excel file is too large when expanded. Please export a shorter period as CSV.", 413)
+    except zipfile.BadZipFile:
+        raise StatementError("This Excel file could not be opened. It may be corrupt or password-protected.")
     try:
         wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
     except Exception:
         raise StatementError("This Excel file could not be opened. It may be corrupt or password-protected.")
-    return [[list(r) for r in ws.iter_rows(values_only=True)] for ws in wb.worksheets]
+    try:
+        if len(wb.worksheets) > MAX_XLSX_SHEETS:
+            raise StatementError("This Excel file has too many sheets. Please upload one statement or use CSV.", 413)
+        grids, cells = [], 0
+        for ws in wb.worksheets:
+            if (ws.max_column or 0) > MAX_GRID_COLUMNS or (ws.max_row or 0) > MAX_ROWS + 1000:
+                raise StatementError("This Excel sheet is too large. Please export a shorter period as CSV.", 413)
+            grid = []
+            for row in ws.iter_rows(values_only=True):
+                cells += len(row)
+                if len(row) > MAX_GRID_COLUMNS or len(grid) >= MAX_ROWS + 1000 or cells > MAX_GRID_CELLS:
+                    raise StatementError("This Excel sheet is too large. Please export a shorter period as CSV.", 413)
+                grid.append(list(row))
+            grids.append(grid)
+        return grids
+    finally:
+        wb.close()
 
 
 def _xls_grids(data: bytes) -> list[list[list[Any]]]:
+    book = None
     try:
-        import pandas as pd
-
-        sheets = pd.read_excel(io.BytesIO(data), header=None, sheet_name=None, dtype=object)
+        import xlrd
+        book = xlrd.open_workbook(file_contents=data, on_demand=True)
+        if book.nsheets > MAX_XLSX_SHEETS:
+            raise StatementError("This Excel file has too many sheets. Please use CSV.", 413)
+        grids, cells = [], 0
+        for index in range(book.nsheets):
+            sheet = book.sheet_by_index(index)
+            cells += sheet.nrows * sheet.ncols
+            if sheet.nrows > MAX_ROWS + 1000 or sheet.ncols > MAX_GRID_COLUMNS or cells > MAX_GRID_CELLS:
+                raise StatementError("This Excel sheet is too large. Please export a shorter period as CSV.", 413)
+            grid = []
+            for row in range(sheet.nrows):
+                values = []
+                for cell in sheet.row(row):
+                    value = cell.value
+                    if cell.ctype == xlrd.XL_CELL_DATE:
+                        value = xlrd.xldate_as_datetime(value, book.datemode)
+                    values.append(value)
+                grid.append(values)
+            grids.append(grid)
+            book.unload_sheet(index)
+        return grids
+    except StatementError:
+        raise
     except Exception:
         raise StatementError("Old .xls files can't be read here. Please re-save the file as .xlsx or CSV and upload again.")
-    return [df.where(df.notna(), None).values.tolist() for df in sheets.values()]
+    finally:
+        if book is not None:
+            book.release_resources()
 
 
 def _pdf_lines(data: bytes, layout: bool = True) -> list[str]:
@@ -321,7 +388,19 @@ def _pdf_lines(data: bytes, layout: bool = True) -> list[str]:
         if reader.is_encrypted and not reader.decrypt(""):
             raise StatementError("This PDF is password-protected. Please remove the password (or download an unlocked "
                                  "copy from your bank) and upload again.")
-        text = "\n".join((p.extract_text(extraction_mode="layout") if layout else p.extract_text()) or "" for p in reader.pages)
+        if len(reader.pages) > MAX_PDF_PAGES:
+            raise StatementError("This PDF has too many pages. Please upload a shorter period or CSV.", 413)
+        parts, characters = [], 0
+        for page in reader.pages:
+            contents = page.get_contents()
+            if contents is not None and len(contents.get_data()) > MAX_PDF_PAGE_STREAM_BYTES:
+                raise StatementError("This PDF page is too complex. Please export the statement as CSV.", 413)
+            part = (page.extract_text(extraction_mode="layout") if layout else page.extract_text()) or ""
+            characters += len(part)
+            if characters > MAX_PDF_TEXT_CHARS:
+                raise StatementError("This PDF contains too much text. Please upload a shorter period or CSV.", 413)
+            parts.append(part)
+        text = "\n".join(parts)
     except StatementError:
         raise
     except Exception:
@@ -341,20 +420,32 @@ def _json_grid(data: bytes) -> list[list[Any]]:
         obj = next((v for v in obj.values() if isinstance(v, list)), [])
     if not isinstance(obj, list) or not all(isinstance(o, dict) for o in obj):
         raise StatementError("JSON must be a list of transaction objects.")
-    keys = list(dict.fromkeys(k for o in obj for k in o))
+    if len(obj) > MAX_ROWS + 1000:
+        raise StatementError("This JSON has too many rows. Please upload a shorter period.", 413)
+    keys = {}
+    for item in obj:
+        keys.update(dict.fromkeys(item))
+        if len(keys) > MAX_GRID_COLUMNS or (len(obj) + 1) * len(keys) > MAX_GRID_CELLS:
+            raise StatementError("This JSON table is too large. Please use fewer columns or rows.", 413)
+    keys = list(keys)
     return [keys] + [[o.get(k) for k in keys] for o in obj]
 
 
 def _ofx_grid(text: str) -> list[list[Any]]:
     tag = lambda b, t: (m.group(1).strip() if (m := re.search(rf"<{t}>([^<\r\n]*)", b)) else "")  # noqa: E731
     rows = [["date", "description", "amount"]]
-    for b in re.findall(r"<STMTTRN>(.*?)(?:</STMTTRN>|(?=<STMTTRN>)|$)", text, re.S):
+    for match in re.finditer(r"<STMTTRN>(.*?)(?:</STMTTRN>|(?=<STMTTRN>)|$)", text, re.S):
+        if len(rows) >= MAX_ROWS + 1000:
+            raise StatementError("This OFX file has too many rows. Please upload a shorter period.", 413)
+        b = match.group(1)
         d = tag(b, "DTPOSTED")[:8]
         rows.append([f"{d[:4]}-{d[4:6]}-{d[6:8]}", tag(b, "NAME") or tag(b, "MEMO"), tag(b, "TRNAMT")])
     return rows
 
 
 def parse_statement(filename: str, data: bytes) -> dict:
+    if len(data) > 5 * 1024 * 1024:
+        raise StatementError("That file is larger than 5 MB. Please upload a shorter period.", 413)
     ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
     if ext not in SUPPORTED.replace(" ", "").split(","):
         raise StatementError(f"Unsupported file type. Supported formats: {SUPPORTED}.", 415)

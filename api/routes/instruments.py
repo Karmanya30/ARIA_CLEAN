@@ -5,12 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
-from loguru import logger
 from pydantic import BaseModel, Field
 
-from api.audio_store import register_later
-from api.text_utils import speech_text
-from modules.market import instrument_chat, instruments
+from modules.market import instruments
+from modules.qa.models import Channel, ChatMode, QAContext, QARequest
 
 router = APIRouter(prefix="/api/instruments", tags=["instruments"])
 
@@ -23,9 +21,9 @@ def _get(iid: str) -> dict:
 
 
 @router.get("/search")
-def search(q: str = Query("", max_length=80), type: str = "all", limit: int = Query(20, ge=1, le=50)) -> dict:  # noqa: A002
+def search(q: str = Query("", max_length=80), type: str = "all", limit: int = Query(20, ge=1, le=50), market: str = "all") -> dict:  # noqa: A002
     try:
-        return instruments.search(q, type, limit)
+        return instruments.search(q, type, limit, market)
     except ValueError as exc:
         raise HTTPException(422, str(exc))
 
@@ -45,29 +43,19 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1500)
     session_id: str
     owner_id: str | None = None
-    history: list[dict[str, Any]] | None = None
+    request_id: str | None = None
+    mode: str = ChatMode.NORMAL.value
+    history: list[dict[str, Any]] | None = Field(None, max_length=20)
 
 
 @router.post("/ask")
 def ask(req: AskRequest) -> dict[str, Any]:
-    from core.session import save_turn
+    """Thin adapter: the same answer pipeline as /api/chat, with this instrument as the page in focus."""
+    from api.routes.chat import answer_http
 
-    it = _get(req.id)
-    result = instrument_chat.ask(it, req.question.strip(), req.owner_id, req.history)
-    save_turn(req.session_id, req.question.strip(), result)
-
-    def make_audio() -> str | None:  # same background TTS as /api/chat; the reply does not wait for it
-        try:
-            from ai.llm.audio_script import generate_audio_script
-            from ai.speech.tts import synthesize
-
-            return synthesize(speech_text(generate_audio_script(result["response"])))
-        except Exception as exc:
-            logger.warning(f"TTS generation failed; the reply stays text-only: {exc}")
-            return None
-
-    result["audio_token"] = register_later(make_audio)
-    return result
+    return answer_http(QARequest(query=req.question, session_id=req.session_id, owner_id=req.owner_id, request_id=req.request_id,
+                                 mode=ChatMode.parse(req.mode), channel=Channel.INSTRUMENT,
+                                 context=QAContext(instrument_id=req.id, page="explore"), history=req.history))
 
 
 @router.get("/{instrument_id}/quote")

@@ -1,8 +1,8 @@
 """Saved equity research reports: history, viewing, download, regenerate, delete.
 
 Reports are created by the chat pipeline (modules/equity_research/intelligence) and stored by
-shared/user_store.py. ARIA has no accounts, so every call carries the device-level ``owner_id``
-(a random UUID the frontend keeps in localStorage) and only that owner's reports are visible.
+shared/user_store.py. Every call carries an ``owner_id``: an account ID checked against the
+server session in account mode, or a device capability in private mode.
 The GET endpoints take it as a query parameter so the same URLs work for an <iframe> and a plain
 download link, neither of which can send custom headers.
 """
@@ -37,14 +37,16 @@ class SentimentRequest(BaseModel):
 
 @router.get("/intelligence")
 def intelligence(q: str, owner_id: str | None = None) -> dict[str, Any]:
+    """Company intelligence scorecard (no model call). Same understanding and trust stages as every question: the pipeline
+    normalises `q` (spelling, Hinglish), scopes it to the owner and tags the result."""
     from modules.equity_research.intelligence.pipeline import company_intelligence
-    from shared.user_store import current_owner
+    from modules.qa import pipeline
+    from modules.qa.models import Channel, QARequest
 
-    token = current_owner.set(owner_id)
-    try:
-        result = company_intelligence(q)
-    finally:
-        current_owner.reset(token)
+    if not q.strip():
+        raise HTTPException(status_code=404, detail="Company not found.")
+    result = pipeline.lookup(QARequest(query=q, session_id="company-intelligence", owner_id=owner_id, channel=Channel.REPORT),
+                             company_intelligence)
     if result is None:
         raise HTTPException(status_code=404, detail="Company not found.")
     return result

@@ -52,13 +52,20 @@ def get_index_snapshot(name: str) -> dict[str, Any]:
             return {"error": "No data returned"}
         closes = hist["Close"].tolist()
         change = _pct_change(closes)
-        return {
+        snap = {
             "index": name.title(),
             "ticker": ticker,
             "current_level": round(closes[-1], 2),
             "five_day_change_pct": round(change, 2) if change is not None else None,
-            "trend": "up" if closes[-1] > closes[0] else "down" if closes[-1] < closes[0] else "flat",
+            "five_day_trend": "up" if closes[-1] > closes[0] else "down" if closes[-1] < closes[0] else "flat",
         }
+        snap["trend"] = snap["five_day_trend"]  # kept for older readers; today's move is below
+        if len(closes) >= 2 and closes[-2]:
+            # "Is Nifty up today?" is answered from today's move against the previous close, never from the 5-day trend
+            snap.update(previous_close=round(closes[-2], 2), today_change_pct=round((closes[-1] - closes[-2]) / closes[-2] * 100, 2),
+                        today_trend="up" if closes[-1] > closes[-2] else "down" if closes[-1] < closes[-2] else "flat",
+                        as_of=str(hist.index[-1])[:10], data_note="delayed about 15 minutes")
+        return snap
     except Exception as exc:
         return {"error": str(exc)}
 

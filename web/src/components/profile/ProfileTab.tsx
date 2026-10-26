@@ -148,6 +148,8 @@ export function ProfileTab({ onAskInChat }: { onAskInChat?: (q: string) => void 
   const head = useRef<HTMLHeadingElement>(null)
   const form = useRef<HTMLElement>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [txnError, setTxnError] = useState('')
+  const [txnBusy, setTxnBusy] = useState(false)
   const [txnForm, setTxnForm] = useState({ date: new Date().toISOString().slice(0, 10), category: 'housing', amount: 0, merchant: '', channel: '' })
   const owner = ownerId()
 
@@ -191,7 +193,11 @@ export function ProfileTab({ onAskInChat }: { onAskInChat?: (q: string) => void 
     if (bad) { bad.focus(); setMsg('Please fix the highlighted field first, or clear it to skip.'); return }
     const patch: D = {}
     for (const k of STEPS[step].keys) {
-      const c = clean(d[k])
+      let c = clean(d[k])
+      if ((k === 'expenses' || k === 'assets') && c && typeof c === 'object') {
+        const values = c as D
+        c = { ...Object.fromEntries(Object.keys(profile[k] ?? {}).filter((key) => !(key in values)).map((key) => [key, null])), ...values }
+      }
       if (JSON.stringify(c) !== JSON.stringify(profile[k] ?? null)) patch[k] = c
     }
     setBusy(true)
@@ -210,10 +216,9 @@ export function ProfileTab({ onAskInChat }: { onAskInChat?: (q: string) => void 
     const [top, sub] = k.split('.')
     let patch: D = { [top]: null }
     if (sub) {
-      const rest = Object.fromEntries(Object.entries(profile[top] ?? {}).filter(([x]) => x !== sub))
-      patch = { [top]: Object.keys(rest).length ? rest : null }
+      patch = { [top]: { [sub]: null } }
     }
-    try { await post(patch); setD((p) => ({ ...p, [top]: patch[top] ?? undefined })) } catch (e) { setMsg(`Could not delete: ${e instanceof Error ? e.message : ''}`) }
+    try { await post(patch); await load(false, true) } catch (e) { setMsg(`Could not delete: ${e instanceof Error ? e.message : ''}`) }
   }
 
   async function saveEdit() {
@@ -269,9 +274,21 @@ export function ProfileTab({ onAskInChat }: { onAskInChat?: (q: string) => void 
     ['Emergency fund', snap?.emergency_months != null ? `${+snap.emergency_months.toFixed(1)} months` : null, 'Add savings and expenses'],
   ]
 
-async function addTransaction() {
+  async function updateTransactions(action: () => Promise<unknown>) {
+    if (txnBusy) return
+    setTxnBusy(true); setTxnError('')
+    try {
+      await action()
+      setTransactions(await api.getTransactions(owner))
+      setInsVer((v) => v + 1)
+    } catch (e) {
+      setTxnError(e instanceof Error ? e.message : 'Could not update transactions. Please try again.')
+    } finally { setTxnBusy(false) }
+  }
+
+  async function addTransaction() {
     if (txnForm.amount <= 0) return
-    await api.addTransaction(owner, {
+    await updateTransactions(async () => { await api.addTransaction(owner, {
       date: txnForm.date,
       category: txnForm.category,
       amount: txnForm.amount,
@@ -279,17 +296,15 @@ async function addTransaction() {
       channel: txnForm.channel || null,
     })
     setTxnForm((f) => ({ ...f, amount: 0, merchant: '' }))
-    api.getTransactions(owner).then(setTransactions)
+    })
   }
 
   async function loadSample() {
-    await api.loadSampleTransactions(owner)
-    api.getTransactions(owner).then(setTransactions)
+    await updateTransactions(() => api.loadSampleTransactions(owner))
   }
 
   async function clearAll() {
-    await api.clearTransactions(owner)
-    api.getTransactions(owner).then(setTransactions)
+    await updateTransactions(() => api.clearTransactions(owner))
   }
 
   if (loading) return <div className="pf" aria-busy="true"><h1>Your Finance Profile</h1><div className="card pf-skel" /><div className="card pf-skel" /></div>
@@ -466,6 +481,7 @@ async function addTransaction() {
 
       <hr className="divider" />
       <h2>Your Transactions</h2>
+      {txnError && <p role="alert">{txnError}</p>}
       <p className="tab-caption">
         Feeds Module 1's LSTM spend forecast and Isolation Forest anomaly detector — both need real transaction history to produce
         anything beyond a zero-signal default. Anomaly detection needs 10+ entries.
@@ -523,7 +539,7 @@ async function addTransaction() {
             </select>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={addTransaction} type="button" style={{ marginTop: 16 }}>
+        <button className="btn btn-primary" onClick={addTransaction} disabled={txnBusy} type="button" style={{ marginTop: 16 }}>
           Add transaction
         </button>
       </div>
@@ -555,7 +571,7 @@ async function addTransaction() {
             </table>
           </div>
           <p className="tab-caption">{transactions.length} transaction(s) on file for this session.</p>
-          <button className="btn" onClick={clearAll} type="button">
+          <button className="btn" onClick={clearAll} disabled={txnBusy} type="button">
             Clear all my transactions
           </button>
         </>
@@ -563,7 +579,7 @@ async function addTransaction() {
         <div className="banner-info">
           No transactions yet — add a few above, or load sample data to try the forecast/anomaly models.
           <div style={{ marginTop: 10 }}>
-            <button className="btn" onClick={loadSample} type="button">
+            <button className="btn" onClick={loadSample} disabled={txnBusy} type="button">
               Load sample transactions (demo)
             </button>
           </div>

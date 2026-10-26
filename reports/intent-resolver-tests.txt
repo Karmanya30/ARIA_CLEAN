@@ -1,0 +1,11 @@
+............F.........................                                   [100%]
+================================== FAILURES ===================================
+_________ test_ambiguous_requests_are_selected[help me work this out] _________
+tests\test_intent_resolver.py:55: in test_ambiguous_requests_are_selected
+    assert resolver.needs_resolution(query, HISTORY, None, clear_route=False)
+E   AssertionError: assert False
+E    +  where False = <function needs_resolution at 0x0000022487B44CC0>('help me work this out', [{'message_id': 7, 'query': 'Research report on TCS', 'response': {'response': 'TCS report: valuation and risks.'}}], None, clear_route=False)
+E    +    where <function needs_resolution at 0x0000022487B44CC0> = resolver.needs_resolution
+=========================== short test summary info ===========================
+FAILED tests/test_intent_resolver.py::test_ambiguous_requests_are_selected[help me work this out]
+1 failed, 37 passed in 42.62s

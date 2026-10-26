@@ -13,8 +13,10 @@ the fallback is transparent — no caller needs to change.
 from __future__ import annotations
 
 import os
+import json
 import re
 import time
+from contextvars import ContextVar
 from typing import Iterator
 
 from loguru import logger
@@ -89,6 +91,32 @@ def _extract_groq_text(response) -> str:
         return str(response)
 
 
+# Per-turn model-call counters, set by modules/qa/pipeline.py so each answer's log line shows how much of its time was the model.
+llm_stats: ContextVar[dict | None] = ContextVar("aria_llm_stats", default=None)
+
+
+def _record_usage(provider: str, model: str, response, elapsed: float) -> None:
+    """Log numeric provider telemetry only; never prompt content or credentials."""
+    if (stats := llm_stats.get()) is not None:
+        stats["llm_calls"] = stats.get("llm_calls", 0) + 1
+        stats["llm_ms"] = stats.get("llm_ms", 0) + round(elapsed * 1000)
+    usage = getattr(response, "usage", None) if provider == "groq" else getattr(response, "usage_metadata", None)
+    def value(obj, name, default=None):
+        return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
+    if usage is None:
+        return
+    if provider == "groq":
+        prompt = value(usage, "prompt_tokens")
+        cached = value(value(usage, "prompt_tokens_details", {}), "cached_tokens")
+        output = value(usage, "completion_tokens")
+    else:
+        prompt = value(usage, "prompt_token_count")
+        cached = value(usage, "cached_content_token_count")
+        output = value(usage, "candidates_token_count")
+    logger.bind(provider=provider, model=model, prompt_tokens=prompt, cached_tokens=cached,
+                output_tokens=output, latency_ms=round(elapsed * 1000)).info("llm_usage")
+
+
 def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str:
     """Raises on any failure — caller decides how to handle it."""
     client = _make_groq_client()
@@ -96,6 +124,7 @@ def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt},
     ]
+    started = time.perf_counter()
     response = client.chat.completions.create(
         model=model or MODEL_NAME,
         messages=messages,
@@ -103,10 +132,42 @@ def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str
         top_p=0.9,
         **({"reasoning_effort": "low"} if "gpt-oss" in (model or MODEL_NAME) else {}),  # fewer hidden reasoning tokens: faster, and kinder to the per-minute token cap
     )
+    _record_usage("groq", model or MODEL_NAME, response, time.perf_counter() - started)
     text = _extract_groq_text(response)
     if not text:
         raise RuntimeError("Groq returned an empty response")
     return text
+
+
+def generate_structured(prompt: str, *, system_prompt: str, schema: dict,
+                        timeout: float = 8.0, max_tokens: int = 1024) -> dict | None:
+    """One bounded interpretation call to the configured Groq model.
+
+    No answer formatting, implicit history/news injection, retries, provider
+    switches or currency rewriting. Callers validate meaning with their schema.
+    """
+    strict_models = {"openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "meta-models/muse-spark-open"}
+    response_format = ({"type": "json_schema", "json_schema": {
+        "name": "aria_intent", "strict": True, "schema": schema}}
+        if MODEL_NAME in strict_models else {"type": "json_object"})
+    if MODEL_NAME not in strict_models:
+        system_prompt += "\nJSON schema:\n" + json.dumps(schema)
+    started = time.perf_counter()
+    try:
+        client = _make_groq_client().with_options(timeout=timeout, max_retries=0)
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+            response_format=response_format, temperature=0, max_completion_tokens=max_tokens,
+            **({"reasoning_effort": "low"} if "gpt-oss" in MODEL_NAME else {}),
+        )
+        _record_usage("groq", MODEL_NAME, response, time.perf_counter() - started)
+        value = json.loads(_extract_groq_text(response))
+        return value if isinstance(value, dict) else None
+    except Exception as exc:
+        # Provider errors can contain request bodies or credentials; log only the class.
+        logger.bind(error_type=type(exc).__name__).warning("intent_transport_unavailable")
+        return None
 
 
 def _call_gemini(prompt: str, system_prompt: str, model: str | None = None) -> str:
@@ -128,11 +189,13 @@ def _call_gemini(prompt: str, system_prompt: str, model: str | None = None) -> s
         raise RuntimeError("GEMINI_API_KEY is not set")
 
     client = genai.Client(api_key=api_key)
+    started = time.perf_counter()
     response = client.models.generate_content(
         model=model or GEMINI_MODEL_NAME,
         contents=prompt,
         config=types.GenerateContentConfig(system_instruction=system_prompt),
     )
+    _record_usage("gemini", model or GEMINI_MODEL_NAME, response, time.perf_counter() - started)
     text = getattr(response, "text", None)
     if not text:
         raise RuntimeError("Gemini returned an empty response")
@@ -171,6 +234,11 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
         else:
             system_prompt = f"{system_prompt}\n\n{voice}"
 
+    # Constrained classifiers and fact extraction keep their original inputs.
+    if default:
+        from shared.conversation_memory import augment
+        prompt = augment(prompt, system_prompt)
+
     text: str | None = None
     last_error: Exception | None = None
 
@@ -200,6 +268,11 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
         logger.error(f"All LLM backends failed: {last_error}")
         return f"Error: {last_error}"
 
+    from shared.dialogue import CONVERSATION_SYSTEM
+    if system_prompt.startswith(CONVERSATION_SYSTEM):
+        # General tasks may contain foreign currencies or executable code.
+        # Currency substitutions and appended punctuation would change meaning.
+        return text.strip()
     text = normalize_currency(text).strip()
 
     # Ensure clean ending (no abrupt cut)

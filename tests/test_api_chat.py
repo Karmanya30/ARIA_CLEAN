@@ -1,5 +1,7 @@
 """api/routes/chat.py -- the direct replacement for what
 interface/streamlit_app.py's _render_chat_tab used to do in-process."""
+import uuid
+import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
@@ -7,6 +9,12 @@ from core.session import clear_session, get_session
 
 client = TestClient(app)
 _TEST_SESSION = "__pytest_api_chat__"
+
+
+@pytest.fixture(autouse=True)
+def no_background_speech(monkeypatch):
+    # Chat tests assert token persistence; speech synthesis is tested separately.
+    monkeypatch.setattr("modules.qa.present.register_later", lambda fn: uuid.uuid4().hex)
 
 
 def _cleanup():

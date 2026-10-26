@@ -46,15 +46,7 @@ export function ResponseCard({ text }: { text: string }) {
   if (value.startsWith('Error:')) {
     return (
       <div className="response-error">
-        <p>
-          ARIA's language model is temporarily unavailable (both Groq and Gemini failed to
-          respond). Any numbers shown separately are still real and computed locally — only the
-          narration is missing. Try again in a moment.
-        </p>
-        <details>
-          <summary>Technical details</summary>
-          <pre>{value}</pre>
-        </details>
+        <p>ARIA couldn't put an answer together just now. Please try again in a moment.</p>
       </div>
     )
   }

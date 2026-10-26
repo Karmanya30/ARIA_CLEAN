@@ -62,3 +62,16 @@ def test_progress_endpoint_reflects_answered_quiz():
         assert any(item["concept_id"] == "sip" for item in body["engaged"])
     finally:
         _wipe()
+
+
+def test_progress_lists_only_the_concepts_the_learner_was_quizzed_on():
+    _wipe()
+    try:
+        for cid, ok in (("sip", True), ("sip", False), ("inflation", True)):
+            client.post("/api/quiz/answer", json={"session_id": _TEST_SESSION, "concept_id": cid, "is_correct": ok})
+        got = client.get("/api/progress", params={"session_id": _TEST_SESSION}).json()
+        assert {e["concept_id"] for e in got["engaged"]} == {"sip", "inflation"}
+        sip = next(e for e in got["engaged"] if e["concept_id"] == "sip")
+        assert (sip["answered"], sip["correct"]) == (2, 1) and got["total_interactions"] == 3
+    finally:
+        _wipe()

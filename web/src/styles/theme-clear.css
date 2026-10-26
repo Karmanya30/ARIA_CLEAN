@@ -391,3 +391,48 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
 }
+
+/* ── Chat: replace hardcoded white/light surfaces with dark night equivalents ── */
+
+[data-theme='vitara-clear'][data-mode='night'] .chat-topbar {
+  background: rgba(23, 33, 32, 0.82);
+  border-color: rgba(79, 199, 156, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='vitara-clear'][data-mode='night'] .chat-mode-select {
+  background: rgba(15, 21, 20, 0.7);
+  border-color: rgba(79, 199, 156, 0.18);
+  color: var(--ink);
+}
+[data-theme='vitara-clear'][data-mode='night'] .chat-mode-select option {
+  background: #172120;
+  color: var(--ink);
+}
+
+[data-theme='vitara-clear'][data-mode='night'] .composer {
+  background: rgba(23, 33, 32, 0.82);
+  border-color: rgba(79, 199, 156, 0.12);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+[data-theme='vitara-clear'][data-mode='night'] .composer:focus-within {
+  border-color: rgba(79, 199, 156, 0.35);
+  box-shadow: 0 6px 32px rgba(79, 199, 156, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='vitara-clear'][data-mode='night'] .bubble-assistant {
+  background: rgba(23, 33, 32, 0.75);
+  border-color: rgba(79, 199, 156, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --ink: #e9f0ec;
+  --ink-muted: #a6b7ae;
+  --ink-faint: #94a69d;
+  --bg-inset: #1e2a27;
+  color: #e9f0ec;
+}
+
+[data-theme='vitara-clear'][data-mode='night'] .bubble-user {
+  background: linear-gradient(135deg, rgba(79, 199, 156, 0.10) 0%, rgba(47, 158, 115, 0.07) 100%);
+  border-color: rgba(79, 199, 156, 0.18);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}

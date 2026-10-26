@@ -50,6 +50,8 @@ _BROAD_MARKET_TERMS = (
     "rupee against", "rupee vs", "rupee fall", "rupee slip", "rupee weak", "rupee deprec", "rupee record",
     # everyday "what's going on" phrasing, India and abroad. Still no bare "news": "Reliance news" is a single-stock question.
     "market today", "markets today", "indian market", "share market", "market outlook", "market news", "market update",
+    "market moving", "markets moving", "market moves", "market falling", "market rally", "market crash", "market drop", "market selloff",
+    "market sell-off", "why is the market", "why are markets", "watch this week", "week ahead",
     "news today", "latest news", "world news", "top news", "top headlines", "headlines",
 )
 _INDIVIDUAL_STOCK_TERMS = (
@@ -88,12 +90,19 @@ def is_fundamental_query(query: str) -> bool:
     return any(kw in text for kw in _FUNDAMENTAL_KEYWORDS)
 
 
+_COMPANY_FACT = re.compile(r"\b(ceo|cfo|chairman|chairperson|founder|founded|headquarters?|headquartered|managing director|employees|who owns)\b")
+
+
+def is_company_fact_query(query: str) -> bool:
+    return bool(_COMPANY_FACT.search(query.lower()))
+
+
 def is_investment_query(query: str) -> bool:
     """True ONLY for live market/stock price/news queries (Module 4,
     yfinance path) -- NOT for fundamental analysis."""
     text = query.lower()
-    if is_fundamental_query(query):
-        return False
+    if is_fundamental_query(query) or _COMPANY_FACT.search(text):
+        return False  # "who is the CEO of Infosys" is a fact about the company, not a request for its quote and trend
     return any(word in text for word in _INVESTMENT_INTENT_WORDS)
 
 
@@ -134,6 +143,8 @@ def is_broad_market_query(query: str) -> bool:
     """True for market/index/sector/macro questions that are not about one
     listed stock (Module 3, not Module 4)."""
     text = query.lower()
+    if _CONCEPT_QUESTION.match(text) and len(text.split()) <= 5 and not re.search(r"\b(the|today|current|currently|now|latest|recent|this|rates?|level|levels|happening)\b", text):
+        return False  # "what is inflation?" is a lesson, not a market briefing
     return any(term in text for term in _BROAD_MARKET_TERMS) and not any(
         term in text for term in _INDIVIDUAL_STOCK_TERMS
     )

@@ -13,6 +13,7 @@ import re
 import threading
 import time
 from datetime import date, datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Callable
 
@@ -23,6 +24,7 @@ from loguru import logger
 from modules.market import amfi
 from modules.market import instrument_lists as L
 from modules.market.live import YF_LOCK
+from shared.company_resolver import company_aliases
 
 DIR = amfi.DIR
 UNIVERSE = Path(__file__).resolve().parents[2] / "data" / "forecast_universe" / "universe.parquet"
@@ -214,10 +216,11 @@ def _lines(txt: str) -> list[list[str]]:
 
 def _item(type_: str, symbol: str, name: str, exchange: str, currency: str, source: str, subtitle: str, pop: float = 5,
           extra: str = "", **priv: Any) -> dict:
-    hay = f"{name} {symbol} {extra}".lower()
+    aliases = company_aliases(symbol) if type_ == "stock" else ()
+    hay = f"{name} {symbol} {extra} {' '.join(aliases)}".lower()
     return {"id": f"{PREFIX[type_]}:{symbol}", "symbol": symbol, "name": name, "type": type_, "exchange": exchange, "currency": currency,
             "source": source, "subtitle": subtitle, "_hay": hay, "_hay2": re.sub(r"[^a-z0-9]", "", hay), "_pop": pop,
-            "_name": name.lower(), "_sym": symbol.lower(), "_base": re.sub(r"\.(ns|bo)$", "", symbol.lower()),
+            "_name": name.lower(), "_sym": symbol.lower(), "_base": re.sub(r"\.(ns|bo)$", "", symbol.lower()), "_aliases": aliases,
             "_words": set(re.findall(r"[a-z0-9&]+", hay)), **priv}
 
 
@@ -348,7 +351,7 @@ def resolve(iid: str) -> dict:
             if it["symbol"] == rest:
                 return it
         meta, hist, _ = amfi.history(rest)  # AMFI file down, or a scheme it no longer lists
-        if not meta:
+        if not meta or str(meta.get("scheme_code", "")) != rest:
             raise NotFound(f"no mutual fund with scheme code {rest}")
         return _item("mutual_fund", rest, meta.get("scheme_name", rest), "AMFI", "INR", "mfapi.in", meta.get("fund_house", ""),
                      _mf={"code": rest, "name": meta.get("scheme_name", rest), "amc": meta.get("fund_house", ""), "category": meta.get("scheme_category", ""),
@@ -379,12 +382,23 @@ def _score(it: dict, q: str, toks: list[str]) -> float:
     if not toks:
         return 1 + it["_pop"] * 0.4
     hay, hay2 = it["_hay"], it["_hay2"]
+    fuzzy = False
     for t in toks:
         t2 = re.sub(r"[^a-z0-9]", "", t)
-        if t not in hay and not (t2 != t and t2 and t2 in hay2):  # "m&m" also finds "M M"; plain tokens never match across words
+        if t in hay or (t2 and (t2 != t or len(t2) >= 4) and t2 in hay2):
+            continue
+        # Conservative spelling tolerance: short symbols and numeric identifiers must stay precise.
+        if len(t2) >= 4 and t2.isalpha() and any(
+            w.isalpha() and abs(len(w) - len(t2)) <= 2
+            and SequenceMatcher(None, t2, w).ratio() >= 0.8 for w in it["_words"]
+        ):
+            fuzzy = True
+        else:
             return 0
+    if fuzzy:
+        return 30 + it["_pop"] * 0.4
     s = 50
-    if q in (it["_sym"], it["_base"], it["_name"]):
+    if q in (it["_sym"], it["_base"], it["_name"], *it.get("_aliases", ())):
         s = 100
     elif it["_sym"].startswith(q) or it["_base"].startswith(q):
         s = 90
@@ -425,17 +439,21 @@ def _yahoo_lookup(q: str) -> list[dict]:
         return []
 
 
-def search(q: str, type_: str = "all", limit: int = 20) -> dict:
+def search(q: str, type_: str = "all", limit: int = 20, market: str = "all") -> dict:
     raw = (q or "").strip()
     q = raw.lower()
     toks = q.split()
     if type_ not in ("all", *TYPES):
         raise ValueError(f"type must be one of all|{'|'.join(TYPES)}")
+    if market not in ("all", "india"):
+        raise ValueError("market must be all|india")
+    def eligible(it: dict) -> bool:
+        return market == "all" or it["symbol"].endswith((".NS", ".BO"))
     types = TYPES if type_ == "all" else (type_,)
     ranked: list[tuple[float, int, dict]] = []
     counts: dict[str, int] = {}
     for t in types:
-        pool = _pool(t)
+        pool = [it for it in _pool(t) if eligible(it)]
         scored = [(s, it.get("_rank", 0) if t == "mutual_fund" else 0, it) for it in pool if (s := _score(it, q, toks)) > 0]
         counts[t] = len(scored)
         scored.sort(key=lambda x: (-x[0], x[1], len(x[2]["name"])))
@@ -451,10 +469,10 @@ def search(q: str, type_: str = "all", limit: int = 20) -> dict:
         picked.append(it)
     picked = (picked + rest)[:limit]
     yahoo = False
-    ticker_like = raw.isupper() and " " not in raw and not any(q in (i["_sym"], i["_base"]) for i in picked)  # "AAPL" typed, no such symbol here
-    if len(q) >= 2 and (len(picked) < 3 or ticker_like) and type_ in ("all", "stock", "etf", "crypto", "index", "currency"):
+    ticker_like = raw.isupper() and " " not in raw and not any(q in (i["_sym"], i["_base"], *i.get("_aliases", ())) for i in picked)  # "AAPL" typed, no such symbol here
+    if len(q) >= 2 and (not picked or ticker_like) and type_ in ("all", "stock", "etf", "crypto", "index", "currency"):
         have = {i["id"] for i in picked}
-        extra = [i for i in _yahoo_lookup(q) if i["id"] not in have and (type_ == "all" or i["type"] == type_)]
+        extra = [i for i in _yahoo_lookup(q) if i["id"] not in have and eligible(i) and (type_ == "all" or i["type"] == type_)]
         picked = sorted(picked + extra, key=lambda i: -_score(i, q, toks) if toks else 0)[:limit]  # stable: exact ticker rises to the top
         yahoo = bool(extra)
     if type_ in ("all", "crypto") and not _cg[1]:
@@ -654,11 +672,13 @@ def _quote_yahoo(it: dict) -> dict:
         if it.get("generic") and (n := info.get("longName") or info.get("shortName")):
             q["name"] = n
         for k, src in (("market_cap", "marketCap"), ("pe_ratio", "trailingPE"), ("sector", "sector"), ("industry", "industry"), ("beta", "beta"),
+                       ("dividend_per_share", "dividendRate"), ("dividend_yield_pct", "dividendYield"), ("eps_ttm", "trailingEps"), ("book_value_per_share", "bookValue"),
                        ("expense_ratio_pct", "netExpenseRatio"), ("net_assets", "netAssets"), ("fund_family", "fundFamily"), ("fund_category", "category")):
             if info.get(src) is not None:
                 q[k] = info[src]
     if t == "crypto" and cg:
-        q["source"] += " + CoinGecko"
+        if "CoinGecko" not in q["source"]:
+            q["source"] += " + CoinGecko"
         q.update(market_cap=cg.get("market_cap"), volume_24h=cg.get("total_volume"), market_cap_rank=cg.get("market_cap_rank"),
                  high_24h=_r(cg.get("high_24h")), low_24h=_r(cg.get("low_24h")), circulating_supply=cg.get("circulating_supply"))
     elif t == "crypto":
@@ -773,7 +793,12 @@ def return_stats(series: list[tuple[str, float]], crypto: bool = False) -> dict:
     s = pd.Series([p for _, p in series], index=pd.to_datetime([d for d, _ in series]))
     s = s[~s.index.duplicated()].sort_index()
     last_d, last = s.index[-1], float(s.iloc[-1])
-    out: dict[str, Any] = {"first_date": s.index[0].date().isoformat(), "last_date": last_d.date().isoformat()}
+    first_d, first = s.index[0], float(s.iloc[0])
+    out: dict[str, Any] = {"first_date": first_d.date().isoformat(), "last_date": last_d.date().isoformat()}
+    all_days = max((last_d - first_d).days, 0)
+    if first > 0 and all_days >= 30:
+        out["return_since_start_pct"] = _pct((last / first - 1) * 100)
+        out["cagr_since_start_pct"] = _pct(((last / first) ** (365.25 / all_days) - 1) * 100)
     for name, days in (("1m", 30), ("3m", 91), ("6m", 182), ("1y", 365), ("3y", 1095), ("5y", 1825)):
         target = last_d - pd.Timedelta(days=days)
         if s.index[0] <= target + pd.Timedelta(days=5):
@@ -810,11 +835,13 @@ def simulate_sip(series: list[tuple[str, float]], monthly: float, years: float) 
     if s.empty:
         raise NoData("no usable prices")
     end = s.index[-1]
-    w = s[s.index >= end - pd.DateOffset(years=years)]
-    first = w.groupby([w.index.year, w.index.month]).head(1)
+    monthly_first = s.groupby([s.index.year, s.index.month]).head(1)
+    requested_installments = max(1, int(round(years * 12)))
+    first = monthly_first.tail(requested_installments)
     n = len(first)
     if n < 3:
         raise NoData("not enough price history for a SIP simulation (need at least 3 months)")
+    w = s[s.index >= first.index[0]]
     units = pd.Series(0.0, index=w.index)
     units[first.index] = monthly / first.values
     cum = units.cumsum()
@@ -826,7 +853,7 @@ def simulate_sip(series: list[tuple[str, float]], monthly: float, years: float) 
     run = value[cum > 0]
     inv_path = pd.Series(monthly, index=first.index).cumsum()
     return {"monthly": monthly, "installments": n, "start": w.index[0].date().isoformat(), "end": end.date().isoformat(),
-            "years_used": round(days / 365.25, 2), "invested": round(invested, 2), "value": round(final, 2),
+            "years_used": round(n / 12, 2), "invested": round(invested, 2), "value": round(final, 2),
             "gain": round(final - invested, 2), "gain_pct": _pct((final / invested - 1) * 100),
             "xirr_pct": _pct(x * 100) if x is not None else None,
             "cagr_pct": _pct(((float(w.iloc[-1]) / float(w.iloc[0])) ** (365.25 / days) - 1) * 100) if days >= 30 else None,
@@ -892,8 +919,11 @@ def profile(it: dict) -> dict:
 
     def add(label: str, value: Any, unit: str = "") -> None:
         if value is not None and value != "":
-            num = f"{value:,}" if isinstance(value, int) else f"{value:,.2f}" if abs(value) >= 1 else f"{value:.6g}"
-            rows.append({"label": label, "value": f"{num}{unit}" if isinstance(value, (int, float)) else str(value)})
+            if isinstance(value, (int, float)):
+                num = f"{value:,}" if isinstance(value, int) else f"{value:,.2f}" if abs(value) >= 1 else f"{value:.6g}"
+                rows.append({"label": label, "value": f"{num}{unit}"})
+            else:
+                rows.append({"label": label, "value": str(value)})
 
     what = _TYPE_WHAT.get(t, "").format(ex=it["exchange"] or "stock")
     if t == "mutual_fund":
@@ -931,6 +961,7 @@ def profile(it: dict) -> dict:
         info = _info(it["symbol"]) if t in ("stock", "etf") else {}
         desc = (info.get("longBusinessSummary") or "")[:600]
     for k, label in (("return_1y_pct", "1-year return"), ("cagr_3y_pct", "3-year CAGR"), ("cagr_5y_pct", "5-year CAGR"),
+                     ("cagr_since_start_pct", "CAGR since start"),
                      ("volatility_1y_pct", "1-year volatility"), ("max_drawdown_1y_pct", "Worst fall, last year")):
         add(label, stats.get(k), "%")
     tags += _vol_tag(stats.get("volatility_1y_pct"))

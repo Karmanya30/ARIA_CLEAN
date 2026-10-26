@@ -1,3 +1,4 @@
+import { BrandLogo } from '../../components/brand/BrandLogo'
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { adaptTone, api, setAdaptTone } from '../../api'
@@ -28,9 +29,9 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
     <section className="settings">
       <h1>Settings</h1>
       <p className="settings-sub">
-        <strong>Appearance</strong> — choose a UI version. It applies instantly and is remembered on this device.
+        <strong>Appearance</strong> — choose a theme. It applies instantly and is remembered on this device.
       </p>
-      <div className="theme-grid" role="radiogroup" aria-label="UI version">
+      <div className="theme-grid" role="radiogroup" aria-label="Theme">
         {THEMES.map((t) => (
           <label key={t.id} className="theme-card">
             <input type="radio" name="theme" value={t.id} checked={theme === t.id} onChange={() => pick(t.id)} />
@@ -89,8 +90,8 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
         <span>Adapt tone to how I feel</span>
       </label>
       <p className="settings-sub">
-        ARIA reads your messages on this device only to choose a calmer or simpler way of answering. It never shows a mood label
-        back to you, and you can turn it off any time.
+        ARIA uses your messages to choose a calmer or simpler way of answering. Messages are processed by the backend and
+        configured AI providers. This preference is saved on this device, and you can turn it off any time.
       </p>
       <button type="button" className="btn" onClick={forget}>
         Forget how I like to talk
@@ -99,9 +100,11 @@ export function SettingsTab({ theme, onTheme }: { theme: ThemeId; onTheme: (id: 
         {status}
       </p>
       <h2 className="settings-h2">About ARIA</h2>
+      <BrandLogo tagline className="settings-brand" />
       <p className="settings-sub">
         ARIA is an AI research and education tool, not a SEBI-registered adviser. <a href="#/disclaimers">Read the full disclaimers</a>.
       </p>
+
     </section>
   )
 }

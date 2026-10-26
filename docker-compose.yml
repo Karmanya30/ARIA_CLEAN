@@ -1,0 +1,15 @@
+services:
+  aria:
+    build: .
+    image: aria:latest
+    env_file: .env            # copy .env.example to .env and fill it in; never commit .env
+    environment:
+      ARIA_AUTH_MODE: ${ARIA_AUTH_MODE:-accounts}   # a public site must use accounts (private mode has no login)
+    ports:
+      - "8000:8000"
+    volumes:
+      - aria-data:/var/aria   # the database and saved audio clips survive upgrades
+    restart: unless-stopped
+
+volumes:
+  aria-data:

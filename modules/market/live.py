@@ -187,7 +187,7 @@ def _build_movers(df: pd.DataFrame, idx_changes: dict[str, float]) -> tuple[dict
 
 
 def _build_news() -> dict:
-    raw = fetch_news("", limit=30)
+    raw = fetch_news("", limit=None)
     if not raw:
         raise RuntimeError("no news")
     t = sentiment.tone([r["title"] for r in raw])
@@ -260,6 +260,13 @@ def start() -> None:
             return
         _started = True
     threading.Thread(target=_loop, name="markets-live", daemon=True).start()
+
+
+def peek(kind: str) -> dict | None:
+    """The latest snapshot if one is loaded; never starts the refresher or touches the network."""
+    with _snap_lock:
+        snap = _snap.get(kind)
+    return None if snap is None else {**snap, "meta": dict(snap["meta"])}
 
 
 def snapshot(kind: str) -> dict:

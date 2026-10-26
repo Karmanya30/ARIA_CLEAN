@@ -65,7 +65,9 @@ def test_streaming_returns_valid_sse_with_role_first_and_done_last(mock_llm):
             json.loads(line.removeprefix("data: "))["choices"][0]["delta"].get("content", "")
             for line in lines[:-1]
         )
-        assert reassembled.strip() == mock_llm.response.strip()
+        from api.text_utils import speech_text
+
+        assert reassembled.strip() == speech_text(mock_llm.response)  # the spoken version of the written answer
 
         last_content_payload = json.loads(lines[-2].removeprefix("data: "))
         assert last_content_payload["choices"][0]["finish_reason"] == "stop"

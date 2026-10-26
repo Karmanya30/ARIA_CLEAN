@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 from html import escape
+from shared.branding import report_brand
 
 from modules.equity_research.intelligence.comps import VERDICT_BANDS, group_name
 from modules.equity_research.intelligence.facts import fmt
@@ -909,7 +910,7 @@ def render_html(report: dict, kind: str | None = None, *, printable: bool = Fals
     auto = "<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script>" if autoprint else ""
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_e(report["title"])} — {_e(title)} — {_e(version)}</title><style>{CSS}</style></head><body>{STRIP}{bar}<div class="page">
-<header class="cover"><div class="small" style="opacity:.8;letter-spacing:.08em;text-transform:uppercase">{_e(title)}</div><h1>{_e(c["name"])}</h1><div class="sub">{_e(c["symbol"])} · {_e(c["exchange"])} · {_e(c["sector"])} / {_e(c["industry"])}</div>
+<header class="cover">{report_brand()}<div class="small" style="opacity:.8;letter-spacing:.08em;text-transform:uppercase">{_e(title)}</div><h1>{_e(c["name"])}</h1><div class="sub">{_e(c["symbol"])} · {_e(c["exchange"])} · {_e(c["sector"])} / {_e(c["industry"])}</div>
 <div class="meta"><div><b>Price</b>{_e(price)}</div><div><b>Market cap</b>{_e(fmt(c["market_cap_cr"], "₹ Cr"))}</div><div><b>Report date</b>{_e(c["report_date"])}</div>
 <div><b>Version</b>{_e(version)}</div>{through}<div><b>Verification</b><span class="pill {"ok" if status_ok else "warn"}">{"Passed" if status_ok else "Caveated"}</span></div></div>
 <p class="small" style="opacity:.85;margin:12px 0 0">{_e(c["ai_disclosure"])} Not investment advice; see the disclosures on the last page.</p></header>

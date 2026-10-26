@@ -1,0 +1,254 @@
+.chat-page {
+  max-width: 780px;
+  margin: 0 auto;
+  /* The page itself scrolls (one scrollbar); min-height keeps the composer at the bottom of a short thread.
+   * .app-main pads 40px top / 20px bottom here (see the :has rule below), hence 60px. */
+  min-height: calc(100vh - 60px - var(--topbar-h, 0px) - var(--strip-h, 0px));
+  display: flex;
+  flex-direction: column;
+}
+
+/* Conversational/Tavus modes have a real avatar to show large, so they
+ * get more width and a two-column split instead of the single centered
+ * column Normal Mode uses. */
+/* Trim .app-main's 80px bottom padding so no dead gap sits under the sticky composer. */
+.app-main:has(.chat-page) {
+  padding-bottom: 20px;
+}
+
+.chat-page-split {
+  max-width: 1180px;
+}
+.chat-split-body {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-avatar-col {
+  flex: 0 0 44%;
+  max-width: 560px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* stays in view while the conversation scrolls with the page */
+  position: sticky;
+  top: calc(var(--topbar-h, 0px) + var(--strip-h, 0px) + 16px);
+  align-self: flex-start;
+  height: calc(100vh - 200px - var(--topbar-h, 0px) - var(--strip-h, 0px));
+  min-height: 360px;
+}
+/* The real avatar/video content grows to fill the column -- without
+ * this, a column-direction flex child sizes to its own content instead
+ * of the available height, and the "large view" this layout exists for
+ * wouldn't actually happen. The idle orb is deliberately excluded (kept
+ * fixed-size + margin:auto centered below) -- giving it flex:1 too would
+ * stretch its 220px circle into a tall oval filling the whole column. */
+.chat-avatar-col > .tavus-video-panel,
+.chat-avatar-col > .avatar-embed,
+.chat-avatar-col > .live-avatar-frame {
+  flex: 1;
+  min-height: 0;
+}
+/* The idle placeholder orb (ConversationalAvatar before the first
+ * response) reads as lost/tiny at this column's size -- scale it up
+ * here without touching Normal Mode's small centered version. */
+.chat-avatar-col .hero-orb {
+  width: 220px;
+  height: 220px;
+  margin: auto;
+}
+
+.chat-chat-col {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-empty-hint {
+  color: var(--ink-faint);
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+@media (max-width: 1080px) {
+  .chat-split-body {
+    flex-direction: column;
+  }
+  .chat-avatar-col {
+    flex: 0 0 auto;
+    max-width: none;
+    position: static;
+    align-self: stretch;
+    height: 320px;
+    min-height: 0;
+  }
+}
+
+.chat-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.chat-mode-select {
+  width: auto;
+  min-width: 220px;
+}
+
+/* Avatar / Tavus video / idle orb -- stays put; only chat-scroll-region
+ * below it scrolls. */
+.chat-stage {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 8px;
+  flex-shrink: 0;
+}
+
+.chat-idle-block {
+  flex: 1;
+  display: flex;
+}
+/* margin:auto centers the hero when it fits and falls back to top-aligned when it doesn't. */
+.chat-idle-inner {
+  margin: auto 0;
+  width: 100%;
+  padding: 12px 0 24px;
+}
+
+.chat-hero-text {
+  text-align: center;
+  margin: 4px 0 28px;
+}
+.chat-hero-text h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.chat-hero-text p {
+  color: var(--ink-muted);
+  font-size: 14.5px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 8px 8px 16px;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+.composer-centered {
+  margin-bottom: 28px;
+}
+.composer-pinned {
+  margin-top: 14px;
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+}
+.composer-input {
+  flex: 1;
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 10px 4px;
+}
+.composer-input:focus {
+  box-shadow: none;
+}
+.composer-submit {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.chat-status {
+  color: var(--ink-muted);
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+/* Thread flows with the page scroll; the pinned composer sticks to the viewport bottom. */
+.chat-scroll-region {
+  flex: 1;
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .chat-topbar {
+    flex-wrap: nowrap;
+  }
+  .chat-mode-select {
+    width: auto;
+    min-width: 0;
+    flex: 1;
+  }
+  .chat-topbar .btn {
+    flex: none;
+  }
+}
+
+.live-avatar-frame {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: #0f1720;
+  box-shadow: var(--shadow-md);
+}
+
+.thinking-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 6px;
+  animation: thinking-pulse 1.2s ease-in-out infinite;
+}
+@keyframes thinking-pulse {
+  50% { opacity: 0.25; transform: scale(0.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dot { animation: none; }
+}
+
+.context-strip {
+  min-height: 34px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.context-chip {
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+}
+
+.onb { margin: 0 0 14px; padding: 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--bg-elevated); }
+.onb h3 { margin: 0 0 4px; font-size: 16px; }
+.onb legend { font-weight: 600; padding: 0; margin-bottom: 8px; }
+.onb fieldset { border: 0; margin: 0 0 10px; padding: 0; }
+.onb label { display: block; font-size: 13.5px; margin: 8px 0 4px; }
+.onb .onb-opt { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; cursor: pointer; }
+.onb .onb-opt small { display: block; color: var(--ink-muted); }
+.onb-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.onb-dots { margin-left: auto; font-size: 12px; color: var(--ink-muted); }
+.onb-asks { display: flex; flex-wrap: wrap; gap: 8px; }

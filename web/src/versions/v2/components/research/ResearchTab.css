@@ -1,0 +1,209 @@
+.rt {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.rt-list {
+  overflow-y: auto;
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.rt-list h1 {
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+.rt-hint,
+.rt-empty {
+  color: var(--ink-muted);
+  font-size: 13px;
+  margin: 6px 0 12px;
+}
+.rt-empty {
+  padding: 20px;
+}
+.rt-error {
+  color: var(--red);
+  font-size: 13px;
+}
+.rt-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  background: var(--bg);
+}
+.rt-item.active {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+.rt-open {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.rt-name {
+  font-weight: 700;
+}
+.rt-ver {
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+.rt-sub {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+.rt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.rt-chip {
+  color: var(--on-solid, #fff);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+}
+.rt-warn {
+  color: var(--amber);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.rt-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 12px 10px;
+}
+.rt-actions a,
+.rt-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rt-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.rt-spin {
+  animation: rt-rot 1s linear infinite;
+}
+@keyframes rt-rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rt-viewer {
+  min-width: 0;
+  height: 100%;
+}
+.rt-viewer { display: flex; flex-direction: column; }
+.rt-vbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px; /* fixed so the report never shifts when the validation state changes */
+  padding: 0 12px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+.rt-vchip.running { font-weight: 600; }
+.rt-vbar button {
+  padding: 3px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.rt-viewer iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}
+@media (max-width: 900px) {
+  .rt {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .rt-list {
+    max-height: 40vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.rt-hint select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font: inherit;
+  margin-left: 4px;
+}
+.rt-empty {
+  line-height: 1.6;
+}
+
+.rt-more {
+  width: 100%;
+  margin: -4px 0 10px;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.rt-more:hover {
+  text-decoration: underline;
+}
+
+.rt-back {
+  display: none;
+  margin: 8px 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  /* with a report open on a small screen, show only that report's actions and the reader; "All reports" returns to the list */
+  .rt.has-selected .rt-list > :not(.rt-item.active) { display: none; }
+  .rt.has-selected .rt-list { max-height: none; }
+  .rt.has-selected .rt-back { display: inline-block; }
+  .rt-viewer { display: flex; flex-direction: column; }
+  .rt-viewer iframe { flex: 1; min-height: 70vh; }
+}

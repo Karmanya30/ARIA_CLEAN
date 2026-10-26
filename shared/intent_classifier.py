@@ -1,4 +1,6 @@
-"""Lightweight keyword intent classifier."""
+"""Lightweight keyword intent classifier with word boundaries."""
+
+import re
 
 FINANCE_KEYWORDS = (
     "sip",
@@ -29,17 +31,12 @@ FINANCE_KEYWORDS = (
     "valuation",
     "earnings",
     "dividend",
-    "share",
     "equity",
     "nse",
     "bse",
 )
 MARKET_KEYWORDS = (
     "stock",
-    "share",
-    "analyze",
-    "analysis",
-    "trend",
     "market analysis",
     "market cap",
     "tata motors",
@@ -76,16 +73,27 @@ TUTOR_KEYWORDS = (
 _STRONG_TUTOR_PHRASES = ("quiz me", "teach me", "explain to me", "test me on")
 
 
+def _contains(text: str, phrase: str) -> bool:
+    # A taxi is not tax; a spaceship is not SIP; a firmament is not a firm.
+    endings = {"invest": r"invest(?:s|ed|ing|ments?)?", "saving": r"savings?",
+               "expense": r"expenses?", "tax": r"tax(?:es|ation|able)?",
+               "stock": r"stocks?", "company": r"compan(?:y|ies)", "learn": r"learn(?:ing)?",
+               "mutual fund": r"mutual\s+funds?", "dividend": r"dividends?", "sip": r"sips?",
+               "emi": r"emis?", "portfolio": r"portfolios?", "equity": r"equit(?:y|ies)"}
+    expression = endings.get(phrase, re.escape(phrase).replace(r"\ ", r"\s+"))
+    return bool(re.search(r"(?<!\w)" + expression + r"(?!\w)", text))
+
+
 def classify_intent(query: str) -> str:
     text = query.lower()
 
-    if any(phrase in text for phrase in _STRONG_TUTOR_PHRASES):
+    if any(_contains(text, phrase) for phrase in _STRONG_TUTOR_PHRASES):
         return "tutor"
-    if any(keyword in text for keyword in FINANCE_KEYWORDS):
+    if any(_contains(text, keyword) for keyword in FINANCE_KEYWORDS):
         return "finance"
-    if any(keyword in text for keyword in MARKET_KEYWORDS):
+    if any(_contains(text, keyword) for keyword in MARKET_KEYWORDS):
         return "market"
-    if any(keyword in text for keyword in TUTOR_KEYWORDS):
+    if any(_contains(text, keyword) for keyword in TUTOR_KEYWORDS):
         return "tutor"
     return "general"
 

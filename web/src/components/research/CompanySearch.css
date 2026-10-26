@@ -1,0 +1,11 @@
+.company-search { position: relative; flex: 1 1 240px; min-width: 0; }
+.company-search > input { width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--ink); font: inherit; }
+.company-search > ul { position: absolute; z-index: 30; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; margin: 4px 0; padding: 4px; list-style: none; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--bg-elevated); box-shadow: 0 8px 24px #0002; }
+.company-search [role=option] { padding: 10px; cursor: pointer; border-radius: var(--radius-sm); }
+.company-search [role=option]:hover, .company-search [aria-selected=true] { background: var(--bg-inset); }
+.company-search [role=option] b, .company-search [role=option] span { display: block; }
+.company-search [role=option] span, .company-search-status { color: var(--ink-muted); font-size: 12px; }
+.company-search-status { margin: 5px 0; }
+.rt-create { display: grid; gap: 8px; margin: 12px 0; }
+.rt-create > button { padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-strong); background: var(--accent); color: var(--accent-ink); font: inherit; cursor: pointer; }
+.rt-create > button:disabled { opacity: .5; cursor: default; }

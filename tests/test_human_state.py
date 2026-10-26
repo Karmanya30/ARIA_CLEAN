@@ -28,20 +28,30 @@ def chat(monkeypatch):
             sid, owner = uuid.uuid4().hex, uuid.uuid4().hex
             made.append((sid, owner))
             user_store.save_financial_profile(owner, goals=[{"name": "house", "target": 5_000_000, "years": 5}])
-        get_session(sid)["adapt_tone"] = adapt
         calls.clear()
         token = user_store.current_owner.set(owner)
         try:
+            get_session(sid)["adapt_tone"] = adapt
             res = handle_query(query, session_id=sid)
         finally:
             user_store.current_owner.reset(token)
         return res, [c for c in calls if c.startswith(("You are a helpful AI assistant.", "You are ARIA, a friendly", "Tone guide"))]
 
     say.calls = calls
-    say.session = lambda: get_session(sid)
+    def owned_session():
+        token = user_store.current_owner.set(owner)
+        try:
+            return get_session(sid)
+        finally:
+            user_store.current_owner.reset(token)
+    say.session = owned_session
     yield say
     for s, o in made:
-        clear_session(s)
+        token = user_store.current_owner.set(o)
+        try:
+            clear_session(s)
+        finally:
+            user_store.current_owner.reset(token)
         user_store.delete_financial_profile(o)
         user_store.delete_style(o)
 
@@ -136,13 +146,13 @@ def test_afford_engine_results_identical_with_and_without_tone(chat):
     out = []
     for adapt in (True, False):
         sid = uuid.uuid4().hex
-        get_session(sid)["adapt_tone"] = adapt
         token = user_store.current_owner.set(owner)
         try:
+            get_session(sid)["adapt_tone"] = adapt
             out.append(handle_query(q, session_id=sid))
         finally:
+            clear_session(sid)
             user_store.current_owner.reset(token)
-        clear_session(sid)
     user_store.delete_financial_profile(owner)
     assert out[0].get("engine") == out[1].get("engine")
 
@@ -185,17 +195,27 @@ def test_speed():
 
 
 def test_handle_query_overhead_is_small(mock_llm):
+    from statistics import median
+
     sid = uuid.uuid4().hex
     handle_query("What is an index fund?", session_id=sid)  # warm
-    t = time.perf_counter()
-    handle_query("What is an index fund?", session_id=sid)
-    on = time.perf_counter() - t
-    get_session(sid)["adapt_tone"] = False
-    t = time.perf_counter()
-    handle_query("What is an index fund?", session_id=sid)
-    off = time.perf_counter() - t
-    clear_session(sid)
-    assert on - off < 0.03
+    # One pair compared growing transcripts and disk/scheduler noise, not
+    # reliably the tone overhead. Keep the 30 ms budget; balance call order
+    # and use paired medians so a single SQLite/CPU scheduling spike cannot
+    # decide this benchmark. All calls still execute the real turn pipeline.
+    differences = []
+    try:
+        for pair in range(9):
+            elapsed = {}
+            for enabled in ((True, False) if pair % 2 == 0 else (False, True)):
+                get_session(sid)["adapt_tone"] = enabled
+                t = time.perf_counter()
+                handle_query("What is an index fund?", session_id=sid)
+                elapsed[enabled] = time.perf_counter() - t
+            differences.append(elapsed[True] - elapsed[False])
+        assert median(differences) < 0.03, differences
+    finally:
+        clear_session(sid)
 
 
 def test_delete_style_route():

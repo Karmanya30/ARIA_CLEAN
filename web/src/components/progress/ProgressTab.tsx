@@ -13,7 +13,7 @@ export function ProgressTab({ sessionId, onOpenChat }: { sessionId: string; onOp
   return (
     <div>
       <h1>Your Learning Progress</h1>
-      <p className="tab-caption">Module 2's per-concept mastery, estimated by the DKT model from your quiz answers.</p>
+      <p className="tab-caption">How well you know each concept, estimated from your quiz answers.</p>
 
       {!state || state.total_interactions === 0 ? (
         <div className="banner-info">
@@ -28,7 +28,7 @@ export function ProgressTab({ sessionId, onOpenChat }: { sessionId: string; onOp
             {state.engaged.map((item) => (
               <div key={item.concept_id} className="progress-item">
                 <div className="progress-item-head">
-                  <span>{item.name}</span>
+                  <span>{item.name}{item.answered ? <small> · {item.correct} of {item.answered} correct</small> : null}</span>
                   <span className="progress-pct">{Math.round(item.mastery * 100)}%</span>
                 </div>
                 <div className="progress-bar">
@@ -37,7 +37,7 @@ export function ProgressTab({ sessionId, onOpenChat }: { sessionId: string; onOp
               </div>
             ))}
           </div>
-          <p className="tab-caption">{state.total_interactions} total interactions recorded this session.</p>
+          <p className="tab-caption">{state.total_interactions} quiz answers recorded so far.</p>
         </>
       )}
     </div>

@@ -1,8 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { instrumentPaths } from '../../api'
-import { useMarket } from '../../hooks/useMarket'
-import type { InstrumentSearchResult, InstrumentSummary } from '../../types'
+import { useInstrumentSuggestions } from '../../hooks/useInstrumentSuggestions'
+import type { InstrumentSummary } from '../../types'
 import { TYPE_CHIPS, typeLabel } from './instruments'
 import './explore.css'
 
@@ -47,26 +46,22 @@ export function InstrumentSearch({
   footer?: React.ReactNode
 }) {
   const [text, setText] = useState('')
-  const [term, setTerm] = useState('')
   const [type, setType] = useState(initialType)
   const [hi, setHi] = useState(0)
   const id = useId()
   const inp = useRef<HTMLInputElement>(null)
   useEffect(() => {
-    const t = setTimeout(() => setTerm(text.trim()), 250)
-    return () => clearTimeout(t)
-  }, [text])
-  useEffect(() => {
     if (autoFocus) inp.current?.focus()
   }, [autoFocus])
-  const res = useMarket<InstrumentSearchResult>(term.length >= 2 ? instrumentPaths.search(term, type) : null, 0)
-  const items = term.length >= 2 ? res.data?.items ?? [] : []
+  const res = useInstrumentSuggestions(text, type)
+  const term = res.query
+  const items = res.items
   const note = res.data?.meta?.note
-  const settling = text.trim() !== term // still typing: the request has not gone out yet
+  const settling = res.settling // still typing: the request has not gone out yet
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setHi((h) => Math.min(h + 1, items.length - 1))
+      setHi((h) => Math.max(0, Math.min(h + 1, items.length - 1)))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setHi((h) => Math.max(h - 1, 0))
@@ -93,6 +88,7 @@ export function InstrumentSearch({
           aria-activedescendant={items[hi] ? `${id}-o${hi}` : undefined}
           autoComplete="off"
           spellCheck={false}
+          maxLength={80}
           placeholder={placeholder}
           value={text}
           onChange={(e) => {
@@ -121,7 +117,6 @@ export function InstrumentSearch({
                   className="ix-chip ix-chip-soft"
                   onClick={() => {
                     setText(t)
-                    setTerm(t)
                     inp.current?.focus()
                   }}
                 >

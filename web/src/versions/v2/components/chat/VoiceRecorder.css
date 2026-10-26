@@ -1,0 +1,99 @@
+.voice-recorder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.18s, color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.18s;
+  min-width: 40px;
+}
+.voice-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.voice-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Recording state — red glow ring */
+.voice-btn.recording {
+  border-color: #e55;
+  color: #e55;
+  background: rgba(220, 50, 50, 0.06);
+  box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.3);
+  animation: voice-ring 1.6s ease-in-out infinite;
+}
+@keyframes voice-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.35); }
+  50%       { box-shadow: 0 0 0 7px rgba(220, 50, 50, 0); }
+}
+
+/* Busy state */
+.voice-btn.busy {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Waveform ── */
+.voice-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+}
+.voice-bar {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  height: 100%;
+  transform-origin: center bottom;
+  animation: voice-bar-dance 0.9s ease-in-out infinite alternate;
+}
+@keyframes voice-bar-dance {
+  0%   { transform: scaleY(0.2); opacity: 0.5; }
+  50%  { transform: scaleY(1);   opacity: 1; }
+  100% { transform: scaleY(0.35); opacity: 0.6; }
+}
+
+/* ── Transcribing spinner ── */
+.voice-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: voice-spin 0.7s linear infinite;
+}
+@keyframes voice-spin {
+  to { transform: rotate(360deg); }
+}
+
+.voice-error {
+  font-size: 12px;
+  color: var(--red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-btn.recording { animation: none; }
+  .voice-bar           { animation: none; transform: scaleY(0.6); }
+  .voice-spinner       { animation: none; }
+}

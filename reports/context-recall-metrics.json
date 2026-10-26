@@ -1,0 +1,42 @@
+{
+  "fixture": "8 source turns + 30 distractors, cross-conversation, synthetic only",
+  "semantic": "controlled by ARIA_MEMORY_SEMANTIC; default disabled",
+  "queries": 8,
+  "recall_at_5": 1.0,
+  "mrr_at_5": 1.0,
+  "results": [
+    {
+      "query": "Acme WACC",
+      "rank": 1
+    },
+    {
+      "query": "Copperfin exit multiple",
+      "rank": 1
+    },
+    {
+      "query": "Orion audit date",
+      "rank": 1
+    },
+    {
+      "query": "Nimbus debt cap",
+      "rank": 1
+    },
+    {
+      "query": "Cedar revenue target",
+      "rank": 1
+    },
+    {
+      "query": "Falcon margin",
+      "rank": 1
+    },
+    {
+      "query": "Harbor customer concentration",
+      "rank": 1
+    },
+    {
+      "query": "Willow investment thesis",
+      "rank": 1
+    }
+  ],
+  "baseline": "No executable pre-change retrieval benchmark was recorded; no improvement claim."
+}

@@ -2,6 +2,11 @@
 env
 .venv/
 __pycache__/
+.audit/
+.tmp_pytest*/
+*.bak
+web/test-results/
+web/playwright-report/
 *.py[cod]
 
 # local binaries / logs / runtime DB — never commit these
@@ -9,6 +14,7 @@ data/bin/
 data/*.log
 *.log
 data/user_profiles/*.db
+data/user_profiles/audio-cache/
 # vector index is rebuilt from data/raw/concepts_kb/concepts.json via
 # python -m scripts.build_concept_kb — never committed
 data/vector_store/

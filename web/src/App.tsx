@@ -103,7 +103,7 @@ export default function App() {
         {tab === 'markets' && <MarketsTab onAsk={askInChat} onOpenStock={setSelectedSymbol} selectedSymbol={selectedSymbol} />}
         {tab === 'explore' && <ExploreTab onOpenInstrument={setInstrumentId} />}
         {tab === 'disclaimers' && <DisclaimersPage />}
-        {tab === 'research' && <ResearchTab />}
+        {tab === 'research' && <ResearchTab onAsk={askInChat} />}
         {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (
           <div className="page-wrap">

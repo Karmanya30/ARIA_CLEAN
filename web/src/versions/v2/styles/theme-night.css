@@ -1,0 +1,147 @@
+/* Night mode for "Vitara Markets": a deep green-black trading-terminal look. Only tokens plus the handful
+ * of rules tokens cannot express live here. Applies when <html> has data-theme="vitara-markets" and
+ * data-mode="night" (src/theme.ts + the pre-paint script in index.html); Classic and Vitara never match.
+ * The second selector lets the Settings preview card of this theme show its night palette too.
+ * Contrast (checked by scripts/contrast-audit): ink 15:1, ink-muted 8:1, --up/--down >= 7:1 on every surface. */
+[data-theme='vitara-markets'][data-mode='night'],
+[data-mode='night'] .tp[data-theme='vitara-markets'] {
+  color-scheme: dark;
+
+  --bg: #0b1210;
+  --bg-elevated: #121c18;
+  --bg-inset: #18251f;
+  --border: #243630;
+  --border-strong: #3a5148;
+  --ink: #e9efe9;
+  --ink-muted: #9fb3a9;
+  --ink-faint: #8fa59a;
+
+  --accent: #3ecf8e;
+  --accent-strong: #6fe3ad;
+  --accent-soft: rgba(62, 207, 142, 0.14);
+  --accent-ink: #04140d;
+  --on-solid: #04140d; /* text on solid accent / status fills and on the ivory active tab */
+  --violet: #2f9e73;
+  --violet-soft: rgba(47, 158, 115, 0.16);
+
+  --green: #3ecf8e;
+  --green-soft: rgba(62, 207, 142, 0.12);
+  --blue: #7db4ff;
+  --blue-soft: rgba(125, 180, 255, 0.12);
+  --emerald: #2dd4bf;
+  --emerald-soft: rgba(45, 212, 191, 0.12);
+  --red: #ff7b72;
+  --red-soft: rgba(255, 123, 114, 0.13);
+  --amber: #f0b44c;
+  --amber-soft: rgba(240, 180, 76, 0.13);
+  --info-ink: #9cc6ff;
+  --info-line: rgba(125, 180, 255, 0.3);
+
+  --up: #3ecf8e;
+  --down: #ff7b72;
+
+  /* hairlines and soft glows instead of heavy drop shadows */
+  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 4px 18px rgba(62, 207, 142, 0.2);
+  --backdrop: rgba(2, 8, 6, 0.66);
+
+  --tile-base: var(--bg-elevated); /* sector heatmap tiles mix into the surface, gently */
+  --tile-k: 0.6;
+
+  --viz-1: #3ecf8e;
+  --viz-2: #f0a04c;
+  --viz-3: #6aa8ff;
+  --viz-4: #c08be0;
+  --viz-5: #e0c84c;
+  --viz-6: #9bd04c;
+  --viz-7: #f27a9c;
+  --viz-8: #4cc8e0;
+  --viz-9: #b8a898;
+}
+
+/* body sets its own color-scheme in base.css, so it needs the override too */
+[data-theme='vitara-markets'][data-mode='night'] body {
+  color-scheme: dark;
+}
+[data-theme='vitara-markets'][data-mode='night'] ::selection {
+  background: rgba(62, 207, 142, 0.35);
+  color: #ffffff;
+}
+[data-theme='vitara-markets'][data-mode='night'] .app-main {
+  background:
+    radial-gradient(ellipse 900px 420px at 50% 0, rgba(62, 207, 142, 0.07), transparent 65%),
+    var(--bg);
+}
+[data-theme='vitara-markets'][data-mode='night'] .app-mark {
+  box-shadow: 0 0 14px rgba(62, 207, 142, 0.35);
+}
+[data-theme='vitara-markets'][data-mode='night'] .hero-orb {
+  box-shadow:
+    0 0 44px rgba(62, 207, 142, 0.2),
+    0 0 80px rgba(47, 158, 115, 0.12);
+}
+[data-theme='vitara-markets'][data-mode='night'] .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 24px rgba(62, 207, 142, 0.3);
+}
+/* Saved research reports are standalone light documents in an iframe: keep them light, in a rounded frame. */
+[data-theme='vitara-markets'][data-mode='night'] .rt-viewer iframe {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+/* panels.css redefines a global .btn (colour: ink) after base.css, which beat .btn-primary's text colour. */
+[data-theme='vitara-markets'][data-mode='night'] .btn-primary {
+  color: var(--accent-ink);
+}
+
+/* ── Chat: replace hardcoded white/light surfaces with dark night equivalents ── */
+
+/* Topbar glass panel */
+[data-theme='vitara-markets'][data-mode='night'] .chat-topbar {
+  background: rgba(18, 28, 24, 0.82);
+  border-color: rgba(62, 207, 142, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Mode-select dropdown */
+[data-theme='vitara-markets'][data-mode='night'] .chat-mode-select {
+  background: rgba(11, 18, 16, 0.7);
+  border-color: rgba(62, 207, 142, 0.18);
+  color: var(--ink);
+}
+[data-theme='vitara-markets'][data-mode='night'] .chat-mode-select option {
+  background: #121c18;
+  color: var(--ink);
+}
+
+/* Composer bar */
+[data-theme='vitara-markets'][data-mode='night'] .composer {
+  background: rgba(18, 28, 24, 0.82);
+  border-color: rgba(62, 207, 142, 0.12);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+[data-theme='vitara-markets'][data-mode='night'] .composer:focus-within {
+  border-color: rgba(62, 207, 142, 0.35);
+  box-shadow: 0 6px 32px rgba(62, 207, 142, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Assistant bubble — swap light glass for a dark glass surface and reset ink to night tokens */
+[data-theme='vitara-markets'][data-mode='night'] .bubble-assistant {
+  background: rgba(18, 28, 24, 0.75);
+  border-color: rgba(62, 207, 142, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  /* Reset the hardcoded dark-ink overrides set in MessageBubble.css */
+  --ink: #e9efe9;
+  --ink-muted: #9fb3a9;
+  --ink-faint: #8fa59a;
+  --bg-inset: #18251f;
+  color: #e9efe9;
+}
+
+/* User bubble — subtle dark tint */
+[data-theme='vitara-markets'][data-mode='night'] .bubble-user {
+  background: linear-gradient(135deg, rgba(62, 207, 142, 0.10) 0%, rgba(47, 158, 115, 0.07) 100%);
+  border-color: rgba(62, 207, 142, 0.18);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}

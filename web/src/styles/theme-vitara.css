@@ -204,11 +204,6 @@
 [data-theme^='vitara'] .chat-hero-text p {
   font-size: 15.5px;
 }
-[data-theme^='vitara'] .hero-orb {
-  box-shadow:
-    0 0 44px rgba(31, 111, 84, 0.22),
-    0 0 80px rgba(88, 163, 129, 0.14);
-}
 [data-theme^='vitara'] .template-card {
   border-color: transparent;
 }

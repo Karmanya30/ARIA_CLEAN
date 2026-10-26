@@ -1,6 +1,6 @@
-"""core/orchestrator.py's domain-guard wiring -- the confident-refusal
-short-circuit and the fail-open/ambiguous-bridge behavior. LLM mocked
-throughout; see shared/domain_guard.py for the classifier itself."""
+"""Category routing must provide useful help without premature scope refusals.
+Classification and financial safeguards remain available. Model calls are mocked.
+"""
 import json
 
 import pytest
@@ -24,16 +24,15 @@ def _classifier_json(**fields):
     return json.dumps(payload)
 
 
-def test_confidently_non_finance_query_is_refused_before_any_pipeline_runs(mock_llm):
+def test_confidently_non_finance_query_receives_capability_aware_help(mock_llm):
     session_id = "__pytest_guard_refuse__"
     clear_session(session_id)
     mock_llm.set_response(_classifier_json(domain="non_finance", allowed=False, confidence=0.97))
     try:
         response = handle_query("who won yesterday's cricket match", session_id=session_id)
-        assert response["domain"] == "refused"
-        assert "financial intelligence assistant" in response["response"]
-        # Only the classifier call happened -- the main narration pipeline
-        # (which would have produced an "Insight:"-formatted answer) never ran.
+        assert response["domain"] == "general"
+        assert response["response"]
+        # A general reply is allowed even when the old category policy rejected it.
         assert "Insight:" not in response["response"]
     finally:
         clear_session(session_id)

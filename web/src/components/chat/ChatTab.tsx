@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { BrandLogo } from '../../components/brand/BrandLogo'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
@@ -12,6 +13,7 @@ import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
 import { ConversationalAvatar } from './ConversationalAvatar'
+import { NormalModeOrb } from './NormalModeOrb'
 import './ChatTab.css'
 
 const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)']
@@ -29,27 +31,34 @@ function Composer({
   onQueryChange,
   onSubmit,
   disabled,
+  onVoiceSubmit,
+  hideVoice = false,
 }: {
   variant: 'centered' | 'pinned'
   query: string
   onQueryChange: (v: string) => void
   onSubmit: () => void
   disabled: boolean
+  onVoiceSubmit?: (text: string) => void | Promise<void>
+  hideVoice?: boolean
 }) {
+  const [voiceBusy, setVoiceBusy] = useState(false)
   return (
     <div className={`composer composer-${variant}`}>
-      <VoiceRecorder onTranscribed={onQueryChange} />
+      {!hideVoice && <VoiceRecorder key={onVoiceSubmit ? 'conversation' : 'normal'} disabled={disabled}
+        conversational={!!onVoiceSubmit} onTranscribed={onVoiceSubmit ?? onQueryChange} onBusyChange={setVoiceBusy} />}
       <input
         aria-label="Message ARIA"
         className="input composer-input"
         placeholder="Message ARIA…"
         value={query}
+        disabled={disabled || voiceBusy}
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') onSubmit()
         }}
       />
-      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || !query.trim()} type="button" aria-label="Send message">
+      <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || voiceBusy || !query.trim()} type="button" aria-label="Send message">
         <Send size={15} />
       </button>
     </div>
@@ -60,11 +69,16 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   const [mode, setMode] = useState<ChatMode>('Normal Mode')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
+  const [captureEpoch, setCaptureEpoch] = useState(0)
+  const [captureBusy, setCaptureBusy] = useState(false)
   const [sending, setSending] = useState(false)
   // The message being answered: shown at once, so pressing Send visibly does something even on the first
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
   const [profileVer, setProfileVer] = useState(0)
+  // Ref to the hidden <audio> element used for TTS playback — passed to NormalModeOrb
+  // so the canvas visualiser can tap into the Web Audio API analyser.
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
@@ -134,6 +148,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   }
 
   async function clearChat() {
+    setCaptureEpoch(value => value + 1)
     await api.clearChat(sessionId)
     setHistory([])
     if (isTavus) setMode('Normal Mode')
@@ -145,7 +160,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
 
   const financeTurns = history.filter((t) => t.response.domain === 'finance').length
   const latestAudioToken = [...history].reverse().find((t) => t.audio_token)?.audio_token ?? undefined
-  // Conversational/Tavus modes have a real avatar or video to show, so
+  // Voice and video modes have a disk, live avatar or video to show, so
   // they get a large dedicated left column for it -- "large view" was
   // the specific ask. Normal Mode has nothing to put there (just the
   // small decorative orb during its own idle state), so it keeps the
@@ -170,7 +185,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       <select
         id="chat-mode"
         aria-label="Mode"
-        className="input chat-mode-select"
+        className="chat-mode-select"
         value={mode}
         onChange={(e) => setMode(e.target.value as ChatMode)}
       >
@@ -180,8 +195,8 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
           </option>
         ))}
       </select>
-      <button className="btn" onClick={clearChat} type="button">
-        Clear Chat
+      <button className="btn" onClick={clearChat} type="button" aria-label="Clear chat">
+        Clear
       </button>
       {isSplitLayout && (
         <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
@@ -199,7 +214,10 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
         <div className="chat-split-body">
           <div className="chat-avatar-col">
             {isTavus && <TavusVideo session={tavusSession} />}
-            {isConversational && <ConversationalAvatar audioToken={latestAudioToken} />}
+            {isConversational && <ConversationalAvatar audioToken={latestAudioToken} voiceControl={
+              <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
+                onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
+            } />}
             {isLive && (
               <iframe
                 className="live-avatar-frame"
@@ -224,6 +242,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     <MessageBubble
                       key={i}
                       turn={turn}
+                      audioControls={!isConversational}
                       sessionId={sessionId}
                       onQuizAnswered={(correct) => markQuizAnswered(i, correct)}
                   onRetry={sending ? undefined : send}
@@ -237,7 +256,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>
         </div>
@@ -250,22 +269,25 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       <h1 className="sr-only">ARIA chat</h1>
       {topbar}
 
-      {showHero && (
-        <div className="chat-stage">
-          <div className="hero-orb" />
-        </div>
-      )}
+      {/* Hidden audio element — NormalModeOrb taps the Web Audio API via this ref */}
+      <audio ref={ttsAudioRef} style={{ display: 'none' }} />
+
+      {/* Orb is ALWAYS visible in Normal Mode — full-size when idle, compact when chatting */}
+      <div className={`chat-orb-sticky${!showHero ? ' orb-compact' : ''}`}>
+        <NormalModeOrb speaking={sending} audioRef={ttsAudioRef} />
+      </div>
 
       {showHero ? (
         <div className="chat-idle-block">
           <div className="chat-idle-inner">
             <div className="chat-hero-text">
+              <BrandLogo className="chat-brand" />
               <h2>{greeting()} — what can I help with?</h2>
               <p>Ask about your finances, learn a concept, or check the market. ARIA routes it to the right module automatically.</p>
             </div>
             <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
             <Onboarding onSaved={() => setProfileVer((v) => v + 1)} onAsk={send} />
-            <Composer variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+            <Composer key={sessionId + ':' + captureEpoch} variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             <TemplateCards onPick={send} />
           </div>
         </div>
@@ -289,7 +311,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             </div>
           </div>
           <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
-          <Composer variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+          <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
         </>
       )}
     </div>

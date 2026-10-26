@@ -26,6 +26,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from dataclasses import dataclass, field
 
 from loguru import logger
@@ -127,7 +128,8 @@ DEBATE_GROQ_MODELS = (os.environ.get("DEBATE_GROQ_BULL", "openai/gpt-oss-20b"), 
 def _ask(system: str, prompt: str, stats: dict, groq_model: str | None = None) -> dict | None:
     """One JSON exchange with a single retry. Sets ``llm_available`` False if the model errors out.
     Successful answers are cached by (backend, system, prompt); failures never are."""
-    key = (id(generate_response), system, prompt)
+    from shared.user_store import current_owner
+    key = (current_owner.get(), id(generate_response), groq_model, system, prompt)
     hit = _CACHE.get(key)
     if hit and time.monotonic() - hit[0] < _CACHE_TTL:
         return copy.deepcopy(hit[1])
@@ -407,8 +409,8 @@ def debate(snap: Snapshot, an: Analysis, val: Valuation, ledger: Ledger) -> Deba
     facts = evidence_facts(an, val)
     prompt = f"COMPANY: {snap.name}\n\nEVIDENCE:\n{evidence_lines(facts)}\n\nMake your case."
     with ThreadPoolExecutor(max_workers=2) as pool:  # bull and bear never see each other's answer
-        f_bull = pool.submit(_side, BULL_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[0])
-        f_bear = pool.submit(_side, BEAR_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[1])
+        f_bull = pool.submit(copy_context().run, _side, BULL_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[0])
+        f_bear = pool.submit(copy_context().run, _side, BEAR_SYSTEM, prompt, ledger, result.stats, DEBATE_GROQ_MODELS[1])
         result.bull, result.bear = f_bull.result(), f_bear.result()
     if not result.bull and not result.bear:
         return result

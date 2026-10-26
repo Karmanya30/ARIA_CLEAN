@@ -585,10 +585,12 @@ def _followup(query: str, uid: str, sid: str, pend: dict) -> dict[str, Any] | No
     session, text = get_session(sid), query.strip().lower()
     session.pop("finance_pending", None)
     if pend.get("confirm"):
-        if re.match(r"(yes|yeah|yep|y|ok|okay|sure|confirm|correct|please do)\b", text):
+        from shared.dialogue import confirmation
+        consent = confirmation(query)
+        if consent is True:
             user_store.save_financial_profile(uid, **pend["confirm"])
             return {"domain": "finance", "query": query, "response": f"Updated {_label(pend['field'])}."}
-        if re.match(r"(no|nope|nah|keep)\b", text):
+        if consent is False:
             return {"domain": "finance", "query": query, "response": "Okay, I will keep what I have."}
         return None
     if _QUESTION.search(text) or _INTENT_WORDS.search(text) or len(text.split()) > 5:  # a new question, not the answer
@@ -600,7 +602,7 @@ def _followup(query: str, uid: str, sid: str, pend: dict) -> dict[str, Any] | No
     user_store.save_financial_profile(uid, **saver(value))
     if not pend.get("query"):  # the answer to a "Next: ..." question after stated facts: note it and ask the next one
         return _acknowledge(query, uid, [f"Noted: {_label(pend['field'])} {_inr(value) if isinstance(value, (int, float)) else value}."], sid)
-    return run_pipeline(pend["query"], user_id=sid)
+    return run_pipeline(pend["query"], user_id=sid, intent_query=pend.get("intent_query"))
 
 
 def _inr(x: Any) -> str:
@@ -798,7 +800,7 @@ def _acknowledge(query: str, uid: str, notes: list[str], sid: str | None = None)
     return {"domain": "finance", "query": query, "response": " ".join(notes) + (f"\n\nNext: {nxt[0].lower() + nxt[1:]}" if nxt else "")}
 
 
-def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
+def run_pipeline(query: str, user_id: str = "default", *, intent_query: str | None = None) -> dict[str, Any]:
     """
     Finance pipeline entry point (Module 1 — Personal Finance).
 
@@ -824,12 +826,14 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             return out
     stated: dict[str, Any] = {}
     notes = _remember(query, uid, sid, stated)
-    hit = finance_intent(query)
+    hit = finance_intent(intent_query or query)
     ack = not hit and notes and finance_statement(query)
     if ack:
         result, notes = _acknowledge(query, uid, notes, sid), []
     else:
         result = _run_tool(query, uid, sid, *hit, stated=stated) if hit else _legacy(query, uid, sid)
+    if intent_query and (pending := get_session(sid).get("finance_pending")) and pending.get("query"):
+        pending["intent_query"] = intent_query
     if notes and isinstance(result.get("response"), str):
         result["response"] += "\n\n" + " ".join(notes)
     if "profile_basis" not in result and (p := user_store.get_financial_profile(uid)):

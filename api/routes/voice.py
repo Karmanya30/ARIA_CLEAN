@@ -14,11 +14,15 @@ router = APIRouter(tags=["voice"])
 async def transcribe_audio(file: UploadFile = File(...)) -> dict[str, str]:
     from ai.speech.stt import transcribe
 
-    audio_bytes = await file.read()
+    audio_bytes = await file.read(10 * 1024 * 1024 + 1)
+    if len(audio_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Audio must be no larger than 10 MB.")
+    if not audio_bytes:
+        raise HTTPException(status_code=422, detail="The audio file is empty.")
     try:
         text = transcribe(audio_bytes, filename=file.filename, raise_errors=True)
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Transcription failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail="Transcription is unavailable. Please try again.") from exc
 
     if not text:
         raise HTTPException(status_code=422, detail="Could not transcribe the audio.")
@@ -34,6 +38,6 @@ def get_audio(token: str):
     if not path or not Path(path).exists():
         raise HTTPException(status_code=404, detail="Audio not found or expired.")
 
-    suffix = Path(path).suffix.lower()
-    media_type = "audio/wav" if suffix == ".wav" else "audio/mpeg"
+    with Path(path).open("rb") as audio:
+        media_type = "audio/wav" if audio.read(4) == b"RIFF" else "audio/mpeg"
     return FileResponse(path, media_type=media_type)

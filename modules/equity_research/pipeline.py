@@ -18,9 +18,9 @@ from typing import Any
 from loguru import logger
 
 from core.router import is_fundamental_query, is_research_report_query
-from modules.equity_research.financial_pipeline import process_financial_query
+from modules.equity_research.financial_pipeline import compare_companies, process_financial_query
 from modules.equity_research.investment import investment_module
-from shared.company_resolver import resolve_company
+from shared.company_resolver import resolve_companies, resolve_company
 
 
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
@@ -42,13 +42,15 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             logger.exception("research layer failed; falling back to the standard Module 4 path")
 
     if ticker and is_fundamental_query(query):
-        result = process_financial_query(query, ticker)
+        tickers = resolve_companies(query)
+        result = compare_companies(query, tickers) if len(tickers) > 1 else process_financial_query(query, ticker)
         return {
             "domain": "equity_research",
             "query": query,
             "company": ticker,
             "metric": result.get("metric"),
             "value": result.get("value"),
+            "normalized_data": result.get("normalized_data"),  # the evidence modules/qa/trust.py checks the answer's numbers against
             "response": result.get("explanation", ""),
             "confidence": result.get("confidence", "low"),
         }

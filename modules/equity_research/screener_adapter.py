@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 import requests
 from bs4 import BeautifulSoup
@@ -130,7 +131,24 @@ class Screener:
         }
 
 
+def _last_year(data: Dict[str, Any]) -> int:
+    """Latest fiscal year in the profit-and-loss columns ("Mar 2026" -> 2026); 0 when there is none."""
+    years = [int(m.group()) for c in data.get("profit_loss", {}).get("__columns__", []) if (m := re.search(r"\d{4}", c))]
+    return max(years, default=0)
+
+
 def get_screener_data(company_name: str, consolidated: bool = False) -> Dict[str, Any]:
+    """Screener data for one company. A consolidated page that stops years ago (Tata Elxsi's ends in 2015) is replaced by the
+    standalone page when that one is more recent, so a stale group history is never presented as the latest figures."""
+    out = _get_screener_data(company_name, consolidated)
+    if consolidated and "error" not in out and _last_year(out) and _last_year(out) < date.today().year - 2:
+        alt = _get_screener_data(company_name, False)
+        if "error" not in alt and _last_year(alt) > _last_year(out):
+            return alt
+    return out
+
+
+def _get_screener_data(company_name: str, consolidated: bool = False) -> Dict[str, Any]:
     """
     Fetch financial data for a given company from Screener.in.
 

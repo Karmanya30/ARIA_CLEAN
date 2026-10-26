@@ -1,0 +1,61 @@
+........................................................................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 23%]
+........................................................................ [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+........................................................................ [ 62%]
+..............................................FF........FF.F............ [ 70%]
+........................................................................ [ 78%]
+........................................................................ [ 86%]
+........................................................................ [ 94%]
+.......................................................                  [100%]
+================================== FAILURES ===================================
+___________________ test_quote_degrades_instead_of_failing ____________________
+tests\market\test_instruments.py:225: in test_quote_degrades_instead_of_failing
+    assert c["price"] == 80000.0 and c["source"] == "CoinGecko"
+E   AssertionError: assert (80000.0 == 80000.0 and 'CoinGecko + CoinGecko' == 'CoinGecko'
+E
+E     - CoinGecko
+E     + CoinGecko + CoinGecko)
+---------------------------- Captured stderr call -----------------------------
+[32m2026-10-16 16:37:43.843[0m | [33m[1mWARNING [0m | [36mmodules.market.instruments[0m:[36mquote[0m:[36m678[0m - [33m[1mquote index:^NSEI failed: RuntimeError: nope[0m
+
+____________________ test_unknown_or_malformed_ids_are_404 ____________________
+tests\market\test_instruments.py:230: in test_unknown_or_malformed_ids_are_404
+    assert client.get(f"/api/instruments/{iid}/quote").status_code == 404, iid
+E   AssertionError: mf:999999999
+E   assert 200 == 404
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = get('/api/instruments/mf:999999999/quote')
+E    +      where get = <starlette.testclient.TestClient object at 0x000001E1611F2030>.get
+________ test_ask_replaces_invented_numbers_with_a_facts_only_summary _________
+tests\market\test_instruments.py:320: in test_ask_replaces_invented_numbers_with_a_facts_only_summary
+    assert r["grounding"]["fallback"] and not r["grounding"]["passed"] and "98,765" not in r["response"]
+E   assert (False)
+______________ test_ask_survives_model_failure_and_missing_data _______________
+tests\market\test_instruments.py:333: in test_ask_survives_model_failure_and_missing_data
+    assert mock_llm.calls == [] and "right now" in r["response"] and not r["grounding"]["numbers_checked"]
+E   AssertionError: assert (['\nYou are a...nt advice.\n'] == []
+E
+E     Left contains one more item: '\nYou are an expert teacher explaining concepts in a clear, engaging, and conversational way.\n\nConvert the followin...history statistics (returns, volatility, drawdown); SIP simulation (RuntimeError).\n\nThis is not investment advice.\n'
+E     Use -v to get more diff)
+---------------------------- Captured stderr call -----------------------------
+[32m2026-10-16 16:37:49.473[0m | [33m[1mWARNING [0m | [36mmodules.market.instruments[0m:[36mquote[0m:[36m678[0m - [33m[1mquote index:^NSEI failed: RuntimeError: nope[0m
+
+[32m2026-10-16 16:37:49.474[0m | [33m[1mWARNING [0m | [36mmodules.market.instruments[0m:[36mquote[0m:[36m678[0m - [33m[1mquote index:^NSEI failed: RuntimeError: nope[0m
+
+[32m2026-10-16 16:37:49.475[0m | [34m[1mDEBUG   [0m | [36mmodules.market.instruments[0m:[36mprofile[0m:[36m895[0m - [34m[1mprofile stats index:^NSEI: RuntimeError[0m
+
+______________ test_ask_rejects_rupee_sign_for_foreign_currency _______________
+tests\market\test_instruments.py:352: in test_ask_rejects_rupee_sign_for_foreign_currency
+    assert r["grounding"]["fallback"] and "\u20b9" not in r["response"]
+E   assert (False)
+=========================== short test summary info ===========================
+FAILED tests/market/test_instruments.py::test_quote_degrades_instead_of_failing
+FAILED tests/market/test_instruments.py::test_unknown_or_malformed_ids_are_404
+FAILED tests/market/test_instruments.py::test_ask_replaces_invented_numbers_with_a_facts_only_summary
+FAILED tests/market/test_instruments.py::test_ask_survives_model_failure_and_missing_data
+FAILED tests/market/test_instruments.py::test_ask_rejects_rupee_sign_for_foreign_currency
+5 failed, 914 passed, 7 deselected, 103 warnings in 354.73s (0:05:54)

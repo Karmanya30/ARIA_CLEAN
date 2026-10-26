@@ -265,6 +265,7 @@ Rules:
 - Do not promise returns.
 - Do not give personalized buy/sell advice.
 - If data is missing, mention it clearly.
+- Use only numbers from the data above: do not quote sector averages, peer multiples or historical ranges from memory.
 - Keep the answer concise and practical.
 
 Return exactly this format:

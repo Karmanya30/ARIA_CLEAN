@@ -1,9 +1,10 @@
 """
 Indian income tax computation — deterministic, no ML.
 
-Slabs verified live (web search, 2026-07-29) against ClearTax / 1Finance /
-HDFC Life / Bajaj Finserv for FY 2025-26 (AY 2026-27), which Budget 2026
-carried forward unchanged into FY 2026-27. Tax law changes every budget
+Normal-income slabs checked against the Income Tax Department's
+"Computation of Tax for Individual" (Finance Act 2026), 2026-10-16:
+https://www.incometaxindia.gov.in/w/computation-of-tax-for-individual-1
+Uses the published AY 2026-27 schedule. Tax law changes every budget
 cycle — this module is intentionally small and isolated so the constants
 below are the only thing that ever needs revisiting; it is not a
 certified tax-filing tool, only a demo-grade estimate.
@@ -93,7 +94,10 @@ def tax_old(
     deductions_80c: float = 0.0,
     deductions_80d: float = 0.0,
     is_senior: bool = False,
+    *,
+    age: int | None = None,
 ) -> TaxResult:
+    is_senior = is_senior or (age is not None and age >= 60)
     cap_80d = OLD_REGIME_80D_CAP_SENIOR if is_senior else OLD_REGIME_80D_CAP_SELF
     deduction = (
         OLD_REGIME_STD_DEDUCTION
@@ -101,10 +105,11 @@ def tax_old(
         + min(deductions_80d, cap_80d)
     )
     taxable = max(0.0, annual_income - deduction)
-    tax_before = _slab_tax(taxable, OLD_REGIME_SLABS)
-    tax = _apply_rebate_and_marginal_relief(
-        taxable, tax_before, OLD_REGIME_REBATE_THRESHOLD, OLD_REGIME_REBATE_CAP
-    )
+    exemption = 500_000 if age is not None and age >= 80 else 300_000 if is_senior else 250_000
+    slabs = [(exemption, 0.0), *OLD_REGIME_SLABS[1:]]
+    tax_before = _slab_tax(taxable, slabs)
+    # The old regime has an 87A rebate, but no income-cliff marginal relief.
+    tax = max(0.0, tax_before - OLD_REGIME_REBATE_CAP) if taxable <= OLD_REGIME_REBATE_THRESHOLD else tax_before
     cess = tax * CESS_RATE
     total = tax + cess
     return TaxResult(

@@ -1,0 +1,20 @@
+.voice-disk-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 320px; padding: 24px 12px; }
+.voice-disk-stage { position: relative; width: min(100%, 420px); aspect-ratio: 1; --voice-level: 0; --voice-scale: 1; --voice-turn: 0deg; }
+.voice-disk-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chat-avatar-col:has(> .voice-disk-panel) { height: auto; min-height: 0; }
+.voice-disk-stage .hero-orb.voice-disk { position: absolute; top: 50%; left: 50%; width: 54%; height: 54%; margin: 0; animation: none; transform: translate(-50%, -50%) scale(var(--voice-scale)) rotate(var(--voice-turn)); box-shadow: 0 0 calc(24px + var(--voice-level) * 65px) rgba(45, 212, 191, .45), inset 0 1px 14px #ffffff40; display: grid; place-items: center; }
+.voice-disk-stage .voice-disk::before, .voice-disk-stage .voice-disk::after { animation: none; }
+.voice-disk-stage .voice-disk::before { opacity: calc(.25 + var(--voice-level) * .7); }
+.voice-disk-stage .voice-disk::after { inset: -12px; opacity: calc(.3 + var(--voice-level) * .6); }
+.voice-disk .aria-brand-mark { width: 46%; height: 46%; filter: drop-shadow(0 2px 12px #001a2970); }
+.voice-disk-status { margin: 8px 0; color: var(--ink); font-weight: 600; }
+.voice-disk-caption { max-width: 290px; margin: 0 0 18px; text-align: center; color: var(--ink-muted); font-size: 13px; line-height: 1.5; }
+.voice-disk-panel audio { width: min(100%, 310px); }
+.voice-disk-controls { margin: 4px 0 12px; }
+.voice-disk-controls .voice-btn { min-width: 190px; min-height: 52px; padding: 12px 24px; border-radius: 28px; font-size: 16px; color: var(--ink); background: var(--accent-soft, #d5f4e8); border-color: var(--accent, #3ecf8e); }
+.voice-disk-panel:has(.voice-disk-controls) .voice-disk-stage { width: min(100%, 360px); }
+.voice-disk-controls .voice-error { left: 50%; transform: translateX(-50%); }
+@media (max-width: 640px), (max-height: 780px) {
+  .voice-disk-panel:has(.voice-disk-controls) .voice-disk-stage { width: min(100%, 260px); }
+}
+@media (prefers-reduced-motion: reduce) { .voice-disk-stage .voice-disk { transform: translate(-50%, -50%); } }

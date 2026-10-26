@@ -91,6 +91,19 @@ def test_a_dead_feed_does_not_break_the_others_and_stale_copy_is_served(feeds, m
     assert [i["title"] for i in news.fetch_news(google=False)] == ["Sensex rallies"]
 
 
+def test_unlimited_feed_keeps_all_unique_stories_from_one_publisher(feeds):
+    titles = [f"Enterprise{i} develops technology{i} for sector{i}" for i in range(75)]
+    feeds(A=_rss(*[(title, ago(1), "") for title in titles],
+                 ("Expired economic bulletin", ago(200), ""),
+                 (titles[0], ago(2), "")))
+    out = news.fetch_news(limit=None, google=False)
+    assert len(out) == 75
+    assert {item["title"] for item in out} == set(titles)
+    # Short briefings still retain their explicit count and publisher diversity.
+    assert len(news.fetch_news(limit=1, google=False)) == 1
+    assert len(news.fetch_news(limit=30, google=False)) == 2
+
+
 def test_switch_off_returns_nothing(feeds, monkeypatch):
     feeds(A=_rss(("Sensex rallies", ago(1), "")))
     monkeypatch.setattr(news.settings, "FI_NEWS_RSS", False)
