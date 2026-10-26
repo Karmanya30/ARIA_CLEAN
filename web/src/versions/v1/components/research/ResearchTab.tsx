@@ -185,12 +185,6 @@ export function ResearchTab({ onAsk }: { onAsk: (query: string) => void }) {
                 <a href={api.reportHtmlUrl(r.id, kind, true)} target="_blank" rel="noreferrer" title="Open print dialog (Save as PDF)">
                   Print
                 </a>
-                <a href={api.reportDownloadUrl(r.id, 'md')} title="Download Markdown">
-                  MD
-                </a>
-                <a href={api.reportDownloadUrl(r.id, 'json')} title="Download all data (JSON)">
-                  JSON
-                </a>
                 {r.kind !== 'fund_analysis' && (
                   <button type="button" onClick={() => regenerate(r.id)} disabled={busy !== null} title="Regenerate on fresh data (new version)">
                     <RefreshCw size={14} className={busy === r.id ? 'rt-spin' : ''} />

@@ -3,15 +3,10 @@ import { User } from 'lucide-react'
 import type { HistoryTurn } from '../../types'
 import { ResponseCard } from './ResponseCard'
 import { ResearchReport } from './ResearchReport'
-import { ShapExplainer } from './ShapExplainer'
 import { QuizWidget } from './QuizWidget'
 import { api } from '../../api'
 import { IntelligenceSummary } from './IntelligenceSummary'
 import './MessageBubble.css'
-
-const DOMAIN_LABEL: Record<string, string> = {
-  finance: 'Personal finance', tutor: 'Tutor', market: 'Market analysis', equity_research: 'Equity research', company_intelligence: 'Company intelligence',
-}
 
 const SUGGESTIONS: Record<string, string[]> = {
   finance: ['What is my financial health score?', 'Can I start a SIP of ₹10,000?', 'What if I cut my expenses by ₹5,000 a month?'],
@@ -41,8 +36,6 @@ export function MessageBubble({
   audioControls?: boolean
 }) {
   const { response } = turn
-  const company = typeof response.company === 'string' ? response.company : (response.company as { name?: string } | undefined)?.name
-  const badge = [DOMAIN_LABEL[response.domain] ?? response.domain.replace(/_/g, ' '), company].filter(Boolean).join(' · ')
   const failed = String(response.response ?? '').startsWith('Error:')
   const suggestions = isLast && onAsk && !failed && !response.missing_field ? SUGGESTIONS[response.domain] ?? [] : []
   const eng = response.engine as { assumptions?: unknown; numbers?: { rate_pct?: number } } | undefined
@@ -84,7 +77,6 @@ export function MessageBubble({
               <button type="button" className="bubble-retry" onClick={() => onRetry(turn.query, false)}>use original</button>
             </p>
           )}
-          <p className="bubble-caption">{badge}</p>
           {headlines.length > 0 && (
             <details className="bubble-news">
               <summary>Based on {headlines.length} live headlines</summary>
@@ -103,10 +95,6 @@ export function MessageBubble({
               <a href={api.reportDownloadUrl(response.report_id, 'pdf')}>PDF</a> · <a href={api.reportDownloadUrl(response.report_id, 'html')}>HTML</a>
             </p>
           )}
-
-          {response.risk?.top_features?.length ? (
-            <ShapExplainer label={response.risk.label} topFeatures={response.risk.top_features} />
-          ) : null}
 
           {response.quiz && !turn.quiz_answered && (
             <QuizWidget

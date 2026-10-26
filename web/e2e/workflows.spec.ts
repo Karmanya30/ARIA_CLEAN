@@ -279,7 +279,7 @@ for (const version of ['v1', 'v2']) {
     await expect(page.getByRole('region', { name: 'Quick form' })).toBeVisible()
   })
 
-  test(`${version}: settings persist, markets renders, UI version switches`, async ({ page }) => {
+  test(`${version}: settings persist, markets renders, and the technical version picker is gone`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Settings', exact: true }).click()
     await page.getByRole('checkbox', { name: 'Adapt tone to how I feel' }).check()
@@ -291,12 +291,7 @@ for (const version of ['v1', 'v2']) {
     await expect(page.getByRole('heading', { name: 'Markets', exact: true })).toBeVisible()
     await expect(page.getByRole('list', { name: 'Indices and benchmarks' })).toContainText('Nifty 50')
     await page.getByRole('tab', { name: 'Settings', exact: true }).click()
-    const next = version === 'v1' ? 'v2' : 'v1'
-    const switched = page.waitForEvent('load')
-    await page.locator('label').filter({ has: page.locator(`input[name=app-version][value=${next}]`) }).click()
-    await switched
-    expect(await page.evaluate(() => localStorage.getItem('aria_version'))).toBe(next)
-    await expect(page.locator(`input[name=app-version][value=${next}]`)).toBeChecked()
+    await expect(page.locator('input[name=app-version]')).toHaveCount(0)
   })
 
   test(`${version}: chat history, acknowledgement, report generation, exports and version deletion`, async ({ page }) => {
@@ -329,7 +324,7 @@ for (const version of ['v1', 'v2']) {
     await page.getByRole('tab', { name: 'Research reports', exact: true }).click()
     await expect(page.locator('iframe[title="Equity research report"]')).toBeVisible()
     await expect(page.frameLocator('iframe[title="Equity research report"]').locator('body')).toContainText('Test')
-    for (const title of ['Download HTML', 'Download Markdown', 'Download all data (JSON)']) {
+    for (const title of ['Download HTML']) {
       const downloaded = page.waitForEvent('download')
       await page.getByTitle(title, { exact: true }).click()
       const file = await downloaded

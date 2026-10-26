@@ -199,7 +199,7 @@ export function IntelligenceTab() {
         {sent && (
           <>
             <p className="ri-sub">
-              Overall {sent.label} ({num(sent.net)}) · {sent.engine === 'finbert' ? 'scored by FinBERT, a model trained on financial text' : 'quick keyword read (the language model is still loading)'}
+              Overall {sent.label} ({num(sent.net)}) · {sent.engine === 'finbert' ? 'scored by a model trained on financial text' : 'quick keyword read'}
             </p>
             {sent.items.map((it, k) => (
               <div key={k} className="ri-news"><span className="ri-pill" style={{ background: colour(it.label) }}>{it.label} {num(it.net)}</span><div>{it.text}</div></div>

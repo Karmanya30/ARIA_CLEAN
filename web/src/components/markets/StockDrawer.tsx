@@ -186,7 +186,7 @@ const PILLAR_DESC: Record<string, { short: string; what: string; how: string }> 
   'Sentiment': {
     short: 'What are the press and management signalling?',
     what: 'Analyses the emotional tone of recent news and the latest earnings call transcript.',
-    how: 'FinBERT (a finance-trained language model) scores each headline and management statement as positive, negative, or neutral. The net score is compared against a ±0.25 threshold to label the pillar.'
+    how: 'A finance-trained language model scores each headline and management statement as positive, negative, or neutral. The net score is compared against a ±0.25 threshold to label the pillar.'
   },
 }
 

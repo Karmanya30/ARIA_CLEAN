@@ -58,7 +58,7 @@ const PILLAR_INFO: Record<string, { short: string; what: string; how: string }> 
   'Sentiment': {
     short: 'What are the press and management signalling?',
     what: 'Analyses the emotional tone of recent news and the latest earnings call transcript.',
-    how: 'FinBERT (a finance-trained language model) scores each headline and management statement. The net score is compared against a ±0.25 threshold to label the pillar.',
+    how: 'A finance-trained language model scores each headline and management statement. The net score is compared against a ±0.25 threshold to label the pillar.',
   },
 }
 
@@ -488,7 +488,7 @@ export function IntelligenceTab() {
           <>
             <p className="ri-sub">
               Overall <strong>{sent.label}</strong> ({num(sent.net)}) ·{' '}
-              {sent.engine === 'finbert' ? 'scored by FinBERT, a model trained on financial text' : 'quick keyword read (the language model is still loading)'}
+              {sent.engine === 'finbert' ? 'scored by a model trained on financial text' : 'quick keyword read'}
             </p>
             {sent.items.map((it, k) => (
               <div key={k} className="ri-news-v2">
