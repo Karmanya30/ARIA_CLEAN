@@ -121,3 +121,14 @@ def resolve_company(text: str) -> str | None:
             best_len = len(alias)
 
     return best_match
+
+
+def resolve_companies(text: str) -> list[str]:
+    """Every distinct company named in the text, in the order they appear ("Infosys and Wipro" -> ["INFY", "WIPRO"])."""
+    text_lower = text.lower()
+    found: dict[str, int] = {}
+    for alias, ticker in _COMPANY_MAP.items():
+        m = re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", text_lower)
+        if m and (ticker not in found or m.start() < found[ticker]):
+            found[ticker] = m.start()
+    return sorted(found, key=found.get)

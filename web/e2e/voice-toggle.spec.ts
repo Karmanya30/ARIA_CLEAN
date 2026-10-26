@@ -5,6 +5,7 @@ test.use({ channel: 'chromium', permissions: ['microphone'], launchOptions: { ar
 
 async function openConversation(page: Page, version: string) {
   await page.addInitScript(version => {
+    for (const name of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, name, { value: undefined })  // never listen to the real microphone
     localStorage.setItem('aria_version', version)
     localStorage.setItem('aria_adapt_tone', 'off')
     const streams: MediaStream[] = []

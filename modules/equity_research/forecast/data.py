@@ -19,6 +19,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from loguru import logger
 
 from config.paths import DATA_DIR
 
@@ -162,6 +163,19 @@ def _clean(df: pd.DataFrame) -> pd.DataFrame:
     return d.loc[np.isfinite(d[prices]).all(axis=1)]
 
 
+def _read_cached(p: Path, force: bool, read):
+    """read() of a fresh cache file, or None when it is stale, missing, forced, or CORRUPT (an interrupted write used to
+    crash every later run for that symbol; now the file is dropped and the data is fetched again)."""
+    if not _fresh(p, force):
+        return None
+    try:
+        return read()
+    except Exception as e:
+        logger.warning(f"corrupt cache {p.name} ({type(e).__name__}); fetching again")
+        p.unlink(missing_ok=True)
+        return None
+
+
 def load_series(index_symbol: str, force: bool = False) -> pd.Series:
     """Adjusted close of any symbol (benchmark/sector), parquet-cached for 12 h."""
     mkey = f"{CACHE_DIR}|{index_symbol}"  # tests repoint CACHE_DIR
@@ -169,9 +183,8 @@ def load_series(index_symbol: str, force: bool = False) -> pd.Series:
     if hit and not force and time.time() - hit[0] < CACHE_TTL_S:
         return hit[1]
     p = _path(index_symbol)
-    if _fresh(p, force):
-        s = pd.read_parquet(p)["adj_close"]
-    else:
+    s = _read_cached(p, force, lambda: pd.read_parquet(p)["adj_close"])
+    if s is None:
         s = _clean(_fetch(index_symbol))["adj_close"].dropna()
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         s.to_frame("adj_close").to_parquet(p)
@@ -278,9 +291,9 @@ def load_history(symbol: str, *, force: bool = False) -> tuple[pd.DataFrame, Dat
     """Daily bars. Columns: open,high,low,close,adj_close,volume,dividends,splits; tz-naive ascending DatetimeIndex."""
     market = _market(symbol)
     p, mp = _path(symbol), _path(symbol, "json")
-    if _fresh(p, force) and mp.exists():
-        df = pd.read_parquet(p)
-        side = json.loads(mp.read_text())
+    cached = _read_cached(p, force, lambda: (pd.read_parquet(p), json.loads(mp.read_text()))) if mp.exists() else None
+    if cached is not None:
+        df, side = cached
         cleaned = _clean(df)
         invalid = len(df) - len(cleaned)
         if invalid:

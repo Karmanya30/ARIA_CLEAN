@@ -24,8 +24,15 @@ _STOP = set("""a an the of for in on at to is are was were be been am do does di
  stocks equity company companies limited ltd inc corp corporation india indian inr rupees rupee fy net total annual quarterly
  much many high low change growth number numbers data info information details say says said tomorrow yesterday year years month
  months day days""".split())
+_SOFT = {"india", "cap", "fund", "limited", "ltd"}  # stop words only at the edge of a name: "Nippon India Small Cap Fund"
 _WORD = re.compile(r"[A-Za-z0-9&][A-Za-z0-9&.'-]*")
 _MAX_SEARCHES = 6
+_FUND = re.compile(r"\b(nav|mutual funds?|funds?|schemes?|etfs?|amc|flexi ?cap|elss|sip)\b", re.I)
+
+
+def mentions_fund(text: str) -> bool:
+    """"NAV of SBI Bluechip fund": the company alias in it ("SBI") must not turn the question into one about the bank."""
+    return bool(_FUND.search(text))
 
 
 def is_data_question(query: str) -> bool:
@@ -37,10 +44,12 @@ def _tokens(text: str) -> list[str]:
 
 
 def candidates(text: str) -> list[str]:
-    """Name guesses, most specific first: each run of non-stop words, then its first two words, then its first word."""
+    """Name guesses, most specific first: each run of non-stop words, then its first two words."""
     runs, cur = [], []
     for t in _tokens(text):
-        if len(t) > 1 and t not in _STOP and not re.fullmatch(r"(fy)?\d{2,4}([-/]\d{2,4})?", t):
+        if t in _SOFT and cur:
+            cur.append(t)
+        elif len(t) > 1 and t not in _STOP and t not in _SOFT and not re.fullmatch(r"(fy)?\d{2,4}([-/]\d{2,4})?", t):
             cur.append(t)
         elif cur:
             runs.append(cur)
@@ -49,7 +58,7 @@ def candidates(text: str) -> list[str]:
         runs.append(cur)
     out: list[str] = []
     for run in sorted(runs, key=len, reverse=True):
-        for w in (run, run[:2], run[:1]):
+        for w in ((run, run[:2]) if len(run) > 1 else (run,)):  # never the first word alone: "SBI" is not "SBI Bluechip"
             s = " ".join(w)
             if len(s) >= 3 and s not in out:
                 out.append(s)
@@ -89,8 +98,9 @@ def find_instrument(*texts: str) -> dict | None:
             except Exception as exc:
                 logger.debug(f"instrument lookup failed: {type(exc).__name__}")
                 return None
+            fund = mentions_fund(text)
             for it in items:
-                if _confident(window, it):
+                if _confident(window, it) and (not fund or it["type"] in ("mutual_fund", "etf")):
                     return it
     return None
 

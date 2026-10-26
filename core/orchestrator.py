@@ -9,7 +9,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.router import _CONCEPT_QUESTION, is_broad_market_query, is_equity_research_query, is_intelligence_query, route_query
+from core.router import _CONCEPT_QUESTION, is_broad_market_query, is_company_fact_query, is_equity_research_query, is_intelligence_query, route_query
 from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
@@ -23,7 +23,7 @@ from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
 from shared.domain_guard import validate_output
 from shared.intent_resolver import current_interpretation
-from modules.qa.lookup import is_data_question
+from modules.qa.lookup import is_data_question, mentions_fund
 from modules.qa.models import active_focus
 from shared.dialogue import act as dialogue_act, clean as clean_reply, confirmation, general_task, CONVERSATION_SYSTEM
 
@@ -203,20 +203,20 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # queries to the general fallback. is_broad_market_query and
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
-    if is_intelligence_query(query, ticker) and (response := company_intelligence(query)):
+    if not by_intent and (not ticker or mentions_fund(query)) and not is_broad_market_query(query) and (response := _data_lookup(shown, query, session_id)):
+        pass  # a data question about a name outside the hard-coded list: instrument catalogue, then web search
+    elif is_intelligence_query(query, ticker) and (response := company_intelligence(query)):
         pass
     elif is_equity_research_query(query, ticker) or is_intelligence_query(query, ticker):
         response = equity_research_pipeline(query, user_id=session_id)
     elif is_broad_market_query(query):
         response = market_pipeline(query)
-    elif not by_intent and not ticker and (response := _data_lookup(shown, query, session_id)):
-        pass  # a data question about a name outside the hard-coded list: instrument catalogue, then web search
     elif domain == "finance":
         response = _with_news(query, finance_pipeline, user_id=session_id)
     elif domain == "tutor":
         # Category classification is not a safety check and must not block valid questions.
         response = _with_news(query, tutor_pipeline, user_id=session_id)
-    elif domain == "market":
+    elif domain == "market" and not is_company_fact_query(query):
         # domain says market but neither precise check matched (rare) --
         # equity research is the closer fallback of the two.
         response = equity_research_pipeline(query, user_id=session_id)

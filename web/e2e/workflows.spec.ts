@@ -9,6 +9,7 @@ test.beforeEach(async ({ page }) => {
   page.on('pageerror', e => data.errors.push(e.message))
   page.on('requestfailed', r => data.failedRequests.push(`${r.method()} ${r.url()} ${r.failure()?.errorText}`))
   await page.addInitScript(() => {
+    for (const name of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, name, { value: undefined })  // never listen to the real microphone
     const events: unknown[] = []
     Object.assign(window, { voiceEvents: events })
     for (const name of ['play', 'pause', 'ended', 'emptied', 'seeking', 'seeked', 'error', 'loadedmetadata']) {

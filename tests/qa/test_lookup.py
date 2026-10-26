@@ -62,3 +62,46 @@ def test_fundamentals_answers_keep_their_figures_through_the_number_check(monkey
     monkeypatch.setattr(pipeline, "is_fundamental_query", lambda q: True)
     resp = pipeline.run_pipeline("net profit of Reliance in FY23-24")
     assert trust.enforce(resp)["passed"] and "42,042" in resp["response"]
+
+
+def test_two_companies_are_compared_from_the_data_only(monkeypatch):
+    from modules.equity_research import financial_pipeline as fp
+
+    raw = {"INFY": {"view": "consolidated"}, "WIPRO": {"view": "consolidated"}}
+    monkeypatch.setattr(fp, "get_screener_data", lambda t, consolidated=False: raw.get(t, {"error": "not found"}))
+    monkeypatch.setattr(fp, "normalize_screener_data", lambda r: {"revenue": {"by_year": {"Mar 2026": 178650.0 if r is raw["INFY"] else 92624.0}}})
+    out = fp.compare_companies("Compare the revenue of Infosys and Wipro", ["INFY", "WIPRO", "NOPE"])
+    assert "178,650" in out["explanation"] and "92,624" in out["explanation"] and "NOPE: revenue is not available" in out["explanation"]
+    from shared.company_resolver import resolve_companies
+    assert resolve_companies("Compare the revenue of Infosys and Wipro") == ["INFY", "WIPRO"]
+
+
+def test_a_fund_question_never_resolves_to_the_company_inside_its_name(monkeypatch):
+    from modules.market import instruments as I
+
+    stock = {"id": "stock:SBIN.NS", "name": "State Bank of India", "symbol": "SBIN.NS", "type": "stock"}
+    monkeypatch.setattr(I, "search", lambda q, limit=5: {"items": [stock]})
+    assert lookup.find_instrument("Show me the NAV of SBI fund") is None
+    assert lookup.find_instrument("price of SBI") == stock
+
+
+def test_bing_tracking_links_are_unwrapped():
+    import base64
+
+    real = "https://example.com/nav?fund=sbi"
+    wrapped = "https://www.bing.com/ck/a?!&&p=x&u=a1" + base64.urlsafe_b64encode(real.encode()).decode().rstrip("=") + "&ntb=1"
+    assert websearch._bing_link(wrapped) == real
+    assert websearch._bing_link("https://example.com/x") == "https://example.com/x"
+
+
+def test_a_stale_consolidated_page_falls_back_to_the_fresher_standalone_one(monkeypatch):
+    from datetime import date
+
+    from modules.equity_research import screener_adapter as sa
+
+    old = {"profit_loss": {"__columns__": ["Mar 2014", "Mar 2015"]}}
+    new = {"profit_loss": {"__columns__": ["Mar 2025", f"Mar {date.today().year}"]}}
+    monkeypatch.setattr(sa, "_get_screener_data", lambda name, consolidated=False: old if consolidated else new)
+    assert sa.get_screener_data("X", consolidated=True) is new
+    monkeypatch.setattr(sa, "_get_screener_data", lambda name, consolidated=False: new)
+    assert sa.get_screener_data("X", consolidated=True) is new

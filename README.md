@@ -188,6 +188,13 @@ in well under 3 s), then speaks a short, natural version of the module's written
 (`ai/llm/spoken.py`, shared with Tavus). If the modules are unreachable she still answers directly, and if the LLM
 itself is down she says so instead of reading out an error.
 
+**Data questions about any listed name** ("PE ratio of Suzlon Energy", "revenue of Kaynes Technology", "NAV of Parag Parikh
+Flexi Cap", "price of gold") are looked up in the instrument catalogue (NSE/BSE universe, AMFI funds, crypto, commodities;
+typo tolerant) and answered from fetched quote and Screener.in statements (`modules/qa/lookup.py`). A name the catalogue
+does not hold falls back to a web search (`shared/websearch.py`: DuckDuckGo, then Bing; no key), and the answer may only use
+numbers that appear in the returned snippets, with the source links shown. The question text is sent to those search
+engines; set `ARIA_WEB_SEARCH=0` to turn this off.
+
 **Live news reaches every module** (`shared/news.py`: ~84 free RSS feeds, India and abroad, merged, de-duplicated and
 ranked). Market analysis always includes headlines; for any other module (finance, tutor, general) the freshest
 headlines about the question are added to the LLM prompt whenever the question is time-sensitive ("latest",

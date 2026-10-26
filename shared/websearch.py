@@ -6,6 +6,8 @@ number in the answer must still appear in them (modules/qa/trust.py). Never rais
 """
 from __future__ import annotations
 
+import base64
+import os
 import threading
 import time
 from urllib.parse import parse_qs, unquote, urlparse
@@ -26,6 +28,17 @@ def _clean(url: str) -> str:
     return unquote(q["uddg"][0]) if "uddg" in q else url
 
 
+def _bing_link(url: str) -> str:
+    """Bing wraps results as bing.com/ck/a?...&u=a1<base64 of the real link>."""
+    u = parse_qs(urlparse(url).query).get("u", [""])[0]
+    if urlparse(url).netloc.endswith("bing.com") and u.startswith("a1"):
+        try:
+            return base64.urlsafe_b64decode(u[2:] + "=" * (-len(u[2:]) % 4)).decode()
+        except Exception:
+            pass
+    return url
+
+
 def _ddg(query: str) -> list[dict[str, str]]:
     r = requests.post("https://html.duckduckgo.com/html/", data={"q": query}, headers=_UA, timeout=_TIMEOUT)
     r.raise_for_status()
@@ -44,14 +57,14 @@ def _bing(query: str) -> list[dict[str, str]]:
     for res in BeautifulSoup(r.text, "html.parser").select("li.b_algo"):
         a, s = res.select_one("h2 a"), res.select_one(".b_caption p, p")
         if a and s:
-            out.append({"title": a.get_text(" ", strip=True), "snippet": s.get_text(" ", strip=True), "url": a.get("href", "")})
+            out.append({"title": a.get_text(" ", strip=True), "snippet": s.get_text(" ", strip=True), "url": _bing_link(a.get("href", ""))})
     return out
 
 
 def search(query: str, limit: int = 5) -> list[dict[str, str]]:
     """Up to `limit` {title, snippet, url} results, cached for 10 minutes."""
     query = " ".join((query or "").split())[:200]
-    if len(query) < 3:
+    if len(query) < 3 or os.getenv("ARIA_WEB_SEARCH", "1") == "0":  # off switch: the question text leaves this computer when it is on
         return []
     with _lock:
         hit = _cache.get(query.lower())

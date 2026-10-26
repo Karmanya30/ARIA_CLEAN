@@ -1,6 +1,6 @@
 # Measurements (22 Oct 2026, branch audit/system-review-20261016, HEAD 5c04552)
 
-## STATUS (paused 22 Oct 2026, ~14:25 IST): 4 of 6 items measured
+## STATUS (finished 25 Oct 2026): all six items measured (the LiveTalking and Local Avatar modes were later removed, so their numbers are historical)
 
 Done: 1 lip-sync lag, 2 browser comparison of the 5th (in-house engine) and 6th (LiveTalking) chat modes, 3 both avatar services at once + second sessions, 5 launcher port-8000 scan (isolated logic test).
 Still to measure: 4 flaky forecast test (10 runs idle, 10 loaded, robust fix if it is a timing assumption), 6 end-to-end question latency for all six chat modes.

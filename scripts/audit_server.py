@@ -45,9 +45,11 @@ patch.setattr(intel, "resolve_target", lambda q: Target("TESTCO", "TESTCO.NS", "
 patch.setattr(intel, "gather", lambda target: make_snapshot("operating"))
 import ai.llm.groq_client as llm
 patch.setattr(llm, "generate_structured", lambda *a, **k: None)
-for name in ("api.routes.chat", "api.routes.instruments"):
-    patch.setattr(sys.modules[name], "register_later", lambda *a, **k: None)
-patch.setattr(core.orchestrator, "_with_news", lambda response: response)
+import modules.qa.present
+patch.setattr(modules.qa.present, "register_later", lambda *a, **k: None)  # no background speech clips
+patch.setattr(core.orchestrator, "_with_news", lambda query, pipeline, *a, **k: pipeline(query, *a, **k))  # no live headlines
+import shared.websearch
+patch.setattr(shared.websearch, "search", lambda *a, **k: [])  # no internet search
 
 # Fill dashboard snapshots with visibly synthetic numbers; do not start polling.
 from datetime import datetime, timezone

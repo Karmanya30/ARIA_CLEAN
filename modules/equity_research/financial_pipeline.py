@@ -70,6 +70,28 @@ def _calculate_year_specific_change(normalized_data: Dict[str, Any],
     return v1 - v2
 
 
+_COMPARE_FIELDS = ((r"debt|borrowing|leverage", "debt", "Debt/borrowings"), (r"profit|earning|income", "net_profit", "Net profit"),
+                   (r"equity|net worth|book", "equity", "Equity"), (r"revenue|sales|turnover|", "revenue", "Revenue"))
+
+
+def compare_companies(query: str, tickers: List[str]) -> Dict[str, Any]:
+    """Side-by-side yearly figures for 2-4 named companies, straight from Screener.in (consolidated where it exists). No model
+    text: the comparison is the data, so nothing in it can be invented."""
+    field, label = next((f, lab) for pat, f, lab in _COMPARE_FIELDS if re.search(pat, query, re.I))
+    lines, evidence = [], {}
+    for t in tickers[:4]:
+        raw = get_screener_data(t, consolidated=True)
+        by_year = {} if "error" in raw else normalize_screener_data(raw).get(field, {}).get("by_year", {})
+        if not by_year:
+            lines.append(f"{t}: {label.lower()} is not available from Screener.in right now.")
+            continue
+        recent = dict(list(by_year.items())[-4:])
+        evidence[t] = recent
+        lines.append(f"{t} ({raw.get('view')} accounts): " + "; ".join(f"{k}: ₹{v:,.0f} Cr" for k, v in recent.items()))
+    return {"metric": f"{label} comparison", "value": None, "normalized_data": evidence, "confidence": "high" if len(evidence) > 1 else "low",
+            "explanation": f"{label} in ₹ Crore (Screener.in, latest years and trailing twelve months):\n" + "\n".join(f"- {line}" for line in lines)}
+
+
 _FIELD_OF_METRIC = (("debt", "debt", "Debt/borrowings"), ("revenue", "revenue", "Revenue"), ("profit", "net_profit", "Net profit"))
 
 
@@ -83,7 +105,7 @@ def _asked_figures(normalized: Dict[str, Any], years: List[str], metric_id: Opti
             for fy in years[:2]:
                 v = get_value_for_fy(normalized.get(field, {}), fy)
                 if v is not None:
-                    parts.append(f"{fy} ({_fy_to_mar(fy) or fy}): ₹{v:,.0f} Cr")
+                    parts.append(f"FY{fy.removeprefix('FY')} ({_fy_to_mar(fy) or fy}): ₹{v:,.0f} Cr")
             return f"{company} {label} - " + "; ".join(parts) + f" ({view} accounts, Screener.in)." if parts else ""
     return ""
 
@@ -94,7 +116,7 @@ def process_financial_query(query: str, company: str) -> Dict[str, Any]:
     Fetch → Normalize → Extract years → Route → Calculate → LLM(grounded) → Response
     """
     # Step 1: Fetch
-    raw_data = get_screener_data(company)
+    raw_data = get_screener_data(company, consolidated=True)  # the group figures every headline number (and Yahoo) uses; falls back to standalone
     if "error" in raw_data:
         return {
             "metric": "unknown", "value": None, "normalized_data": {},

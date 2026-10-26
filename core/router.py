@@ -90,12 +90,19 @@ def is_fundamental_query(query: str) -> bool:
     return any(kw in text for kw in _FUNDAMENTAL_KEYWORDS)
 
 
+_COMPANY_FACT = re.compile(r"\b(ceo|cfo|chairman|chairperson|founder|founded|headquarters?|headquartered|managing director|employees|who owns)\b")
+
+
+def is_company_fact_query(query: str) -> bool:
+    return bool(_COMPANY_FACT.search(query.lower()))
+
+
 def is_investment_query(query: str) -> bool:
     """True ONLY for live market/stock price/news queries (Module 4,
     yfinance path) -- NOT for fundamental analysis."""
     text = query.lower()
-    if is_fundamental_query(query):
-        return False
+    if is_fundamental_query(query) or _COMPANY_FACT.search(text):
+        return False  # "who is the CEO of Infosys" is a fact about the company, not a request for its quote and trend
     return any(word in text for word in _INVESTMENT_INTENT_WORDS)
 
 

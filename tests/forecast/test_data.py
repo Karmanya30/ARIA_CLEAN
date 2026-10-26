@@ -152,3 +152,14 @@ def test_real_tcs_history(tmp_path, monkeypatch):
     df, meta = D.load_history("TCS.NS")
     assert len(df) >= MIN_BARS and df.index.tz is None and meta.market == "IN"
     assert (df.adj_close <= df.close * 1.0001).all()
+
+
+def test_a_corrupt_cache_file_is_refetched_not_fatal(tmp_path, monkeypatch):
+    """An interrupted write left a truncated parquet that crashed every later run for that symbol."""
+    monkeypatch.setattr(D, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(D, "_SERIES_MEM", {})
+    good = pd.DataFrame({"adj_close": [1.0, 2.0, 3.0]}, index=pd.date_range("2026-01-01", periods=3))
+    (tmp_path / "^X.parquet").write_bytes(b"PAR1 truncated")
+    monkeypatch.setattr(D, "_fetch", lambda s: good)
+    assert list(D.load_series("^X")) == [1.0, 2.0, 3.0]
+    assert list(pd.read_parquet(tmp_path / "^X.parquet")["adj_close"]) == [1.0, 2.0, 3.0]
