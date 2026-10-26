@@ -114,7 +114,7 @@ def instrument_answer(instrument_id: str, question: str, owner_id: str | None, h
     return {"domain": "instrument", "query": question, "response": text,
             "instrument": {"id": it["id"], "name": facts["quote"].get("name") or it["name"], "type": it["type"]},
             "context": {"quote": facts["quote"], "stats": facts.get("return_and_risk_stats", {}), "sip": facts.get("sip_simulation"),
-                        "research": facts.get("aria_saved_research"), "unavailable": facts["unavailable"]},
+                        "research": facts.get("aria_saved_research"), "financials": facts.get("financials"), "unavailable": facts["unavailable"]},
             "grounding": grounding}
 
 

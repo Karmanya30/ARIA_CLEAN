@@ -20,6 +20,33 @@ def _strip(d: dict, drop: tuple[str, ...]) -> dict:
     return {k: v for k, v in d.items() if k not in drop and v is not None}
 
 
+_FIN_TTL = 3600
+_fin_cache: dict[str, tuple[float, dict | None]] = {}
+_FIN_FIELDS = (("revenue", "revenue"), ("net_profit", "net_profit"), ("debt", "borrowings"), ("equity", "equity"))
+
+
+def financials(symbol: str) -> dict | None:
+    """Yearly revenue / net profit / borrowings / equity for a listed company from Screener.in (consolidated when it has group
+    accounts), last 4 periods. None when Screener has no such company: the caller reports it as unavailable."""
+    import time
+
+    key = re.sub(r"\.(NS|BO)$", "", symbol.upper())
+    hit = _fin_cache.get(key)
+    if hit and time.monotonic() - hit[0] < _FIN_TTL:
+        return hit[1]
+    from modules.equity_research.data_normalizer import normalize_screener_data
+    from modules.equity_research.screener_adapter import get_screener_data
+
+    raw = get_screener_data(key, consolidated=True)
+    out: dict | None = None
+    if "error" not in raw:
+        norm = normalize_screener_data(raw)
+        out = {label: dict(list(norm[f]["by_year"].items())[-4:]) for f, label in _FIN_FIELDS if norm.get(f, {}).get("by_year")}
+        out = {**out, "basis": raw.get("view"), "unit": "Rs crore (TTM = trailing twelve months)", "source": "Screener.in"} if out else None
+    _fin_cache[key] = (time.monotonic(), out)
+    return out
+
+
 def gather(it: dict, owner_id: str | None = None) -> dict[str, Any]:
     """Facts for the prompt. Each part is fetched on its own so one dead source only adds a line to "unavailable"."""
     facts: dict[str, Any] = {"instrument": {"id": it["id"], "name": it["name"], "type": it["type"], "exchange": it["exchange"], "currency": it["currency"]},
@@ -58,6 +85,14 @@ def gather(it: dict, owner_id: str | None = None) -> dict[str, Any]:
                                                 if r.get(k) is not None}
         except Exception as exc:
             logger.debug(f"saved research lookup skipped: {type(exc).__name__}")
+    if it["type"] == "stock":
+        try:
+            if fin := financials(it["symbol"]):
+                facts["financials"] = fin
+            else:
+                facts["unavailable"].append("yearly financial statements (not on Screener.in)")
+        except Exception as exc:
+            facts["unavailable"].append(f"yearly financial statements ({type(exc).__name__})")
     if it["type"] in ("stock", "etf", "crypto", "commodity", "index"):
         try:
             from shared.news import fetch_news
@@ -137,6 +172,16 @@ def direct_answer(facts: dict, question: str) -> str | None:
         if bits:
             date_note = f" as of {as_of}" if as_of else ""
             return f"For {name}{date_note}: " + "; ".join(bits) + f". {I.CAVEAT}\n\nThis is not investment advice."
+    fin = facts.get("financials")
+    for pat, key, label in ((r"\b(revenue|sales)\b", "revenue", "revenue"), (r"\b(net )?profit\b", "net_profit", "net profit"),
+                            (r"\b(debt|borrowings?)\b", "borrowings", "borrowings")):
+        if fin and re.search(pat, ql) and fin.get(key) and not re.search(r"\b(growth|margin|forecast|target|compare|trend|why)\b", ql):
+            rows = "; ".join(f"{k}: ₹{_f(v, 0)} Cr" for k, v in fin[key].items())
+            return f"{name} {label} ({fin['basis']} accounts, Screener.in): {rows}.\n\nThis is not investment advice."
+    for pat, key, label, fmt in ((r"\b(pe|p/e)\b", "pe_ratio", "trailing P/E ratio", lambda v: f"{v:,.2f}"),
+                                 (r"\bmarket ?cap", "market_cap", "market capitalisation", lambda v: f"₹{v / 1e7:,.0f} Cr" if i["currency"] == "INR" else f"{v:,.0f} {i['currency']}")):
+        if re.search(pat, ql) and q.get(key) is not None and not re.search(r"\b(target|forecast|should|compare)\b", ql):
+            return f"{name}'s {label} is {fmt(q[key])}{f' (as of {as_of})' if as_of else ''}.\n\nThis is not investment advice."
     # A target/forecast is not a request for today's quote.
     if re.search(r"\b(nav|price|level|quote)\b", ql) and not re.search(r"\b(target|forecast|predict|future|next)\b", ql) and q.get("price") is not None:
         label = "NAV" if i["type"] == "mutual_fund" else "yield" if q.get("yield") is not None else "price"

@@ -49,6 +49,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
             "company": ticker,
             "metric": result.get("metric"),
             "value": result.get("value"),
+            "normalized_data": result.get("normalized_data"),  # the evidence modules/qa/trust.py checks the answer's numbers against
             "response": result.get("explanation", ""),
             "confidence": result.get("confidence", "low"),
         }

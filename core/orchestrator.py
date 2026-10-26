@@ -23,6 +23,7 @@ from shared.human_state import current_voice_block
 from shared.news import format_headlines, news_context
 from shared.domain_guard import validate_output
 from shared.intent_resolver import current_interpretation
+from modules.qa.lookup import is_data_question
 from modules.qa.models import active_focus
 from shared.dialogue import act as dialogue_act, clean as clean_reply, confirmation, general_task, CONVERSATION_SYSTEM
 
@@ -208,6 +209,8 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
         response = equity_research_pipeline(query, user_id=session_id)
     elif is_broad_market_query(query):
         response = market_pipeline(query)
+    elif not by_intent and not ticker and (response := _data_lookup(shown, query, session_id)):
+        pass  # a data question about a name outside the hard-coded list: instrument catalogue, then web search
     elif domain == "finance":
         response = _with_news(query, finance_pipeline, user_id=session_id)
     elif domain == "tutor":
@@ -241,6 +244,17 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     response["query"] = shown
     save_turn(session_id, shown, response)
     return response
+
+
+def _data_lookup(shown: str, query: str, session_id: str) -> dict[str, Any] | None:
+    """modules/qa/lookup.py; a failure there only means the normal routing carries on."""
+    from modules.qa import lookup
+    try:
+        history = [{"query": t.get("query"), "response": (t.get("response") or {}).get("response")} for t in get_session(session_id).get("history", [])[-3:]]
+        return lookup.data_answer(shown, query, user_store.current_owner.get() or session_id, history)
+    except Exception as exc:
+        logger.warning(f"data lookup skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return None
 
 
 _ABOUT_IT = re.compile(r"\b(it|its|this|that|the company|the stock|the report|p/?e|pe ratio|price|valuation|revenue|profit|debt|expensive|cheap|risks?|outlook|score|sentiment|management)\b", re.I)
@@ -383,7 +397,7 @@ def _tone_and_handle(query: str, text: str, session: dict, session_id: str, mode
             block = human_state.style_block(state, plan, goals, new_prefs, episodes)
         if plan:
             episodes = human_state.add_episode(episodes, state, plan, date.today().isoformat())
-        support = current_interpretation.get() is None and bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision") and not hit and not finance_statement(text)
+        support = current_interpretation.get() is None and bool(plan) and plan["strategy"] in ("reassure", "listen") and state["intent"] not in ("question", "decision") and not hit and not finance_statement(text) and not is_data_question(text)
         if plan or new_prefs != prefs:
             user_store.save_style(owner, new_prefs, episodes)
         session["human"] = state["trajectory"]

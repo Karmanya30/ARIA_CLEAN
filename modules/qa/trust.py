@@ -45,6 +45,7 @@ def ungrounded(reply: str, source: str, lenient: bool = False) -> list[float]:
     calendar numbers are allowed. `lenient` (routes whose prompts allow one-decimal rounding) widens the rounding band."""
     allowed = _nums(source)
     reply = _INDEX_NAME.sub(r"\1", reply)  # "Nifty 50" is a name, not a figure
+    reply = _FISCAL_YEAR.sub("FY", reply)  # "FY23-24" / "2023-24" is a period label, not a figure
     rel, floor = (0.012, 0.06) if lenient else (0.006, 0.011)
     close = lambda x: any(abs(x - f) <= max(floor, rel * abs(f)) for f in allowed)  # noqa: E731
     bad = []
@@ -60,6 +61,7 @@ def ungrounded(reply: str, source: str, lenient: bool = False) -> list[float]:
     return bad
 
 
+_FISCAL_YEAR = re.compile(r"\b(?:FY|F\.Y\.?)\s*\d{2,4}\s*[-‐-―−/]\s*\d{2,4}\b|\b(?:19|20)\d{2}\s*[-‐-―−/]\s*\d{2}\b", re.I)
 _INDEX_NAME = re.compile(r"\b(nifty|sensex|bse|cnx)[\s-]*(?:50|100|200|500|30)\b", re.I)
 _CLAIM_AFTER =re.compile(r"\s*(?:%|×|x\b|times\b|per ?cent|percent)|[-‐-―−]\d", re.I)
 _CLAIM_BEFORE = re.compile(r"\d[-‐-―−]$")

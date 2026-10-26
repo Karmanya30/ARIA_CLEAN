@@ -136,6 +136,8 @@ def is_broad_market_query(query: str) -> bool:
     """True for market/index/sector/macro questions that are not about one
     listed stock (Module 3, not Module 4)."""
     text = query.lower()
+    if _CONCEPT_QUESTION.match(text) and len(text.split()) <= 5 and not re.search(r"\b(the|today|current|currently|now|latest|recent|this|rates?|level|levels|happening)\b", text):
+        return False  # "what is inflation?" is a lesson, not a market briefing
     return any(term in text for term in _BROAD_MARKET_TERMS) and not any(
         term in text for term in _INDIVIDUAL_STOCK_TERMS
     )

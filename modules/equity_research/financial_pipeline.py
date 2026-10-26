@@ -70,6 +70,24 @@ def _calculate_year_specific_change(normalized_data: Dict[str, Any],
     return v1 - v2
 
 
+_FIELD_OF_METRIC = (("debt", "debt", "Debt/borrowings"), ("revenue", "revenue", "Revenue"), ("profit", "net_profit", "Net profit"))
+
+
+def _asked_figures(normalized: Dict[str, Any], years: List[str], metric_id: Optional[str], view: str, company: str) -> str:
+    """The exact figure(s) a year-specific question asks for, straight from the statements ("" when none is asked/available)."""
+    if not years or not metric_id:
+        return ""
+    for key, field, label in _FIELD_OF_METRIC:
+        if key in metric_id:
+            parts = []
+            for fy in years[:2]:
+                v = get_value_for_fy(normalized.get(field, {}), fy)
+                if v is not None:
+                    parts.append(f"{fy} ({_fy_to_mar(fy) or fy}): ₹{v:,.0f} Cr")
+            return f"{company} {label} - " + "; ".join(parts) + f" ({view} accounts, Screener.in)." if parts else ""
+    return ""
+
+
 def process_financial_query(query: str, company: str) -> Dict[str, Any]:
     """
     Full data-grounded financial pipeline:
@@ -160,6 +178,9 @@ Stop after Risk.
 """
 
     explanation = generate_response(grounded_prompt)
+    if fact := _asked_figures(normalized_data, fiscal_years, metric_id, raw_data.get("view", "standalone"), company):
+        explanation = fact + "\n\n" + explanation  # the figure asked for is stated from the data, whatever the model wrote
+
     confidence = "high" if result is not None else "medium"
 
     return {

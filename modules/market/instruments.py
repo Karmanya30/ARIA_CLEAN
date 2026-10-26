@@ -672,6 +672,7 @@ def _quote_yahoo(it: dict) -> dict:
         if it.get("generic") and (n := info.get("longName") or info.get("shortName")):
             q["name"] = n
         for k, src in (("market_cap", "marketCap"), ("pe_ratio", "trailingPE"), ("sector", "sector"), ("industry", "industry"), ("beta", "beta"),
+                       ("dividend_per_share", "dividendRate"), ("dividend_yield_pct", "dividendYield"), ("eps_ttm", "trailingEps"), ("book_value_per_share", "bookValue"),
                        ("expense_ratio_pct", "netExpenseRatio"), ("net_assets", "netAssets"), ("fund_family", "fundFamily"), ("fund_category", "category")):
             if info.get(src) is not None:
                 q[k] = info[src]
