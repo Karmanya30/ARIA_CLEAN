@@ -30,6 +30,7 @@ async function openConversation(page: Page, version: string) {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto('/#/chat')
+  await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('Conversational Mode')
   return errors
 }

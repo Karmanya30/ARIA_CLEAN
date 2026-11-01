@@ -26,16 +26,15 @@ from api.runtime_version import backend_revision
 
 _RUNTIME_REVISION = backend_revision()  # snapshot loaded source, not files edited later
 
-from api.routes import avatar, chat, conversations, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
+from api.routes import avatar, chat, conversations, feedback, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
 auth.mode()  # reject misspelled modes rather than falling back to private access
 app = FastAPI(title="ARIA API", dependencies=[Depends(auth.authorize)])
 app.add_middleware(ResourceLimits)
 
 # The Vite dev server (default :5173) and the built static frontend served
-# from this same process both need to reach the API; a public ngrok tunnel
-# (Tavus mode only) adds an extra origin the browser sees requests come
-# back through. Private mode keeps the existing non-cookie behavior;
+# from this same process both need to reach the API. Private mode keeps
+# the existing non-cookie behavior;
 # account mode permits credentials only from its configured exact origin.
 app.add_middleware(
     CORSMiddleware,
@@ -94,8 +93,9 @@ def _start_warm_up() -> None:
         threading.Thread(target=_warm_up, name="warm-up", daemon=True).start()
 
 
-app.include_router(conversations.router)
 app.include_router(chat.router)
+app.include_router(conversations.router)
+app.include_router(feedback.router)
 app.include_router(voice.router)
 app.include_router(profile.router)
 app.include_router(transactions.router)

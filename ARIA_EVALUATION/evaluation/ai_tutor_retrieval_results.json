@@ -1,0 +1,689 @@
+{
+ "summary": {
+  "in_kb_n": 50,
+  "top1": 0.96,
+  "hit_at_5": 1.0,
+  "best_accept_rate": 0.96,
+  "best_accept_correct": 0.92,
+  "ood_n": 20,
+  "ood_false_accept": 0,
+  "ood_false_accept_rate": 0.0,
+  "warm_load_s": 8.81,
+  "latency_ms_p50": 197.3,
+  "latency_ms_p95": 355.3
+ },
+ "in_kb": [
+  {
+   "q": "what is simple interest",
+   "gold": "simple_interest",
+   "top": [
+    "simple_interest",
+    "compound_interest",
+    "emergency_fund"
+   ],
+   "score": 0.73,
+   "accepted": "simple_interest"
+  },
+  {
+   "q": "how does interest on interest work over the years",
+   "gold": "compound_interest",
+   "top": [
+    "simple_interest",
+    "compound_interest",
+    "amortization"
+   ],
+   "score": 0.629,
+   "accepted": "simple_interest"
+  },
+  {
+   "q": "explain CAGR",
+   "gold": "cagr",
+   "top": [
+    "cagr",
+    "xirr",
+    "ltcg"
+   ],
+   "score": 0.656,
+   "accepted": "cagr"
+  },
+  {
+   "q": "what is the XIRR of irregular cash flows",
+   "gold": "xirr",
+   "top": [
+    "xirr",
+    "debt_trap",
+    "emi"
+   ],
+   "score": 0.646,
+   "accepted": "xirr"
+  },
+  {
+   "q": "what will my money be worth in future",
+   "gold": "future_value",
+   "top": [
+    "future_value",
+    "present_value",
+    "net_worth"
+   ],
+   "score": 0.603,
+   "accepted": "future_value"
+  },
+  {
+   "q": "what is the present value of money",
+   "gold": "present_value",
+   "top": [
+    "present_value",
+    "future_value",
+    "npv"
+   ],
+   "score": 0.688,
+   "accepted": "present_value"
+  },
+  {
+   "q": "explain net present value",
+   "gold": "npv",
+   "top": [
+    "npv",
+    "present_value",
+    "net_worth"
+   ],
+   "score": 0.588,
+   "accepted": "npv"
+  },
+  {
+   "q": "what is a mutual fund",
+   "gold": "mutual_fund",
+   "top": [
+    "mutual_fund",
+    "index_fund",
+    "etf"
+   ],
+   "score": 0.798,
+   "accepted": "mutual_fund"
+  },
+  {
+   "q": "what is a systematic investment plan",
+   "gold": "sip",
+   "top": [
+    "sip",
+    "index_fund",
+    "elss"
+   ],
+   "score": 0.739,
+   "accepted": "sip"
+  },
+  {
+   "q": "explain ELSS tax saving funds",
+   "gold": "elss",
+   "top": [
+    "elss",
+    "section_80c",
+    "emergency_fund"
+   ],
+   "score": 0.786,
+   "accepted": "elss"
+  },
+  {
+   "q": "what is an ETF",
+   "gold": "etf",
+   "top": [
+    "etf",
+    "index_fund",
+    "mutual_fund"
+   ],
+   "score": 0.861,
+   "accepted": "etf"
+  },
+  {
+   "q": "what is an index fund",
+   "gold": "index_fund",
+   "top": [
+    "index_fund",
+    "etf",
+    "mutual_fund"
+   ],
+   "score": 0.812,
+   "accepted": "index_fund"
+  },
+  {
+   "q": "what is a fixed deposit",
+   "gold": "fd",
+   "top": [
+    "fd",
+    "fixed_vs_floating_rate",
+    "sip"
+   ],
+   "score": 0.848,
+   "accepted": "fd"
+  },
+  {
+   "q": "tell me about PPF",
+   "gold": "ppf",
+   "top": [
+    "ppf",
+    "mutual_fund",
+    "pe_ratio"
+   ],
+   "score": 0.702,
+   "accepted": "ppf"
+  },
+  {
+   "q": "what is national pension system",
+   "gold": "nps",
+   "top": [
+    "nps",
+    "annuity",
+    "retirement_corpus"
+   ],
+   "score": 0.649,
+   "accepted": "nps"
+  },
+  {
+   "q": "what is direct equity investing",
+   "gold": "direct_equity",
+   "top": [
+    "direct_equity",
+    "sip",
+    "index_fund"
+   ],
+   "score": 0.86,
+   "accepted": "direct_equity"
+  },
+  {
+   "q": "what is standard deviation of returns",
+   "gold": "standard_deviation",
+   "top": [
+    "standard_deviation",
+    "sharpe_ratio",
+    "real_return"
+   ],
+   "score": 0.678,
+   "accepted": "standard_deviation"
+  },
+  {
+   "q": "what is volatility in markets",
+   "gold": "volatility",
+   "top": [
+    "volatility",
+    "standard_deviation",
+    "beta"
+   ],
+   "score": 0.713,
+   "accepted": "volatility"
+  },
+  {
+   "q": "explain beta of a stock",
+   "gold": "beta",
+   "top": [
+    "beta",
+    "stock_exchange",
+    "pe_ratio"
+   ],
+   "score": 0.75,
+   "accepted": "beta"
+  },
+  {
+   "q": "what is the sharpe ratio",
+   "gold": "sharpe_ratio",
+   "top": [
+    "sharpe_ratio",
+    "standard_deviation",
+    "pe_ratio"
+   ],
+   "score": 0.654,
+   "accepted": "sharpe_ratio"
+  },
+  {
+   "q": "what is maximum drawdown",
+   "gold": "drawdown",
+   "top": [
+    "drawdown",
+    "withdrawal_rate",
+    "section_80c"
+   ],
+   "score": 0.721,
+   "accepted": "drawdown"
+  },
+  {
+   "q": "why diversify my portfolio",
+   "gold": "diversification",
+   "top": [
+    "diversification",
+    "market_cap",
+    "mutual_fund"
+   ],
+   "score": 0.67,
+   "accepted": "diversification"
+  },
+  {
+   "q": "what is a stock exchange",
+   "gold": "stock_exchange",
+   "top": [
+    "stock_exchange",
+    "etf",
+    "direct_equity"
+   ],
+   "score": 0.674,
+   "accepted": "stock_exchange"
+  },
+  {
+   "q": "what is T+1 settlement",
+   "gold": "settlement_cycle",
+   "top": [
+    "settlement_cycle",
+    "fd",
+    "ltcg"
+   ],
+   "score": 0.673,
+   "accepted": "settlement_cycle"
+  },
+  {
+   "q": "what is bid ask spread",
+   "gold": "bid_ask_spread",
+   "top": [
+    "bid_ask_spread",
+    "sip",
+    "direct_equity"
+   ],
+   "score": 0.828,
+   "accepted": "bid_ask_spread"
+  },
+  {
+   "q": "what is market capitalisation",
+   "gold": "market_cap",
+   "top": [
+    "market_cap",
+    "stock_exchange",
+    "diversification"
+   ],
+   "score": 0.828,
+   "accepted": "market_cap"
+  },
+  {
+   "q": "explain price to earnings ratio",
+   "gold": "pe_ratio",
+   "top": [
+    "pe_ratio",
+    "dividend_yield",
+    "beta"
+   ],
+   "score": 0.696,
+   "accepted": "pe_ratio"
+  },
+  {
+   "q": "what is dividend yield",
+   "gold": "dividend_yield",
+   "top": [
+    "dividend_yield",
+    "compound_interest",
+    "mutual_fund"
+   ],
+   "score": 0.869,
+   "accepted": "dividend_yield"
+  },
+  {
+   "q": "what is section 80C",
+   "gold": "section_80c",
+   "top": [
+    "section_80c",
+    "section_80d",
+    "elss"
+   ],
+   "score": 0.595,
+   "accepted": "section_80c"
+  },
+  {
+   "q": "what is section 80D health insurance deduction",
+   "gold": "section_80d",
+   "top": [
+    "section_80d",
+    "section_80c",
+    "standard_deduction"
+   ],
+   "score": 0.906,
+   "accepted": "section_80d"
+  },
+  {
+   "q": "long term capital gains tax",
+   "gold": "ltcg",
+   "top": [
+    "ltcg",
+    "stcg",
+    "section_80c"
+   ],
+   "score": 0.659,
+   "accepted": "ltcg"
+  },
+  {
+   "q": "short term capital gains tax",
+   "gold": "stcg",
+   "top": [
+    "stcg",
+    "ltcg",
+    "section_80c"
+   ],
+   "score": 0.64,
+   "accepted": "stcg"
+  },
+  {
+   "q": "old versus new tax regime",
+   "gold": "tax_regime_comparison",
+   "top": [
+    "tax_regime_comparison",
+    "section_80c",
+    "ltcg"
+   ],
+   "score": 0.756,
+   "accepted": "tax_regime_comparison"
+  },
+  {
+   "q": "what is HRA exemption",
+   "gold": "hra",
+   "top": [
+    "hra",
+    "section_80c",
+    "section_80d"
+   ],
+   "score": 0.764,
+   "accepted": "hra"
+  },
+  {
+   "q": "what is the standard deduction",
+   "gold": "standard_deduction",
+   "top": [
+    "standard_deduction",
+    "section_80d",
+    "section_80c"
+   ],
+   "score": 0.767,
+   "accepted": "standard_deduction"
+  },
+  {
+   "q": "how big should my emergency fund be",
+   "gold": "emergency_fund",
+   "top": [
+    "emergency_fund",
+    "mutual_fund",
+    "elss"
+   ],
+   "score": 0.667,
+   "accepted": "emergency_fund"
+  },
+  {
+   "q": "what is a debt trap",
+   "gold": "debt_trap",
+   "top": [
+    "debt_trap",
+    "fd",
+    "amortization"
+   ],
+   "score": 0.771,
+   "accepted": "debt_trap"
+  },
+  {
+   "q": "how is credit score calculated",
+   "gold": "credit_score",
+   "top": [
+    "credit_score",
+    "cibil_score",
+    "simple_interest"
+   ],
+   "score": 0.62,
+   "accepted": "credit_score"
+  },
+  {
+   "q": "what is net worth",
+   "gold": "net_worth",
+   "top": [
+    "net_worth",
+    "present_value",
+    "npv"
+   ],
+   "score": 0.828,
+   "accepted": "net_worth"
+  },
+  {
+   "q": "what is inflation",
+   "gold": "inflation",
+   "top": [
+    "inflation",
+    "real_return",
+    "inflation_adjusted_need"
+   ],
+   "score": 0.699,
+   "accepted": "inflation"
+  },
+  {
+   "q": "what is real return after inflation",
+   "gold": "real_return",
+   "top": [
+    "real_return",
+    "inflation",
+    "present_value"
+   ],
+   "score": 0.728,
+   "accepted": "real_return"
+  },
+  {
+   "q": "what is EMI",
+   "gold": "emi",
+   "top": [
+    "emi",
+    "stock_exchange",
+    "etf"
+   ],
+   "score": 0.779,
+   "accepted": "emi"
+  },
+  {
+   "q": "fixed vs floating interest rate on loans",
+   "gold": "fixed_vs_floating_rate",
+   "top": [
+    "fixed_vs_floating_rate",
+    "fd",
+    "simple_interest"
+   ],
+   "score": 0.87,
+   "accepted": "fixed_vs_floating_rate"
+  },
+  {
+   "q": "what is loan amortization",
+   "gold": "amortization",
+   "top": [
+    "amortization",
+    "prepayment",
+    "simple_interest"
+   ],
+   "score": 0.864,
+   "accepted": "amortization"
+  },
+  {
+   "q": "should I prepay my home loan",
+   "gold": "prepayment",
+   "top": [
+    "prepayment",
+    "amortization",
+    "debt_trap"
+   ],
+   "score": 0.554,
+   "accepted": null
+  },
+  {
+   "q": "what is a CIBIL score",
+   "gold": "cibil_score",
+   "top": [
+    "credit_score",
+    "cibil_score",
+    "nps"
+   ],
+   "score": 0.791,
+   "accepted": "credit_score"
+  },
+  {
+   "q": "how much corpus do I need to retire",
+   "gold": "retirement_corpus",
+   "top": [
+    "retirement_corpus",
+    "withdrawal_rate",
+    "inflation_adjusted_need"
+   ],
+   "score": 0.54,
+   "accepted": null
+  },
+  {
+   "q": "how inflation changes what I need after retirement",
+   "gold": "inflation_adjusted_need",
+   "top": [
+    "inflation_adjusted_need",
+    "inflation",
+    "real_return"
+   ],
+   "score": 0.651,
+   "accepted": "inflation_adjusted_need"
+  },
+  {
+   "q": "what is an annuity",
+   "gold": "annuity",
+   "top": [
+    "annuity",
+    "mutual_fund",
+    "nps"
+   ],
+   "score": 0.856,
+   "accepted": "annuity"
+  },
+  {
+   "q": "what is a safe withdrawal rate",
+   "gold": "withdrawal_rate",
+   "top": [
+    "withdrawal_rate",
+    "drawdown",
+    "elss"
+   ],
+   "score": 0.899,
+   "accepted": "withdrawal_rate"
+  }
+ ],
+ "ood": [
+  {
+   "q": "write a python function to sort a list",
+   "top": "etf",
+   "score": 0.081,
+   "accepted": null
+  },
+  {
+   "q": "what is the capital of France",
+   "top": "market_cap",
+   "score": 0.222,
+   "accepted": null
+  },
+  {
+   "q": "who is the CEO of Infosys",
+   "top": "elss",
+   "score": 0.158,
+   "accepted": null
+  },
+  {
+   "q": "tell me a joke",
+   "top": "volatility",
+   "score": 0.085,
+   "accepted": null
+  },
+  {
+   "q": "how do I bake a cake",
+   "top": "credit_score",
+   "score": 0.07,
+   "accepted": null
+  },
+  {
+   "q": "what is the weather today",
+   "top": "present_value",
+   "score": 0.122,
+   "accepted": null
+  },
+  {
+   "q": "explain quantum computing",
+   "top": "stock_exchange",
+   "score": 0.157,
+   "accepted": null
+  },
+  {
+   "q": "how do I read a balance sheet",
+   "top": "simple_interest",
+   "score": 0.272,
+   "accepted": null
+  },
+  {
+   "q": "what is a credit default swap",
+   "top": "debt_trap",
+   "score": 0.332,
+   "accepted": null
+  },
+  {
+   "q": "explain options greeks delta gamma",
+   "top": "withdrawal_rate",
+   "score": 0.14,
+   "accepted": null
+  },
+  {
+   "q": "what is a futures contract",
+   "top": "future_value",
+   "score": 0.342,
+   "accepted": null
+  },
+  {
+   "q": "explain the black scholes model",
+   "top": "volatility",
+   "score": 0.241,
+   "accepted": null
+  },
+  {
+   "q": "what is a bond duration",
+   "top": "dividend_yield",
+   "score": 0.252,
+   "accepted": null
+  },
+  {
+   "q": "what is expense ratio",
+   "top": "pe_ratio",
+   "score": 0.5,
+   "accepted": null
+  },
+  {
+   "q": "how does a REIT work",
+   "top": "ppf",
+   "score": 0.29,
+   "accepted": null
+  },
+  {
+   "q": "what is a SWP systematic withdrawal plan",
+   "top": "sip",
+   "score": 0.492,
+   "accepted": null
+  },
+  {
+   "q": "what is cryptocurrency staking",
+   "top": "stcg",
+   "score": 0.373,
+   "accepted": null
+  },
+  {
+   "q": "what is GST",
+   "top": "ltcg",
+   "score": 0.33,
+   "accepted": null
+  },
+  {
+   "q": "explain a P2P lending platform",
+   "top": "sip",
+   "score": 0.328,
+   "accepted": null
+  },
+  {
+   "q": "what is Sukanya Samriddhi",
+   "top": "hra",
+   "score": 0.157,
+   "accepted": null
+  }
+ ]
+}

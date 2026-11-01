@@ -15,7 +15,7 @@ from modules.equity_research.intelligence.report import DISCLAIMER_STRIP  # the 
 
 DISCLAIMER_LINE = "This is not investment advice."
 ACCURACY_CAVEAT = ("ARIA's scores, valuations and forecasts are model estimates with measured, limited accuracy "
-                   "(see the validation section of the research report); verify before acting.")
+                   "(see the validation section of the research report). Please verify them before acting.")
 DEGRADED = "I couldn't reach my language model just now, so I won't guess. Please ask again in a moment."
 UNVERIFIED = "Note: {n} statement(s) with figures that are not in the data ARIA fetched were left out."
 

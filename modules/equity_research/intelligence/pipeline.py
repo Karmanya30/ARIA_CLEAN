@@ -5,7 +5,7 @@ Entry point of the intelligence layer: ``run_research(query)``.
 
 Returns ARIA's usual response dict (``domain``, ``company``, ``metric``, ``value``, ``response``,
 ``confidence``) plus a ``report`` key carrying the full structured report, so everything that
-already consumes a Module 4 response -- chat UI, TTS, the Tavus avatar -- keeps working unchanged.
+already consumes a Module 4 response -- chat UI, TTS, the live avatar -- keeps working unchanged.
 """
 from __future__ import annotations
 

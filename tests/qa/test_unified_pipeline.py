@@ -1,5 +1,5 @@
 """One answer pipeline for every entry point: the SAME question goes through POST /api/chat in all four modes,
-/api/instruments/ask, the market-chip (news item) form of /api/chat, the Tavus callback, the Live Avatar socket and the
+/api/instruments/ask, the market-chip (news item) form of /api/chat, the Live Avatar socket and the
 company-intelligence endpoint, and each of them must reach modules.qa.pipeline with equivalent normalised input and get
 the same grounding / disclaimer treatment. Network and model are stubbed."""
 from __future__ import annotations
@@ -82,12 +82,6 @@ def _chip():
                                           "system_context": "Headline: Infosys wins a deal. Sentiment score 0.4"}).json()
 
 
-def _tavus():
-    r = client.post(f"/v1/{_sid()}/chat/completions", json={"model": "m", "messages": [{"role": "user", "content": QUESTION}], "stream": False})
-    assert r.status_code == 200
-    return r.json()
-
-
 def _live():
     from ai.speech import live_tts
 
@@ -110,7 +104,6 @@ ENTRIES = [
     *[pytest.param(lambda m=m: _chat(m), Channel.CHAT, ChatMode.parse(m), id=f"chat[{m}]") for m in MODES],
     pytest.param(_instrument, Channel.INSTRUMENT, ChatMode.NORMAL, id="instrument-ask"),
     pytest.param(_chip, Channel.MARKET_CHIP, ChatMode.NORMAL, id="market-chip"),
-    pytest.param(_tavus, Channel.AVATAR, ChatMode.TAVUS, id="tavus-callback"),
     pytest.param(_live, Channel.AVATAR, ChatMode.LIVE, id="live-avatar-socket"),
 ]
 
@@ -152,7 +145,7 @@ def test_the_mode_never_changes_the_written_answer(mock_llm):
     written = {m: _chat(m)["response"] for m in MODES}
     assert len(set(written.values())) == 1
     spoken = {m: _chat(m).get("spoken") for m in MODES}
-    assert [m for m, s in spoken.items() if s] == [ChatMode.LIVE.value, ChatMode.TAVUS.value]  # only these two add a spoken version
+    assert [m for m, s in spoken.items() if s] == [ChatMode.LIVE.value]  # only these two add a spoken version
 
 
 def test_unknown_mode_strings_fall_back_to_normal_and_legacy_live_is_accepted():

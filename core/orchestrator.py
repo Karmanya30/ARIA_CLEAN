@@ -32,7 +32,7 @@ from shared.dialogue import act as dialogue_act, clean as clean_reply, confirmat
 # these fell through to modules/tutor/pipeline.py's generic fallback, whose
 # prompt unconditionally instructs the LLM to "explain the concept" in a
 # rigid Insight/Analysis/Recommendation/Risk format. Sent through a real
-# voice call (Conversational/Tavus mode), saying "hey" got answered with a
+# voice call (conversational mode), saying "hey" got answered with a
 # structured lecture on what the word "hey" means -- the opposite of
 # sounding like a person talking. Matched BEFORE any module routing so it
 # never reaches that fallback at all.
@@ -438,6 +438,14 @@ def _handle_query(query: str, session_id: str = "default", mode: str = "Normal M
     text, changes = normalize(query) if correct else (query, [])
     if human_state.is_crisis(query) or human_state.is_crisis(text):
         response = {"domain": "care", "query": query, "response": human_state.CARE_REPLY, "tone": {"strategy": "care", "format": "prose"}}
+        save_turn(session_id, query, response)
+        return response
+    # A generic capability question must never become a model-invented company lookup.
+    from modules.qa.safeguards import generic_company_request
+    focus = active_focus.get()
+    has_company_focus = bool(focus and (focus.context.company or focus.context.instrument_id))
+    if generic_company_request(text) and not has_company_focus:
+        response = {"domain": "clarify", "query": query, "response": "Yes. Which company would you like me to analyse? Please share its name or ticker and exchange."}
         save_turn(session_id, query, response)
         return response
     if kind := dialogue_act(query):

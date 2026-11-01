@@ -12,6 +12,7 @@ not another model to train.
 from __future__ import annotations
 
 from typing import Any
+import re
 
 import yfinance as yf
 from loguru import logger
@@ -53,6 +54,8 @@ def get_index_snapshot(name: str) -> dict[str, Any]:
         closes = hist["Close"].tolist()
         change = _pct_change(closes)
         snap = {
+            "as_of": str(hist.index[-1])[:10],
+            "data_note": "delayed daily observation, not a verified live quote",
             "index": name.title(),
             "ticker": ticker,
             "current_level": round(closes[-1], 2),
@@ -64,7 +67,7 @@ def get_index_snapshot(name: str) -> dict[str, Any]:
             # "Is Nifty up today?" is answered from today's move against the previous close, never from the 5-day trend
             snap.update(previous_close=round(closes[-2], 2), today_change_pct=round((closes[-1] - closes[-2]) / closes[-2] * 100, 2),
                         today_trend="up" if closes[-1] > closes[-2] else "down" if closes[-1] < closes[-2] else "flat",
-                        as_of=str(hist.index[-1])[:10], data_note="delayed about 15 minutes")
+                        as_of=str(hist.index[-1])[:10])
         return snap
     except Exception as exc:
         return {"error": str(exc)}
@@ -107,7 +110,13 @@ def get_sector_snapshot(sector: str) -> dict[str, Any]:
 
 def get_market_news_with_tone(query: str = "", limit: int = 12) -> tuple[list[str], dict]:
     """Fresh headlines for the question (or a broad market + world briefing when it names nothing specific), each tagged with its source and age, plus their tone (keyword rules unless FinBERT is already loaded: never loads the model here)."""
-    items = fetch_news(query, limit=limit)
+    # A broad market question must not search for generic words like "factors"
+    # or "influence", which retrieve unrelated health and lifestyle stories.
+    broad = bool(re.search(r"\b(?:market|nifty|sensex)\b", query, re.I)) and not _detect_sector(query)
+    items = fetch_news("Nifty Sensex Indian stock market" if broad else query, limit=limit * 3)
+    if broad:
+        items = [i for i in items if re.search(r"\b(?:nifty|sensex|nse|bse|indian (?:stock|equity)|dalal street)\b", i['title'], re.I)]
+    items = items[:limit]
     return format_headlines(items), sentiment.tone([i["title"] for i in items])
 
 

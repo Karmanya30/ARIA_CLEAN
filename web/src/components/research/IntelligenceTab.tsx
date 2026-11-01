@@ -189,7 +189,7 @@ export function IntelligenceTab() {
             <span className="ri-spin" aria-hidden="true" />
             <div>
               <strong>{STEPS[step]}</strong>
-              <div className="ri-sub">The first look at a company can take up to 30 seconds; repeat visits are instant.</div>
+              <div className="ri-sub">The first look at a company can take up to 30 seconds. Repeat visits are usually faster.</div>
             </div>
           </div>
         )}
@@ -332,7 +332,7 @@ export function IntelligenceTab() {
             {ratedPillars.length > 0 && (
               <div className="ri-section">
                 <h2>📋 Detailed evidence — what we checked and what we found</h2>
-                <p className="ri-sub">Click any pillar to expand the full evidence. A ▲ means it helped the score; a ▼ means it hurt it.</p>
+                <p className="ri-sub">Click any pillar to expand the full evidence. A ▲ means it helped the score, and a ▼ means it lowered it.</p>
                 <div className="ri-pillars">
                   {ratedPillars.map((p) => {
                     const pInfo = PILLAR_INFO[p.name]

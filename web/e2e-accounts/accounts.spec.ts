@@ -101,6 +101,7 @@ test('Google account signs in through the browser adapter and survives refresh',
   const first = (await (await page.request.get('/api/auth/session')).json()).user
   expect(first.email).toBe(email)
   await page.getByRole('tab', { name: 'Chat', exact: true }).click()
+    await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByLabel('Message ARIA', { exact: true }).fill('equity research report on TESTCO')
   const generated = page.waitForResponse(response => response.url().endsWith('/api/chat') && response.request().method() === 'POST')
   await page.getByRole('button', { name: 'Send message' }).click()

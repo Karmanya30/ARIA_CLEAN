@@ -317,7 +317,7 @@ async def authorize(request: HTTPConnection):
     if request.method not in ("GET", "HEAD", "OPTIONS"):
         same_origin(request)
     path = request.url.path
-    if path.startswith(("/v1/", "/api/tavus/", "/api/research/validation", "/api/research/scenario-backtest", "/embed")):
+    if path.startswith(("/api/research/validation", "/api/research/scenario-backtest")):
         raise HTTPException(403, "This shared integration is available only in private mode until account isolation is added.")
     fields = {key: request.query_params.getlist(key) for key in ("owner_id", "session_id")}
     if request.headers.get("content-type", "").startswith("application/json"):

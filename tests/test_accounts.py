@@ -155,7 +155,6 @@ def test_chat_progress_and_audio_are_account_scoped(accounts, mock_llm, monkeypa
 def test_shared_mutable_integrations_fail_closed_before_work(accounts, monkeypatch):
     register(accounts)
     assert accounts.post("/api/research/validation", json={"symbol": "TCS.NS"}).status_code == 403
-    assert accounts.post("/api/tavus/start", json={"session_id": "new"}).status_code == 403
     from modules.equity_research.intelligence import pipeline
     monkeypatch.setenv("ARIA_FORECAST", "1")
     monkeypatch.setenv("ARIA_SCENARIO_BACKTEST", "1")

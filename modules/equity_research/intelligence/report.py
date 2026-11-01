@@ -4,7 +4,7 @@ Report assembly: turns the analysis, valuation, audit, narrative and debate into
 - ``build_report``      a structured, JSON-serialisable report (what the UI renders),
 - ``to_markdown``       the same report as readable markdown,
 - ``summary_response``  ARIA's 4-section "Insight / Analysis / Recommendation / Risk"
-                        text -- the ``response`` field that TTS, the Tavus avatar and the
+                        text -- the ``response`` field that TTS, the live avatar and the
                         existing ResponseCard already consume.
 
 Every number in the summary comes from a ledger fact's ``.text``; nothing is typed by hand
@@ -32,7 +32,7 @@ DISCLAIMER = (
     "the sources listed and may be delayed, incomplete or wrong; verify before acting."
 )
 # One-line version shown at the top of every page of the app and of every exported report (full text: app #/disclaimers).
-DISCLAIMER_STRIP = ("ARIA is an AI research and education tool, not a SEBI-registered adviser; nothing here is investment advice. "
+DISCLAIMER_STRIP = ("ARIA is an AI research and education tool, not a SEBI-registered adviser. Nothing here is investment advice. "
                     "Markets are risky. Read the full disclaimers in the ARIA app (Disclaimers page).")
 _SEVERITY = {"high": 0, "medium": 1, "low": 2}
 

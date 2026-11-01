@@ -66,6 +66,22 @@ def test_replies_carry_the_turn_number_the_page_sent(fake_pipeline):
     assert {m["turn"] for m in msgs} == {7}
 
 
+def test_tts_failure_reports_a_recoverable_error_and_keeps_the_written_answer(fake_pipeline, monkeypatch):
+    def fail(_text):
+        raise RuntimeError("TTS unavailable")
+
+    monkeypatch.setattr(live_tts, "synthesize", fail)
+    with TestClient(app).websocket_connect("/api/live/ws") as ws:
+        ws.send_json({"type": "user", "text": "Hi", "session_id": "live-test", "turn": 9})
+        msgs = []
+        while not msgs or msgs[-1]["type"] != "error":
+            msgs.append(ws.receive_json())
+        assert msgs[-1]["turn"] == 9
+        ws.send_json({"type": "ping"})
+        assert ws.receive_json() == {"type": "pong"}
+    assert get_session("live-test")["history"][-1]["query"] == "Hi"
+
+
 def test_avatar_photo_is_served_when_configured_and_404_otherwise(monkeypatch, tmp_path):
     client = TestClient(app)
     monkeypatch.setattr(live, "_AVATAR_DIR", tmp_path)

@@ -45,24 +45,9 @@ SECOND_FALLBACK_GROQ_MODEL = os.environ.get("SECOND_FALLBACK_GROQ_MODEL", "qwen/
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────
-# Exchange-rate talk is *about* the dollar ("the rupee at 83 per dollar", "against the US dollar", "dollar index"): turning
-# its dollars into rupees destroys the sentence, so text like that is left exactly as written.
-_FX_TALK = re.compile(
-    r"(?:\bper|\bagainst|\bversus|\bvs\.?|\bto)\s+(?:the\s+)?(?:US\s+|U\.S\.\s+)?dollars?\b|dollar\s+index|dollar[- ]rupee|"
-    r"rupee[- ](?:dollar|vs)|USD\s*/\s*INR|\bUS\s+dollars?\s+(?:at|to|index)\b|\bgreenback\b", re.IGNORECASE)
-
-
 def normalize_currency(text: str) -> str:
-    """Convert dollar references to INR-style for consistency."""
-    normalized = str(text or "")
-    if _FX_TALK.search(normalized):
-        return normalized
-    normalized = re.sub(r"\bUSD\s*([0-9][0-9,]*(?:\.\d+)?)", r"₹\1", normalized, flags=re.IGNORECASE)
-    normalized = re.sub(r"\$\s*([0-9][0-9,]*(?:\.\d+)?)", r"₹\1", normalized)
-    normalized = re.sub(r"\bUS dollars?\b", "rupees", normalized, flags=re.IGNORECASE)
-    normalized = re.sub(r"\bdollars?\b", "rupees", normalized, flags=re.IGNORECASE)
-    normalized = re.sub(r"\bcents?\b", "paise", normalized, flags=re.IGNORECASE)
-    return normalized
+    """Preserve source units. Relabelling USD as INR is not a currency conversion."""
+    return str(text or "")
 
 
 def _make_groq_client():

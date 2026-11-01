@@ -7,6 +7,7 @@ import { ResearchTab } from './components/research/ResearchTab'
 import { IntelligenceTab } from './components/research/IntelligenceTab'
 import { ProgressTab } from './components/progress/ProgressTab'
 import { SettingsTab } from './components/settings/SettingsTab'
+import { FeedbackTab } from '../../components/feedback/FeedbackTab'
 import { ModeToggle } from './components/ModeToggle'
 import { MarketsTab } from './components/markets/MarketsTab'
 import { TickerTape } from './components/markets/TickerTape'
@@ -112,6 +113,7 @@ export default function App() {
         {tab === 'markets' && <MarketsTab onAsk={askInChat} onOpenStock={setSelectedSymbol} selectedSymbol={selectedSymbol} />}
         {tab === 'explore' && <ExploreTab onOpenInstrument={setInstrumentId} />}
         {tab === 'disclaimers' && <DisclaimersPage />}
+        {tab === 'feedback' && <FeedbackTab />}
         {tab === 'research' && <ResearchTab onAsk={askInChat} />}
         {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (

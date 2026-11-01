@@ -1,4 +1,4 @@
-"""Live Avatar: free, streaming voice conversation with a lip-synced 3D ARIA (a second option beside Tavus).
+"""Live Avatar: streaming voice conversation with ARIA.
 
     browser mic -> Web Speech API (free, in Chrome/Edge) -> text
       -> WebSocket /api/live/ws -> Groq, streamed -> speakable chunks -> Kokoro TTS (local) -> audio chunks
@@ -104,7 +104,16 @@ async def _ask_pipeline(text: str, session_id: str, chunks: asyncio.Queue, on_wa
 
 
 async def _reply(ws: WebSocket, text: str, session_id: str, turn: int, lock: asyncio.Lock) -> None:
-    spoken = await _reply_impl(ws, text, session_id, turn, lock)
+    try:
+        spoken = await _reply_impl(ws, text, session_id, turn, lock)
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:
+        logger.warning(f"Live audio failed ({type(exc).__name__})")
+        async with lock:
+            await ws.send_json({"type": "error", "turn": turn,
+                                "message": "Unable to play this response. Check the conversation and try again."})
+        return
     async with lock:
         await ws.send_json({"type": "done", "turn": turn, "text": spoken["response"], "timings": spoken["timings"]})
 
@@ -157,8 +166,9 @@ async def _reply_impl(ws: WebSocket, text: str, session_id: str, turn: int, lock
         timings["total_ms"] = ms()
         logger.info(f"Live avatar turn: {timings}")
         return {"domain": "live_avatar", "query": text, "response": full, "timings": timings}
-    except asyncio.CancelledError:
+    except BaseException:
         speaker.cancel()
+        await asyncio.gather(speaker, return_exceptions=True)
         raise
 
 
@@ -193,6 +203,8 @@ async def live_socket(ws: WebSocket) -> None:
                         except PermissionError:
                             await ws.close(code=1008, reason="This conversation belongs to another account.")
                             return
+                    async with lock:
+                        await ws.send_json({"type": "accepted", "turn": turn})
                     task = asyncio.create_task(_reply(ws, str(msg["text"]).strip()[:1000], str(msg.get("session_id") or "live"), turn, lock))
                 finally:
                     current_owner.reset(token)
@@ -218,6 +230,21 @@ def avatar_face() -> FileResponse:
     if path is None:
         raise HTTPException(status_code=404, detail="No avatar photo configured.")
     return FileResponse(path, media_type="image/png" if path.suffix == ".png" else "image/jpeg", headers={"Cache-Control": "no-cache"})
+
+
+@router.get("/avatar/office.webp")
+def avatar_office() -> FileResponse:
+    return FileResponse(_AVATAR_DIR / "office.webp", media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/avatar/seated-office.webp")
+def avatar_seated_office() -> FileResponse:
+    return FileResponse(_AVATAR_DIR / "seated-office.webp", media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/avatar/office-wide-glasses.webp")
+def avatar_wide_office() -> FileResponse:
+    return FileResponse(_AVATAR_DIR / "office-wide-glasses.webp", media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/avatar/glasses.png")

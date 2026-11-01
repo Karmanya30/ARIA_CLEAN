@@ -247,10 +247,9 @@ h('Common flow')
 p('Speech recognition or a text message produces a query. The shared QA pipeline produces a written answer. Presentation code can create a shorter spoken version, synthesize audio and send it to a browser or an avatar integration. Mode and channel affect presentation; they should preserve the underlying answer and owner scope.')
 table(['Path','How to explain it'],[
  ['Text / conversational UI','Written answer; audio presentation can be prepared separately.'],
- ['Live Avatar','Browser recognition, shared answer pipeline, spoken text and local Piper speech; browser face or 3D presentation.'],
+ ['Live Avatar','Microphone recording and configured transcription, shared answer pipeline, and local Piper speech; browser photo or 3D presentation.'],
  ['Local avatar engine','Optional engine service with chunking, audio/video framing, motion and supported rendering backends.'],
- ['LiveTalking','Optional separate lip-sync service and WebRTC presentation path.'],
- ['Tavus','Optional hosted conversational-video integration; availability depends on configuration and account-mode restrictions.']
+ ['LiveTalking','Optional separate lip-sync service and WebRTC presentation path.']
 ], [130,361])
 h('A useful latency decomposition')
 p('End-to-end latency = recognition / input time + queue and warm-up time + domain data fetch + computation + LLM narration + speech synthesis + transport and browser buffering. Measure time to useful text, first audible word and sustained playback separately.')
