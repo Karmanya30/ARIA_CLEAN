@@ -32,6 +32,12 @@ class Conversation(store.Base):
     owner_id = Column(String, nullable=False, index=True)
     cleared_through = Column(Integer, nullable=False, default=0)
     state_json = Column(Text, nullable=False, default="{}")
+    title = Column(String)  # None until the first answer is saved; the user can rename it
+    pinned = Column(Integer, nullable=False, default=0)
+    archived = Column(Integer, nullable=False, default=0)
+    deleted_at = Column(String)  # soft delete: the turns stay for the memory archive until purged
+    created_at = Column(String)
+    updated_at = Column(String)
 
 
 class Turn(store.Base):
@@ -74,6 +80,22 @@ if store.DB_URL.startswith("sqlite"):
 
 store.Base.metadata.create_all(store._engine, tables=[Conversation.__table__, Turn.__table__, Embedding.__table__, RequestLease.__table__])
 
+
+def _migrate() -> None:
+    """Databases made before the history feature lack the new columns; add them and give old conversations their dates from their turns."""
+    from sqlalchemy import inspect, text
+    have = {c["name"] for c in inspect(store._engine).get_columns("chat_conversations")}
+    with store._engine.begin() as c:
+        for col, ddl in (("title", "VARCHAR"), ("pinned", "INTEGER NOT NULL DEFAULT 0"), ("archived", "INTEGER NOT NULL DEFAULT 0"),
+                         ("deleted_at", "VARCHAR"), ("created_at", "VARCHAR"), ("updated_at", "VARCHAR")):
+            if col not in have:
+                c.execute(text(f"ALTER TABLE chat_conversations ADD COLUMN {col} {ddl}"))
+        c.execute(text("UPDATE chat_conversations SET created_at = (SELECT MIN(created_at) FROM chat_turns WHERE conversation_id = chat_conversations.id) WHERE created_at IS NULL"))
+        c.execute(text("UPDATE chat_conversations SET updated_at = (SELECT MAX(created_at) FROM chat_turns WHERE conversation_id = chat_conversations.id) WHERE updated_at IS NULL"))
+
+
+_migrate()
+
 active_request: ContextVar[dict | None] = ContextVar("aria_chat_request", default=None)
 active_context: ContextVar[dict | None] = ContextVar("aria_chat_context", default=None)
 
@@ -87,7 +109,8 @@ def conversation(session_id: str) -> None:
     with store._SessionLocal() as db:
         row = db.get(Conversation, session_id)
         if row is None:
-            db.add(Conversation(id=session_id, owner_id=owner(session_id)))
+            now = datetime.now(timezone.utc).isoformat()
+            db.add(Conversation(id=session_id, owner_id=owner(session_id), created_at=now, updated_at=now))
             try:
                 db.commit()
                 return
@@ -142,6 +165,13 @@ def begin(session_id: str, query: str, request_id: str | None = None) -> dict:
         return result
 
 
+def auto_title(query: str) -> str:
+    """A short title from the first question: no model call, so saving never waits on (or fails with) a provider."""
+    t = re.sub(r"\s+", " ", query).strip().strip("?!. ")
+    t = t[:1].upper() + t[1:]
+    return (t[:57].rsplit(" ", 1)[0] + "…") if len(t) > 60 else (t or "New chat")
+
+
 def complete(session_id: str, query: str, response: dict) -> None:
     request = active_request.get()
     if request is None or request["session_id"] != session_id:
@@ -154,6 +184,12 @@ def complete(session_id: str, query: str, response: dict) -> None:
         row.response_json = json.dumps(response, ensure_ascii=False, default=str)
         row.status = "failed" if str(response.get("response", "")).lower().startswith("error:") else "complete"
         db.delete(lease)
+        conv = db.get(Conversation, session_id)
+        if conv is not None:
+            conv.updated_at = datetime.now(timezone.utc).isoformat()
+            conv.deleted_at = None  # writing to a deleted conversation brings it back rather than losing the turn
+            if not conv.title and row.status == "complete":
+                conv.title = auto_title(query)
         db.commit()
 
 

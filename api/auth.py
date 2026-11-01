@@ -338,7 +338,7 @@ async def authorize(request: HTTPConnection):
     financial = path.startswith(("/api/profile", "/api/transactions"))
     if financial and any(value != account["id"] for value in fields["session_id"]):
         raise HTTPException(403, "This data belongs to another account.")
-    needs_owner = path.startswith(("/api/chat", "/api/instruments/ask", "/api/research/intelligence", "/api/research/reports"))
+    needs_owner = path.startswith(("/api/chat", "/api/conversations", "/api/instruments/ask", "/api/research/intelligence", "/api/research/reports"))
     if needs_owner and not fields["owner_id"]:
         raise HTTPException(403, "An account owner is required.")
     store = _store()
