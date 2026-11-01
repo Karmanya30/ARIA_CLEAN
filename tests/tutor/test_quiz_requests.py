@@ -1,4 +1,4 @@
-"""A learner can ask to be quizzed, and a first explanation of a concept always comes with a quiz (otherwise the policy never
+"""A learner can ask to be quizzed, and an explanation never carries one unasked (otherwise the policy never
 picks one for a cold-start learner and the Progress page stays empty)."""
 from modules.tutor import orchestrator, pipeline
 
@@ -17,6 +17,7 @@ def test_first_explanation_carries_a_quiz_and_a_quiz_request_without_a_name_reus
     monkeypatch.setattr(orchestrator.explainer, "explain", lambda *a, **k: {"cognitive": "c", "functional": "f", "causal": "k", "level": 1})
     monkeypatch.setattr(orchestrator.quiz_engine, "generate_quiz", lambda *a, **k: {"question": "?", "correct_answer": "a", "wrong_answers": ["b", "c", "d"], "explanation": "e", "concept_id": "sip"})
     monkeypatch.setattr(orchestrator, "concept_by_id", lambda cid: concept if cid == "sip" else None)
-    assert orchestrator.handle("u", "Explain SIP")["quiz"]
+    assert not orchestrator.handle("u", "Explain SIP")["quiz"], "an explanation is never followed by an unrequested quiz"
+    assert orchestrator.handle("u", "Explain SIP", force_quiz=True)["quiz"]
     assert orchestrator.handle("u", " on this", force_quiz=True, fallback_concept_id="sip")["concept_id"] == "sip"
     assert orchestrator.handle("u", " on this", force_quiz=True) is None

@@ -70,10 +70,8 @@ def handle(user_id: str, query: str, force_quiz: bool = False, fallback_concept_
     taxal = explainer.explain(concept["canonical_name"], level, action=action)
 
     quiz_item = None
-    # A cold-start learner is never picked for a quiz by the teaching policy, and mastery only moves on quiz answers, so
-    # the Progress page stayed empty for ever: the first explanation of a concept always comes with a quiz to try.
-    first_time = not any(h["concept_id"] == concept["id"] for h in history)
-    if force_quiz or action == "ask_quiz" or first_time:
+    # A quiz is only ever produced when the learner asked for one; an explanation never ends with an unrequested test.
+    if force_quiz:
         quiz_item = quiz_engine.generate_quiz(concept["canonical_name"], concept["id"], level)
 
     response = TutorResponse(
