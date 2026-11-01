@@ -72,7 +72,7 @@ export function StatementUpload({ onImported, onAsk }: { onImported: (profileUpd
         {state === 'importing' && <p>Importing…</p>}
         {done && (
           <div className="banner-info">
-            Imported {done.imported} transaction(s). Skipped {done.duplicates} duplicate(s).
+            Imported {done.imported} transaction(s); {done.duplicates} duplicate(s) skipped.
             {done.profile_updated ? ' Your profile spending was updated.' : ''}
             <AskChips onAsk={onAsk} />
           </div>

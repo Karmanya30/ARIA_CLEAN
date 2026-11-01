@@ -18,7 +18,7 @@ export function Panel<T extends { meta: Meta }>({ title, res, minH = 280, aside,
       </header>
       {d ? (
         <>
-          {(res.stale || d.meta.stale) && <p className="mk-note" role="status">Showing last updated {fmtIst(d.meta.as_of)}. The refresh failed. Trying again.</p>}
+          {(res.stale || d.meta.stale) && <p className="mk-note" role="status">Showing last updated {fmtIst(d.meta.as_of)}. Refreshing has failed; retrying.</p>}
           {children(d)}
           <footer className="mk-panel-f">
             <DataProv meta={d.meta} />
