@@ -17,3 +17,22 @@
 .conv-more { border: 0; background: transparent; color: var(--ink-muted); font-size: 12.5px; cursor: pointer; padding: 4px 6px; text-align: left; }
 .conv-more:hover { color: var(--accent-strong); }
 @media (hover: none) { .conv-actions { display: inline-flex; } } /* touch screens have no hover */
+
+/* ChatGPT-style column: the list takes the free height of the sidebar and scrolls by itself */
+.conv-heading { margin: 2px 6px 0; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; }
+.conv-toggle { display: none; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-inset); color: var(--ink); font-size: 13px; cursor: pointer; }
+.conv-body { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; padding-right: 2px; }
+.app-sidebar .conv-list { flex: 1 1 auto; min-height: 120px; }
+.app-sidebar .conv-list .conv-body { flex: 1 1 auto; }
+.app-sidebar { gap: 14px; }
+.app-sidebar .sidebar-footer { display: none; }
+.app-sidebar .sidebar-nav-item { padding: 7px 10px; }
+.conv-item.active { background: var(--bg-inset); }
+.conv-open { min-height: 36px; justify-content: center; }
+@media (max-width: 880px) {
+  .app-sidebar .conv-list { flex: 1 1 100%; min-height: 0; order: 9; }
+  .conv-toggle { display: inline-flex; }
+  .conv-heading { display: none; }
+  .conv-list:not(.open) .conv-body, .conv-list:not(.open) .conv-archived { display: none; }
+  .conv-list.open .conv-body { max-height: 45vh; }
+}
