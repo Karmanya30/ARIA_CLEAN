@@ -21,6 +21,7 @@ for (const question of ['What is a SIP?', 'Explain compound interest', 'what doe
       ? route.fulfill({ json: { domain: 'tutor', query: question, response: reply } })
       : route.continue())
     await page.goto('/')
+    await page.getByRole('button', { name: 'Leave meeting' }).click({ timeout: 8000 }).catch(() => {}) // the app opens in the Live meeting
     await expect(page.getByLabel('Message ARIA')).toBeVisible()
     await page.getByLabel('Message ARIA').fill(question)
     await page.getByLabel('Message ARIA').press('Enter')

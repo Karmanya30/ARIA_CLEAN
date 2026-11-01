@@ -1,4 +1,4 @@
-export type ChatMode = 'Normal Mode' | 'Conversational Mode' | 'Live Avatar (Free)' | 'Tavus CVI Mode (WebRTC)'
+export type ChatMode = 'Normal Mode' | 'Conversational Mode' | 'Live Avatar (Free)'
 
 export interface RiskInfo {
   label: string
