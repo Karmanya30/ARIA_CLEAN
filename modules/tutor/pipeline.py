@@ -38,6 +38,17 @@ def _last_concept_id(user_id: str) -> str | None:
     return None
 
 
+def taxal_text(taxal: dict[str, Any]) -> str:
+    """The explanation as plain paragraphs: no Cognitive/Functional/Causal labels (those are internal), no stray ** markers,
+    and an empty section is simply left out instead of leaving a heading with nothing under it."""
+    parts = []
+    for key in ("cognitive", "functional", "causal"):
+        t = re.sub(r"^\W*(cognitive|functional|causal)\s*[:\-]\s*", "", (taxal.get(key) or "").replace("**", "").strip(), flags=re.I)
+        if t.strip():
+            parts.append(t.strip())
+    return "\n\n".join(parts)
+
+
 def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     want_quiz = is_quiz_request(query)
     try:
@@ -50,11 +61,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
         result = None
     if result is not None:
         taxal = result["taxal"]
-        response_text = (
-            f"Cognitive: {taxal['cognitive']}\n"
-            f"Functional: {taxal['functional']}\n"
-            f"Causal: {taxal['causal']}"
-        )
+        response_text = taxal_text(taxal)
         if want_quiz and result["quiz"]:
             response_text = f"Here's a quick question on {result['concept_name']}. Pick the answer you think is right."
         return {
