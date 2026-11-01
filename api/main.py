@@ -26,7 +26,7 @@ from api.runtime_version import backend_revision
 
 _RUNTIME_REVISION = backend_revision()  # snapshot loaded source, not files edited later
 
-from api.routes import avatar, chat, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
+from api.routes import avatar, chat, conversations, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
 auth.mode()  # reject misspelled modes rather than falling back to private access
 app = FastAPI(title="ARIA API", dependencies=[Depends(auth.authorize)])
@@ -94,6 +94,7 @@ def _start_warm_up() -> None:
         threading.Thread(target=_warm_up, name="warm-up", daemon=True).start()
 
 
+app.include_router(conversations.router)
 app.include_router(chat.router)
 app.include_router(voice.router)
 app.include_router(profile.router)

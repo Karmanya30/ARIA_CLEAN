@@ -119,6 +119,12 @@ export interface AskParams {
   correct?: boolean
   history?: { role: 'user' | 'assistant'; content: string }[]
 }
+export interface ConversationSummary { id: string; title: string; pinned: boolean; archived: boolean; created_at: string; updated_at: string; messages: number; snippet?: string }
+export interface ConversationPage { items: ConversationSummary[]; next_offset: number | null }
+export interface ConversationMessages { conversation: ConversationSummary; turns: Array<{ message_id: number; query: string; response: ChatResponse; created_at: string; audio_token?: string | null }>; next_before: number | null }
+/** Fired after a question is saved so the history list can refresh without polling. */
+export const CHAT_SAVED = 'aria:chat-saved'
+
 const ask = (p: AskParams) =>
   j<ChatResponse>('/api/chat', {
     method: 'POST',
@@ -127,7 +133,9 @@ const ask = (p: AskParams) =>
       adapt_tone: adaptTone(), correct: p.correct ?? true, channel: p.channel ?? 'chat',
       ...(p.context ? { context: p.context } : {}), ...(p.history ? { history: p.history } : {}),
     }),
-  })
+  }).then((r) => { window.dispatchEvent(new Event(CHAT_SAVED)); return r })
+
+const conv = (path = '', extra = '') => `/api/conversations${path}?owner_id=${encodeURIComponent(ownerId())}${extra}`
 
 export const api = {
   ask,
@@ -140,6 +148,15 @@ export const api = {
   sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, headline?: string) =>
     ask({ query, sessionId, mode, correct, channel: headline ? 'market_chip' : 'chat', context: headline ? { headline } : undefined }),
 
+
+  listConversations: (q = '', archived = false, offset = 0, limit = 30) =>
+    j<ConversationPage>(conv('', `&q=${encodeURIComponent(q)}&archived=${archived}&offset=${offset}&limit=${limit}`)),
+  conversationMessages: (id: string, before?: number) =>
+    j<ConversationMessages>(conv(`/${encodeURIComponent(id)}/messages`, before ? `&before=${before}` : '')),
+  updateConversation: (id: string, patch: { title?: string; pinned?: boolean; archived?: boolean }) =>
+    j<ConversationSummary>(conv(`/${encodeURIComponent(id)}`), { method: 'PATCH', body: JSON.stringify(patch) }),
+  deleteConversation: (id: string) => j<{ status: string }>(conv(`/${encodeURIComponent(id)}`), { method: 'DELETE' }),
+  conversationExportUrl: (id: string, format: 'json' | 'markdown') => conv(`/${encodeURIComponent(id)}/export`, `&format=${format}`),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(

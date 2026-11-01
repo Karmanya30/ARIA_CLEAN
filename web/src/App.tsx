@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Sidebar, SIDEBAR_TABS, MARKETS_TAB, EXPLORE_TAB } from './components/Sidebar'
+import { ConversationList } from './components/ConversationList'
+import { api } from './api'
 import { ChatTab } from './components/chat/ChatTab'
 import { ProfileTab } from './components/profile/ProfileTab'
 import { ResearchTab } from './components/research/ResearchTab'
@@ -57,7 +59,7 @@ function useTab(): [string, (id: string) => void, number, string | null] {
 }
 
 export default function App() {
-  const [sessionId, resetSession] = useSessionId()
+  const [sessionId, resetSession, selectSession, restored] = useSessionId()
   const [tab, setTab, idx, prev] = useTab()
   const [pendingAsk, setPendingAsk] = useState<string | null>(null)
   const [theme, setThemeState] = useState<ThemeId>(getTheme)
@@ -69,6 +71,12 @@ export default function App() {
   const askInChat = (q: string) => { setPendingAsk(q); setTab('chat') }
 
   function newSession() {
+  // A browser with no saved chat (new device, or just signed in) opens the most recent one stored on the server.
+  useEffect(() => {
+    if (restored) return
+    api.listConversations('', false, 0, 1).then((p) => { if (p.items[0]) selectSession(p.items[0].id) }).catch(() => {})
+  }, [restored, selectSession])
+
     resetSession()
     setTab('chat')
   }
@@ -91,6 +99,7 @@ export default function App() {
         newLabel={theme === 'vitara-clear' ? 'New chat' : 'New session'}
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
+        history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
       <main className="app-main" id="main" tabIndex={-1}>
