@@ -1,0 +1,4 @@
+# Optional: the query-architecture variants B-E (core/intent). The default ARIA_QUERY_ARCHITECTURE=baseline does not need these.
+# Both libraries are MIT-licensed. Installed and tested together with the pins in requirements.txt (no existing pin changed).
+semantic-router==1.1.1
+langgraph==1.2.19

@@ -1,0 +1,7 @@
+{
+ "sr_score": 0.3,
+ "sr_margin": 0.05,
+ "llm_intent": 0.75,
+ "llm_context": 0.7,
+ "sr_veto": 0.55
+}

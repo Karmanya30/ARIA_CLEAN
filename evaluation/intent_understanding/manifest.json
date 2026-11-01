@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "n": 259,
+  "by_split": {
+    "dev": 129,
+    "test": 130
+  },
+  "by_category": {
+    "finance": 23,
+    "hinglish": 10,
+    "typo": 12,
+    "tutor": 19,
+    "market": 12,
+    "terse": 4,
+    "equity": 16,
+    "ambiguous": 10,
+    "intel": 5,
+    "lookup": 5,
+    "general": 14,
+    "adversarial": 15,
+    "smalltalk": 6,
+    "care": 3,
+    "support": 2,
+    "followup": 38,
+    "multi_intent": 20,
+    "unsupported_technical": 8,
+    "real_estate_alternatives": 8,
+    "calculation": 10,
+    "entity_heavy": 10,
+    "real_failure": 9
+  },
+  "by_source": {
+    "audit_set": 167,
+    "synthetic": 83,
+    "real_failure": 9
+  },
+  "by_expected": {
+    "finance": 52,
+    "tutor": 50,
+    "market": 26,
+    "equity_research": 47,
+    "company_intelligence": 12,
+    "data_lookup": 15,
+    "general": 30,
+    "smalltalk": 11,
+    "care": 3,
+    "support": 2,
+    "clarify": 11
+  },
+  "note": "dev may be used to tune thresholds/route examples; test is for final numbers only. All turns of a follow-up scenario share one split (hash of the scenario name)."
+}

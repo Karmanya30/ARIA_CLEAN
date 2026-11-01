@@ -343,3 +343,16 @@ def test_support_reply_in_devanagari_is_replaced_by_a_roman_hinglish_fallback(mo
     monkeypatch.setattr(groq_client, "generate_response", lambda *a, **k: "मैं समझ रहा हूँ, क्या हम नंबर देखें?")
     out = orchestrator._support_reply("yaar bahut tension hai", {}, True, 0)["response"]
     assert not any("ऀ" <= c <= "ॿ" for c in out) and "numbers" in out
+
+
+def test_crisis_detection_catches_paraphrases_and_hindi_and_ignores_money_idioms():
+    """Found by the intent benchmark: 'I am thinking of hurting myself' used to reach the finance assistant, not the care reply."""
+    from shared import human_state
+
+    for text in ("I am thinking of hurting myself", "thinking about killing myself", "i'm going to harm myself", "life isnt worth living",
+                 "i feel like ending it all", "i wish i was dead", "no point in living anymore", "mujhe marne ka mann kar raha hai",
+                 "i am thinking of self harm"):
+        assert human_state.is_crisis(text), text
+    for text in ("my SIP will kill my savings", "the market is killing my portfolio", "I am hurting financially", "kill switch for my trading app",
+                 "harm done by inflation", "life insurance worth buying", "how to cut myself some slack on budget"):
+        assert not human_state.is_crisis(text), text

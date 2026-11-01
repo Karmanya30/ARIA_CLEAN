@@ -1,0 +1,62 @@
+{
+ "best": {
+  "sr_score": 0.3,
+  "sr_margin": 0.05,
+  "llm_intent": 0.75,
+  "llm_context": 0.7,
+  "sr_veto": 0.45
+ },
+ "score": 0.8333333333333334,
+ "log": [
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8333
+  },
+  {
+   "th": {
+    "sr_score": 0.25,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8333
+  },
+  {
+   "th": {
+    "sr_score": 0.4,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8333
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.03,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8333
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.1,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8333
+  }
+ ]
+}
