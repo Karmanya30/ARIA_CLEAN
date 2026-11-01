@@ -161,7 +161,7 @@ export function ResearchTab({ onAsk }: { onAsk: (query: string) => void }) {
                 {r.company} <span className="rt-ver">v{r.version}</span>
               </span>
               <span className="rt-sub">
-                Generated {r.created_at?.slice(0, 10) || "date unavailable"} · {r.symbol} · Data as of {r.data_as_of || "not supplied"}
+                {r.created_at?.slice(0, 10)} · {r.symbol}
               </span>
               <span className="rt-row">
                 <span className="rt-chip" style={{ background: r.rating ? RATING_COLOR[r.rating] : 'var(--ink-faint)' }}>

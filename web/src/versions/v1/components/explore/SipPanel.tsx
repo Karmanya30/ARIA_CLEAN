@@ -149,7 +149,7 @@ export function SipPanel({ id }: { id: string }) {
       ) : (
         <p className="note" role="status">
           Could not run this simulation. There may not be enough price history for {run.years}{' '}
-          {run.years === 1 ? 'year' : 'years'}. Try a shorter period.
+          {run.years === 1 ? 'year' : 'years'}; try a shorter period.
         </p>
       )}
     </section>

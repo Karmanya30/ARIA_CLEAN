@@ -1,45 +1,9 @@
 import type { ReactNode } from 'react'
 import './Disclaimers.css'
 
-export const DISCLAIMERS_UPDATED = '1 November 2026'
+export const DISCLAIMERS_UPDATED = '13 October 2026'
 
 const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] = [
-  {
-    id: 'purpose',
-    short: 'Educational purpose',
-    title: 'Academic and educational purpose',
-    body: (
-      <>
-        <p>
-          ARIA is an AI-powered financial research and education platform developed as an academic Bachelor of Technology Project during December 2025 – November 2026.
-          It explores how artificial intelligence, machine learning, financial data analysis and information retrieval can support learning and research.
-        </p>
-        <p>
-          ARIA is an experimental educational project. It is not intended to generate revenue or monetary benefit, and its explanations, examples and analysis are provided for learning and research.
-          The project is associated with IIIT Sri City in an academic context. This does not imply institutional endorsement or approval of ARIA as a financial service.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'free-services',
-    short: 'Free APIs and services',
-    title: 'Free APIs and third-party services',
-    body: (
-      <>
-        <p>
-          ARIA is developed for education and research, not to earn revenue or provide a paid financial service. The project is intended to use free API calls,
-          free service tiers, publicly available information and locally run tools wherever available. AI and data providers can include Groq, Google Gemini,
-          Yahoo Finance and public news feeds, depending on the application&rsquo;s configuration.
-        </p>
-        <p>
-          Free tiers can have usage limits and may change. A provider may charge if an account is configured for paid usage or exceeds its allowance.
-          ARIA does not control third-party pricing, availability, terms or licences. Public availability or free access does not by itself grant permission
-          to redistribute content, use it commercially or claim ownership of it. Names and trademarks belong to their respective owners.
-        </p>
-      </>
-    ),
-  },
   {
     id: 'advice',
     short: 'Not advice',
@@ -147,7 +111,7 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
         <p>
           Prices and other data come from free third-party sources and are often delayed (usually about 15 minutes, sometimes longer), may be missing, rounded
           or stale, and can contain errors. A &ldquo;stale&rdquo; label means ARIA could not refresh and is showing the last value it had. Do not use ARIA for
-          time-critical decisions or to place orders. Confirm the live price with your broker or the exchange.
+          time-critical decisions or to place orders; confirm the live price with your broker or the exchange.
         </p>
         <p>Mutual fund NAVs are published once a day, so they trail the market by design.</p>
       </>
@@ -180,7 +144,7 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
           lose everything.
         </li>
         <li>
-          <strong>Commodities and currencies:</strong> prices are driven by global events and can move fast. Currency moves can add to or wipe out returns on
+          <strong>Commodities and currencies:</strong> prices are driven by global events and can move fast; currency moves can add to or wipe out returns on
           foreign assets.
         </li>
         <li>
@@ -188,7 +152,7 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
           trades.
         </li>
         <li>
-          <strong>Indices</strong> cannot be bought directly. You can invest through products that track them, but those have their own costs and tracking errors.
+          <strong>Indices</strong> cannot be bought directly; you invest through products that track them, which have their own costs and tracking errors.
         </li>
       </ul>
     ),
@@ -223,12 +187,13 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
     body: (
       <ul>
         <li>
-          <strong>On this device:</strong> your theme, colour mode, watchlists and other interface preferences may be kept in browser storage.
-          ARIA can operate in private mode or with account sign-in, depending on its configuration.
+          <strong>On this device:</strong> your theme and colour mode, watchlists, onboarding state and a random device id (ARIA has no accounts and no login) are
+          kept in your browser&rsquo;s storage. The device id is how your saved reports and profile are found again.
         </li>
         <li>
-          <strong>On the ARIA server:</strong> chat history, profile details, progress and saved research reports may be stored under an account or workspace identifier.
-          Uploaded statements may be processed into temporary previews and saved transactions. Clearing a chat hides it from the visible history. It does not necessarily erase the underlying archive.
+          <strong>On the ARIA server:</strong> your chat history for the session, the financial profile you enter, any statements you upload, your progress and
+          your saved research reports are stored under that device id. You can clear the profile and the style ARIA learned about you in Settings and Your
+          Profile. ARIA does not sell this data or share it for advertising.
         </li>
         <li>
           <strong>AI providers:</strong> to answer, ARIA sends your question and the relevant context (for example market data, or facts from your profile when
@@ -237,11 +202,11 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
         </li>
         <li>
           <strong>Voice:</strong> if you use the microphone, the recording is sent to ARIA&rsquo;s server and turned into text by a speech-to-text model
-          there. The temporary audio file is deleted afterwards, and recordings are not kept. Spoken replies are generated from the reply text, which may be
+          there; the temporary audio file is deleted afterwards and recordings are not kept. Spoken replies are generated from the reply text, which may be
           sent to a text-to-speech service.
         </li>
         <li>
-          <strong>Live avatar:</strong> microphone recordings are transcribed by ARIA’s configured speech service. Questions are processed by the configured AI providers.
+          <strong>Avatar mode:</strong> the live video avatar is provided by Tavus; using it sends your conversation to Tavus.
         </li>
       </ul>
     ),
@@ -268,7 +233,9 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
     title: 'Contact and feedback',
     body: (
       <p>
-        Found a wrong number, a confusing answer or a bug? Use the <a href="#/feedback">feedback form</a> to share what happened, including the page and time when helpful.
+        Found a wrong number, a confusing answer or something that looks unsafe? Please tell the person or team who gave you access to ARIA, or report it where
+        you received it (for example the project&rsquo;s issue tracker), and include the instrument, the page and the time. Corrections to this page are welcome
+        in the same way.
       </p>
     ),
   },
@@ -281,20 +248,15 @@ export function DisclaimersPage() {
       ?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
   return (
     <article className="dc" aria-labelledby="dc-title">
-      <header className="dc-header">
-        <div>
-          <p className="dc-eyebrow">ARIA · Information</p>
-          <h1 id="dc-title">Disclaimers</h1>
-          <p className="dc-intro">A guide to understanding ARIA’s information, data and model outputs.</p>
-        </div>
-        <p className="dc-updated">Last updated <strong>{DISCLAIMERS_UPDATED}</strong></p>
+      <header>
+        <h1 id="dc-title">Disclaimers</h1>
+        <p className="dc-updated">Last updated {DISCLAIMERS_UPDATED}</p>
       </header>
       <p className="dc-lead" role="note">
-        ARIA is an academic research and education project, not intended for monetary benefit. It is not a SEBI-registered adviser. Nothing here is investment advice. Markets are risky and you can lose money.
+        ARIA is an AI research and education tool, not a SEBI-registered adviser. Nothing here is investment advice. Markets are risky and you can lose money.
+        Please read this page once; it is short and written to be understood.
       </p>
-      <div className="dc-layout">
-      <nav className="dc-nav" aria-label="On this page">
-        <p className="dc-nav-label">On this page</p>
+      <nav aria-label="On this page">
         <ul className="dc-toc">
           {SECTIONS.map((s) => (
             <li key={s.id}>
@@ -305,18 +267,12 @@ export function DisclaimersPage() {
           ))}
         </ul>
       </nav>
-      <div className="dc-content">
-        {SECTIONS.map((s, index) => (
-          <section key={s.id} id={`dc-${s.id}`} aria-labelledby={`dc-h-${s.id}`}>
-            <span className="dc-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-            <div className="dc-section-copy">
-              <h2 id={`dc-h-${s.id}`}>{s.title}</h2>
-              {s.body}
-            </div>
-          </section>
-        ))}
-      </div>
-      </div>
+      {SECTIONS.map((s) => (
+        <section key={s.id} id={`dc-${s.id}`} aria-labelledby={`dc-h-${s.id}`}>
+          <h2 id={`dc-h-${s.id}`}>{s.title}</h2>
+          {s.body}
+        </section>
+      ))}
       <p className="dc-foot">The one-line version of this page appears at the top of every screen and at the top of every exported report.</p>
     </article>
   )
