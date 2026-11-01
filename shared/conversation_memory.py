@@ -169,10 +169,26 @@ def begin(session_id: str, query: str, request_id: str | None = None) -> dict:
 
 
 def auto_title(query: str) -> str:
-    """A short title from the first question: no model call, so saving never waits on (or fails with) a provider."""
+    """A short title from the first question: no model call, so saving never waits on (or fails with) a provider.
+    A question asked from a market headline carries a long instruction first; the title is the user's own question."""
+    if "User question:" in query:
+        query = query.rsplit("User question:", 1)[1]
     t = re.sub(r"\s+", " ", query).strip().strip("?!. ")
     t = t[:1].upper() + t[1:]
     return (t[:57].rsplit(" ", 1)[0] + "…") if len(t) > 60 else (t or "New chat")
+
+
+def _backfill_titles() -> None:
+    """Chats saved before titles existed get one from their first answered question."""
+    with store._SessionLocal() as db:
+        for conv in db.scalars(select(Conversation).where(Conversation.title.is_(None))).all():
+            first = db.scalar(select(Turn.query).where(Turn.conversation_id == conv.id, Turn.status == "complete").order_by(Turn.id).limit(1))
+            if first:
+                conv.title = auto_title(first)
+        db.commit()
+
+
+_backfill_titles()
 
 
 def complete(session_id: str, query: str, response: dict) -> None:

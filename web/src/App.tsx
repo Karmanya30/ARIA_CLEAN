@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Sidebar, SIDEBAR_TABS, MARKETS_TAB, EXPLORE_TAB } from './components/Sidebar'
-import { ConversationList } from './components/ConversationList'
+import { HistoryDrawer } from './components/HistoryDrawer'
 import { api } from './api'
 import { ChatTab } from './components/chat/ChatTab'
 import { ProfileTab } from './components/profile/ProfileTab'
@@ -99,10 +99,10 @@ export default function App() {
         onNewSession={newSession}
         newLabel="New chat"
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
-        history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
+      {tab === 'chat' && <HistoryDrawer activeId={sessionId} onSelect={selectSession} onActiveGone={newSession} />}
       <main className="app-main" id="main" tabIndex={-1}>
         {tab !== defaultTab(theme) && idx > 0 && prevLabel && (
           <button type="button" className="back-bar" onClick={() => window.history.back()}>

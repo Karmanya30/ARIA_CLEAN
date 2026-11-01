@@ -8,6 +8,14 @@ async function leaveMeeting(page: Page) {
   await page.getByRole('button', { name: 'Leave meeting' }).click({ timeout: 8000 }).catch(() => {})
 }
 
+async function openHistory(page: Page) {
+  if (!(await page.locator('.history-drawer.open').count())) await page.locator('.history-toggle').click()
+}
+
+async function closeHistory(page: Page) {
+  if (await page.locator('.history-drawer.open').count()) await page.keyboard.press('Escape')
+}
+
 async function device(browser: Browser) {
   const ctx = await browser.newContext()
   await ctx.addInitScript(([o, ui]) => {
@@ -27,14 +35,15 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await a.page.goto('/')
   await leaveMeeting(a.page)
   // ask through the app's own API route so the answer does not depend on a language model
-  await expect(a.page.locator('.conv-list')).toBeVisible() // the app has started and chosen its session id
+  await expect(a.page.locator('.history-toggle')).toBeVisible() // the app has started and chosen its session id
   const sid = await a.page.evaluate(() => localStorage.getItem('aria_session_id'))
   const res = await a.page.request.post('/api/chat', { data: { query: 'hello', session_id: sid, owner_id: owner, request_id: crypto.randomUUID() } })
   expect(res.ok(), `${res.status()} ${await res.text()}`).toBeTruthy()
 
-  // refresh: the chat is in the sidebar and still the open one
+  // refresh: the chat is in the history drawer and still the open one
   await a.page.reload()
   await leaveMeeting(a.page)
+  await openHistory(a.page)
   const item = a.page.locator('.conv-item', { hasText: 'Hello' })
   await expect(item).toBeVisible()
   await expect(item).toHaveClass(/active/)
@@ -43,9 +52,11 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   const b = await device(browser)
   await b.page.goto('/')
   await leaveMeeting(b.page)
+  await openHistory(b.page)
   await expect(b.page.locator('.conv-item', { hasText: 'Hello' })).toBeVisible()
   await expect(b.page.locator('.conv-item.active')).toHaveCount(1)
   await expect.poll(() => b.page.evaluate(() => localStorage.getItem('aria_session_id'))).toBe(sid)
+  await closeHistory(b.page)
   await expect(b.page.locator('.bubble-user', { hasText: 'hello' })).toBeVisible()
 
   // rename from device A, visible on device B after a reload
@@ -55,6 +66,7 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await expect(a.page.locator('.conv-item', { hasText: 'Greeting test' })).toBeVisible()
   await b.page.reload()
   await leaveMeeting(b.page)
+  await openHistory(b.page)
   await expect(b.page.locator('.conv-item', { hasText: 'Greeting test' })).toBeVisible()
 
   // search, pin
@@ -68,6 +80,7 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await pinRow.getByRole('button', { name: 'Pin' }).click()
   await expect(a.page.locator('.conv-group h3', { hasText: 'Pinned' })).toBeVisible()
 
+  await closeHistory(a.page)
   // rate the answer on A; the rating is still there after a reload
   await a.page.getByRole('button', { name: 'Helpful' }).first().click()
   await a.page.reload()
@@ -75,12 +88,14 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await expect(a.page.getByRole('button', { name: 'Helpful' }).first()).toHaveAttribute('aria-pressed', 'true')
 
   // delete on A: gone from B as well
+  await openHistory(a.page)
   a.page.once('dialog', (d) => d.accept())
   const row = a.page.locator('.conv-item', { hasText: 'Greeting test' })
   await row.hover()
   await row.getByRole('button', { name: 'Delete' }).click()
   await b.page.reload()
   await leaveMeeting(b.page)
+  await openHistory(b.page)
   await expect(b.page.locator('.conv-item', { hasText: 'Greeting test' })).toHaveCount(0)
   expect(errors).toEqual([])
   await a.ctx.close(); await b.ctx.close()

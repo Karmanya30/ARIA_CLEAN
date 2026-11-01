@@ -15,7 +15,7 @@ import { GlobalSearch } from './components/explore/GlobalSearch'
 import { InstrumentDrawer } from './components/explore/InstrumentDrawer'
 import { DisclaimerStrip } from './components/disclaimer/DisclaimerStrip'
 import { DisclaimersPage } from './components/disclaimer/DisclaimersPage'
-import { ConversationList } from './components/ConversationList'
+import { HistoryDrawer } from './components/HistoryDrawer'
 import { api } from './api'
 import { useSessionId } from './hooks/useSessionId'
 import { getTheme, hasMarkets, setTheme, type ThemeId } from './theme'
@@ -98,10 +98,10 @@ export default function App() {
         onNewSession={newSession}
         newLabel="New chat"
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
-        history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
+      {tab === 'chat' && <HistoryDrawer activeId={sessionId} onSelect={selectSession} onActiveGone={newSession} />}
       <main className="app-main" id="main" tabIndex={-1}>
         {tab !== defaultTab(theme) && idx > 0 && prevLabel && (
           <button type="button" className="back-bar" onClick={() => window.history.back()}>
