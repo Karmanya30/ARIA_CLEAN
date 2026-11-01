@@ -15,18 +15,20 @@ from typing import Any
 from loguru import logger
 
 DATA_Q = re.compile(r"\b(price|nav|p/?e|market ?cap|revenue|sales|profit|income|debt|borrowings?|worth|trading|quote|rate|yield|ebitda|eps|"
-                    r"dividend|52[- ]?week|returns?|cagr|volume|valuation|book value|roe|margin|worth|cost|rates?)\b", re.I)
+                    r"dividend|52[- ]?week|returns?|cagr|volume|valuation|book value|roe|margin|worth|cost|rates?|"
+                    r"perform(?:ance|ed|ing)?|how did .{3,60} do|do(?:ing)? this (?:week|month|year))\b", re.I)
 _STOP = set("""a an the of for in on at to is are was were be been am do does did what whats what's how which who whom when where why
  tell me show give get find about with and or my your our their its it this that these those please can could would should will
  current currently latest today now right recent last past new price prices nav pe p/e ratio ratios market cap capitalisation
  capitalization revenue sales profit profits income debt borrowing borrowings worth trading quote quotes rate rates yield ebitda eps
  dividend dividends 52 week weeks return returns cagr volume valuation book value roe margin margins cost per share shares stock
  stocks equity company companies limited ltd inc corp corporation india indian inr rupees rupee fy net total annual quarterly
- much many high low change growth number numbers data info information details say says said tomorrow yesterday year years month
+ performance performed performing perform doing much many high low change growth number numbers data info information details say says said tomorrow yesterday year years month
  months day days""".split())
 _SOFT = {"india", "cap", "fund", "limited", "ltd"}  # stop words only at the edge of a name: "Nippon India Small Cap Fund"
 _WORD = re.compile(r"[A-Za-z0-9&][A-Za-z0-9&.'-]*")
 _MAX_SEARCHES = 6
+_GREETINGS = {"hello", "thanks", "thank", "please", "hey", "namaste", "sorry", "okay", "yes", "good", "tell", "also"}
 _FUND = re.compile(r"\b(nav|mutual funds?|funds?|schemes?|etfs?|amc|flexi ?cap|elss|sip)\b", re.I)
 
 
@@ -82,6 +84,26 @@ def _confident(window: str, item: dict) -> bool:
     return bool(toks) and exact >= 1 and fuzzy <= 1 and (len(toks) > 1 or fuzzy == 0)
 
 
+_COMMON_WORD_FREQUENCY = 20_000_000  # symspell frequency above which a bare word is ordinary English ("bond", "tips", "rental")
+
+
+def _credible(window: str, item: dict, original: str) -> bool:
+    """A match is believable as a NAME. A single ordinary English word that the user did not capitalise is not: "bond yield" is not
+    Bondada Engineering, "intraday trading tips" is not Tips Music. Commodities, crypto, indices and currencies are named by common words
+    ("gold", "silver", "bitcoin") and several-word names are specific enough, so those pass."""
+    toks = window.split()
+    if item["type"] in ("commodity", "crypto", "index", "currency") or len(toks) >= 2:
+        return True
+    word = toks[0]
+    if any(w.lower() == word and w[:1].isupper() for w in _WORD.findall(original)):
+        return True
+    try:
+        from shared.understand import _speller
+        return (_speller().words.get(word) or 0) < _COMMON_WORD_FREQUENCY
+    except Exception:  # no dictionary: be strict
+        return False
+
+
 def find_instrument(*texts: str) -> dict | None:
     """The catalogue item the question is about, or None. `texts` are tried in order (the user's own words first, because
     the spelling corrector can change an unfamiliar name)."""
@@ -100,7 +122,7 @@ def find_instrument(*texts: str) -> dict | None:
                 return None
             fund = mentions_fund(text)
             for it in items:
-                if _confident(window, it) and (not fund or it["type"] in ("mutual_fund", "etf")):
+                if _confident(window, it) and _credible(window, it, texts[0]) and (not fund or it["type"] in ("mutual_fund", "etf")):
                     return it
     return None
 
@@ -108,7 +130,9 @@ def find_instrument(*texts: str) -> dict | None:
 def _has_proper_noun(original: str) -> bool:
     """A capitalised word that is not the first word, or an ALL-CAPS word: the user named something specific."""
     words = _WORD.findall(original)
+    # A first word counts too when it is not a question/command word: "Kaynes ka revenue kitna hai?" starts with the company
     return any((i > 0 and w[0].isupper() and w.lower() not in _STOP) or (w.isupper() and len(w) >= 3 and w.lower() not in _STOP)
+               or (i == 0 and len(w) >= 4 and w[0].isupper() and w.lower() not in _STOP and w.lower() not in _GREETINGS)
                for i, w in enumerate(words))
 
 
@@ -142,5 +166,14 @@ def data_answer(shown: str, normalised: str, owner_id: str | None, history: list
             return web
         return resp
     if _has_proper_noun(shown) and candidates(shown):
-        return web_answer(shown, "this name is not in ARIA's instrument lists")
+        return web_answer(shown, "this name is not in ARIA's instrument lists") or no_data_answer(shown)
     return None
+
+
+def no_data_answer(query: str) -> dict[str, Any]:
+    """Evidence sufficiency gate: a data question about a named thing that neither the instrument lists nor a web search could answer
+    must not fall through to the general model, which would answer from memory (that is how an invented gold price once appeared)."""
+    why = "I couldn't find reliable data for that right now (it is not in ARIA's instrument lists and a web search returned nothing usable), so I won't guess a figure."
+    return {"domain": "general", "query": query, "response": why + " Please check the exact company, fund or ticker name, or try again in a moment.",
+            "grounding": {"numbers_checked": True, "passed": True, "fallback": True, "unavailable": ["the requested figure"], "deterministic": True},
+            "gate": "no_evidence"}

@@ -1,0 +1,8 @@
+A pre-fix : unacceptable 45, of which fell to general 12, wrong-route 43 (n=259)
+A post-fix: unacceptable 33, of which fell to general 1, wrong-route 31 (n=259)
+fixed 15 broke 3
+  BROKE tutor -> data_lookup | what is a bond yield
+  BROKE finance -> data_lookup | rental yield of an 80 lakh property with 30000 monthly rent
+  BROKE general -> data_lookup | give me intraday trading tips for today
+still falling to general: ['should I sell it']
+McNemar pre vs post: fixed 15 broke 3 p=0.0075

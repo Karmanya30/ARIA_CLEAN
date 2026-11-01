@@ -111,15 +111,16 @@ class CachedLLM:
             CACHE_FILE.write_text(json.dumps(self.cache), encoding="utf-8")
 
 
-def load(split):
-    items = [json.loads(l) for l in (HERE / "benchmark_v1.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
-    return [i for i in items if split == "all" or i["split"] == split]
+def load(split, bench="benchmark_v1.jsonl"):
+    items = [json.loads(l) for l in (HERE / bench).read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [i for i in items if split == "all" or i["split"] == split or split == "challenge"]
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arch", required=True, choices=list("ABCDE"))
-    ap.add_argument("--split", default="dev", choices=["dev", "test", "all"])
+    ap.add_argument("--split", default="dev", choices=["dev", "test", "all", "challenge"])
+    ap.add_argument("--bench", default="benchmark_v1.jsonl")
     ap.add_argument("--llm", default="replay", choices=["record", "replay", "off"])
     ap.add_argument("--out")
     ap.add_argument("--tag", default="")
@@ -149,7 +150,8 @@ def main():
         from modules.qa import lookup
         if not lookup.is_data_question(shown) and not lookup.is_data_question(normalised):
             return None
-        if lookup._has_proper_noun(shown) and lookup.candidates(shown):
+        # The real decision: a name in the local instrument catalogue (no Yahoo call in the benchmark), or a named thing that would go to web search.
+        if lookup.find_instrument(shown, normalised) or (lookup._has_proper_noun(shown) and lookup.candidates(shown)):
             return {"domain": "data_lookup", "response": "stub"}
         return None
 
@@ -166,10 +168,11 @@ def main():
                             _general_reply=lambda q: {"domain": "general", "query": q, "response": "stub"},
                             news_context=lambda q: contextlib.nullcontext([]), _understand=understand),
         mock.patch("modules.qa.lookup.data_answer", fake_lookup),
+        mock.patch("modules.market.instruments._yahoo_lookup", lambda q: []),  # benchmark stays offline; the local catalogue still answers
         mock.patch.object(groq, "generate_response", lambda *a, **k: "Error: stubbed"),
         mock.patch.object(groq, "generate_structured", lambda *a, **k: None),
     ]
-    items = load(args.split)
+    items = load(args.split, args.bench)
     rows = []
     seen_scen = set()
     with contextlib.ExitStack() as st:

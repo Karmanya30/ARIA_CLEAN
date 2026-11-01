@@ -9,7 +9,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.router import _CONCEPT_QUESTION, is_broad_market_query, is_company_fact_query, is_equity_research_query, is_intelligence_query, route_query
+from core.router import (_CONCEPT_QUESTION, decision_without_subject, is_broad_market_query, is_company_fact_query, is_equity_research_query,
+                         is_finance_concept_question, is_intelligence_query, route_query)
 from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
@@ -203,6 +204,12 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # queries to the general fallback. is_broad_market_query and
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
+    if not by_intent and not ticker and decision_without_subject(query):
+        # "sell everything now?" with no holding, company or earlier topic to refer to: ask instead of advising on nothing
+        response = {"domain": "clarify", "query": shown, "gate": "missing_subject",
+                    "response": "Which holding do you mean? Tell me the company, fund or asset, and I can show you what the data says about it."}
+        save_turn(session_id, shown, response)
+        return response
     arch_response = None if pending_before else _architecture_route(query, shown, session_id)
     if arch_response is not None:
         response = arch_response
@@ -225,6 +232,8 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
         # domain says market but neither precise check matched (rare) --
         # equity research is the closer fallback of the two.
         response = equity_research_pipeline(query, user_id=session_id)
+    elif is_finance_concept_question(query):
+        response = _with_news(query, tutor_pipeline, user_id=session_id)  # "define asset allocation", "what does NAV mean": a lesson, not the general model
     else:
         if suggestions := suggest(query):
             response = {"domain": "clarify", "query": shown, "response": "Did you mean: " + " / ".join(suggestions) + "?", "suggestions": suggestions}

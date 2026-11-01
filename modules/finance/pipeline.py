@@ -303,7 +303,9 @@ _QUESTION = re.compile(r"\?|\b(can|should|what|how|which|why|will|would|could|te
 def finance_statement(query: str) -> bool:
     """A first-person statement of personal-finance facts ("I earn 1.2 lakh and my rent is 25000"), not a question."""
     t = query.lower()
-    return bool(_FIRST_PERSON.search(t) and _FACT_WORDS.search(t) and not _QUESTION.search(t) and not _HYPOTHETICAL.search(t))
+    # a fact worth saving carries an amount ("I spend hours coding in python" is not a spending fact)
+    return bool(_FIRST_PERSON.search(t) and _FACT_WORDS.search(t) and (_amounts(t) or re.search(r"\b(no|zero|nil|none)\b", t))
+                and not _QUESTION.search(t) and not _HYPOTHETICAL.search(t))
 
 
 def _flat(facts: dict[str, Any]) -> dict[str, Any]:
@@ -549,6 +551,8 @@ def finance_intent(query: str) -> tuple[str, dict] | None:
         return "retirement", {}
     if re.search(r"\bregime\b|old vs new|new vs old|old or new", t):
         return "tax", {}
+    if nums and years and re.search(r"\b(reach|achieve|accumulate|build|builds|building|build up|get to|save up|grow to)\b", t):  # "how much do I need monthly to reach 1 crore in 20 years"
+        return "goal", {"goal": {"name": "your goal", "target": max(nums), "years": float(years.group(1))}}
     if re.search(r"\bgoals?\b", t):
         return "goal", {"goal": {"name": "your goal", "target": nums[0], "years": float(years.group(1))} if nums and years else None}
     if re.search(r"health score|financial health|net ?worth|\bmy score\b|savings rate", t) and not re.search(r"credit score|cibil", t):
