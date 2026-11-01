@@ -9,7 +9,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.router import _CONCEPT_QUESTION, is_broad_market_query, is_company_fact_query, is_equity_research_query, is_intelligence_query, route_query
+from core.router import (_CONCEPT_QUESTION, decision_without_subject, is_broad_market_query, is_company_fact_query, is_equity_research_query,
+                         is_finance_concept_question, is_intelligence_query, route_query)
 from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
@@ -203,7 +204,16 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # queries to the general fallback. is_broad_market_query and
     # is_equity_research_query are the precise checks; domain is only the
     # fallback for Module 1 vs Module 2 vs general.
-    if not by_intent and is_quiz_request(query):
+    if not by_intent and not ticker and decision_without_subject(query):
+        # "sell everything now?" with no holding, company or earlier topic to refer to: ask instead of advising on nothing
+        response = {"domain": "clarify", "query": shown, "gate": "missing_subject",
+                    "response": "Which holding do you mean? Tell me the company, fund or asset, and I can show you what the data says about it."}
+        save_turn(session_id, shown, response)
+        return response
+    arch_response = None if pending_before else _architecture_route(query, shown, session_id)
+    if arch_response is not None:
+        response = arch_response
+    elif not by_intent and is_quiz_request(query):
         response = _with_news(query, tutor_pipeline, user_id=session_id)  # "quiz me" is always a lesson check, never a market question
     elif not by_intent and (not ticker or mentions_fund(query)) and not is_broad_market_query(query) and (response := _data_lookup(shown, query, session_id)):
         pass  # a data question about a name outside the hard-coded list: instrument catalogue, then web search
@@ -222,6 +232,8 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
         # domain says market but neither precise check matched (rare) --
         # equity research is the closer fallback of the two.
         response = equity_research_pipeline(query, user_id=session_id)
+    elif is_finance_concept_question(query):
+        response = _with_news(query, tutor_pipeline, user_id=session_id)  # "define asset allocation", "what does NAV mean": a lesson, not the general model
     else:
         if suggestions := suggest(query):
             response = {"domain": "clarify", "query": shown, "response": "Did you mean: " + " / ".join(suggestions) + "?", "suggestions": suggestions}
@@ -256,6 +268,88 @@ def _data_lookup(shown: str, query: str, session_id: str) -> dict[str, Any] | No
         return lookup.data_answer(shown, query, user_store.current_owner.get() or session_id, history)
     except Exception as exc:
         logger.warning(f"data lookup skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return None
+
+
+def _rule_label(text: str) -> str | None:
+    """Where ARIA's existing deterministic rules place a piece of text; None = they would fall through to the general model."""
+    ticker = resolve_company(text)
+    if is_quiz_request(text):
+        return "tutor"
+    if finance_intent(text) or finance_statement(text):
+        return "finance"
+    if is_intelligence_query(text, ticker):
+        return "company_intelligence"
+    if is_equity_research_query(text, ticker):
+        return "equity_research"
+    if is_broad_market_query(text):
+        return "market"
+    domain = route_query(text)
+    if domain == "finance" and _CONCEPT_QUESTION.match(text.lower()) and not re.search(r"\b(i|i'm|im|i've|my|me|mine|we|our)\b", text.lower()):
+        domain = "tutor"  # the same override _handle applies: "what is a SIP" is a lesson, not a personal calculation
+    return None if domain == "general" else domain
+
+
+def _run_label(label: str, query: str, shown: str, session_id: str) -> dict[str, Any] | None:
+    """Run ONE existing ARIA capability for a routing label (used by the new architectures; the pipelines are the unchanged ones)."""
+    if label == "finance":
+        return _with_news(query, finance_pipeline, user_id=session_id)
+    if label == "tutor":
+        return _with_news(query, tutor_pipeline, user_id=session_id)
+    if label == "market":
+        return market_pipeline(query)
+    if label == "equity_research":
+        return equity_research_pipeline(query, user_id=session_id)
+    if label == "company_intelligence":
+        return company_intelligence(query) or equity_research_pipeline(query, user_id=session_id)
+    if label == "data_lookup":
+        return _data_lookup(shown, query, session_id)  # None when neither the catalogue nor web search knows the name
+    if label == "smalltalk":
+        return _smalltalk_reply(query)
+    if label == "general":
+        return _with_news(query, _general_reply)
+    return None
+
+
+def _understand(query: str, history: list[dict]):
+    from core.intent import understanding
+    return understanding.understand(query, history)
+
+
+def _architecture_route(query: str, shown: str, session_id: str) -> dict[str, Any] | None:
+    """Variants B-E (core/intent/arch.py). None = no opinion, the baseline chain below runs unchanged. Never raises."""
+    from core.intent import arch, graph
+    a = arch.architecture()
+    if a == "A":
+        return None
+    try:
+        history = get_session(session_id).get("history", [])
+        confident = _rule_label(query) is not None
+        if a == "B":
+            d = arch.decide_b(query, deterministic_confident=confident)
+        elif a == "C" or (a == "E" and confident):
+            d = arch.Decision(source="rules")
+        else:  # D, or E when the rules could not place the question
+            d = arch.decide_structured(query, history, deterministic_label=None, understand_fn=_understand) if os.getenv("ARIA_INTENT_LLM", "1") != "0"                 else arch.decide_b(query, deterministic_confident=False)
+        arch.log(d, query)
+        if d.clarify:
+            return {"domain": "clarify", "query": shown, "response": d.clarify, "intent_route": d.trace}
+        plan: list[tuple[str, str | None]] = []
+        if a in ("C", "D", "E") and os.getenv("ARIA_INTENT_GRAPH", "1") != "0":
+            plan = list(d.sub_queries) or (graph.split_by_rules(query, _rule_label) if a in ("C", "E") else [])
+        if len(plan) >= 2:
+            resp = graph.run_multi(shown, plan, lambda text, label: _run_label(label or _rule_label(text) or "general", text, text, session_id)
+                                   or _with_news(text, _general_reply))
+            resp["intent_route"] = d.trace
+            return resp
+        if d.label:
+            resp = _run_label(d.label, query, shown, session_id)
+            if resp is not None:
+                resp["intent_route"] = d.trace
+                return resp
+        return None
+    except Exception as exc:  # noqa: BLE001 - the new layer must never break an answer
+        logger.warning(f"query architecture {a} skipped: {type(exc).__name__}: {str(exc)[:120]}")
         return None
 
 

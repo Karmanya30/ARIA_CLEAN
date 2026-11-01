@@ -73,6 +73,16 @@ TUTOR_KEYWORDS = (
 _STRONG_TUTOR_PHRASES = ("quiz me", "teach me", "explain to me", "test me on")
 
 
+# First-person money statements and questions ("I earn 80k and spend 50k, how much can I save", "kitna kharch hua food pe"). Several
+# of the 12 benchmark questions that reached the general model with no data were of this kind: no finance KEYWORD, but plainly personal
+# finance. The verb alone ("I spend hours coding") is not enough; an amount or a money word must be in the sentence too.
+_MONEY_WORD = re.compile(r"\d|\b(?:lakhs?|crores?|salary|income|rent|emi|food|grocer\w*|money|rupees?|bills?|month\w*|week\w*|budget|mahin\w*|paisa|paise|rupaye)\b")
+_PERSONAL_MONEY = re.compile(
+    r"\b(?:i|we)\s+(?:earn|spend|spent|save|saved|owe|pay|paid|make)\b|\b(?:my|our)\s+(?:salary|income|rent|emi|expenses?|savings?)\b|"
+    r"\bhow\s+much\s+(?:can|could|should|do|will|would)\s+(?:i|we)\s+(?:save|spend|invest|need|have)\b|"
+    r"\bhow\s+much\s+(?:did\s+i\s+|have\s+i\s+)?(?:spend|spent|kharch\w*)\b|\bkharch\w*|\bbachat\b")
+
+
 def _contains(text: str, phrase: str) -> bool:
     # A taxi is not tax; a spaceship is not SIP; a firmament is not a firm.
     endings = {"invest": r"invest(?:s|ed|ing|ments?)?", "saving": r"savings?",
@@ -90,6 +100,8 @@ def classify_intent(query: str) -> str:
     if any(_contains(text, phrase) for phrase in _STRONG_TUTOR_PHRASES):
         return "tutor"
     if any(_contains(text, keyword) for keyword in FINANCE_KEYWORDS):
+        return "finance"
+    if _PERSONAL_MONEY.search(text) and _MONEY_WORD.search(text):
         return "finance"
     if any(_contains(text, keyword) for keyword in MARKET_KEYWORDS):
         return "market"

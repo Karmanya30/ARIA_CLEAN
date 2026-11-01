@@ -53,6 +53,9 @@ _BROAD_MARKET_TERMS = (
     "market moving", "markets moving", "market moves", "market falling", "market rally", "market crash", "market drop", "market selloff",
     "market sell-off", "why is the market", "why are markets", "watch this week", "week ahead",
     "news today", "latest news", "world news", "top news", "top headlines", "headlines",
+    # Hinglish and currency phrasings that fell through to the general model in the intent benchmark
+    "market kaisa", "markets kaisa", "bazaar", "dollar vs", "dollar to rupee", "dollar against", "rupee today", "usdinr", "forex",
+    "how are the markets", "how are markets", "how is the market", "markets doing", "dollar rupee", "against the rupee", "dollar doing",
 )
 _INDIVIDUAL_STOCK_TERMS = (
     "stock price", "share price", "market cap", "pe ratio", "p/e", "ticker",
@@ -70,7 +73,7 @@ _RESEARCH_COMPANY_PHRASES = (
     "investment thesis", "bull case", "bear case", "bull and bear", "valuation", "dcf", "fair value",
     "intrinsic value", "target price", "price target", "overvalued", "undervalued", "deep dive", "full analysis",
 )
-_CONCEPT_QUESTION = re.compile(r"^\s*(?:(?:please|kindly|can you|could you)\s+)?(what is|what's|whats|what are|explain|define|meaning of|how does|how do)\b")
+_CONCEPT_QUESTION = re.compile(r"^\s*(?:(?:please|kindly|can you|could you)\s+)?(what is|what's|whats|what are|explain|define|meaning of|how does|how do|what does\b.+\bmean\b|what do you mean by)\b")
 
 
 def route_query(query: str) -> str:
@@ -91,6 +94,26 @@ def is_fundamental_query(query: str) -> bool:
 
 
 _COMPANY_FACT = re.compile(r"\b(ceo|cfo|chairman|chairperson|founder|founded|headquarters?|headquartered|managing director|employees|who owns)\b")
+
+
+_FINANCE_TERMS = re.compile(
+    r"\b(nav|aum|alpha|beta|sharpe|asset allocation|rebalanc\w*|diversif\w*|liquidity|yield|coupon|duration|hedg\w*|derivatives?|options?|futures?|"
+    r"etfs?|reits?|ipos?|fpo|dividends?|eps|roe|roce|ebitda|wacc|capm|volatility|drawdown|compounding|cagr|xirr|expense ratio|mutual funds?|sips?|"
+    r"elss|nps|ppf|bonds?|debentures?|equity|stocks?|shares?|portfolio|leverage|credit score|cibil|amortization|npv|irr)\b")
+_CONCEPT_ASK = re.compile(r"^\s*(?:(?:please|kindly|can you|could you)\s+)?(?:what does\b.+\bmean\b|what do you mean by|meaning of|define|explain|what is|what's|whats|what are|how does|how do)\b")
+_DECISION_NO_SUBJECT = re.compile(r"^\s*(?:(?:should|shall|can|must|do) i\s+)?(?:(?:hold|buy|sell) or (?:hold|buy|sell)|(?:sell|buy|exit|dump|hold|book profits?)\b(?:\s+(?:it|this|that|them|everything|all|now|today))*)\s*[?!.]*\s*$", re.I)
+
+
+def is_finance_concept_question(query: str) -> bool:
+    """"define asset allocation", "what does NAV mean": a lesson about a finance term. Impersonal only ("what is my SIP" is not a lesson).
+    The keyword router has no entry for such words, so these used to fall through to the general model."""
+    q = query.lower()
+    return bool(_CONCEPT_ASK.match(q)) and bool(_FINANCE_TERMS.search(q)) and not re.search(r"\b(i|i'm|im|i've|my|me|mine|we|our)\b", q)
+
+
+def decision_without_subject(query: str) -> bool:
+    """"sell everything now?" / "should I sell it" with nothing to refer to: ask what, instead of advising on nothing."""
+    return bool(_DECISION_NO_SUBJECT.match(query))
 
 
 def is_company_fact_query(query: str) -> bool:
@@ -136,6 +159,9 @@ def is_equity_research_query(query: str, ticker: str | None) -> bool:
     if ticker and is_fundamental_query(query):
         return True
     # "pe ratio of L&T and HDFC Bank" is company data, not a personal SIP plan; without a company it stays a concept question
+    # "compare it with TCS" names a company and asks for a comparison: company analysis, not a lesson and not the general model
+    if ticker and re.search(r"\b(compare|versus|vs\.?|better than)\b", query.lower()):
+        return True
     return is_investment_query(query) or (bool(ticker) and bool(re.search(r"\bpe ratio\b|\bp/e\b|\bp e ratio\b|price to earnings", query.lower())))
 
 

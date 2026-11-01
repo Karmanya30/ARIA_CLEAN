@@ -67,7 +67,14 @@ LEX = {
 }
 # explicit self-harm only; finance idioms ("killing it", "this loss is killing me", "portfolio died") must not match
 CRISIS = re.compile(r"\b(?:kill myself|end my life|suicid\w*|want to die|better off dead|hurt myself|jeena nahi|khudkushi|mar jaana|end it all|"
-                    r"(?:don'?t|do not) want to (?:live|be alive|exist))\b")
+                    r"(?:don'?t|do not) want to (?:live|be alive|exist)|"
+                    # inflected and paraphrased forms a person actually types ("thinking of hurting myself", "ending it all", "self harm")
+                    r"(?:hurt|hurting|harm|harming|kill|killing|injure|injuring) (?:my ?self)|self[- ]?harm\w*|end(?:ing)? (?:it all|everything for good)|"
+                    r"take my own life|taking my own life|(?:life|living) (?:is|isn'?t|is not) (?:not )?worth (?:it|living|anything)|"
+                    r"no (?:reason|point) (?:to|in) (?:live|living|go on|going on|be alive)|(?:wish|wished) (?:i|that i) (?:was|were) dead|"
+                    r"want to disappear forever|"
+                    # Hindi / Hinglish
+                    r"marne ka (?:man|mann|dil)|marna chahta|marna chahti|jaan de (?:du|dun|doon)|zindagi khatam|apni jaan)\b")
 NEGATIONS = {"not", "no", "never", "don't", "dont", "isn't", "aren't", "wasn't", "nahi", "nhi", "without", "hardly"}
 INTENSIFIERS = {"very", "bahut", "bohot", "really", "extremely", "kaafi", "so", "too", "sooo", "soooo", "itna"}
 HINGLISH = set(("hai hain nahi nahin kya yaar kitna kitni matlab theek thik bahut bohot mera mere meri mujhe tum aap hum karo karna kare kardu du dun "

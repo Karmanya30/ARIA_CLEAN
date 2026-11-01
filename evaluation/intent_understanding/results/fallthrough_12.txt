@@ -1,0 +1,49 @@
+12 fallthrough failures
+
+[I0012] 'kitna kharch hua food pe'  expected=finance (acceptable []) cat=hinglish
+   normalised='how much spend hua food pe'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=True  name_candidates=['kitna kharch hua food', 'kitna kharch']
+   semantic router would say finance (score 0.51, margin 0.14)
+
+[I0042] 'what does NAV mean'  expected=tutor (acceptable []) cat=tutor
+   normalised='what does NAV mean'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=True  name_candidates=['mean']
+   semantic router would say data_lookup (score 0.29, margin 0.14)
+
+[I0069] 'markets kaisa chal raha hai aaj'  expected=market (acceptable []) cat=hinglish
+   normalised='markets kaisa chal raha hai aaj'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['markets kaisa chal raha hai aaj', 'markets kaisa']
+   semantic router would say finance (score 0.54, margin 0.09)
+
+[I0153] 'compare it with TCS'  expected=equity_research (acceptable ['clarify']) cat=followup
+   normalised='compare it with TCS'  ticker=TCS  finance_intent=False  statement=False  keyword_bucket=market  equity=False  market=False  data_q=False  name_candidates=['compare', 'tcs']
+   semantic router would say equity_research (score 0.28, margin 0.07)
+
+[I0208] 'how much do I need monthly to reach 1 crore in 20 years'  expected=finance (acceptable []) cat=calculation
+   normalised='how much do I need monthly to reach 1 crore in 20 years'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['need monthly', 'reach']
+   semantic router would say finance (score 0.31, margin 0.02)
+
+[I0236] 'sell everything now?'  expected=clarify (acceptable ['finance']) cat=adversarial
+   normalised='sell everything now?'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['sell everything']
+   semantic router would say smalltalk (score 0.31, margin 0.02)
+
+[I0002] 'I earn 80k and spend 50k, how much can I save'  expected=finance (acceptable []) cat=finance
+   normalised='I earn 80k and spend 50k, how much can I save'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['earn 80k', 'spend 50k']
+   semantic router would say finance (score 0.45, margin 0.05)
+
+[I0043] 'define asset allocation'  expected=tutor (acceptable []) cat=tutor
+   normalised='define asset allocation'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['define asset allocation', 'define asset']
+   semantic router would say data_lookup (score 0.41, margin 0.04)
+
+[I0066] 'dollar vs rupee today'  expected=market (acceptable []) cat=market
+   normalised='dollar vs rupee today'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['dollar vs']
+   semantic router would say data_lookup (score 0.39, margin 0.07)
+
+[I0222] 'how did Bitcoin, Ethereum and gold do this month'  expected=data_lookup (acceptable ['market']) cat=entity_heavy
+   normalised='how did Bitcoin, Ethereum and gold do this month'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['bitcoin ethereum', 'gold']
+   semantic router would say data_lookup (score 0.43, margin 0.10)
+
+[I0242] 'Kaynes ka revenue kitna hai?'  expected=data_lookup (acceptable ['equity_research']) cat=real_failure
+   normalised='Kaynes ka revenue how much hai?'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=True  name_candidates=['kaynes ka', 'kitna hai']
+   semantic router would say market (score 0.63, margin 0.22)
+
+[I0248] 'should I sell it'  expected=clarify (acceptable ['equity_research', 'finance']) cat=followup
+   normalised='should I sell it'  ticker=None  finance_intent=False  statement=False  keyword_bucket=general  equity=False  market=False  data_q=False  name_candidates=['sell']
+   semantic router would say equity_research (score 0.30, margin 0.02)

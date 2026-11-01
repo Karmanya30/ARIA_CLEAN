@@ -1,0 +1,142 @@
+{
+ "best": {
+  "sr_score": 0.3,
+  "sr_margin": 0.05,
+  "llm_intent": 0.75,
+  "llm_context": 0.7,
+  "sr_veto": 0.55
+ },
+ "score": 0.8410852713178294,
+ "log": [
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.6,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.85,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.95,
+    "llm_context": 0.7,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.5,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.85,
+    "sr_veto": 0.45
+   },
+   "score": 0.8295
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.55
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.7
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 2.0
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.25,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.55
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.4,
+    "sr_margin": 0.05,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.55
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.03,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.55
+   },
+   "score": 0.8411
+  },
+  {
+   "th": {
+    "sr_score": 0.3,
+    "sr_margin": 0.1,
+    "llm_intent": 0.75,
+    "llm_context": 0.7,
+    "sr_veto": 0.55
+   },
+   "score": 0.8411
+  }
+ ]
+}
