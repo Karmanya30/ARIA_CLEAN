@@ -139,6 +139,18 @@ def synthesize(
         if not fallback:
             return None
 
+    # ── Fallback: Piper (local neural voice, shipped in the image; Edge is often blocked on cloud servers) ──
+    try:
+        from ai.speech import live_tts
+
+        if live_tts.available():
+            piper_path = out_path or _new_temp_path(".wav")
+            Path(piper_path).write_bytes(live_tts.synthesize(text)[0])
+            logger.debug(f"[TTS] Piper: {piper_path}")
+            return piper_path
+    except Exception as exc:
+        logger.warning(f"Piper fallback failed: {exc}")
+
     # ── Fallback: pyttsx3 ─────────────────
     try:
         fallback_path = out_path or _new_temp_path(".wav")

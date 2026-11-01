@@ -1,7 +1,7 @@
 import { BrandLogo } from '../../../../components/brand/BrandLogo'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
-import { api } from '../../api'
+import { api, ownerId } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
 import { useTavusSession } from '../../hooks/useTavusSession'
 import { TemplateCards } from './TemplateCards'
@@ -217,7 +217,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             {isLive && (
               <iframe
                 className="live-avatar-frame"
-                src={`/avatar/live?session_id=${encodeURIComponent(sessionId)}`}
+                src={`/avatar/live?session_id=${encodeURIComponent(sessionId)}&owner_id=${encodeURIComponent(ownerId())}`}
                 allow="microphone; autoplay"
                 title="ARIA live avatar"
               />
