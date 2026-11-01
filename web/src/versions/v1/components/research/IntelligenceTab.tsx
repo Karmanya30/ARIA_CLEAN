@@ -103,7 +103,7 @@ export function IntelligenceTab() {
             <span className="ri-spin" aria-hidden="true" />
             <div>
               <strong>{STEPS[step]}</strong>
-              <div className="ri-sub">The first look at a company can take up to 30 seconds; repeat visits are instant.</div>
+              <div className="ri-sub">The first look at a company can take up to 30 seconds. Repeat visits are usually faster.</div>
             </div>
           </div>
         )}
