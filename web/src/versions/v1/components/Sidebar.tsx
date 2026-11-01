@@ -24,6 +24,7 @@ export function Sidebar({
   onNewSession,
   extra,
   search,
+  history,
   newLabel = 'New session',
 }: {
   tabs: NavDef[]
@@ -32,6 +33,7 @@ export function Sidebar({
   onNewSession: () => void
   extra?: React.ReactNode // theme-specific controls (the Markets colour-mode toggle) next to New session
   search?: React.ReactNode // the global instrument search button, on every page
+  history?: React.ReactNode // saved chats: search, pin, rename, archive, delete
   newLabel?: string
 }) {
   return (
@@ -47,6 +49,7 @@ export function Sidebar({
         {newLabel}
       </button>
       {extra}
+      {history}
 
       <nav className="sidebar-nav" role="tablist">
         {tabs.map((tab) => (

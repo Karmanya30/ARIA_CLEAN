@@ -1,12 +1,14 @@
-import { LiveMeeting } from './LiveMeeting'
 import { BrandLogo } from '../../components/brand/BrandLogo'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Send, Square, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
+import { useTavusSession } from '../../hooks/useTavusSession'
 import { TemplateCards } from './TemplateCards'
 import { MessageBubble } from './MessageBubble'
 import { VoiceRecorder } from './VoiceRecorder'
+import { TavusVideo } from './TavusVideo'
+import { TavusTranscript } from './TavusTranscript'
 import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
@@ -14,7 +16,7 @@ import { ConversationalAvatar } from './ConversationalAvatar'
 import { NormalModeOrb } from './NormalModeOrb'
 import './ChatTab.css'
 
-const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)']
+const MODES: ChatMode[] = ['Normal Mode', 'Conversational Mode', 'Live Avatar (Free)', 'Tavus CVI Mode (WebRTC)']
 
 function greeting(): string {
   const hour = new Date().getHours()
@@ -70,7 +72,7 @@ function Composer({
 }
 
 export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: { sessionId: string; onOpenProfile?: () => void; pendingAsk?: string | null; onAskHandled?: () => void }) {
-  const [mode, setMode] = useState<ChatMode>(pendingAsk ? 'Normal Mode' : 'Live Avatar (Free)')
+  const [mode, setMode] = useState<ChatMode>('Normal Mode')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
   const [captureEpoch, setCaptureEpoch] = useState(0)
@@ -84,19 +86,33 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // so the canvas visualiser can tap into the Web Audio API analyser.
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null)
 
+  const isTavus = mode === 'Tavus CVI Mode (WebRTC)'
   const isConversational = mode === 'Conversational Mode'
   // Free streaming voice mode (api/routes/live.py + interface/avatar/live.html): the call UI lives in the iframe,
   // and its turns are saved to the same session history this column shows.
   const isLive = mode === 'Live Avatar (Free)'
-  const showHero = history.length === 0 && !pending
+  const showHero = history.length === 0 && !isTavus && !pending
+  // Hooks can't be called conditionally, so this always runs -- `enabled`
+  // is what actually gates starting/ending the paid call.
+  const tavusSession = useTavusSession(sessionId, isTavus)
 
   useEffect(() => {
-    if (isLive) return
-    let active = true
-    api.getHistory(sessionId).then(res => { if (active) setHistory(res.history as HistoryTurn[]) }).catch(() => {})
-    return () => { active = false }
-  }, [sessionId, isLive])
+    api.getHistory(sessionId).then((res) => setHistory(res.history as HistoryTurn[]))
+  }, [sessionId])
 
+  useEffect(() => {
+    if (!isLive) return
+    const refresh = () => api.getHistory(sessionId).then((res) => setHistory(res.history as HistoryTurn[])).catch(() => {})
+    const onMessage = (ev: MessageEvent) => {
+      if (ev.data?.source === 'aria-live' && ev.data.type === 'done') refresh()
+    }
+    window.addEventListener('message', onMessage)
+    const poll = setInterval(refresh, 4000)
+    return () => {
+      window.removeEventListener('message', onMessage)
+      clearInterval(poll)
+    }
+  }, [isLive, sessionId])
 
   // A question handed over from another tab (e.g. spending insights): send it once, then clear it.
   useEffect(() => {
@@ -109,7 +125,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
 
   // The thread flows with the page; keep the latest message in view.
   useEffect(() => {
-    if (isLive || (!history.length && !sending)) return
+    if (!history.length && !sending) return
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: calm ? 'auto' : 'smooth' })
   }, [history.length, sending])
@@ -128,7 +144,11 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
       const response = await api.sendMessage(trimmed, sessionId, mode, correct, undefined, ctl.signal)
       setHistory((h) => [...h, { query: trimmed, response, audio_token: response.audio_token }])
       // the saved turn carries the id that rating needs; keep what is on screen if the reload fails
-      api.getHistory(sessionId).then((res) => setHistory(res.history as HistoryTurn[])).catch(() => {})
+      api.getHistory(sessionId).then((res) => {
+        const saved = res.history as HistoryTurn[]
+        // only add the ids to what is already shown: a slow or empty reload must never remove a visible answer
+        setHistory((h) => h.map((t, i) => (saved[i]?.query === t.query ? { ...t, message_id: saved[i].message_id, rating: saved[i].rating } : t)))
+      }).catch(() => {})
     } catch (err) {
       if (ctl.signal.aborted) {
         setQuery(trimmed) // stopped: put the question back so it can be edited or sent again
@@ -151,6 +171,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     setCaptureEpoch(value => value + 1)
     await api.clearChat(sessionId)
     setHistory([])
+    if (isTavus) setMode('Normal Mode')
   }
 
   function markQuizAnswered(index: number, correct: boolean) {
@@ -165,7 +186,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
   // small decorative orb during its own idle state), so it keeps the
   // simpler single centered column instead of wasting half the screen
   // on empty space.
-  const isSplitLayout = isConversational || isLive
+  const isSplitLayout = isTavus || isConversational || isLive
 
   const pendingTurn = pending && (
     <div className="message-pair">
@@ -205,8 +226,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     </div>
   )
 
-  if (isLive) return <LiveMeeting key={sessionId} sessionId={sessionId} history={history} onHistory={setHistory} onEnd={() => setMode('Normal Mode')} />
-
   if (isSplitLayout) {
     return (
       <div className="chat-page chat-page-split">
@@ -214,15 +233,26 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
         {topbar}
         <div className="chat-split-body">
           <div className="chat-avatar-col">
+            {isTavus && <TavusVideo session={tavusSession} />}
             {isConversational && <ConversationalAvatar audioToken={latestAudioToken} voiceControl={
               <VoiceRecorder key={sessionId + ':' + captureEpoch} conversational disabled={sending}
                 onBusyChange={setCaptureBusy} onTranscribed={text => send(text)} />
             } />}
-
+            {isLive && (
+              <iframe
+                className="live-avatar-frame"
+                src={`/avatar/live?session_id=${encodeURIComponent(sessionId)}`}
+                allow="microphone; autoplay"
+                title="ARIA live avatar"
+              />
+            )}
           </div>
           <div className="chat-chat-col">
             <div className="chat-scroll-region">
-              <div className="chat-thread">
+              {isTavus ? (
+                <TavusTranscript session={tavusSession} />
+              ) : (
+                <div className="chat-thread">
                   {history.length === 0 && (
                     <p className="chat-empty-hint">
                       {isLive ? 'Press “Start conversation” on the avatar, then speak or type. The conversation appears here.' : 'Ask ARIA something to get started.'}
@@ -242,9 +272,10 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     />
                   ))}
                   {pendingTurn}
-              </div>
+                </div>
+              )}
             </div>
-            {!isLive && (
+            {!isTavus && !isLive && (
               <Composer key={sessionId + ':' + captureEpoch} variant="pinned" onStop={stop} query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>

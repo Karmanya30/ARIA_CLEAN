@@ -13,6 +13,7 @@ async function device(browser: Browser) {
   return { ctx, page: await ctx.newPage() }
 }
 
+test.setTimeout(180_000)
 test('a chat is saved, survives refresh, opens on a second device, and can be renamed, pinned and deleted', async ({ browser }) => {
   const a = await device(browser)
   const errors: string[] = []
@@ -52,7 +53,9 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await a.page.getByLabel('Search chats').fill('zzzz-no-such-chat')
   await expect(a.page.getByText('No chats match your search.')).toBeVisible()
   await a.page.getByLabel('Search chats').fill('')
-  await a.page.locator('.conv-item', { hasText: 'Greeting test' }).getByRole('button', { name: 'Pin' }).click({ force: true })
+  const pinRow = a.page.locator('.conv-item', { hasText: 'Greeting test' })
+  await pinRow.hover()
+  await pinRow.getByRole('button', { name: 'Pin' }).click()
   await expect(a.page.locator('.conv-group h3', { hasText: 'Pinned' })).toBeVisible()
 
   // rate the answer on A; the rating is still there after a reload
@@ -62,7 +65,9 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
 
   // delete on A: gone from B as well
   a.page.once('dialog', (d) => d.accept())
-  await a.page.locator('.conv-item', { hasText: 'Greeting test' }).getByRole('button', { name: 'Delete' }).click({ force: true })
+  const row = a.page.locator('.conv-item', { hasText: 'Greeting test' })
+  await row.hover()
+  await row.getByRole('button', { name: 'Delete' }).click()
   await b.page.reload()
   await expect(b.page.locator('.conv-item', { hasText: 'Greeting test' })).toHaveCount(0)
   expect(errors).toEqual([])

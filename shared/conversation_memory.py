@@ -224,7 +224,7 @@ def load(session_id: str) -> dict:
         rows = db.scalars(select(Turn).where(Turn.conversation_id == session_id,
                           Turn.id > conv.cleared_through, Turn.status == "complete").order_by(Turn.id)).all()
         history = [{"query": r.query, "response": json.loads(r.response_json),
-                    "message_id": r.id, "created_at": r.created_at} for r in rows]
+                    "message_id": r.id, "created_at": r.created_at, "rating": r.rating} for r in rows]
         state = json.loads(conv.state_json)
         state["history"] = history
         if history:

@@ -12,19 +12,21 @@ function remember(id: string) {
   try { sessionStorage.setItem(KEY, id) } catch { /* retain in component state */ }
 }
 
-/** Resume the active conversation across browser restarts; reset starts a new one. */
-export function useSessionId(): [string, () => void] {
+/** Resume the active conversation across browser restarts; reset starts a new one, select opens an earlier one.
+ * `restored` is false when this browser had no saved conversation (first visit, a new device, or just signed in), so the
+ * app can open the most recent saved one from the server instead of a blank chat. */
+export function useSessionId(): [string, () => void, (id: string) => void, boolean] {
+  const [restored] = useState(() => !!readId())
   const [id, setId] = useState(() => {
     const saved = readId() || crypto.randomUUID()
     remember(saved)
     return saved
   })
 
-  function reset() {
-    const fresh = crypto.randomUUID()
-    remember(fresh)
-    setId(fresh)
+  function select(next: string) {
+    remember(next)
+    setId(next)
   }
 
-  return [id, reset]
+  return [id, () => select(crypto.randomUUID()), select, restored]
 }

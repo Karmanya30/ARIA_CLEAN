@@ -157,10 +157,11 @@ export const api = {
     j<ConversationMessages>(conv(`/${encodeURIComponent(id)}/messages`, before ? `&before=${before}` : '')),
   updateConversation: (id: string, patch: { title?: string; pinned?: boolean; archived?: boolean }) =>
     j<ConversationSummary>(conv(`/${encodeURIComponent(id)}`), { method: 'PATCH', body: JSON.stringify(patch) }),
-  rateMessage: (sessionId: string, messageId: number, rating: 1 | -1 | null) =>
-    j<{ status: string }>(conv(`/${encodeURIComponent(sessionId)}/messages/${messageId}/rating`), { method: 'PUT', body: JSON.stringify({ rating }) }),
   deleteConversation: (id: string) => j<{ status: string }>(conv(`/${encodeURIComponent(id)}`), { method: 'DELETE' }),
   conversationExportUrl: (id: string, format: 'json' | 'markdown') => conv(`/${encodeURIComponent(id)}/export`, `&format=${format}`),
+
+  rateMessage: (sessionId: string, messageId: number, rating: 1 | -1 | null) =>
+    j<{ status: string }>(`/api/conversations/${encodeURIComponent(sessionId)}/messages/${messageId}/rating?owner_id=${encodeURIComponent(ownerId())}`, { method: 'PUT', body: JSON.stringify({ rating }) }),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(
@@ -271,5 +272,13 @@ export const api = {
   sentiment: (texts: string[]) =>
     j<SentimentResult>('/api/research/sentiment', { method: 'POST', body: JSON.stringify({ texts }) }),
 
+  startTavus: (sessionId: string) =>
+    j<{ conversation_id: string; conversation_url: string; embed_url: string }>('/api/tavus/start', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId, owner_id: ownerId() }),
+    }),
 
+  // Pass the id you started: a bare end would stop whichever call is active now, possibly a newer one.
+  endTavus: (conversationId?: string) =>
+    j<{ status: string }>('/api/tavus/end', { method: 'POST', body: JSON.stringify({ conversation_id: conversationId ?? null }) }),
 }
