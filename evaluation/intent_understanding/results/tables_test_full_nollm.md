@@ -12,11 +12,11 @@
 
 | Variant | Local routing p50 / p95 (ms) | Model calls per query | Tokens per query | Model time per query (ms, recorded) | Tokens per 1,000 queries | Errors / cache misses |
 |---|---|---|---|---|---|---|
-| A baseline | 15 / 26 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| B +Semantic Router | 18 / 40 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| C +LangGraph | 16 / 24 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| A baseline | 22 / 30 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| B +Semantic Router | 20 / 36 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| C +LangGraph | 18 / 26 | 0.00 | 0 | 0 | 0 | 0 / 0 |
 | B-ablation: router may override rules | 32 / 48 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| E-ablation: no LLM | 18 / 41 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| E-ablation: no LLM | 20 / 38 | 0.00 | 0 | 0 | 0 | 0 / 0 |
 
 Local routing time is the measured wall time of the routing step with all pipelines stubbed (model-load excluded); model time is the latency recorded when the real call was made, so end-to-end routing time = local + model time. Tokens are prompt + completion as reported by the provider.
 

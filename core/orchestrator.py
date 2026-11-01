@@ -276,6 +276,8 @@ def _rule_label(text: str) -> str | None:
     if is_broad_market_query(text):
         return "market"
     domain = route_query(text)
+    if domain == "finance" and _CONCEPT_QUESTION.match(text.lower()) and not re.search(r"\b(i|i'm|im|i've|my|me|mine|we|our)\b", text.lower()):
+        domain = "tutor"  # the same override _handle applies: "what is a SIP" is a lesson, not a personal calculation
     return None if domain == "general" else domain
 
 

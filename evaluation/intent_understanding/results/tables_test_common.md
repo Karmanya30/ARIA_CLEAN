@@ -14,11 +14,11 @@ _Restricted to the 75 items for which every variant has its recorded model outpu
 
 | Variant | Local routing p50 / p95 (ms) | Model calls per query | Tokens per query | Model time per query (ms, recorded) | Tokens per 1,000 queries | Errors / cache misses |
 |---|---|---|---|---|---|---|
-| A baseline | 15 / 24 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| B +Semantic Router | 17 / 38 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| C +LangGraph | 16 / 24 | 0.00 | 0 | 0 | 0 | 0 / 0 |
-| D structured+SR+LG | 33 / 44 | 0.80 | 1011 | 896 | 1,010,627 | 0 / 0 |
-| E hybrid | 19 / 44 | 0.16 | 200 | 170 | 200,307 | 0 / 0 |
+| A baseline | 22 / 29 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| B +Semantic Router | 18 / 33 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| C +LangGraph | 18 / 25 | 0.00 | 0 | 0 | 0 | 0 / 0 |
+| D structured+SR+LG | 38 / 59 | 0.80 | 1011 | 896 | 1,010,627 | 0 / 0 |
+| E hybrid | 18 / 34 | 0.16 | 200 | 170 | 200,307 | 0 / 0 |
 
 Local routing time is the measured wall time of the routing step with all pipelines stubbed (model-load excluded); model time is the latency recorded when the real call was made, so end-to-end routing time = local + model time. Tokens are prompt + completion as reported by the provider.
 

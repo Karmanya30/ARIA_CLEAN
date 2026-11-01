@@ -18,7 +18,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 627.9,
+"latency_ms": 933.1,
 "llm_calls": 1,
 "llm_ms": 1290.3,
 "llm_tokens": 1299,
@@ -26,12 +26,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.9
+"latency_ms": 2.8
 },
 "sr_label": "finance",
 "sr_score": 0.447,
 "sr_margin": 0.048,
-"sr_ms": 10.68,
+"sr_ms": 22.73,
 "llm_intent": "finance",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -58,7 +58,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 30.5,
+"latency_ms": 54.6,
 "llm_calls": 1,
 "llm_ms": 971.2,
 "llm_tokens": 1283,
@@ -66,12 +66,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.8
 },
 "sr_label": "finance",
 "sr_score": 0.35,
 "sr_margin": 0.111,
-"sr_ms": 11.03,
+"sr_ms": 22.12,
 "llm_intent": "finance",
 "llm_conf": 0.96,
 "llm_ctx": 1.0,
@@ -98,7 +98,7 @@
 "market"
 ],
 "clarified": false,
-"latency_ms": 53.0,
+"latency_ms": 83.5,
 "llm_calls": 1,
 "llm_ms": 1219.0,
 "llm_tokens": 1312,
@@ -106,12 +106,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.2
+"latency_ms": 1.9
 },
 "sr_label": "tutor",
 "sr_score": 0.458,
 "sr_margin": 0.08,
-"sr_ms": 12.14,
+"sr_ms": 20.11,
 "llm_intent": "finance",
 "llm_conf": 0.93,
 "llm_ctx": 1.0,
@@ -137,7 +137,7 @@
 "got": "clarify",
 "got_parts": [],
 "clarified": true,
-"latency_ms": 38.4,
+"latency_ms": 54.7,
 "llm_calls": 1,
 "llm_ms": 1542.1,
 "llm_tokens": 1305,
@@ -145,12 +145,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 2.3
 },
 "sr_label": "finance",
 "sr_score": 0.437,
 "sr_margin": 0.034,
-"sr_ms": 14.45,
+"sr_ms": 20.43,
 "llm_intent": "finance",
 "llm_conf": 0.85,
 "llm_ctx": 0.7,
@@ -174,7 +174,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 30.4,
+"latency_ms": 55.6,
 "llm_calls": 1,
 "llm_ms": 1031.4,
 "llm_tokens": 1226,
@@ -182,12 +182,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 2.1
 },
 "sr_label": "finance",
 "sr_score": 0.459,
 "sr_margin": 0.073,
-"sr_ms": 8.51,
+"sr_ms": 18.79,
 "llm_intent": "finance",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -211,7 +211,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 27.6,
+"latency_ms": 44.6,
 "llm_calls": 1,
 "llm_ms": 839.9,
 "llm_tokens": 1216,
@@ -219,12 +219,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 1.9
 },
 "sr_label": "finance",
 "sr_score": 0.373,
 "sr_margin": 0.034,
-"sr_ms": 11.03,
+"sr_ms": 16.58,
 "llm_intent": "finance",
 "llm_conf": 0.95,
 "llm_ctx": 1.0,
@@ -248,7 +248,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.3,
+"latency_ms": 44.6,
 "llm_calls": 1,
 "llm_ms": 1474.0,
 "llm_tokens": 1404,
@@ -256,12 +256,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.1
 },
 "sr_label": "finance",
 "sr_score": 0.311,
 "sr_margin": 0.055,
-"sr_ms": 14.85,
+"sr_ms": 18.56,
 "llm_intent": "finance",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -289,7 +289,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 31.1,
+"latency_ms": 48.3,
 "llm_calls": 1,
 "llm_ms": 1049.0,
 "llm_tokens": 1291,
@@ -297,12 +297,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.0
+"latency_ms": 1.8
 },
 "sr_label": "finance",
 "sr_score": 0.354,
 "sr_margin": 0.107,
-"sr_ms": 14.25,
+"sr_ms": 21.72,
 "llm_intent": "finance",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -329,7 +329,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.0,
+"latency_ms": 51.6,
 "llm_calls": 1,
 "llm_ms": 1027.4,
 "llm_tokens": 1324,
@@ -337,12 +337,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.1
+"latency_ms": 1.7
 },
 "sr_label": "finance",
 "sr_score": 0.377,
 "sr_margin": 0.377,
-"sr_ms": 19.2,
+"sr_ms": 23.86,
 "llm_intent": "finance",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -370,7 +370,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 28.3,
+"latency_ms": 50.1,
 "llm_calls": 1,
 "llm_ms": 1059.5,
 "llm_tokens": 1239,
@@ -378,12 +378,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.2
+"latency_ms": 1.8
 },
 "sr_label": "finance",
 "sr_score": 0.445,
 "sr_margin": 0.077,
-"sr_ms": 10.07,
+"sr_ms": 18.78,
 "llm_intent": "finance",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -409,7 +409,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 35.3,
+"latency_ms": 55.0,
 "llm_calls": 1,
 "llm_ms": 961.7,
 "llm_tokens": 1209,
@@ -417,12 +417,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 3.0
 },
 "sr_label": "tutor",
 "sr_score": 0.486,
 "sr_margin": 0.021,
-"sr_ms": 13.15,
+"sr_ms": 24.6,
 "llm_intent": "finance",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -448,7 +448,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.0,
+"latency_ms": 52.6,
 "llm_calls": 1,
 "llm_ms": 1233.0,
 "llm_tokens": 1261,
@@ -456,12 +456,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 2.7
 },
 "sr_label": "tutor",
 "sr_score": 0.374,
 "sr_margin": 0.055,
-"sr_ms": 13.21,
+"sr_ms": 18.3,
 "llm_intent": "finance",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -487,7 +487,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 42.6,
+"latency_ms": 66.3,
 "llm_calls": 1,
 "llm_ms": 1251.4,
 "llm_tokens": 1327,
@@ -495,12 +495,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 3.1
 },
 "sr_label": "finance",
 "sr_score": 0.284,
 "sr_margin": 0.005,
-"sr_ms": 15.33,
+"sr_ms": 27.04,
 "llm_intent": "finance",
 "llm_conf": 0.96,
 "llm_ctx": 1.0,
@@ -534,12 +534,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.0
+"latency_ms": 1.3
 },
 "sr_label": "finance",
 "sr_score": 0.366,
 "sr_margin": 0.008,
-"sr_ms": 13.64,
+"sr_ms": 11.6,
 "llm_intent": "finance",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -566,7 +566,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 32.2,
+"latency_ms": 38.6,
 "llm_calls": 1,
 "llm_ms": 1262.8,
 "llm_tokens": 1321,
@@ -574,12 +574,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 1.2
 },
 "sr_label": "tutor",
 "sr_score": 0.457,
 "sr_margin": 0.153,
-"sr_ms": 12.46,
+"sr_ms": 13.67,
 "llm_intent": "finance",
 "llm_conf": 0.95,
 "llm_ctx": 1.0,
@@ -605,7 +605,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.6,
+"latency_ms": 39.6,
 "llm_calls": 1,
 "llm_ms": 1002.1,
 "llm_tokens": 1214,
@@ -613,12 +613,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.3
+"latency_ms": 1.3
 },
 "sr_label": "finance",
 "sr_score": 0.332,
 "sr_margin": 0.045,
-"sr_ms": 9.63,
+"sr_ms": 11.55,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -642,7 +642,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.7,
+"latency_ms": 30.8,
 "llm_calls": 1,
 "llm_ms": 909.7,
 "llm_tokens": 1212,
@@ -650,12 +650,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 1.1
 },
 "sr_label": "tutor",
 "sr_score": 0.982,
 "sr_margin": 0.492,
-"sr_ms": 13.27,
+"sr_ms": 11.11,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -679,7 +679,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.2,
+"latency_ms": 38.0,
 "llm_calls": 1,
 "llm_ms": 1197.0,
 "llm_tokens": 1238,
@@ -687,12 +687,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.3
 },
 "sr_label": "tutor",
 "sr_score": 0.434,
 "sr_margin": 0.043,
-"sr_ms": 11.84,
+"sr_ms": 13.65,
 "llm_intent": "tutor",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -716,7 +716,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 35.1,
+"latency_ms": 38.2,
 "llm_calls": 1,
 "llm_ms": 1038.1,
 "llm_tokens": 1189,
@@ -724,12 +724,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.8
+"latency_ms": 1.1
 },
 "sr_label": "data_lookup",
 "sr_score": 0.406,
 "sr_margin": 0.015,
-"sr_ms": 9.17,
+"sr_ms": 13.22,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -753,7 +753,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 29.6,
+"latency_ms": 34.9,
 "llm_calls": 1,
 "llm_ms": 1021.4,
 "llm_tokens": 1222,
@@ -761,12 +761,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 1.0
 },
 "sr_label": "tutor",
 "sr_score": 0.147,
 "sr_margin": 0.017,
-"sr_ms": 9.35,
+"sr_ms": 12.58,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -790,7 +790,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 30.1,
+"latency_ms": 38.6,
 "llm_calls": 1,
 "llm_ms": 875.5,
 "llm_tokens": 1234,
@@ -798,12 +798,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 2.3
 },
 "sr_label": "tutor",
 "sr_score": 0.324,
 "sr_margin": 0.032,
-"sr_ms": 12.37,
+"sr_ms": 14.2,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -827,7 +827,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.3,
+"latency_ms": 28.4,
 "llm_calls": 1,
 "llm_ms": 966.3,
 "llm_tokens": 1196,
@@ -835,12 +835,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.8
+"latency_ms": 1.0
 },
 "sr_label": "tutor",
 "sr_score": 0.423,
 "sr_margin": 0.019,
-"sr_ms": 11.5,
+"sr_ms": 11.16,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -864,7 +864,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 36.8,
+"latency_ms": 29.6,
 "llm_calls": 1,
 "llm_ms": 1063.0,
 "llm_tokens": 1221,
@@ -872,12 +872,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.0
 },
 "sr_label": "tutor",
 "sr_score": 0.428,
 "sr_margin": 0.051,
-"sr_ms": 16.94,
+"sr_ms": 9.44,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -901,7 +901,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.2,
+"latency_ms": 39.1,
 "llm_calls": 1,
 "llm_ms": 1143.7,
 "llm_tokens": 1278,
@@ -909,12 +909,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.6
+"latency_ms": 1.5
 },
 "sr_label": "market",
 "sr_score": 0.472,
 "sr_margin": 0.052,
-"sr_ms": 10.18,
+"sr_ms": 11.91,
 "llm_intent": "tutor",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -938,7 +938,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 29.9,
+"latency_ms": 34.4,
 "llm_calls": 1,
 "llm_ms": 935.6,
 "llm_tokens": 1227,
@@ -946,12 +946,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 1.0
 },
 "sr_label": "market",
 "sr_score": 0.327,
 "sr_margin": 0.033,
-"sr_ms": 10.93,
+"sr_ms": 13.11,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -975,7 +975,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 29.8,
+"latency_ms": 28.9,
 "llm_calls": 1,
 "llm_ms": 1003.5,
 "llm_tokens": 1192,
@@ -983,12 +983,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.2
+"latency_ms": 1.6
 },
 "sr_label": "finance",
 "sr_score": 0.351,
 "sr_margin": 0.039,
-"sr_ms": 9.36,
+"sr_ms": 9.71,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1012,7 +1012,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 29.8,
+"latency_ms": 38.3,
 "llm_calls": 1,
 "llm_ms": 1155.0,
 "llm_tokens": 1273,
@@ -1020,12 +1020,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 2.0
 },
 "sr_label": "market",
 "sr_score": 0.427,
 "sr_margin": 0.002,
-"sr_ms": 10.47,
+"sr_ms": 10.93,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1049,7 +1049,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 35.2,
+"latency_ms": 34.2,
 "llm_calls": 1,
 "llm_ms": 1090.2,
 "llm_tokens": 1223,
@@ -1057,12 +1057,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.1
 },
 "sr_label": "market",
 "sr_score": 0.383,
 "sr_margin": 0.053,
-"sr_ms": 15.3,
+"sr_ms": 13.42,
 "llm_intent": "market",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -1088,7 +1088,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 42.1,
+"latency_ms": 39.7,
 "llm_calls": 1,
 "llm_ms": 1602.7,
 "llm_tokens": 1222,
@@ -1096,12 +1096,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.5
 },
 "sr_label": "market",
 "sr_score": 0.394,
 "sr_margin": 0.044,
-"sr_ms": 16.01,
+"sr_ms": 15.66,
 "llm_intent": "market",
 "llm_conf": 0.95,
 "llm_ctx": 1.0,
@@ -1125,7 +1125,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.2,
+"latency_ms": 32.0,
 "llm_calls": 1,
 "llm_ms": 1264.3,
 "llm_tokens": 1229,
@@ -1133,12 +1133,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 1.1
 },
 "sr_label": "market",
 "sr_score": 0.394,
 "sr_margin": 0.021,
-"sr_ms": 14.5,
+"sr_ms": 12.55,
 "llm_intent": "market",
 "llm_conf": 0.96,
 "llm_ctx": 0.98,
@@ -1162,7 +1162,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.0,
+"latency_ms": 31.8,
 "llm_calls": 1,
 "llm_ms": 912.0,
 "llm_tokens": 1205,
@@ -1170,12 +1170,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.9
 },
 "sr_label": "tutor",
 "sr_score": 0.562,
 "sr_margin": 0.061,
-"sr_ms": 13.7,
+"sr_ms": 9.4,
 "llm_intent": "market",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1199,7 +1199,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 30.5,
+"latency_ms": 41.8,
 "llm_calls": 1,
 "llm_ms": 1225.4,
 "llm_tokens": 1345,
@@ -1221,7 +1221,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.2,
+"latency_ms": 36.5,
 "llm_calls": 1,
 "llm_ms": 1259.8,
 "llm_tokens": 1233,
@@ -1229,12 +1229,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.2
+"latency_ms": 3.0
 },
 "sr_label": "market",
 "sr_score": 0.378,
 "sr_margin": 0.076,
-"sr_ms": 11.73,
+"sr_ms": 11.86,
 "llm_intent": "market",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1260,7 +1260,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.6,
+"latency_ms": 39.0,
 "llm_calls": 1,
 "llm_ms": 1042.7,
 "llm_tokens": 1322,
@@ -1268,12 +1268,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 1.8
 },
 "sr_label": "market",
 "sr_score": 0.366,
 "sr_margin": 0.02,
-"sr_ms": 13.08,
+"sr_ms": 12.96,
 "llm_intent": "market",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1302,7 +1302,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 41.0,
+"latency_ms": 35.2,
 "llm_calls": 1,
 "llm_ms": 1123.5,
 "llm_tokens": 1260,
@@ -1324,7 +1324,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 40.4,
+"latency_ms": 32.9,
 "llm_calls": 1,
 "llm_ms": 1381.0,
 "llm_tokens": 1295,
@@ -1332,12 +1332,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.0
+"latency_ms": 1.1
 },
 "sr_label": "equity_research",
 "sr_score": 0.408,
 "sr_margin": 0.04,
-"sr_ms": 12.64,
+"sr_ms": 11.89,
 "llm_intent": "equity_research",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1363,7 +1363,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.4,
+"latency_ms": 33.7,
 "llm_calls": 1,
 "llm_ms": 1214.8,
 "llm_tokens": 1288,
@@ -1371,12 +1371,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 2.0
 },
 "sr_label": "equity_research",
 "sr_score": 0.328,
 "sr_margin": 0.048,
-"sr_ms": 14.37,
+"sr_ms": 12.1,
 "llm_intent": "equity_research",
 "llm_conf": 0.96,
 "llm_ctx": 1.0,
@@ -1402,7 +1402,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 27.2,
+"latency_ms": 35.5,
 "llm_calls": 1,
 "llm_ms": 1200.9,
 "llm_tokens": 1301,
@@ -1410,12 +1410,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.3
 },
 "sr_label": "company_intelligence",
 "sr_score": 0.379,
 "sr_margin": 0.052,
-"sr_ms": 10.36,
+"sr_ms": 13.24,
 "llm_intent": "equity_research",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -1441,7 +1441,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 30.8,
+"latency_ms": 34.0,
 "llm_calls": 1,
 "llm_ms": 1230.7,
 "llm_tokens": 1352,
@@ -1449,12 +1449,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.0
 },
 "sr_label": "data_lookup",
 "sr_score": 0.385,
 "sr_margin": 0.061,
-"sr_ms": 11.41,
+"sr_ms": 12.2,
 "llm_intent": "equity_research",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -1481,7 +1481,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.0,
+"latency_ms": 35.4,
 "llm_calls": 1,
 "llm_ms": 1170.8,
 "llm_tokens": 1296,
@@ -1489,12 +1489,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.6
+"latency_ms": 2.2
 },
 "sr_label": "tutor",
 "sr_score": 0.368,
 "sr_margin": 0.01,
-"sr_ms": 15.82,
+"sr_ms": 13.88,
 "llm_intent": "data_lookup",
 "llm_conf": 0.95,
 "llm_ctx": 1.0,
@@ -1523,7 +1523,7 @@
 "got": "company_intelligence",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 26.9,
+"latency_ms": 30.4,
 "llm_calls": 1,
 "llm_ms": 1134.7,
 "llm_tokens": 1309,
@@ -1531,12 +1531,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.2
 },
 "sr_label": "company_intelligence",
 "sr_score": 0.266,
 "sr_margin": 0.0,
-"sr_ms": 9.41,
+"sr_ms": 11.88,
 "llm_intent": "company_intelligence",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1564,7 +1564,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 27.8,
+"latency_ms": 32.3,
 "llm_calls": 1,
 "llm_ms": 1149.1,
 "llm_tokens": 1324,
@@ -1572,12 +1572,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.3
+"latency_ms": 1.2
 },
 "sr_label": "equity_research",
 "sr_score": 0.434,
 "sr_margin": 0.077,
-"sr_ms": 10.67,
+"sr_ms": 13.25,
 "llm_intent": "equity_research",
 "llm_conf": 0.96,
 "llm_ctx": 1.0,
@@ -1603,7 +1603,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.3,
+"latency_ms": 44.5,
 "llm_calls": 1,
 "llm_ms": 987.6,
 "llm_tokens": 1280,
@@ -1611,12 +1611,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.3
+"latency_ms": 3.1
 },
 "sr_label": "equity_research",
 "sr_score": 0.395,
 "sr_margin": 0.038,
-"sr_ms": 9.72,
+"sr_ms": 14.46,
 "llm_intent": "equity_research",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1644,7 +1644,7 @@
 "got": "clarify",
 "got_parts": [],
 "clarified": true,
-"latency_ms": 34.6,
+"latency_ms": 37.5,
 "llm_calls": 1,
 "llm_ms": 1028.6,
 "llm_tokens": 1284,
@@ -1652,12 +1652,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 1.7
 },
 "sr_label": "tutor",
 "sr_score": 0.408,
 "sr_margin": 0.074,
-"sr_ms": 13.35,
+"sr_ms": 11.64,
 "llm_intent": "clarify",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1683,7 +1683,7 @@
 "got": "company_intelligence",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.7,
+"latency_ms": 43.8,
 "llm_calls": 1,
 "llm_ms": 1310.0,
 "llm_tokens": 1301,
@@ -1691,12 +1691,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.8
 },
 "sr_label": "company_intelligence",
 "sr_score": 0.407,
 "sr_margin": 0.015,
-"sr_ms": 13.99,
+"sr_ms": 13.42,
 "llm_intent": "company_intelligence",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1722,7 +1722,7 @@
 "got": "company_intelligence",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 32.1,
+"latency_ms": 40.9,
 "llm_calls": 1,
 "llm_ms": 1264.6,
 "llm_tokens": 1308,
@@ -1730,12 +1730,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.9
 },
 "sr_label": "company_intelligence",
 "sr_score": 0.407,
 "sr_margin": 0.015,
-"sr_ms": 12.48,
+"sr_ms": 14.12,
 "llm_intent": "company_intelligence",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1761,7 +1761,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.7,
+"latency_ms": 37.9,
 "llm_calls": 1,
 "llm_ms": 1402.1,
 "llm_tokens": 1337,
@@ -1769,12 +1769,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 1.8
 },
 "sr_label": "tutor",
 "sr_score": 0.288,
 "sr_margin": 0.017,
-"sr_ms": 13.45,
+"sr_ms": 14.39,
 "llm_intent": "data_lookup",
 "llm_conf": 0.97,
 "llm_ctx": 1.0,
@@ -1801,7 +1801,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 35.4,
+"latency_ms": 42.6,
 "llm_calls": 1,
 "llm_ms": 1549.6,
 "llm_tokens": 1323,
@@ -1809,12 +1809,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.0
 },
 "sr_label": "data_lookup",
 "sr_score": 0.367,
 "sr_margin": 0.078,
-"sr_ms": 13.04,
+"sr_ms": 16.12,
 "llm_intent": "data_lookup",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1840,7 +1840,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.1,
+"latency_ms": 41.9,
 "llm_calls": 1,
 "llm_ms": 1224.1,
 "llm_tokens": 1281,
@@ -1848,12 +1848,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.1
+"latency_ms": 1.7
 },
 "sr_label": "equity_research",
 "sr_score": 0.393,
 "sr_margin": 0.042,
-"sr_ms": 13.55,
+"sr_ms": 13.65,
 "llm_intent": "equity_research",
 "llm_conf": 0.95,
 "llm_ctx": 1.0,
@@ -1879,7 +1879,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 16.5,
+"latency_ms": 17.4,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -1901,7 +1901,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 14.0,
+"latency_ms": 19.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -1923,7 +1923,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.8,
+"latency_ms": 48.1,
 "llm_calls": 1,
 "llm_ms": 942.9,
 "llm_tokens": 1209,
@@ -1931,12 +1931,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.8
+"latency_ms": 1.3
 },
 "sr_label": "general",
 "sr_score": 0.381,
 "sr_margin": 0.228,
-"sr_ms": 13.9,
+"sr_ms": 14.11,
 "llm_intent": "smalltalk",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1960,7 +1960,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.4,
+"latency_ms": 59.0,
 "llm_calls": 1,
 "llm_ms": 998.6,
 "llm_tokens": 1215,
@@ -1968,12 +1968,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.0
 },
 "sr_label": "general",
 "sr_score": 0.22,
 "sr_margin": 0.016,
-"sr_ms": 11.8,
+"sr_ms": 19.18,
 "llm_intent": "general",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -1997,7 +1997,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 18.0,
+"latency_ms": 23.1,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2019,7 +2019,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.5,
+"latency_ms": 39.7,
 "llm_calls": 1,
 "llm_ms": 668.2,
 "llm_tokens": 1210,
@@ -2027,12 +2027,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.2
+"latency_ms": 1.8
 },
 "sr_label": "finance",
 "sr_score": 0.298,
 "sr_margin": 0.01,
-"sr_ms": 10.7,
+"sr_ms": 13.68,
 "llm_intent": "general",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -2056,7 +2056,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 42.8,
+"latency_ms": 44.8,
 "llm_calls": 1,
 "llm_ms": 990.4,
 "llm_tokens": 1225,
@@ -2064,12 +2064,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 2.3
 },
 "sr_label": "smalltalk",
 "sr_score": 0.184,
 "sr_margin": 0.001,
-"sr_ms": 15.65,
+"sr_ms": 15.98,
 "llm_intent": "general",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -2093,7 +2093,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 16.8,
+"latency_ms": 17.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2115,7 +2115,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 14.6,
+"latency_ms": 15.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2137,7 +2137,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 17.2,
+"latency_ms": 20.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2159,7 +2159,7 @@
 "got": "care",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 15.4,
+"latency_ms": 15.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2183,7 +2183,7 @@
 "got": "clarify",
 "got_parts": [],
 "clarified": true,
-"latency_ms": 37.5,
+"latency_ms": 33.9,
 "llm_calls": 1,
 "llm_ms": 746.8,
 "llm_tokens": 1233,
@@ -2191,12 +2191,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.8
+"latency_ms": 1.4
 },
 "sr_label": "general",
 "sr_score": 0.378,
 "sr_margin": 0.135,
-"sr_ms": 12.87,
+"sr_ms": 11.09,
 "llm_intent": "clarify",
 "llm_conf": 0.1,
 "llm_ctx": 0.0,
@@ -2247,7 +2247,7 @@
 "got": "clarify",
 "got_parts": [],
 "clarified": true,
-"latency_ms": 35.1,
+"latency_ms": 39.5,
 "llm_calls": 1,
 "llm_ms": 899.4,
 "llm_tokens": 1233,
@@ -2255,12 +2255,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.5
+"latency_ms": 1.2
 },
 "sr_label": "smalltalk",
 "sr_score": 0.298,
 "sr_margin": 0.069,
-"sr_ms": 14.06,
+"sr_ms": 12.74,
 "llm_intent": "clarify",
 "llm_conf": 0.95,
 "llm_ctx": 0.8,
@@ -2286,7 +2286,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.5,
+"latency_ms": 40.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2310,7 +2310,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.7,
+"latency_ms": 36.7,
 "llm_calls": 1,
 "llm_ms": 975.1,
 "llm_tokens": 1207,
@@ -2318,12 +2318,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.7
+"latency_ms": 2.3
 },
 "sr_label": "tutor",
 "sr_score": 0.526,
 "sr_margin": 0.158,
-"sr_ms": 11.74,
+"sr_ms": 11.34,
 "llm_intent": "tutor",
 "llm_conf": 0.98,
 "llm_ctx": 1.0,
@@ -2349,7 +2349,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 39.2,
+"latency_ms": 33.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2374,7 +2374,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 44.4,
+"latency_ms": 44.6,
 "llm_calls": 1,
 "llm_ms": 1528.8,
 "llm_tokens": 1266,
@@ -2382,12 +2382,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 2.2
+"latency_ms": 2.7
 },
 "sr_label": "tutor",
 "sr_score": 0.45,
 "sr_margin": 0.035,
-"sr_ms": 17.23,
+"sr_ms": 14.13,
 "llm_intent": "finance",
 "llm_conf": 0.93,
 "llm_ctx": 1.0,
@@ -2413,7 +2413,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 39.4,
+"latency_ms": 29.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2421,12 +2421,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.7
+"latency_ms": 1.1
 },
 "sr_label": "tutor",
 "sr_score": 0.517,
 "sr_margin": 0.267,
-"sr_ms": 15.16
+"sr_ms": 11.01
 },
 "error": null
 },
@@ -2444,7 +2444,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 34.1,
+"latency_ms": 43.7,
 "llm_calls": 1,
 "llm_ms": 1185.4,
 "llm_tokens": 1247,
@@ -2468,7 +2468,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.7,
+"latency_ms": 41.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2492,7 +2492,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 40.5,
+"latency_ms": 34.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2514,7 +2514,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 36.6,
+"latency_ms": 37.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2536,7 +2536,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.6,
+"latency_ms": 32.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2560,7 +2560,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 24.8,
+"latency_ms": 17.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2585,7 +2585,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 23.5,
+"latency_ms": 20.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2607,7 +2607,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 16.1,
+"latency_ms": 23.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2629,7 +2629,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 22.5,
+"latency_ms": 18.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2651,7 +2651,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 31.7,
+"latency_ms": 38.5,
 "llm_calls": 1,
 "llm_ms": 874.4,
 "llm_tokens": 1224,
@@ -2659,12 +2659,12 @@
 "route": {
 "llm": {
 "status": "ok",
-"latency_ms": 1.4
+"latency_ms": 2.3
 },
 "sr_label": "market",
 "sr_score": 0.407,
 "sr_margin": 0.053,
-"sr_ms": 10.15,
+"sr_ms": 13.0,
 "llm_intent": "tutor",
 "llm_conf": 0.99,
 "llm_ctx": 1.0,
@@ -2690,7 +2690,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 61.6,
+"latency_ms": 67.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2712,7 +2712,7 @@
 "got": "smalltalk",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 20.0,
+"latency_ms": 17.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2734,7 +2734,7 @@
 "got": "company_intelligence",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 32.7,
+"latency_ms": 40.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2742,12 +2742,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.4
+"latency_ms": 2.5
 },
 "sr_label": "company_intelligence",
 "sr_score": 0.313,
 "sr_margin": 0.092,
-"sr_ms": 11.57
+"sr_ms": 11.7
 },
 "error": null
 },
@@ -2767,7 +2767,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 66.4,
+"latency_ms": 68.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2791,7 +2791,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.1,
+"latency_ms": 37.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2813,7 +2813,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 39.7,
+"latency_ms": 35.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2821,12 +2821,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.7
+"latency_ms": 2.3
 },
 "sr_label": "tutor",
 "sr_score": 0.357,
 "sr_margin": 0.09,
-"sr_ms": 14.81
+"sr_ms": 10.29
 },
 "error": null
 },
@@ -2844,7 +2844,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 68.1,
+"latency_ms": 64.3,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2852,12 +2852,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.4
+"latency_ms": 1.1
 },
 "sr_label": "market",
 "sr_score": 0.404,
 "sr_margin": 0.151,
-"sr_ms": 11.73
+"sr_ms": 10.48
 },
 "error": null
 },
@@ -2878,7 +2878,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 66.6,
+"latency_ms": 53.4,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2902,7 +2902,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.4,
+"latency_ms": 30.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2926,7 +2926,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.3,
+"latency_ms": 33.8,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2934,12 +2934,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.4
+"latency_ms": 1.1
 },
 "sr_label": "tutor",
 "sr_score": 0.487,
 "sr_margin": 0.131,
-"sr_ms": 13.69
+"sr_ms": 12.78
 },
 "error": null
 },
@@ -2959,7 +2959,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 28.3,
+"latency_ms": 36.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -2967,12 +2967,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.1
+"latency_ms": 2.4
 },
 "sr_label": "tutor",
 "sr_score": 0.502,
 "sr_margin": 0.09,
-"sr_ms": 9.05
+"sr_ms": 11.96
 },
 "error": null
 },
@@ -2992,7 +2992,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 40.5,
+"latency_ms": 40.3,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3016,7 +3016,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 39.0,
+"latency_ms": 48.3,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3040,7 +3040,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 32.8,
+"latency_ms": 40.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3048,12 +3048,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.6
+"latency_ms": 2.3
 },
 "sr_label": "tutor",
 "sr_score": 0.518,
 "sr_margin": 0.08,
-"sr_ms": 10.98
+"sr_ms": 16.89
 },
 "error": null
 },
@@ -3075,7 +3075,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 35.6,
+"latency_ms": 37.1,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3101,7 +3101,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.1,
+"latency_ms": 43.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3125,7 +3125,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 41.5,
+"latency_ms": 42.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3151,7 +3151,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 39.4,
+"latency_ms": 34.3,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3177,7 +3177,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 36.9,
+"latency_ms": 38.4,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3203,7 +3203,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 49.5,
+"latency_ms": 48.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3228,7 +3228,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.6,
+"latency_ms": 31.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3252,7 +3252,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 46.3,
+"latency_ms": 48.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3260,12 +3260,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 2.0
+"latency_ms": 1.7
 },
 "sr_label": "equity_research",
 "sr_score": 0.412,
 "sr_margin": 0.074,
-"sr_ms": 15.35
+"sr_ms": 15.0
 },
 "error": null
 },
@@ -3285,7 +3285,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 31.8,
+"latency_ms": 42.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3309,7 +3309,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 46.1,
+"latency_ms": 39.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3331,7 +3331,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 44.0,
+"latency_ms": 57.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3355,7 +3355,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 27.2,
+"latency_ms": 36.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3363,12 +3363,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.2
+"latency_ms": 2.8
 },
 "sr_label": "tutor",
 "sr_score": 0.442,
 "sr_margin": 0.074,
-"sr_ms": 8.79
+"sr_ms": 11.4
 },
 "error": null
 },
@@ -3388,7 +3388,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 38.0,
+"latency_ms": 39.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3396,12 +3396,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.6
+"latency_ms": 2.2
 },
 "sr_label": "market",
 "sr_score": 0.312,
 "sr_margin": 0.085,
-"sr_ms": 12.53
+"sr_ms": 14.11
 },
 "error": null
 },
@@ -3423,7 +3423,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 41.5,
+"latency_ms": 43.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3449,7 +3449,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 36.8,
+"latency_ms": 34.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3475,7 +3475,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 52.8,
+"latency_ms": 49.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3488,7 +3488,7 @@
 "sr_label": "data_lookup",
 "sr_score": 0.398,
 "sr_margin": 0.057,
-"sr_ms": 19.63
+"sr_ms": 18.79
 },
 "error": null
 },
@@ -3512,7 +3512,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 33.7,
+"latency_ms": 45.1,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3539,7 +3539,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 40.1,
+"latency_ms": 33.0,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3566,7 +3566,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 37.7,
+"latency_ms": 37.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3574,12 +3574,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 1.2
+"latency_ms": 2.2
 },
 "sr_label": "data_lookup",
 "sr_score": 0.371,
 "sr_margin": 0.054,
-"sr_ms": 14.58
+"sr_ms": 14.61
 },
 "error": null
 },
@@ -3603,7 +3603,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 42.8,
+"latency_ms": 48.4,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3628,7 +3628,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 112.7,
+"latency_ms": 37.8,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3653,7 +3653,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 52.2,
+"latency_ms": 40.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3675,7 +3675,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 55.3,
+"latency_ms": 39.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3700,7 +3700,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 52.6,
+"latency_ms": 40.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3708,12 +3708,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 2.3
+"latency_ms": 1.4
 },
 "sr_label": "tutor",
 "sr_score": 0.53,
 "sr_margin": 0.113,
-"sr_ms": 20.89
+"sr_ms": 13.68
 },
 "error": null
 },
@@ -3734,7 +3734,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 53.0,
+"latency_ms": 34.4,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3759,7 +3759,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 57.6,
+"latency_ms": 44.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3772,7 +3772,7 @@
 "sr_label": "data_lookup",
 "sr_score": 0.561,
 "sr_margin": 0.109,
-"sr_ms": 21.21
+"sr_ms": 15.65
 },
 "error": null
 },
@@ -3793,7 +3793,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 59.8,
+"latency_ms": 42.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3815,7 +3815,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 52.0,
+"latency_ms": 28.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3823,12 +3823,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 3.1
+"latency_ms": 1.1
 },
 "sr_label": "tutor",
 "sr_score": 0.441,
 "sr_margin": 0.099,
-"sr_ms": 16.27
+"sr_ms": 9.76
 },
 "error": null
 },
@@ -3848,7 +3848,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 59.6,
+"latency_ms": 40.1,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3872,7 +3872,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 55.0,
+"latency_ms": 33.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3896,7 +3896,7 @@
 "got": "market",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 54.0,
+"latency_ms": 36.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3904,12 +3904,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 3.0
+"latency_ms": 2.1
 },
 "sr_label": "market",
 "sr_score": 0.558,
 "sr_margin": 0.111,
-"sr_ms": 20.59
+"sr_ms": 12.96
 },
 "error": null
 },
@@ -3929,7 +3929,7 @@
 "got": "tutor",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 55.2,
+"latency_ms": 38.9,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3953,7 +3953,7 @@
 "got": "data_lookup",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 60.0,
+"latency_ms": 37.2,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3975,7 +3975,7 @@
 "got": "finance",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 62.8,
+"latency_ms": 34.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -3983,12 +3983,12 @@
 "route": {
 "llm": {
 "status": "unavailable",
-"latency_ms": 2.0
+"latency_ms": 1.7
 },
 "sr_label": "finance",
 "sr_score": 0.389,
 "sr_margin": 0.094,
-"sr_ms": 24.66
+"sr_ms": 14.52
 },
 "error": null
 },
@@ -4008,7 +4008,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 65.3,
+"latency_ms": 37.5,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -4033,7 +4033,7 @@
 "got": "general",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 40.5,
+"latency_ms": 20.3,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -4057,7 +4057,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 60.7,
+"latency_ms": 33.6,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,
@@ -4082,7 +4082,7 @@
 "got": "equity_research",
 "got_parts": [],
 "clarified": false,
-"latency_ms": 70.6,
+"latency_ms": 37.7,
 "llm_calls": 0,
 "llm_ms": 0.0,
 "llm_tokens": 0,

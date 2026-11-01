@@ -31,8 +31,13 @@ def architecture() -> str:
     return ALIASES.get(os.getenv("ARIA_QUERY_ARCHITECTURE", "baseline").strip().lower(), "A")
 
 
+# Dev-split optima per variant (evaluation/intent_understanding/calibrate.py); only the router veto moved from the starting values.
+BY_ARCH = {"D": {"sr_veto": 0.7}, "E": {"sr_veto": 0.55}}
+
+
 def threshold(name: str) -> float:
-    return float(os.getenv(f"ARIA_INTENT_{name.upper()}", DEFAULTS[name]))
+    """Environment override, else the variant's calibrated value, else the default."""
+    return float(os.getenv(f"ARIA_INTENT_{name.upper()}", BY_ARCH.get(architecture(), {}).get(name, DEFAULTS[name])))
 
 
 @dataclass

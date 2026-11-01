@@ -127,3 +127,19 @@ def test_parts_that_need_the_session_do_not_deadlock():
     with session_lock("__graph_lock_test"):  # the turn holds this lock while the graph runs
         out = graph.run_multi("q", [("one two three", "tutor"), ("four five six", "finance")], handler)
     assert out["grounding"]["passed"]
+
+
+def test_calibrated_thresholds_are_the_per_variant_defaults(monkeypatch):
+    monkeypatch.delenv("ARIA_INTENT_SR_VETO", raising=False)
+    for flag, expected in (("baseline", 0.45), ("semantic_router", 0.45), ("structured", 0.7), ("hybrid", 0.55)):
+        monkeypatch.setenv("ARIA_QUERY_ARCHITECTURE", flag)
+        assert arch.threshold("sr_veto") == expected
+    monkeypatch.setenv("ARIA_INTENT_SR_VETO", "0.9")
+    assert arch.threshold("sr_veto") == 0.9
+
+
+def test_rule_label_keeps_personal_questions_in_finance_and_concepts_in_tutor():
+    from core import orchestrator
+    assert orchestrator._rule_label("what is a SIP") == "tutor"
+    assert orchestrator._rule_label("what is my SIP amount worth") == "finance"
+    assert orchestrator._rule_label("tell me a joke") is None
