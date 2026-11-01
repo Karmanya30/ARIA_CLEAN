@@ -98,8 +98,20 @@ def messages(cid: str, *, before: int | None = None, limit: int = 50) -> dict:
         page = rows[:limit][::-1]
         return {"conversation": _summary(conv, len(page)), "turns": [
             {"message_id": r.id, "query": r.query, "response": json.loads(r.response_json), "created_at": r.created_at,
-             "audio_token": json.loads(r.response_json).get("audio_token")} for r in page],
+             "audio_token": json.loads(r.response_json).get("audio_token"), "rating": r.rating} for r in page],
             "next_before": page[0].id if len(rows) > limit and page else None}
+
+
+def rate(cid: str, message_id: int, value: int | None) -> None:
+    if value not in (1, -1, None):
+        raise ValueError("rating must be 1, -1 or null")
+    with store._SessionLocal() as db:
+        _mine(db, cid)
+        turn = db.get(Turn, message_id)
+        if turn is None or turn.conversation_id != cid:
+            raise LookupError("Message not found")
+        turn.rating = value
+        db.commit()
 
 
 def export(cid: str, fmt: str = "json") -> tuple[str, str, str]:

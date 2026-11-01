@@ -1,19 +1,13 @@
-import { AlertTriangle, CheckCircle2, Link2, Lightbulb, BarChart3, Cog } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Lightbulb, BarChart3 } from 'lucide-react'
 import { Markdown } from './Markdown'
 import './ResponseCard.css'
 
-// Modules 1/3/4 all use this contract. Module 2 uses TAXAL's
-// Cognitive/Functional/Causal labels for the same card pattern.
+// Modules 1/3/4 all use this contract.
 const SECTIONS: Array<[string, React.ReactNode, string, string]> = [
   ['Insight', <Lightbulb size={14} />, 'var(--green)', 'var(--green-soft)'],
   ['Analysis', <BarChart3 size={14} />, 'var(--blue)', 'var(--blue-soft)'],
   ['Recommendation', <CheckCircle2 size={14} />, 'var(--emerald)', 'var(--emerald-soft)'],
   ['Risk', <AlertTriangle size={14} />, 'var(--red)', 'var(--red-soft)'],
-]
-const TAXAL_SECTIONS: Array<[string, React.ReactNode, string, string]> = [
-  ['Cognitive', <Lightbulb size={14} />, 'var(--green)', 'var(--green-soft)'],
-  ['Functional', <Cog size={14} />, 'var(--blue)', 'var(--blue-soft)'],
-  ['Causal', <Link2 size={14} />, 'var(--amber)', 'var(--amber-soft)'],
 ]
 
 function parseSections(text: string, labels: string[]): Record<string, string> {
@@ -41,7 +35,8 @@ function parseSections(text: string, labels: string[]): Record<string, string> {
 }
 
 export function ResponseCard({ text }: { text: string }) {
-  const value = String(text ?? '')
+  // Cognitive/Functional/Causal are internal teaching labels; if a model writes them anyway they are dropped, never shown as headings
+  const value = String(text ?? '').replace(/(^|\n)[ \t]*\*{0,2}(Cognitive|Functional|Causal)\*{0,2}[ \t]*:\*{0,2}[ \t]*/g, '$1').replace(/\*\*(Cognitive|Functional|Causal)\*\*:?\s*/g, '')
 
   if (value.startsWith('Error:')) {
     return (
@@ -55,15 +50,7 @@ export function ResponseCard({ text }: { text: string }) {
     value,
     SECTIONS.map((s) => s[0]),
   )
-  let defs = SECTIONS
-  if (Object.keys(sections).length === 0) {
-    sections = parseSections(
-      value,
-      TAXAL_SECTIONS.map((s) => s[0]),
-    )
-    defs = TAXAL_SECTIONS
-  }
-
+  const defs = SECTIONS
   if (Object.keys(sections).length === 0) {
     return (
       <div className="response-plain">

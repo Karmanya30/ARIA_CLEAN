@@ -1,6 +1,6 @@
 import { BrandLogo } from '../../components/brand/BrandLogo'
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Send, User } from 'lucide-react'
+import { ArrowLeft, Send, Square, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
 import { useTavusSession } from '../../hooks/useTavusSession'
@@ -33,6 +33,7 @@ function Composer({
   disabled,
   onVoiceSubmit,
   hideVoice = false,
+  onStop,
 }: {
   variant: 'centered' | 'pinned'
   query: string
@@ -41,6 +42,7 @@ function Composer({
   disabled: boolean
   onVoiceSubmit?: (text: string) => void | Promise<void>
   hideVoice?: boolean
+  onStop?: () => void // shown instead of Send while an answer is being prepared
 }) {
   const [voiceBusy, setVoiceBusy] = useState(false)
   return (
@@ -58,9 +60,13 @@ function Composer({
           if (e.key === 'Enter') onSubmit()
         }}
       />
+      {onStop && disabled && !voiceBusy ? (
+        <button className="btn composer-submit" onClick={onStop} type="button" aria-label="Stop"><Square size={14} /></button>
+      ) : (
       <button className="btn btn-primary composer-submit" onClick={onSubmit} disabled={disabled || voiceBusy || !query.trim()} type="button" aria-label="Send message">
         <Send size={15} />
       </button>
+      )}
     </div>
   )
 }
@@ -124,16 +130,30 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: calm ? 'auto' : 'smooth' })
   }, [history.length, sending])
 
+  const abortRef = useRef<AbortController | null>(null)
+  const stop = () => abortRef.current?.abort()
+
   async function send(text: string, correct = true) {
     const trimmed = text.trim()
     if (!trimmed || sending) return
     setSending(true)
     setPending(trimmed)
     setQuery('')
+    const ctl = (abortRef.current = new AbortController())
     try {
-      const response = await api.sendMessage(trimmed, sessionId, mode, correct)
+      const response = await api.sendMessage(trimmed, sessionId, mode, correct, undefined, ctl.signal)
       setHistory((h) => [...h, { query: trimmed, response, audio_token: response.audio_token }])
+      // the saved turn carries the id that rating needs; keep what is on screen if the reload fails
+      api.getHistory(sessionId).then((res) => {
+        const saved = res.history as HistoryTurn[]
+        // only add the ids to what is already shown: a slow or empty reload must never remove a visible answer
+        setHistory((h) => h.map((t, i) => (saved[i]?.query === t.query ? { ...t, message_id: saved[i].message_id, rating: saved[i].rating } : t)))
+      }).catch(() => {})
     } catch (err) {
+      if (ctl.signal.aborted) {
+        setQuery(trimmed) // stopped: put the question back so it can be edited or sent again
+        return
+      }
       setHistory((h) => [
         ...h,
         {
@@ -256,7 +276,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
               )}
             </div>
             {!isTavus && !isLive && (
-              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
+              <Composer key={sessionId + ':' + captureEpoch} variant="pinned" onStop={stop} query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>
         </div>
@@ -287,7 +307,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             </div>
             <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
             <Onboarding onSaved={() => setProfileVer((v) => v + 1)} onAsk={send} />
-            <Composer key={sessionId + ':' + captureEpoch} variant="centered" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+            <Composer key={sessionId + ':' + captureEpoch} variant="centered" onStop={stop} query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
             <TemplateCards onPick={send} />
           </div>
         </div>
@@ -311,7 +331,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
             </div>
           </div>
           <ContextStrip refreshKey={financeTurns + profileVer} onOpenProfile={onOpenProfile} />
-          <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
+          <Composer key={sessionId + ':' + captureEpoch} variant="pinned" onStop={stop} query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending} />
         </>
       )}
     </div>

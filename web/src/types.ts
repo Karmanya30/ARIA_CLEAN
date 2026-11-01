@@ -159,6 +159,8 @@ export interface HistoryTurn {
   query: string
   response: ChatResponse
   audio_token?: string | null
+  message_id?: number
+  rating?: number | null
   quiz_answered?: boolean
   quiz_correct?: boolean
 }

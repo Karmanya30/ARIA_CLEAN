@@ -166,3 +166,15 @@ def test_real_chat_request_is_saved_and_listed(private):
     assert [i["id"] for i in got] == [sid] and got[0]["title"] == "Hello"
     turns = TestClient(app).get(f"/api/conversations/{sid}/messages", params={"owner_id": o}).json()["turns"]
     assert turns[0]["query"] == "hello" and turns[0]["response"]["response"]
+
+
+def test_rating_is_saved_per_message_and_owner_scoped(private):
+    c, o = private
+    sid = seed(o, "rate me")
+    mid = c.get(f"/api/conversations/{sid}/messages", params={"owner_id": o}).json()["turns"][0]["message_id"]
+    url = f"/api/conversations/{sid}/messages/{mid}/rating"
+    assert c.put(url, params={"owner_id": o}, json={"rating": -1}).status_code == 200
+    assert c.get(f"/api/conversations/{sid}/messages", params={"owner_id": o}).json()["turns"][0]["rating"] == -1
+    assert c.put(url, params={"owner_id": o}, json={"rating": 5}).status_code == 422
+    assert c.put(url, params={"owner_id": uuid.uuid4().hex}, json={"rating": 1}).status_code == 404
+    assert c.put(f"/api/conversations/{sid}/messages/999999/rating", params={"owner_id": o}, json={"rating": 1}).status_code == 404

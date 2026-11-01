@@ -15,6 +15,8 @@ import { GlobalSearch } from './components/explore/GlobalSearch'
 import { InstrumentDrawer } from './components/explore/InstrumentDrawer'
 import { DisclaimerStrip } from './components/disclaimer/DisclaimerStrip'
 import { DisclaimersPage } from './components/disclaimer/DisclaimersPage'
+import { ConversationList } from './components/ConversationList'
+import { api } from './api'
 import { useSessionId } from './hooks/useSessionId'
 import { getTheme, hasMarkets, setTheme, type ThemeId } from './theme'
 import './App.css'
@@ -57,7 +59,7 @@ function useTab(): [string, (id: string) => void, number, string | null] {
 }
 
 export default function App() {
-  const [sessionId, resetSession] = useSessionId()
+  const [sessionId, resetSession, selectSession, restored] = useSessionId()
   const [tab, setTab, idx, prev] = useTab()
   const [pendingAsk, setPendingAsk] = useState<string | null>(null)
   const [theme, setThemeState] = useState<ThemeId>(getTheme)
@@ -67,6 +69,12 @@ export default function App() {
   const tabs = tabsFor(theme).map((t) => (theme === 'vitara-clear' && SHORT_LABEL[t.id] ? { ...t, label: SHORT_LABEL[t.id] } : t))
   const prevLabel = tabs.find((t) => t.id === prev)?.label
   const askInChat = (q: string) => { setPendingAsk(q); setTab('chat') }
+
+  // A browser with no saved chat (new device, or just signed in) opens the most recent one stored on the server.
+  useEffect(() => {
+    if (restored) return
+    api.listConversations('', false, 0, 1).then((p) => { if (p.items[0]) selectSession(p.items[0].id) }).catch(() => {})
+  }, [restored, selectSession])
 
   function newSession() {
     resetSession()
@@ -90,6 +98,7 @@ export default function App() {
         onNewSession={newSession}
         newLabel={theme === 'vitara-clear' ? 'New chat' : 'New session'}
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
+        history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}

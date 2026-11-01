@@ -118,16 +118,25 @@ export interface AskParams {
   context?: AskContext
   correct?: boolean
   history?: { role: 'user' | 'assistant'; content: string }[]
+  signal?: AbortSignal // lets the Stop button cancel the wait
 }
+export interface ConversationSummary { id: string; title: string; pinned: boolean; archived: boolean; created_at: string; updated_at: string; messages: number; snippet?: string }
+export interface ConversationPage { items: ConversationSummary[]; next_offset: number | null }
+/** Fired after a question is saved so the history list can refresh without polling. */
+export const CHAT_SAVED = 'aria:chat-saved'
+
 const ask = (p: AskParams) =>
   j<ChatResponse>('/api/chat', {
     method: 'POST',
+    signal: p.signal,
     body: JSON.stringify({
       query: p.query, request_id: crypto.randomUUID(), session_id: p.sessionId, mode: p.mode ?? 'Normal Mode', owner_id: ownerId(),
       adapt_tone: adaptTone(), correct: p.correct ?? true, channel: p.channel ?? 'chat',
       ...(p.context ? { context: p.context } : {}), ...(p.history ? { history: p.history } : {}),
     }),
-  })
+  }).then((r) => { window.dispatchEvent(new Event(CHAT_SAVED)); return r })
+
+const conv = (path = '', extra = '') => `/api/conversations${path}?owner_id=${encodeURIComponent(ownerId())}${extra}`
 
 export const api = {
   ask,
@@ -137,8 +146,17 @@ export const api = {
     ask({ query: question, sessionId, channel: 'instrument', context: { instrument_id: id, page: 'explore' }, history }),
 
   /** `headline` = the news item the question is about (market chips); it is context, never part of the question. */
-  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, headline?: string) =>
-    ask({ query, sessionId, mode, correct, channel: headline ? 'market_chip' : 'chat', context: headline ? { headline } : undefined }),
+  sendMessage: (query: string, sessionId: string, mode: ChatMode, correct = true, headline?: string, signal?: AbortSignal) =>
+    ask({ query, sessionId, mode, correct, signal, channel: headline ? 'market_chip' : 'chat', context: headline ? { headline } : undefined }),
+
+  listConversations: (q = '', archived = false, offset = 0, limit = 30) =>
+    j<ConversationPage>(conv('', `&q=${encodeURIComponent(q)}&archived=${archived}&offset=${offset}&limit=${limit}`)),
+  updateConversation: (id: string, patch: { title?: string; pinned?: boolean; archived?: boolean }) =>
+    j<ConversationSummary>(conv(`/${encodeURIComponent(id)}`), { method: 'PATCH', body: JSON.stringify(patch) }),
+  rateMessage: (sessionId: string, messageId: number, rating: 1 | -1 | null) =>
+    j<{ status: string }>(conv(`/${encodeURIComponent(sessionId)}/messages/${messageId}/rating`), { method: 'PUT', body: JSON.stringify({ rating }) }),
+  deleteConversation: (id: string) => j<{ status: string }>(conv(`/${encodeURIComponent(id)}`), { method: 'DELETE' }),
+  conversationExportUrl: (id: string, format: 'json' | 'markdown') => conv(`/${encodeURIComponent(id)}/export`, `&format=${format}`),
 
   getHistory: (sessionId: string) =>
     j<{ history: Array<{ query: string; response: ChatResponse; audio_path?: string }> }>(

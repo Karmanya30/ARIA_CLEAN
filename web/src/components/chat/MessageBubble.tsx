@@ -1,5 +1,6 @@
 import { BrandMark } from '../../components/brand/BrandLogo'
-import { User } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp, User } from 'lucide-react'
 import type { HistoryTurn } from '../../types'
 import { ResponseCard } from './ResponseCard'
 import { ResearchReport } from './ResearchReport'
@@ -41,6 +42,17 @@ export function MessageBubble({
   const eng = response.engine as { assumptions?: unknown; numbers?: { rate_pct?: number } } | undefined
   const assumptions = typeof eng?.assumptions === 'string' ? `Assumptions: ${eng.assumptions}` : eng?.numbers?.rate_pct != null ? `Assumed return: ${eng.numbers.rate_pct}%` : undefined
   const headlines = response.context?.news_headlines ?? []
+  const [rating, setRating] = useState<number | null>(turn.rating ?? null)
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    void navigator.clipboard?.writeText(String(response.response ?? '')).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {})
+  }
+  const rate = (v: 1 | -1) => {
+    if (turn.message_id == null) return
+    const next = rating === v ? null : v
+    setRating(next) // shown at once; undone if the server refuses
+    api.rateMessage(sessionId, turn.message_id, next).catch(() => setRating(rating))
+  }
 
   return (
     <div className="message-pair">
@@ -60,12 +72,25 @@ export function MessageBubble({
           {failed && onRetry && (
             <button type="button" className="bubble-retry" onClick={() => onRetry(turn.query)}>Try again</button>
           )}
+          {!failed && (
+            <div className="bubble-actions" role="group" aria-label="Message actions">
+              <button type="button" onClick={copy} aria-label="Copy answer" title="Copy">{copied ? <Check size={14} /> : <Copy size={14} />}</button>
+              {isLast && onRetry && <button type="button" onClick={() => onRetry(turn.query)} aria-label="Regenerate answer" title="Regenerate"><RotateCcw size={14} /></button>}
+              {turn.message_id != null && (
+                <>
+                  <button type="button" onClick={() => rate(1)} aria-pressed={rating === 1} aria-label="Helpful" title="Helpful"><ThumbsUp size={14} /></button>
+                  <button type="button" onClick={() => rate(-1)} aria-pressed={rating === -1} aria-label="Not helpful" title="Not helpful"><ThumbsDown size={14} /></button>
+                </>
+              )}
+            </div>
+          )}
           {response.domain === 'company_intelligence' && <IntelligenceSummary data={response} />}
           {response.profile_basis && <p className="bubble-caption">{response.profile_basis}</p>}
           {response.data_basis && <p className="bubble-caption">{response.data_basis}</p>}
           {(response.profile_basis || response.domain === 'company_intelligence') && (
             <p className="bubble-caption" title={assumptions}>
-              Figures calculated from your profile · wording by AI · not financial advice{assumptions && ' ⓘ'}
+              Figures calculated from your profile · wording by AI · not financial advice
+              {assumptions && <> · {assumptions}. Projections are estimates, not guaranteed returns.</>}
             </p>
           )}
           {response.ui_action === 'open_profile' && onOpenProfile && (
