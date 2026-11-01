@@ -284,7 +284,7 @@ export function ResearchReport({ report, reportId }: { report: ResearchReportDat
         {val.comps && (
           <div className="rr-table-wrap">
             <p className="rr-table-title">
-              Peer multiples <span className="rr-muted">· {val.comps.group} peers; blank = unavailable or excluded from the median</span>
+              Peer multiples <span className="rr-muted">· {val.comps.group} peers · blanks are unavailable or excluded from the median</span>
             </p>
             <table className="rr-table">
               <thead>

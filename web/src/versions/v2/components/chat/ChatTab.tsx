@@ -1,14 +1,12 @@
+import { LiveMeeting } from '../../../../components/chat/LiveMeeting'
 import { BrandLogo } from '../../../../components/brand/BrandLogo'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Send, User } from 'lucide-react'
 import { api } from '../../api'
 import type { ChatMode, HistoryTurn } from '../../types'
-import { useTavusSession } from '../../hooks/useTavusSession'
 import { TemplateCards } from './TemplateCards'
 import { MessageBubble } from './MessageBubble'
 import { VoiceRecorder } from './VoiceRecorder'
-import { TavusVideo } from './TavusVideo'
-import { TavusTranscript } from './TavusTranscript'
 import { ContextStrip } from './ContextStrip'
 import { Onboarding } from './Onboarding'
 import { ThinkingStatus } from './ThinkingStatus'
@@ -65,7 +63,7 @@ function Composer({
 }
 
 export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: { sessionId: string; onOpenProfile?: () => void; pendingAsk?: string | null; onAskHandled?: () => void }) {
-  const [mode, setMode] = useState<ChatMode>('Normal Mode')
+  const [mode, setMode] = useState<ChatMode>(pendingAsk ? 'Normal Mode' : 'Live Avatar (Free)')
   const [history, setHistory] = useState<HistoryTurn[]>([])
   const [query, setQuery] = useState('')
   const [captureEpoch, setCaptureEpoch] = useState(0)
@@ -115,7 +113,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
 
   // The thread flows with the page; keep the latest message in view.
   useEffect(() => {
-    if (!history.length && !sending) return
+    if (isLive || (!history.length && !sending)) return
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: calm ? 'auto' : 'smooth' })
   }, [history.length, sending])
@@ -202,6 +200,8 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
     </div>
   )
 
+  if (isLive) return <LiveMeeting key={sessionId} sessionId={sessionId} history={history} onHistory={setHistory} onEnd={() => setMode('Normal Mode')} />
+
   if (isSplitLayout) {
     return (
       <div className="chat-page chat-page-split">
@@ -248,10 +248,9 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: 
                     />
                   ))}
                   {pendingTurn}
-                </div>
-              )}
+              </div>
             </div>
-            {!isTavus && !isLive && (
+            {!isLive && (
               <Composer key={sessionId + ':' + captureEpoch} variant="pinned" query={query} onQueryChange={setQuery} onSubmit={() => send(query)} disabled={sending || captureBusy} hideVoice={isConversational} />
             )}
           </div>

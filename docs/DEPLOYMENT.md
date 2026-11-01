@@ -40,7 +40,6 @@ One container runs the API and the built web app. Start with a private staging c
 
 * **FinBERT sentiment** (better headline scoring): download the weights into `models/nlp/finbert` as in the README, then rebuild. Without them a keyword read is used.
 * **Photoreal Live Avatar (MuseTalk)** needs an NVIDIA GPU and a separate environment; it is not part of this image. The other chat modes work without it.
-* **Tavus video mode** needs `TAVUS_API_KEY`, a replica id and a public tunnel address; leave it unset and that mode simply will not connect.
 
 ## Operations
 

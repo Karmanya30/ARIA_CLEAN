@@ -8,7 +8,7 @@
   flex-direction: column;
 }
 
-/* Conversational/Tavus modes have a real avatar to show large, so they
+/* Conversational mode have a real avatar to show large, so they
  * get more width and a two-column split instead of the single centered
  * column Normal Mode uses. */
 /* Trim .app-main's 80px bottom padding so no dead gap sits under the sticky composer. */
@@ -45,7 +45,6 @@
  * wouldn't actually happen. The idle orb is deliberately excluded (kept
  * fixed-size + margin:auto centered below) -- giving it flex:1 too would
  * stretch its 220px circle into a tall oval filling the whole column. */
-.chat-avatar-col > .tavus-video-panel,
 .chat-avatar-col > .avatar-embed,
 .chat-avatar-col > .live-avatar-frame {
   flex: 1;

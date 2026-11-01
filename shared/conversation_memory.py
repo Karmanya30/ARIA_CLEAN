@@ -49,6 +49,7 @@ class Turn(store.Base):
     response_json = Column(Text)
     status = Column(String, nullable=False, default="pending")
     created_at = Column(String, nullable=False)
+    rating = Column(Integer)  # 1 helpful, -1 not helpful, None unrated
     __table_args__ = (UniqueConstraint("conversation_id", "request_id"),)
 
 
@@ -90,6 +91,8 @@ def _migrate() -> None:
                          ("deleted_at", "VARCHAR"), ("created_at", "VARCHAR"), ("updated_at", "VARCHAR")):
             if col not in have:
                 c.execute(text(f"ALTER TABLE chat_conversations ADD COLUMN {col} {ddl}"))
+        if "rating" not in {x["name"] for x in inspect(store._engine).get_columns("chat_turns")}:
+            c.execute(text("ALTER TABLE chat_turns ADD COLUMN rating INTEGER"))
         c.execute(text("UPDATE chat_conversations SET created_at = (SELECT MIN(created_at) FROM chat_turns WHERE conversation_id = chat_conversations.id) WHERE created_at IS NULL"))
         c.execute(text("UPDATE chat_conversations SET updated_at = (SELECT MAX(created_at) FROM chat_turns WHERE conversation_id = chat_conversations.id) WHERE updated_at IS NULL"))
 

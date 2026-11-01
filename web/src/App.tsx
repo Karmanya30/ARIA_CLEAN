@@ -9,6 +9,7 @@ import { ResearchTab } from './components/research/ResearchTab'
 import { IntelligenceTab } from './components/research/IntelligenceTab'
 import { ProgressTab } from './components/progress/ProgressTab'
 import { SettingsTab } from './components/settings/SettingsTab'
+import { FeedbackTab } from './components/feedback/FeedbackTab'
 import { ModeToggle } from './components/ModeToggle'
 import { MarketsTab } from './components/markets/MarketsTab'
 import { TickerTape } from './components/markets/TickerTape'
@@ -70,13 +71,13 @@ export default function App() {
   const prevLabel = tabs.find((t) => t.id === prev)?.label
   const askInChat = (q: string) => { setPendingAsk(q); setTab('chat') }
 
-  function newSession() {
   // A browser with no saved chat (new device, or just signed in) opens the most recent one stored on the server.
   useEffect(() => {
     if (restored) return
     api.listConversations('', false, 0, 1).then((p) => { if (p.items[0]) selectSession(p.items[0].id) }).catch(() => {})
   }, [restored, selectSession])
 
+  function newSession() {
     resetSession()
     setTab('chat')
   }
@@ -98,8 +99,8 @@ export default function App() {
         onNewSession={newSession}
         newLabel={theme === 'vitara-clear' ? 'New chat' : 'New session'}
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
-        extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
         history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
+        extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
       <main className="app-main" id="main" tabIndex={-1}>
@@ -112,6 +113,7 @@ export default function App() {
         {tab === 'markets' && <MarketsTab onAsk={askInChat} onOpenStock={setSelectedSymbol} selectedSymbol={selectedSymbol} />}
         {tab === 'explore' && <ExploreTab onOpenInstrument={setInstrumentId} />}
         {tab === 'disclaimers' && <DisclaimersPage />}
+        {tab === 'feedback' && <FeedbackTab />}
         {tab === 'research' && <ResearchTab onAsk={askInChat} />}
         {tab === 'intelligence' && <IntelligenceTab />}
         {tab === 'profile' && (

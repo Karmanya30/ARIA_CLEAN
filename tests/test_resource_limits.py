@@ -85,8 +85,8 @@ def test_rate_limits_real_peer_and_resets(monkeypatch):
     assert run(request(app))[0]["status"] == 200
 
 
-def test_tavus_callback_has_same_body_boundary():
-    assert run(request(ResourceLimits(echo, max_bytes=2, rate=0), path="/v1/session/chat/completions"))[0]["status"] == 413
+def test_other_paths_have_same_body_boundary():
+    assert run(request(ResourceLimits(echo, max_bytes=2, rate=0), path="/api/chat"))[0]["status"] == 413
 
 
 def test_spooled_large_body_is_replayed_without_loss():

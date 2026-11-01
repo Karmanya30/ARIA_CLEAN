@@ -133,7 +133,7 @@ try {
         elseif (Find-Proc "python.exe" "musetalk_server\.py") { Log "MuseTalk is already starting" }
         elseif (Test-Port $MT_PORT) { $problems += "Port $MT_PORT is used by another app, so the lip-sync server cannot start."; $mtWanted = $false }
         else {
-            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\face.png") |
+            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\office-wide-glasses.webp") |
                 Where-Object { -not (Test-Path $_) }
             if ($missing) { $problems += "Lip-sync server files are missing: " + ($missing -join ", "); $mtWanted = $false }
             else {

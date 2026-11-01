@@ -65,11 +65,12 @@ export function MarketsTab({ onAsk, onOpenStock, selectedSymbol }: { onAsk: (q: 
       <header className="mk-head">
         <div>
           <h1>Markets</h1>
-          <p className="mk-sub">{greeting()}. Here is how the market looks right now.</p>
+          <p className="mk-sub">{greeting()}. Explore the latest available market snapshot.</p>
         </div>
         <MarketStatusBar ov={ov.data} error={ov.error} />
       </header>
 
+      <p className="mk-sub">Quotes may be delayed or cached. Charts show historical data. A fetch time is not an exchange timestamp. {ov.data && <>Source: {ov.data.meta.source}. Data as of: {ov.data.meta.as_of || "not supplied"}. Fetched: {ov.data.meta.fetched_at || "not supplied"}.</>}</p>
       <div className="mk-pills mk-groups" role="group" aria-label="Index group">
         {GROUPS.map(([id, l]) => <button key={id} type="button" className="mk-pillbtn" aria-pressed={group === id} onClick={() => setGroup(id)}>{l}</button>)}
       </div>

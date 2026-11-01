@@ -19,7 +19,7 @@ export function DisclaimerStrip({ onOpen }: { onOpen: () => void }) {
     <div className="aria-strip" role="note" aria-label="Disclaimer">
       <ShieldAlert size={14} aria-hidden="true" />
       <p className="aria-strip-long">
-        ARIA is an AI research and education tool, not a SEBI-registered adviser; nothing here is investment advice. Markets are risky. {link}
+        ARIA is an AI research and education tool, not a SEBI-registered adviser. Nothing here is investment advice. Markets are risky. {link}
       </p>
       <p className="aria-strip-short">
         AI research and education tool, not a SEBI-registered adviser. Not investment advice. Markets are risky. {link}

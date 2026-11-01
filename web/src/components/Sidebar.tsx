@@ -1,4 +1,4 @@
-import { MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart, Compass } from 'lucide-react'
+import { MessageCircle, User, TrendingUp, Plus, FileText, Activity, Settings, LineChart, Compass, MessageSquareHeart } from 'lucide-react'
 import { BrandLogo } from './brand/BrandLogo'
 import './Sidebar.css'
 
@@ -84,5 +84,6 @@ export const SIDEBAR_TABS: NavDef[] = [
   { id: 'intelligence', label: 'Company intelligence', icon: <Activity size={16} /> },
   { id: 'profile', label: 'Your Profile', icon: <User size={16} /> },
   { id: 'progress', label: 'Your Progress', icon: <TrendingUp size={16} /> },
+  { id: 'feedback', label: 'Feedback', icon: <MessageSquareHeart size={16} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
 ]

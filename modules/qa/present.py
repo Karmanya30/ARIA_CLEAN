@@ -23,14 +23,14 @@ def spoken_text(question: str, written: str) -> str:
         return speech_text(written)
 
 
-def audio_token(written: str) -> str | None:
+def audio_token(written: str, *, preserve: bool = False) -> str | None:
     """Starts the text-to-speech clip in the background (api/audio_store) and returns its token at once."""
     def make_audio() -> str | None:
         try:
             from ai.llm.audio_script import generate_audio_script
             from ai.speech.tts import synthesize
 
-            return synthesize(speech_text(generate_audio_script(written)))
+            return synthesize(speech_text(written if preserve else generate_audio_script(written)))
         except Exception as exc:
             logger.warning(f"TTS generation failed; the reply stays text-only: {exc}")
             return None
@@ -45,7 +45,10 @@ def present(resp: dict[str, Any], req: QARequest) -> dict[str, Any]:
     if not text:
         return resp
     if req.mode.speaks:  # the avatar reads this aloud; the written answer stays on screen / in history
-        resp["spoken"] = spoken_text(req.query, text)
+        resp["spoken"] = speech_text(text) if resp.get("freshness_note") else spoken_text(req.query, text)
+        # Preserve exact source dates even if the spoken rewrite drops a caveat.
+        if resp.get("freshness_note") and not resp["spoken"].startswith(resp["freshness_note"]):
+            resp["spoken"] = resp["freshness_note"] + " " + resp["spoken"]
     if req.channel is not Channel.AVATAR and not trust.failed(text):  # written replies get a playable clip in the background
-        resp["audio_token"] = audio_token(text)
+        resp["audio_token"] = audio_token(text, preserve=True) if resp.get("freshness_note") else audio_token(text)
     return resp

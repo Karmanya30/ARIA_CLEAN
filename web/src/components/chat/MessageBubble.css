@@ -201,3 +201,8 @@
 .bubble-suggestions .bubble-retry:hover::after {
   left: 160%;
 }
+
+.bubble-actions { display: flex; gap: 2px; margin-top: 6px; }
+.bubble-actions button { display: inline-flex; padding: 5px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-muted); cursor: pointer; }
+.bubble-actions button:hover { background: var(--bg-inset); color: var(--accent-strong); }
+.bubble-actions button[aria-pressed='true'] { color: var(--accent-strong); background: var(--bg-inset); }

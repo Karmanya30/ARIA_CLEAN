@@ -428,7 +428,7 @@ function Intel({ symbol, onChat }: { symbol: string; onChat: () => void }) {
           {ratedPillars.length > 0 && (
             <div className="si-section">
               <p className="si-sec-h">📋 Detailed evidence — what we checked and what we found</p>
-              <p className="si-section-intro">Click any pillar to see every individual data point that went into that rating. A ▲ means it helped the score; a ▼ means it hurt it.</p>
+              <p className="si-section-intro">Click any pillar to see every individual data point that went into that rating. A ▲ means it helped the score, and a ▼ means it lowered it.</p>
               <div className="si-pillars">
                 {ratedPillars.map((p) => {
                   const pInfo = PILLAR_DESC[p.name]

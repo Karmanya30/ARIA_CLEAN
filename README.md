@@ -17,8 +17,6 @@ narrated by Groq (`openai/gpt-oss-120b`), automatically falling back
 to Google Gemini if Groq errors or rate-limits (`ai/llm/groq_client.py`).
 Conversational Mode adds a free, self-hosted-in-browser 3D avatar
 (TalkingHead + HeadAudio, see `interface/avatar/`) with no paid API.
-Tavus CVI Mode adds a paid, real-time WebRTC video call with the same
-avatar for anyone with a Tavus API key.
 
 ## Architecture
 
@@ -121,8 +119,6 @@ pip install -r requirements.txt    # add -r requirements-dev.txt to also get pyt
 cp .env.example .env
 # edit .env: set GROQ_API_KEY (console.groq.com) and GEMINI_API_KEY
 # (aistudio.google.com/apikey) -- both have free tiers, no card needed
-# Tavus CVI Mode is optional: also set TAVUS_API_KEY, TAVUS_REPLICA_ID,
-# and NGROK_AUTHTOKEN if you want the paid video-call avatar mode.
 
 cd web && npm install && cd ..
 ```
@@ -162,31 +158,14 @@ cd web && npm run dev
 ```
 
 Open the URL Vite prints (`http://localhost:5173`). The dev server
-proxies `/api`, `/avatar`, and `/embed` through to the backend on
+proxies `/api` and `/avatar` through to the backend on
 `:8000`, so both must be running.
 
-Five tabs: **Chat** (all 4 modules, auto-routed, plus a mode selector
-for Normal / Conversational (free avatar) / Tavus CVI (paid video call)
-— try the example queries if unsure what to ask), **Research reports**
-(saved equity research, see above), **Your Profile** (Module 1 inputs),
-**Your Progress** (Module 2 mastery) and **Settings**.
+Use **Chat** with Normal, Conversational or Live Avatar mode; explore **Markets**, **Explore**, **Research reports**, **Company intelligence**, **Your Profile**, **Your Progress**, **Feedback** and **Settings**.
 
-**Live Avatar (Free)** is a fourth chat mode beside Tavus: a real-time voice conversation with a
-lip-synced 3D ARIA that costs nothing to run. The browser recognises speech (Chrome/Edge built-in
-speech recognition), the reply is streamed from Groq and cut into short phrases, each phrase is voiced
-locally by Piper (MIT, runs on the CPU in ~0.2 s), and TalkingHead animates the avatar's mouth from the
-audio itself. The first word is typically heard ~1-2 s after you stop talking (0.75-1.8 s measured from a
-typed question), against ~15 s+ for Tavus, which renders video in the cloud from a full non-streamed
-answer. One-time setup: `python -m ai.speech.live_tts --download` (63 MB voice). The microphone listens
-hands-free while the mode is on (pause it with the Mic button) and pauses while ARIA talks (interrupt with Stop).
+**Live Avatar (Free)** provides a voice conversation with an animated photo and an optional local MuseTalk GPU renderer. The browser records microphone audio and ARIA transcribes it using the configured Whisper service. The shared QA pipeline generates an answer and local Piper speech plays in the meeting; browser speech recognition is a fallback when recording is unavailable. Response time depends on the provider, transcription and rendering services.
 
-**Every voice and avatar mode answers from the same modules.** Conversational Mode, Tavus and the Live Avatar all go
-through `core/orchestrator.py` (personal finance, tutor, market analysis, equity research, domain guard, saved
-profile and history). In the Live Avatar plain small talk is streamed straight from the LLM (first word ~1 s); any
-other question is sent to the real modules while ARIA says a short "let me check that" line at once (so she responds
-in well under 3 s), then speaks a short, natural version of the module's written answer, sentence by sentence
-(`ai/llm/spoken.py`, shared with Tavus). If the modules are unreachable she still answers directly, and if the LLM
-itself is down she says so instead of reading out an error.
+**Every voice and avatar mode answers from the same modules** and preserves the conversation in session history.
 
 **Data questions about any listed name** ("PE ratio of Suzlon Energy", "revenue of Kaynes Technology", "NAV of Parag Parikh
 Flexi Cap", "price of gold") are looked up in the instrument catalogue (NSE/BSE universe, AMFI funds, crypto, commodities;
@@ -289,7 +268,7 @@ modules/
   market/        Module 3 — real index/sector data
   equity_research/  Module 4 — screener.in + yfinance; intelligence/ = research reports (valuation, debate, audit)
 shared/          SQLite user store, vector store, NER, company resolver
-interface/avatar/  The 3D avatar (TalkingHead/HeadAudio) + Tavus embed page, served by api/routes/avatar.py
+interface/avatar/  The local avatar (TalkingHead/HeadAudio), served by api/routes/avatar.py
 config/          Paths, runtime settings, model hyperparameters
 scripts/         One-off generators (synthetic data, concept KB, KT sequences)
 tests/           pytest suite, mirrors the modules/ layout
@@ -312,8 +291,7 @@ tests/           pytest suite, mirrors the modules/ layout
 - **FastAPI + React over Streamlit**: Streamlit's per-run rerender model
   and lack of first-class real-time audio/video control made a
   natural-feeling conversational avatar impractical. A real backend/
-  frontend split gives the avatar (both the free TalkingHead mode and
-  the paid Tavus WebRTC mode) proper control over audio playback and
+  frontend split gives the avatar proper control over audio playback and
   UI state, and runs as a single process — no subprocess/orphaned-
   process management to get wrong.
 

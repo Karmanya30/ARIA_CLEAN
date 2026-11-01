@@ -1,0 +1,612 @@
+{
+ "archive_40": [
+  {
+   "kind": "lexical",
+   "semantic_flag": false,
+   "recall_at_5": 1.0,
+   "mrr_at_5": 1.0,
+   "p50_ms": 10.7,
+   "p95_ms": 12.1,
+   "detail": [
+    {
+     "q": "retirement age target",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "home loan rate Kotak",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "small cap funds risk appetite",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "daughter college fund target",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "Axis Bluechip SIP stopped",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "health insurance cover Niva Bupa",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "rent flat Pune",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "employer EPF basic",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "Tata Steel shares bought",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "emergency fund Fino liquid",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    }
+   ]
+  },
+  {
+   "kind": "lexical",
+   "semantic_flag": true,
+   "recall_at_5": 1.0,
+   "mrr_at_5": 1.0,
+   "p50_ms": 61.8,
+   "p95_ms": 65.6,
+   "detail": [
+    {
+     "q": "retirement age target",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "home loan rate Kotak",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "small cap funds risk appetite",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "daughter college fund target",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "Axis Bluechip SIP stopped",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "health insurance cover Niva Bupa",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "rent flat Pune",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "employer EPF basic",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "Tata Steel shares bought",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "emergency fund Fino liquid",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    }
+   ]
+  },
+  {
+   "kind": "paraphrase",
+   "semantic_flag": false,
+   "recall_at_5": 0.2,
+   "mrr_at_5": 0.2,
+   "p50_ms": 12.0,
+   "p95_ms": 12.8,
+   "detail": [
+    {
+     "q": "when do I plan to stop working",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "what interest am I paying on my mortgage",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "what kind of volatility can I tolerate",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "saving for my child's education",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "which monthly investment did I discontinue",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "how much medical protection do we have",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "income from my property",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "provident fund contribution from my company",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "my steel stock purchase price",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 52
+    },
+    {
+     "q": "where is my rainy day money kept",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 52
+    }
+   ]
+  },
+  {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "recall_at_5": 0.2,
+   "mrr_at_5": 0.2,
+   "p50_ms": 57.5,
+   "p95_ms": 64.2,
+   "detail": [
+    {
+     "q": "when do I plan to stop working",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "what interest am I paying on my mortgage",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "what kind of volatility can I tolerate",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "saving for my child's education",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "which monthly investment did I discontinue",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "how much medical protection do we have",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "income from my property",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "provident fund contribution from my company",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "my steel stock purchase price",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 52
+    },
+    {
+     "q": "where is my rainy day money kept",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 52
+    }
+   ]
+  }
+ ],
+ "archive_40_correction": {
+  "corrected_in_selected": true,
+  "old_in_selected": true
+ },
+ "archive_40_budget": {
+  "included": 2,
+  "excluded": 0,
+  "memory_tokens": 1079,
+  "counter": "utf8_upper_bound",
+  "target_included": true,
+  "text_chars": 1078
+ },
+ "archive_40_followup": {
+  "reference_resolved": false,
+  "antecedent_in_context": true
+ },
+ "archive_40_isolation": {
+  "records_visible_to_other_owner": 0,
+  "leaked": false
+ },
+ "archive_40_clear": {
+  "cleared_fact_still_retrievable": false
+ },
+ "archive_400": [
+  {
+   "kind": "lexical",
+   "semantic_flag": false,
+   "recall_at_5": 1.0,
+   "mrr_at_5": 1.0,
+   "p50_ms": 34.1,
+   "p95_ms": 43.1,
+   "detail": [
+    {
+     "q": "retirement age target",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "home loan rate Kotak",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "small cap funds risk appetite",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "daughter college fund target",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "Axis Bluechip SIP stopped",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "health insurance cover Niva Bupa",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "rent flat Pune",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "employer EPF basic",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "Tata Steel shares bought",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "emergency fund Fino liquid",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    }
+   ]
+  },
+  {
+   "kind": "lexical",
+   "semantic_flag": true,
+   "recall_at_5": 1.0,
+   "mrr_at_5": 1.0,
+   "p50_ms": 77.1,
+   "p95_ms": 105.6,
+   "detail": [
+    {
+     "q": "retirement age target",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "home loan rate Kotak",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "small cap funds risk appetite",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "daughter college fund target",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "Axis Bluechip SIP stopped",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "health insurance cover Niva Bupa",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "rent flat Pune",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "employer EPF basic",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "Tata Steel shares bought",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "emergency fund Fino liquid",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    }
+   ]
+  },
+  {
+   "kind": "paraphrase",
+   "semantic_flag": false,
+   "recall_at_5": 0.2,
+   "mrr_at_5": 0.2,
+   "p50_ms": 57.0,
+   "p95_ms": 59.9,
+   "detail": [
+    {
+     "q": "when do I plan to stop working",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "what interest am I paying on my mortgage",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "what kind of volatility can I tolerate",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "saving for my child's education",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "which monthly investment did I discontinue",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "how much medical protection do we have",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "income from my property",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "provident fund contribution from my company",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "my steel stock purchase price",
+     "rank": 1,
+     "semantic": "disabled",
+     "n_records": 464
+    },
+    {
+     "q": "where is my rainy day money kept",
+     "rank": null,
+     "semantic": "disabled",
+     "n_records": 464
+    }
+   ]
+  },
+  {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "recall_at_5": 0.2,
+   "mrr_at_5": 0.2,
+   "p50_ms": 101.5,
+   "p95_ms": 190.2,
+   "detail": [
+    {
+     "q": "when do I plan to stop working",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "what interest am I paying on my mortgage",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "what kind of volatility can I tolerate",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "saving for my child's education",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "which monthly investment did I discontinue",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "how much medical protection do we have",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "income from my property",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "provident fund contribution from my company",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "my steel stock purchase price",
+     "rank": 1,
+     "semantic": "unavailable",
+     "n_records": 464
+    },
+    {
+     "q": "where is my rainy day money kept",
+     "rank": null,
+     "semantic": "unavailable",
+     "n_records": 464
+    }
+   ]
+  }
+ ],
+ "archive_400_correction": {
+  "corrected_in_selected": true,
+  "old_in_selected": true
+ },
+ "archive_400_budget": {
+  "included": 3,
+  "excluded": 0,
+  "memory_tokens": 1620,
+  "counter": "utf8_upper_bound",
+  "target_included": true,
+  "text_chars": 1619
+ },
+ "archive_400_followup": {
+  "reference_resolved": false,
+  "antecedent_in_context": true
+ },
+ "archive_400_isolation": {
+  "records_visible_to_other_owner": 0,
+  "leaked": false
+ },
+ "archive_400_clear": {
+  "cleared_fact_still_retrievable": false
+ }
+}

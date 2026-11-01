@@ -2,7 +2,7 @@ r"""
 MuseTalk v1.5 lip-sync server for ARIA's Live Avatar. Run it with the Python environment that has MuseTalk installed:
 
     set MUSETALK_DIR=E:\musetalk\MuseTalk
-    E:\musetalk\env\python scripts\musetalk_server.py --source interface\avatar\face.png --port 8010
+    E:\musetalk\env\python scripts\musetalk_server.py --source interface\avatar\office-wide-glasses.webp --port 8010
 
 Models stay loaded on the GPU and the avatar (face box, latents, blend masks) is prepared once and cached, so a
 request only runs Whisper features + UNet + VAE decode, exactly MuseTalk's own realtime path. Requests are served in
@@ -259,7 +259,7 @@ def health():
     if A:
         h, w = A["frames"][0].shape[:2]
         size = [round(w * A["scale"]), round(h * A["scale"])]
-    return {"ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None}
+    return {"source": S.get("source"), "ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None}
 
 
 if __name__ == "__main__":
@@ -268,13 +268,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", required=True, help="photo or short video of the face")
     ap.add_argument("--port", type=int, default=8010)
-    ap.add_argument("--fps", type=int, default=15, help="mouth frames per second of speech: 15 keeps an RTX 4060 laptop just ahead of real time (about 1.05x); 25 needs a faster GPU")
+    ap.add_argument("--fps", type=int, default=15, help="mouth frames per second of speech; throughput depends on the GPU and scene (measure before claiming realtime)")
     ap.add_argument("--batch", type=int, default=12, help="frames per GPU batch; small = first frames sooner, large = higher throughput")
     a = ap.parse_args()
     FPS = a.fps
     t = time.time()
     _load_models(a.batch)
     _prepare(os.path.abspath(os.path.join(LAUNCH_DIR, a.source)))
+    S["source"] = os.path.basename(a.source)
     S["ready"] = True
     # warm the GPU kernels so the first real request is not the slow one
     silence = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name

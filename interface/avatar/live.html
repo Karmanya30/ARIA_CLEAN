@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="/favicon.png?v=aria-brand-1">
+<link rel="icon" type="image/png" href="/brand/aria-mark-64.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ARIA Live Avatar</title>
@@ -10,6 +10,7 @@
   html, body { margin:0; height:100%; background:radial-gradient(ellipse at 50% 30%, #243447 0%, var(--bg) 70%); color:var(--ink);
     font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow:hidden; }
   #avatar { position:absolute; inset:0; }
+  #office { display:none; }
   #avatar canvas { filter:contrast(1.03) saturate(1.04); }  /* a light studio grade */
   /* a soft vignette and a darker foot: the face is the focus and the captions are always legible */
   #avatar::after { content:""; position:absolute; inset:0; pointer-events:none;
@@ -37,6 +38,29 @@
   #start button { background:var(--accent); color:#0b1b10; padding:13px 26px; font-size:15px; }
   #start p { margin:0; max-width:420px; color:var(--muted); }
   #note { color:var(--warn) !important; }
+  html.meeting, .meeting body { background:radial-gradient(ellipse at 50% 35%,#25362e,#101a15 75%); }
+  .meeting #bar,.meeting #state,.meeting #latency { display:none; }
+  .meeting #avatar { inset:0; }
+  .meeting #office { display:block; position:absolute; inset:0; overflow:hidden; background:#14231f; }
+  .meeting #office::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,#06110a24,transparent 35%,transparent 65%,#06110a24),linear-gradient(0deg,#06110a80,transparent 50%); }
+  .meeting #office > div { display:none; }
+  .office-daylight { position:absolute; inset:0; background:linear-gradient(110deg,#e9f8ee28,transparent 48%); animation:office-daylight 16s ease-in-out infinite alternate; }
+  .office-reflection { position:absolute; top:0; bottom:0; left:60%; width:22%; background:linear-gradient(100deg,transparent,#e7f6ee12,transparent); transform:skewX(-8deg); animation:office-reflection 22s ease-in-out infinite alternate; }
+  .office-monitor { position:absolute; right:0; top:43%; width:14%; height:20%; background:radial-gradient(ellipse,#acd6e213,transparent 70%); animation:office-monitor 9s ease-in-out infinite alternate; }
+  @keyframes office-daylight { from { opacity:.35; } to { opacity:.9; } }
+  @keyframes office-reflection { from { transform:translateX(-5%) skewX(-8deg); opacity:.3; } to { transform:translateX(35%) skewX(-8deg); opacity:.8; } }
+  @keyframes office-monitor { from { opacity:.2; } to { opacity:.85; } }
+  #userTranscript { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); max-width:80%; border-radius:10px; padding:7px 12px; background:#08150cdd; font-size:12px; color:#d5e7df; }
+  #userTranscript:empty { display:none; }
+  #start .start-brand { width:74px; height:74px; object-fit:contain; }
+  .meeting #caption { bottom:60px; background:#09120ed9; border-radius:12px; padding:14px 20px; width:max-content; max-width:min(80%,680px); font-size:16px; line-height:1.6; min-height:0; max-height:30%; overflow:auto; box-sizing:border-box; }
+  .meeting #caption:empty { display:none; }
+  .meeting #start { background:#0a140f66; backdrop-filter:blur(5px); }
+  .meeting #start h1 { font-size:32px; font-weight:500; letter-spacing:-1px; margin:0; }
+  .meeting #start button { background:#a2dfc6; color:#12251c; border-radius:12px; }
+  button:focus-visible { outline:2px solid #a2dfc6; outline-offset:4px; }
+  @media(max-width:600px) { .meeting #caption { font-size:13px; max-width:90%; bottom:50px; mask-image:none; -webkit-mask-image:none; } }
+  @media(prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
 </style>
 <!-- Same pinned TalkingHead build as avatar.html (see the note there on why a commit, not a tag). MIT licensed, loaded from jsdelivr. -->
 <script type="importmap">
@@ -48,18 +72,22 @@
 </script>
 </head>
 <body>
+<div id="office" aria-hidden="true"><div class="office-daylight"></div><div class="office-reflection"></div><div class="office-monitor"></div></div>
 <div id="avatar"></div>
 <div id="state" class="chip" data-s="idle">Loading avatar…</div>
 <div id="latency" class="chip" title="Time from the end of your question to ARIA's first word">—</div>
 <div id="caption"></div>
+<div id="userTranscript" role="status" aria-label="Your speech transcript"></div>
 <div id="bar">
   <button id="mic" type="button" disabled title="Talk to ARIA">🎤 Mic</button>
   <input id="text" placeholder="…or type and press Enter" autocomplete="off" disabled>
   <button id="stop" type="button" disabled title="Interrupt ARIA">Stop</button>
 </div>
 <div id="start">
+  <img class="start-brand" src="/brand/aria-mark-128.png" alt="ARIA">
+  <h1>Your space for clarity.</h1>
   <button id="startBtn" type="button" disabled>Loading…</button>
-  <p>Free live mode: your voice is recognised by the browser, ARIA answers by streaming, and the avatar lip-syncs to its own voice.</p>
+  <p>Talk through your finances with ARIA. Start your meeting, then turn on the microphone or open chat.</p>
   <p id="note"></p>
 </div>
 
@@ -67,25 +95,46 @@
 const $ = (id) => document.getElementById(id);
 const stateEl = $("state"), latencyEl = $("latency"), captionEl = $("caption"), micBtn = $("mic"), textEl = $("text"), stopBtn = $("stop");
 const params = new URLSearchParams(location.search);
+const meeting = params.get("meeting") === "1";
+document.documentElement.classList.toggle("meeting", meeting);
 const SESSION = params.get("session_id") || "live";
 const OWNER = params.get("owner_id") || localStorage.getItem("aria_owner_id");
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const CAN_RECORD = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
 const HEADAUDIO = "https://cdn.jsdelivr.net/gh/met4citizen/HeadAudio@v0.1.0-alpha/dist/";
 const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
 let speaker = null, ws = null, rec = null;
 let micOn = false, speaking = false, awaitingEnd = false, turn = 0, tAsked = 0, firstAudioSeen = false, answer = "", quietSince = 0;
+let ended = false, started = false, connected = false, processing = false, reconnectTimer = 0;
+let captionClips = [], currentCaption = "";
+let interimTranscript = "", interimTimer = 0, lastServerEvent = 0;
 
-function setState(s, label) { stateEl.dataset.s = s; stateEl.textContent = label; }
+function publishState() { tellParent({ type: "state", state: { status: stateEl.dataset.s, label: stateEl.textContent, connected, started, micOn, listening, speaking, processing, supported: !!SR || CAN_RECORD } }); }
+function setState(s, label) { stateEl.dataset.s = s; stateEl.textContent = label; publishState(); }
 function caption(you, ariaText) {
+  $("userTranscript").textContent = you ? "You: " + you : "";
   captionEl.innerHTML = "";
-  if (you) { const y = document.createElement("span"); y.className = "you"; y.textContent = "You: " + you; captionEl.appendChild(y); }
   if (ariaText) {  // subtitles show the latest words only, cut at a word boundary; the full reply is in the transcript
-    const tail = ariaText.length > 150 ? "…" + ariaText.slice(-150).replace(/^\S*\s/, "") : ariaText;
-    captionEl.appendChild(document.createTextNode(tail));
+    captionEl.appendChild(document.createTextNode(ariaText));
   }
 }
-function tellParent(msg) { try { parent.postMessage({ source: "aria-live", ...msg }, "*"); } catch (e) {} }
+function tellParent(msg) { try { parent.postMessage({ source: "aria-live", ...msg }, location.origin); } catch (e) {} }
+
+// Captions use the same AudioContext clock as the scheduled sentence, including GPU buffering.
+function scheduleCaption(text, at, duration, forTurn = turn) {
+  if (ended || forTurn !== turn) return;
+  captionClips.push({ text, at, end: at + duration, turn: forTurn });
+}
+function updateCaption() {
+  if (ended || !speaker) return;
+  const now = speaker.ctx.currentTime;
+  const clip = captionClips.find(c => c.turn === turn && c.at <= now && c.end > now);
+  if (clip && currentCaption !== clip.text) {
+    currentCaption = clip.text; caption(null, clip.text); setState("speaking", "ARIA is speaking");
+  }
+  captionClips = captionClips.filter(c => c.turn === turn && c.end > now);
+}
 
 // ── speakers: one interface, two looks ────────────────────────────────────
 // { ctx, play(buffer, text), stop(), busy() }. Both queue clips back to back in arrival order.
@@ -107,21 +156,27 @@ async function threeDSpeaker() {
     head.opt.update = ha.update.bind(ha);
     visemes = true;
   } catch (err) { console.warn("HeadAudio unavailable; using text-timed lip-sync", err); }
-  document.addEventListener("visibilitychange", () => (document.visibilityState === "visible" ? head.start() : head.stop()));
+  const visibility = () => (document.visibilityState === "visible" && !ended ? head.start() : head.stop());
+  document.addEventListener("visibilitychange", visibility);
   return {
     kind: "3d", ctx: head.audioCtx,
     play(buffer, text) {
       const clip = { audio: buffer };
+      const forTurn = turn;
       const words = text.split(/\s+/).filter(Boolean);
       if (!visemes && words.length) {
         const total = buffer.duration * 1000, chars = words.reduce((n, w) => n + w.length + 1, 0);
         let t = 0; clip.words = words; clip.wtimes = []; clip.wdurations = [];
         for (const w of words) { const d = total * (w.length + 1) / chars; clip.wtimes.push(t); clip.wdurations.push(d); t += d; }
       }
+      clip.words ||= [];
+      clip.markers = [() => scheduleCaption(text, head.audioCtx.currentTime, buffer.duration, forTurn)];
+      clip.mtimes = [0];
       head.lookAtCamera(500);
       head.speakAudio(clip);
     },
     stop() { head.stopSpeaking(); },
+    dispose() { document.removeEventListener("visibilitychange", visibility); head.stopSpeaking(); head.stop(); head.audioCtx.close(); },
     busy() { return !!head.isSpeaking; },
   };
 }
@@ -132,7 +187,7 @@ async function threeDSpeaker() {
 // opts.frame: a function returning the current frame to show (MuseTalk's) instead of the still photo; opts.jaw=false
 // leaves the mouth to that frame and keeps only the blinks, breathing, sway and nods.
 async function photoSpeaker(opts = {}) {
-  const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = "/avatar/face.png?" + Date.now(); });
+  const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = (opts.source || "/avatar/office-wide-glasses.webp") + "?" + Date.now(); });
   // optional glasses overlay (scripts/make_glasses.py): drawn last, so blinks and lip-sync never distort it
   const glasses = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.width === img.width && i.height === img.height ? i : null); i.onerror = () => ok(null); i.src = "/avatar/glasses.png?" + Date.now(); });
   setState("idle", "Finding the face…");
@@ -142,11 +197,15 @@ async function photoSpeaker(opts = {}) {
     baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" },
     runningMode: "IMAGE", numFaces: 1,
   });
-  // small photos detect better enlarged
-  const up = Math.max(1, Math.ceil(640 / Math.max(img.width, img.height)));
-  const big = document.createElement("canvas"); big.width = img.width * up; big.height = img.height * up;
-  const bctx = big.getContext("2d"); bctx.imageSmoothingQuality = "high"; bctx.drawImage(img, 0, 0, big.width, big.height);
-  const found = detector.detect(big).faceLandmarks[0];
+  // A wide office makes the face a small fraction of the image. Detect in the
+  // central upper region first, then map landmarks back to the full scene.
+  const region = { x: img.width * .25, y: 0, w: img.width * .5, h: img.height * .7 };
+  const big = document.createElement("canvas"); big.width = Math.round(region.w); big.height = Math.round(region.h);
+  const bctx = big.getContext("2d"); bctx.imageSmoothingQuality = "high";
+  bctx.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, big.width, big.height);
+  const local = detector.detect(big).faceLandmarks[0];
+  const found = local ? local.map(p => ({ ...p, x: (region.x + p.x * region.w) / img.width, y: (region.y + p.y * region.h) / img.height })) : detector.detect(img).faceLandmarks[0];
+  detector.close();
   if (!found) throw new Error("no face found in the photo");
   const P = (i) => ({ x: found[i].x * img.width, y: found[i].y * img.height });  // source-pixel coordinates
   const L = { upperIn: P(13), lowerIn: P(14), lowerOut: P(17), chin: P(152), left: P(61), right: P(291), nose: P(1),
@@ -158,22 +217,45 @@ async function photoSpeaker(opts = {}) {
   const lipLine = mouth.y;
   const mid3 = (a, b, c) => ({ x: (P(a).x + P(b).x + P(c).x) / 3, y: (P(a).y + P(b).y + P(c).y) / 3 });
   const browC = [mid3(63, 105, 66), mid3(296, 334, 293)], browInner = [P(107), P(336)], corners = [L.left, L.right];  // image-left first
-  // frame: head and shoulders, the face a little above the middle
-  const cw = Math.min(img.width, faceW * 2.6), ch = Math.min(img.height, faceH * 2.4);
-  const crop = { x: Math.max(0, Math.min(img.width - cw, (face.x0 + face.x1) / 2 - cw / 2)), y: Math.max(0, Math.min(img.height - ch, face.y0 - faceH * 0.55)), w: cw, h: ch };
+  // Keep the complete seated composition. On narrow screens only the office sides
+  // crop away; the face and resting hands remain within the protected center.
+  const crop = { x: 0, y: 0, w: img.width, h: img.height };
 
   const canvas = document.createElement("canvas"); canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
+  canvas.style.opacity = "0"; canvas.style.transition = "opacity 500ms ease";
   $("avatar").appendChild(canvas);
   const g = canvas.getContext("2d");
   const src = document.createElement("canvas"); src.width = img.width; src.height = img.height;  // this frame's picture, photo-sized
   const sctx = src.getContext("2d");
+  // Cache clear office-only extensions at the viewport size; no person is copied into
+  // the sides. Mirroring preserves the boundary colors and desk/window heights.
+  const surround = document.createElement("canvas"), surroundCtx = surround.getContext("2d");
+  function officeSurround(scale) {
+    if (surround.width === canvas.width && surround.height === canvas.height) return;
+    surround.width = canvas.width; surround.height = canvas.height;
+    const left = (canvas.width - img.width * scale) / 2;
+    const top = (canvas.height - img.height * scale) / 2;
+    surroundCtx.fillStyle = "#14231f"; surroundCtx.fillRect(0, 0, canvas.width, canvas.height);
+    if (left <= 0) return;
+    const edge = img.width * .16, overlap = 32 * devicePixelRatio;
+    surroundCtx.filter = "none";
+    surroundCtx.save(); surroundCtx.translate(left + overlap, top); surroundCtx.scale(-1, 1);
+    surroundCtx.drawImage(img, 0, 0, edge, img.height, 0, -12, left + overlap + 24, img.height * scale + 24);
+    surroundCtx.restore();
+    surroundCtx.save(); surroundCtx.translate(canvas.width - left - overlap, top); surroundCtx.scale(-1, 1);
+    surroundCtx.drawImage(img, img.width - edge, 0, edge, img.height, -left - overlap - 24, -12, left + overlap + 24, img.height * scale + 24);
+    surroundCtx.restore();
+    surroundCtx.filter = "none";
+  }
   const ctx = new AudioContext();
   const analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination);
   const wave = new Float32Array(analyser.fftSize);
   let sources = [], endAt = 0, open = 0, blinkAt = performance.now() + 2500;
 
   // ── lifelike behaviour: small expressions and head movement, always slow and smooth ──────────────────────────────
-  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;  // accessibility: no movement at all
+  const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+  let calm = motionPreference.matches;
+  motionPreference.addEventListener("change", (event) => { calm = event.matches; });  // accessibility: no movement at all
   const expr = { browL: 0, browR: 0, furrow: 0, smile: 0.1, squint: 0, tilt: 0, nod: 0, pan: 0 };
   // seconds to settle: eyebrows are quick, the head and a smile unhurried
   const TAU = { browL: 0.10, browR: 0.10, furrow: 0.20, smile: 0.32, squint: 0.22, tilt: 0.6, nod: 0.16, pan: 0.40 };
@@ -262,22 +344,33 @@ async function photoSpeaker(opts = {}) {
     g.transform(a, b, c, d, e, f); g.drawImage(src, 0, 0); g.restore();
   }
   function frame(now) {
+    if (ended) return;
     requestAnimationFrame(frame);
     const W = canvas.clientWidth, H = canvas.clientHeight;
-    if (canvas.width !== W * devicePixelRatio) { canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio; }
+    if (!W || !H) return; // The meeting may briefly hide the stage while changing layouts.
+    if (canvas.width !== Math.round(W * devicePixelRatio) || canvas.height !== Math.round(H * devicePixelRatio)) { canvas.width = Math.round(W * devicePixelRatio); canvas.height = Math.round(H * devicePixelRatio); }
     analyser.getFloatTimeDomainData(wave);
     let rms = 0; for (const v of wave) rms += v * v; rms = Math.sqrt(rms / wave.length);
     const target = Math.min(1, Math.max(0, (rms - 0.01) * 11));
     open += (target - open) * (target > open ? 0.55 : 0.25);  // quick to open, a little slower to close
     let blink = 0;
-    if (now > blinkAt) { const t = (now - blinkAt) / 140; blink = t < 1 ? t : t < 2 ? 2 - t : 0; if (t >= 2) blinkAt = now + 2200 + Math.random() * 3500; }
+    if (!calm && now > blinkAt) { const t = (now - blinkAt) / 140; blink = t < 1 ? t : t < 2 ? 2 - t : 0; if (t >= 2) blinkAt = now + 2200 + Math.random() * 3500; }
     const A = opts.jaw === false ? 0 : open * mouthW * 0.15;  // jaw drop in source pixels (real speech rarely opens past ~15% of mouth width)
     sctx.drawImage(img, 0, 0, src.width, src.height);
     const patch = opts.frame && opts.frame();  // MuseTalk: only the face rectangle changes, laid over the sharp original photo
     if (patch) sctx.drawImage(patch, opts.patch[0] * src.width, opts.patch[1] * src.height, (opts.patch[2] - opts.patch[0]) * src.width, (opts.patch[3] - opts.patch[1]) * src.height);
     // cover the canvas with the crop. The head only ever drifts slowly or settles into a small tilt/nod (nothing tied to the
     // loudness of each word: that old 1.4 Hz wobble was the visible "shake"), and the glasses move with it.
-    const s = Math.max(canvas.width / crop.w, canvas.height / crop.h);
+    const s = Math.min(canvas.width / (crop.w * .40), canvas.height / crop.h);
+    officeSurround(s);
+    if (canvas.width > crop.w * s) {
+      const feather = Math.min(.06, 32 * devicePixelRatio / (crop.w * s));
+      const fade = sctx.createLinearGradient(0, 0, src.width, 0);
+      fade.addColorStop(0, "transparent"); fade.addColorStop(feather, "#000");
+      fade.addColorStop(1 - feather, "#000"); fade.addColorStop(1, "transparent");
+      sctx.save(); sctx.globalCompositeOperation = "destination-in";
+      sctx.fillStyle = fade; sctx.fillRect(0, 0, src.width, src.height); sctx.restore();
+    }
     const dt = Math.min(0.1, (now - prevNow) / 1000); prevNow = now;
     if (calm) { for (const k in expr) expr[k] = k === "smile" ? 0.1 : 0; } else behave(now, dt, rms);
     const t = now / 1000;
@@ -285,11 +378,31 @@ async function photoSpeaker(opts = {}) {
     const bob = calm ? 0 : Math.sin(t * 1.25) * crop.h * 0.0022 + (expr.nod * 0.009 - expr.pan * 0.006) * crop.h;  // breathing, nods, lifting the head to think
     const sway = calm ? 0 : Math.sin(t * 0.55 + 0.7) * crop.w * 0.0018;
     pose = { rot, bob, sway, s, half: faceH / 2 };
-    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#0f1720"; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(surround, 0, 0);
+    // Quiet daylight shifts across the extended office, without moving the desk,
+    // face or hands. Keep motion off for reduced-motion preferences.
+    const side = (canvas.width - crop.w * s) / 2;
+    if (!calm && side > 0) {
+      const light = g.createLinearGradient(0, 0, canvas.width, 0);
+      const p = .2 + .08 * Math.sin(now / 11000);
+      light.addColorStop(0, "rgba(235,249,240,0)");
+      light.addColorStop(p, "rgba(235,249,240,.045)");
+      light.addColorStop(.5, "rgba(235,249,240,0)");
+      light.addColorStop(1 - p, "rgba(235,249,240,.035)");
+      light.addColorStop(1, "rgba(235,249,240,0)");
+      g.fillStyle = light;
+      g.fillRect(0, 0, side, canvas.height);
+      g.fillRect(canvas.width - side, 0, side, canvas.height);
+    }
+    // A stable scene: never rotate the office or slide the desk with speech.
+    // Office-only extensions fill wide stages and feather into the sharp center.
+    canvas.style.opacity = "1";
     g.imageSmoothingQuality = "high";
     g.setTransform(s, 0, 0, s, (canvas.width - crop.w * s) / 2 - crop.x * s, (canvas.height - crop.h * s) / 2 - crop.y * s);
     const pivotY = (face.y0 + face.y1) / 2;  // turn about the middle of the face: no feature swings more than a pixel or two
-    g.translate(mouth.x + sway, pivotY); g.rotate(rot); g.translate(-mouth.x, -pivotY + bob);
+    // Facial expression deformation stays local; hands and office are static.
+    // A still body is intentional: this renderer does not synthesize gestures.
     g.drawImage(src, 0, 0);
     if (A > 0.05 || blink > 0 || !calm) {
       const d = grid.map((p) => displaced(p, A, blink));
@@ -317,10 +430,11 @@ async function photoSpeaker(opts = {}) {
   requestAnimationFrame(frame);
   return {
     kind: "photo", ctx, analyser, blinkNow() { blinkAt = performance.now(); }, express(name) { (moves[name] || moves.smile)(performance.now()); }, pose: () => pose,
-    play(buffer) {
+    play(buffer, text) {
       const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
       const at = Math.max(ctx.currentTime + 0.02, endAt);
       src.start(at); endAt = at + buffer.duration;
+      scheduleCaption(text, at, buffer.duration);
       sources.push(src); src.onended = () => { sources = sources.filter((x) => x !== src); };
     },
     stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; },
@@ -334,6 +448,7 @@ async function museTalkSpeaker() {
   const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
   const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1500) }).then((r) => r.json());
   if (!health.ready) throw new Error("server still loading");
+  if (health.source !== "office-wide-glasses.webp") throw new Error("restart the GPU service to load the seated scene");
   // MuseTalk draws the mouth; the photo renderer adds blinks, breathing, sway and nods on top (same face file)
   let current = null;  // the MuseTalk face patch for this instant, or null (the photo as it is)
   const rig = await photoSpeaker({ jaw: false, frame: () => current, patch: health.patch });
@@ -343,32 +458,39 @@ async function museTalkSpeaker() {
   // Each sentence is requested the moment it arrives (the server queues them in order) and read concurrently, so the next
   // sentence is already rendering while the current one plays. Playback of a sentence starts once enough frames are
   // buffered that the stream cannot fall behind the voice: none extra when the GPU is quicker than the speech.
-  function playClip(buffer, raw) {
-    const myGen = gen, signal = ctl.signal, tAsk = performance.now();
+  function playClip(buffer, text, raw) {
+    const myGen = gen, signal = ctl.signal, forTurn = turn;
     const before = prevBegun;
     let markBegun;
     prevBegun = new Promise((ok) => (markBegun = ok));
     pending += 1;
     (async () => {
+      let scheduled = false;
+      const allocatedFrames = [];
       try {
         const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw, signal });
+        if (!res.ok) throw new Error("Lip-sync service unavailable");
         const reader = res.body.getReader();
         let buf = new Uint8Array(0), total = null, started = false, tFirst = 0;
-        const clip = { frames: [], start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 25) };
+        const clip = { frames: allocatedFrames, start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 25) };
         const need = () => {
           if (clip.frames.length < 4) return 6;
           const rate = (clip.frames.length - 1) / Math.max((performance.now() - tFirst) / 1000, 0.05);
           return Math.min(total, 6 + (rate < clip.fps ? Math.ceil((clip.fps - rate) * clip.dur * 1.15) + 2 : 0));
         };
-        const begin = async () => {
-          if (started) return;
+        let beginPromise = null;
+        const begin = () => beginPromise ||= (async () => {
           started = true;
           await before;  // earlier sentences are scheduled first, so this one starts right after them
           if (myGen !== gen) return;
           const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser);  // analyser: nods follow the voice
           clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
+          scheduled = true;
+          scheduleCaption(text, clip.start, buffer.duration, forTurn);
           sources.push(src); clips.push(clip);
-        };
+          src.onended = () => { sources = sources.filter(s => s !== src); };
+          markBegun();
+        })();
         for (;;) {
           const { value, done } = await reader.read();
           if (done || myGen !== gen) break;
@@ -378,7 +500,9 @@ async function museTalkSpeaker() {
             if (buf.length < 4) break;
             const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
             if (buf.length < 4 + n) break;
-            clip.frames.push(await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" })));
+            const bitmap = await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" }));
+            if (myGen !== gen) { bitmap.close(); break; }
+            clip.frames.push(bitmap);
             if (clip.frames.length === 1) tFirst = performance.now();
             buf = buf.slice(4 + n);
             if (!started && clip.frames.length >= need()) begin();
@@ -388,26 +512,36 @@ async function museTalkSpeaker() {
       } catch (e) {
         if (e.name !== "AbortError") console.error(e);
         // the server failed for this sentence: still say it, the still photo (and the page's blinks) stay on screen
-        if (myGen === gen && !sources.length && endAt < ctx.currentTime) { await before; const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser); src.start(Math.max(ctx.currentTime + 0.03, endAt)); endAt = Math.max(ctx.currentTime + 0.03, endAt) + buffer.duration; sources.push(src); }
+        if (myGen === gen) {
+          await before;
+          if (myGen !== gen || scheduled) return;
+          const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(rig.analyser);
+          const at = Math.max(ctx.currentTime + 0.03, endAt); src.start(at); endAt = at + buffer.duration;
+          scheduleCaption(text, at, buffer.duration, forTurn);
+          sources.push(src); src.onended = () => { sources = sources.filter(s => s !== src); };
+        }
       } finally {
+        if (!scheduled || myGen !== gen) allocatedFrames.forEach(f => f.close());
         markBegun(); pending -= 1;
       }
     })();
   }
   function frame() {  // pick the MuseTalk frame for this instant of the audio clock; null = the still photo
+    if (ended) return;
     requestAnimationFrame(frame);
     const t = ctx.currentTime;
     const clip = clips.find((c) => t >= c.start && t < c.start + c.dur);
     current = clip ? clip.frames[Math.min(clip.frames.length - 1, Math.floor((t - clip.start) * clip.fps))] || null : null;
-    clips = clips.filter((c) => c.start + c.dur > t - 1);
+    clips = clips.filter((c) => { if (c.start + c.dur > t - 1) return true; c.frames.forEach(f => f.close()); return false; });
   }
   requestAnimationFrame(frame);
   return {
     kind: "musetalk", ctx, blinkNow: rig.blinkNow, express: rig.express, pose: rig.pose,
-    play(buffer, text, raw) { playClip(buffer, raw); },
+    play(buffer, text, raw) { playClip(buffer, text, raw); },
     stop() {
       gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
       for (const s of sources) { try { s.stop(); } catch (e) {} }
+      clips.forEach(c => c.frames.forEach(f => f.close())); current = null;
       sources = []; clips = []; endAt = 0;
     },
     busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
@@ -416,20 +550,38 @@ async function museTalkSpeaker() {
 
 // ── conversation ──────────────────────────────────────────────────────────
 function connect() {
+  if (ended) return;
+  setState("connecting", started ? "Connection lost — reconnecting…" : "Connecting to ARIA…");
   ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/api/live/ws");
   let chain = Promise.resolve();
   // One message at a time, in arrival order: decoding a clip is asynchronous, and letting "done" or a later clip
   // overtake an earlier one reopened the mic too early and then left it closed for good.
-  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); chain = chain.then(() => onServer(m)).catch((e) => console.error(e)); };
-  ws.onclose = () => { setState("error", "Disconnected — reconnecting…"); setTimeout(connect, 1500); };
-  ws.onopen = () => { if (stateEl.dataset.s === "error") setState("idle", micOn ? "Listening…" : "Ready"); };
+  const socket = ws;
+  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); chain = chain.then(() => !ended && socket === ws && onServer(m)).catch((e) => { console.error(e); interrupt(); setState("error", "Audio playback failed. Try your question again."); }); };
+  ws.onclose = (ev) => {
+    if (ended || socket !== ws) return;
+    connected = false; stopRec(); speaker.stop(); captionClips = []; currentCaption = ""; caption(null, ""); turn += 1; speaking = false; processing = false;
+    if ($("startBtn")) $("startBtn").disabled = true;
+    setState("error", ev.code === 1008 ? "Session unavailable. Please sign in again." : "Connection lost — reconnecting…");
+    if (ev.code !== 1008) reconnectTimer = setTimeout(connect, 1500);
+  };
+  ws.onopen = () => {
+    if (ended) return;
+    connected = true;
+    if ($("startBtn")) { $("startBtn").disabled = false; $("startBtn").textContent = "Start conversation"; }
+    if (started) resumeListening(); else setState("idle", "Ready when you are");
+  };
 }
 
 function ask(text) {
   text = text.trim();
-  if (!text || !ws || ws.readyState !== 1) return;
+  if (!text || ended || !started || !ws || ws.readyState !== 1) return;
+  text = text.slice(0, 1000);
   if (speaking) interrupt(false);
   turn += 1; tAsked = performance.now(); firstAudioSeen = false; answer = ""; awaitingEnd = false;
+  lastServerEvent = tAsked;
+  processing = true;
+  captionClips = []; currentCaption = "";
   caption(text, "");
   setState("thinking", "Thinking…");
   stopBtn.disabled = false;
@@ -437,6 +589,8 @@ function ask(text) {
   // ("…please") become a new question that cancelled the real one.
   speaking = true; quietSince = 0;
   stopRec();
+  publishState();
+  tellParent({ type: "user", text, turn });
   ws.send(JSON.stringify({ type: "user", text, session_id: SESSION, owner_id: OWNER, turn }));
 }
 
@@ -446,18 +600,24 @@ function finishSpeaking() {
 }
 
 function interrupt(send = true) {
-  speaker.stop();
+  speaker?.stop();
+  processing = false;
+  captionClips = []; currentCaption = ""; caption(null, "");
   if (send && ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "interrupt" }));
   turn += 1;  // drop any chunks still in flight for the old turn
   finishSpeaking();
+  setState("interrupted", "Response interrupted");
+  tellParent({ type: "interrupted", turn });
 }
 
 function b64ToBuffer(b64) { const bin = atob(b64); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out.buffer; }
 
 async function onServer(m) {
   if (m.turn && m.turn !== turn) return;
-  if (m.type === "thinking") { setState("thinking", "Looking that up…"); }  // the modules are working; she has said so
-  else if (m.type === "text") { answer += m.delta; caption(null, answer); }
+  lastServerEvent = performance.now();
+  if (m.type === "accepted") { setState("thinking", "ARIA received your question…"); }
+  else if (m.type === "thinking") { setState("thinking", "Looking that up…"); }  // the modules are working; she has said so
+  else if (m.type === "text") { processing = false; answer += m.delta; publishState(); tellParent({ type: "text", text: m.delta, turn: m.turn }); }
   else if (m.type === "audio") {
     const raw = b64ToBuffer(m.audio);
     const buffer = await speaker.ctx.decodeAudioData(raw.slice(0));  // decoding detaches its input
@@ -471,24 +631,36 @@ async function onServer(m) {
     }
     pauseListening();
     speaking = true;
-    setState("speaking", "Speaking…");
+    if (!currentCaption) setState("thinking", "Preparing audio…");
     speaker.play(buffer, m.text, raw);
   } else if (m.type === "done") {
-    caption(null, m.text);
+    processing = false;
     awaitingEnd = true;  // the watchdog below hands the mic back once the last clip has actually finished
     if (!firstAudioSeen) finishSpeaking();
-    tellParent({ type: "done", timings: m.timings });
+    tellParent({ type: "done", timings: m.timings, turn: m.turn });
+  } else if (m.type === "error") {
+    const failedTurn = m.turn;
+    interrupt(false); setState("error", m.message || "Unable to prepare audio. Please try again.");
+    tellParent({ type: "error", turn: failedTurn, message: m.message || "Unable to prepare audio. Your written response may still be saved." });
   }
 }
 
 // Whoever is speaking, the mic comes back when ARIA has really gone quiet: the reply is complete and no audio has
 // been playing for a moment. Also recovers from a reply that never completes.
-setInterval(() => {
+const watchdog = setInterval(() => {
+  updateCaption();
   if (!speaking || !speaker) return;
   if (speaker.busy()) { quietSince = 0; return; }
+  if (processing && stateEl.dataset.s === "speaking") setState("thinking", "Preparing your answer…");
   quietSince = quietSince || performance.now();
   const quiet = performance.now() - quietSince;
-  if ((awaitingEnd && quiet > 350) || quiet > 90000) finishSpeaking();  // 90 s: a long report can keep the modules busy for a minute
+  if (awaitingEnd && quiet > 350) finishSpeaking();
+  else if (performance.now() - lastServerEvent > 90000) {
+    const failedTurn = turn;
+    interrupt();
+    setState("error", "The response timed out. Please try again or use chat.");
+    tellParent({ type:"error", turn:failedTurn, message:"ARIA did not finish responding. Check the conversation, then retry your question." });
+  }
 }, 150);
 
 // ── speech recognition (free, in the browser) ─────────────────────────────
@@ -498,62 +670,167 @@ setInterval(() => {
 function makeRecognizer() {
   const r = new SR();
   r.lang = "en-IN"; r.continuous = false; r.interimResults = true;
-  r.onstart = () => { if (r === rec) listening = true; };
+  r.onstart = () => { if (r === rec && micOn && !ended) { listening = true; setState("listening", "Listening to you…"); } else r.abort(); };
   r.onresult = (ev) => {
-    if (r !== rec || speaking) return;  // a stale session, or ARIA's own voice
+    if (r !== rec || speaking || !micOn || ended) return;  // a stale session, or ARIA's own voice
     let interim = "", final = "";
     for (let i = ev.resultIndex; i < ev.results.length; i++) {
       const t = ev.results[i][0].transcript;
       if (ev.results[i].isFinal) final += t; else interim += t;
     }
-    if (interim) caption(interim + "…", "");
-    if (final.trim()) ask(final);
+    if (interim) {
+      interimTranscript = interim.trim(); caption(interimTranscript + "…", "");
+      clearTimeout(interimTimer);
+      // Some Web Speech services emit interim words but never finalize a short utterance.
+      // Submit only after a quiet pause, while this recognizer still owns capture.
+      interimTimer = setTimeout(() => { if (r === rec && micOn && !speaking && interimTranscript) ask(interimTranscript); }, 1800);
+    }
+    if (final.trim()) { clearTimeout(interimTimer); ask(final); }
   };
   r.onerror = (ev) => {
-    if (r === rec && (ev.error === "not-allowed" || ev.error === "service-not-allowed")) { micOn = false; micBtn.classList.remove("on"); setState("error", "Microphone blocked"); }
+    if (r !== rec || ev.error === "aborted" || ev.error === "no-speech") return;
+    micOn = false; micBtn.classList.remove("on"); stopRec();
+    const message = ev.error === "audio-capture" ? "No microphone found. Connect one or use chat." : ev.error === "not-allowed" || ev.error === "service-not-allowed" ? "Microphone access was denied. Allow it in browser settings or use chat." : "Speech recognition is unavailable. Try again or use chat.";
+    setState("error", message); tellParent({ type: "error", message });
   };
   // a session ends after each utterance or on silence: open the next one whenever it's the user's turn
-  r.onend = () => { if (r !== rec) return; rec = null; listening = false; if (micOn && !speaking) setTimeout(startRec, 60); };
+  r.onend = () => {
+    if (r !== rec) return;
+    const remaining = interimTranscript;
+    rec = null; listening = false; clearTimeout(interimTimer); interimTranscript = "";
+    if (remaining && micOn && !speaking) ask(remaining);
+    else if (micOn && !speaking) setTimeout(startRec, 60);
+  };
   return r;
 }
 let listening = false, startTimer = 0;
+let capture = null, captureGeneration = 0, transcription = null;
+
+// Record locally and use ARIA's existing Whisper endpoint. Unlike Web Speech,
+// this does not depend on the browser vendor's online recognition service.
+async function startCapture() {
+  const generation = ++captureGeneration;
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    if (generation !== captureGeneration || !micOn || speaking || ended || !connected) { stream.getTracks().forEach(t => t.stop()); return; }
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
+    const source = ctx.createMediaStreamSource(stream); source.connect(analyser);
+    const recorder = new MediaRecorder(stream), chunks = [], samples = new Uint8Array(analyser.fftSize);
+    const c = { generation, stream, ctx, source, recorder, chunks, frame: 0, heard: false, lastSound: 0, started: performance.now(), submit: false };
+    capture = c;
+    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    recorder.onerror = () => { if (capture === c) { stopRec(); micOn = false; micBtn.classList.remove("on"); setState("error", "Microphone recording failed. Please try again."); tellParent({ type: "error", message: "Microphone recording failed. Please try again." }); } };
+    recorder.onstop = async () => {
+      if (!c.submit || generation !== captureGeneration || ended) return;
+      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+      if (!blob.size) { if (micOn) resumeListening(); else setState("muted", "No audio recorded. Try speaking again."); return; }
+      setState("thinking", "Transcribing your question…");
+      const controller = new AbortController(); transcription = controller;
+      let timedOut = false;
+      const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 90000);
+      try {
+        const form = new FormData(); form.append("file", blob, recorder.mimeType?.includes("mp4") ? "question.m4a" : "question.webm");
+        const response = await fetch("/api/voice/transcribe", { method: "POST", body: form, signal: controller.signal });
+        const result = await response.json().catch(() => ({}));
+        if (generation !== captureGeneration || ended || speaking) return;
+        const text = typeof result.text === "string" ? result.text.trim() : "";
+        if (response.ok && text) ask(text);
+        else if (response.status === 422) { setState("error", "I couldn't hear a question. Please try again."); if (micOn) setTimeout(resumeListening, 1200); }
+        else throw new Error(typeof result.detail === "string" ? result.detail : "Transcription is unavailable. Please try again.");
+      } catch (e) {
+        if ((e.name === "AbortError" && !timedOut) || generation !== captureGeneration || ended) return;
+        micOn = false; micBtn.classList.remove("on");
+        const message = timedOut ? "Transcription timed out. Please try again." : e.message || "Transcription is unavailable. Please try again.";
+        setState("error", message); tellParent({ type: "error", message });
+      } finally { clearTimeout(timeout); if (transcription === controller) transcription = null; }
+    };
+    recorder.start(250); listening = true; setState("listening", "Listening to you…");
+    const monitor = () => {
+      if (capture !== c || ended) return;
+      analyser.getByteTimeDomainData(samples);
+      let power = 0; for (const v of samples) { const n = (v - 128) / 128; power += n * n; }
+      const now = performance.now(), rms = Math.sqrt(power / samples.length);
+      if (rms > 0.012) { c.heard = true; c.lastSound = now; }
+      if ((c.heard && now - c.lastSound > 1600 && now - c.started > 800) || now - c.started > 30000) {
+        finishCapture(c.heard); return;
+      }
+      c.frame = requestAnimationFrame(monitor);
+    };
+    c.frame = requestAnimationFrame(monitor);
+  } catch (e) {
+    stream?.getTracks().forEach(t => t.stop());
+    if (generation !== captureGeneration || ended) return;
+    if (capture?.generation === generation) stopRec();
+    micOn = false; micBtn.classList.remove("on"); listening = false;
+    const message = e.name === "NotAllowedError" || e.name === "SecurityError" ? "Microphone access was denied. Allow it in browser settings or use chat." : e.name === "NotFoundError" ? "No microphone found. Connect one or use chat." : "Microphone could not start. Please try again.";
+    setState("error", message); tellParent({ type: "error", message });
+  }
+}
+function finishCapture(submit) {
+  const c = capture; if (!c) return;
+  capture = null; listening = false; c.submit = submit;
+  cancelAnimationFrame(c.frame); c.source.disconnect(); c.ctx.close().catch(() => {});
+  if (c.recorder.state !== "inactive") c.recorder.stop();
+  c.stream.getTracks().forEach(t => t.stop());
+  if (!submit && micOn && !speaking && !ended && connected) setTimeout(startRec, 100);
+}
 function startRec() {
-  if (!micOn || speaking || rec) return;
+  if (ended || !started || !connected || !micOn || speaking || rec || capture || transcription) return;
+  if (CAN_RECORD) { void startCapture(); return; }
+  if (!SR) return;
   rec = makeRecognizer();
   try { rec.start(); } catch (e) { rec = null; }
   clearTimeout(startTimer);
   startTimer = setTimeout(() => { if (micOn && !speaking && !listening) { stopRec(); startRec(); } }, 1200);  // not confirmed: retry
 }
-function stopRec() { const r = rec; rec = null; listening = false; clearTimeout(startTimer); if (r) { try { r.abort(); } catch (e) {} } }
+function stopRec() { captureGeneration++; transcription?.abort(); transcription = null; const c = capture; if (c) finishCapture(false); const r = rec; rec = null; listening = false; clearTimeout(startTimer); clearTimeout(interimTimer); interimTranscript = ""; if (r) { try { r.abort(); } catch (e) {} } }
+function speakControl() {
+  if (speaking) { interrupt(); if (micOn) resumeListening(); return; }
+  if (micOn) {
+    if (capture) { micOn = false; micBtn.classList.remove("on"); finishCapture(true); publishState(); return; }
+    const transcript = interimTranscript;
+    micOn = false; micBtn.classList.remove("on"); stopRec();
+    if (transcript) ask(transcript);
+    else { caption(null, ""); setState("muted", "Microphone muted · ARIA is ready"); }
+  } else micBtn.click();
+}
 // Half-duplex on purpose: the mic is off while ARIA thinks and talks, so her own voice is never transcribed as a question.
 function pauseListening() { stopRec(); }
 function resumeListening() {
-  if (micOn) { startRec(); setState("listening", "Listening…"); }
-  else setState("idle", "Ready — type or turn on the mic");
+  if (ended || !connected) return;
+  if (micOn) { startRec(); setState(listening ? "listening" : "connecting", listening ? "Listening to you…" : "Opening microphone…"); }
+  else setState("muted", "Microphone muted · ARIA is ready");
 }
 micBtn.onclick = () => {
+  if ((!SR && !CAN_RECORD) || !started || !connected || ended) return;
   micOn = !micOn; micBtn.classList.toggle("on", micOn);
   if (micOn) { if (!speaking) resumeListening(); }
-  else { stopRec(); if (!speaking) setState("idle", "Ready — type or turn on the mic"); }
+  else { stopRec(); $("userTranscript").textContent = ""; if (!speaking) setState("muted", "Microphone muted · ARIA is ready"); }
+  publishState();
 };
 textEl.onkeydown = (e) => { if (e.key === "Enter") { ask(textEl.value); textEl.value = ""; } };
 stopBtn.onclick = () => interrupt(true);
 
 // ── start ─────────────────────────────────────────────────────────────────
 $("startBtn").onclick = async () => {
-  await speaker.ctx.resume();  // browsers only allow sound after a click inside this page
+  if (!speaker || !connected || ended) return;
+  try { await speaker.ctx.resume(); } catch { setState("error", "Audio could not start. Try starting the meeting again."); return; }
+  if (ended) return;
+  started = true;
   $("start").remove();
   textEl.disabled = false; textEl.focus();
-  if (SR) { micBtn.disabled = false; micBtn.click(); } else setState("idle", "Ready — type your question");
+  if (SR || CAN_RECORD) { micBtn.disabled = false; if (!meeting) micBtn.click(); else resumeListening(); } else setState("muted", "Voice input needs microphone recording support. Open chat to type.");
 };
 
 async function loadSpeaker() {
-  // MuseTalk when its GPU server is running (E:\musetalk), else the photo (interface/avatar/face.png), else 3D.
+  // MuseTalk when its GPU server is running (E:\musetalk), else the seated photo, else 3D.
   // ?avatar=photo or ?avatar=3d forces one.
   if (!params.get("avatar")) {
     try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
   }
-  const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/face.png", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
+  const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/office-wide-glasses.webp", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
   if (photo) {
     try { return await photoSpeaker(); } catch (err) { console.warn("Talking photo unavailable, using the 3D avatar", err); $("note").textContent = "Couldn't animate the photo (" + err.message + "); showing the 3D avatar."; }
   }
@@ -561,12 +838,32 @@ async function loadSpeaker() {
 }
 
 loadSpeaker().then((s) => {
+  if (ended) { s.stop(); s.ctx.close(); return; }
   speaker = s;
   connect();
-  setState("idle", "Ready");
-  $("startBtn").disabled = false; $("startBtn").textContent = "Start conversation";
-  if (!SR) $("note").textContent = "Voice input needs Chrome or Edge. You can still type.";
-}).catch((err) => { setState("error", "Avatar failed to load"); $("note").textContent = String(err); console.error(err); });
+  if (!SR && !CAN_RECORD) $("note").textContent = "Voice input needs microphone recording support. You can still type.";
+}).catch((err) => { if (ended) return; setState("error", "Avatar failed to load. Leave and try again."); $("note").textContent = String(err); console.error(err); });
+
+function endSession() {
+  if (ended) return;
+  ended = true; micOn = false; started = false; connected = false; turn += 1;
+  clearTimeout(reconnectTimer); clearInterval(watchdog); stopRec();
+  captionClips = []; speaker?.stop();
+  if (speaker?.dispose) speaker.dispose(); else speaker?.ctx.close();
+  if (ws) { ws.onclose = null; ws.close(); }
+  tellParent({ type: "ended" });
+}
+window.addEventListener("message", ev => {
+  if (ev.origin !== location.origin || ev.source !== parent || ev.data?.source !== "aria-meeting" || ended) return;
+  const m = ev.data;
+  if (m.type === "ask" && typeof m.text === "string") ask(m.text);
+  if (m.type === "mic") micBtn.click();
+  if (m.type === "speak") speakControl();
+  if (m.type === "captions") captionEl.hidden = !m.enabled;
+  if (m.type === "end") endSession();
+});
+window.addEventListener("pagehide", endSession);
+window.addEventListener("keydown", ev => { if (ev.key === "Escape") tellParent({ type: "escape" }); });
 
 window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow(), express: (n) => speaker && speaker.express && speaker.express(n), pose: () => speaker && speaker.pose && speaker.pose() };  // used by the automated checks
 </script>

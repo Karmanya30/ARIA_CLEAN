@@ -1,6 +1,6 @@
 """Turn a written module answer (labelled sections, bullets, tables) into what a person would say aloud on a call.
 
-Shared by every voice mode: the Live Avatar streams this rewrite sentence by sentence, Tavus gets it as one piece.
+Used by the Live Avatar for a natural spoken response.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def spoken_prompt(question: str, written: str) -> str:
 
 
 def spoken_version(question: str, written: str) -> str:
-    """The whole rewrite in one call (Tavus). Falls back to the written answer if the model is unavailable."""
+    """The whole rewrite in one call. Falls back to the written answer if the model is unavailable."""
     if not needs_rewrite(written):
         return written
     from ai.llm.groq_client import generate_response

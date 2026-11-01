@@ -98,7 +98,6 @@ Method: second API on 8002 (ARIA_AUTH_MODE=private, temp DB on E:), POST /api/ch
 | Normal | 5.7 s | 60.5 s |
 | Conversational | 7.2 s | 51.0 s |
 | Live Avatar (Free) | 13.2 s | 43.2 s |
-| Tavus CVI | 17.3 s | 36.9 s |
 | Local Avatar | 19.4 s | 30.9 s |
 
 By question: PE ratio of Reliance 9.2 s, capital of France 17.3 s, invest in HDFC Bank 30.6 s (median of 15 each).

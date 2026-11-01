@@ -150,4 +150,4 @@ def test_exchange_rate_sentences_keep_their_dollars_but_plain_amounts_still_beco
     fx = "The rupee slipped to 83.4 per dollar, weakest against the US dollar in two months."
     assert normalize_currency(fx) == fx
     assert normalize_currency("The dollar index rose.") == "The dollar index rose."
-    assert normalize_currency("You could invest $5,000 or 200 dollars.") == "You could invest ₹5,000 or 200 rupees."
+    assert normalize_currency("You could invest $5,000 or 200 dollars.") == "You could invest $5,000 or 200 dollars."

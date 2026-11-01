@@ -1,5 +1,5 @@
 """Chat endpoints. POST /api/chat is a thin adapter over the one answer pipeline (modules/qa/pipeline.py), exactly like
-/api/instruments/ask, the live avatar, the Tavus callback and company intelligence: all of them build a QARequest and call
+/api/instruments/ask, the live avatar and company intelligence: all of them build a QARequest and call
 `answer()`; only presentation differs by mode."""
 from __future__ import annotations
 
@@ -120,14 +120,5 @@ def clear_chat(req: dict[str, str]) -> dict[str, str]:
         raise HTTPException(403, str(exc)) from exc
     finally:
         current_owner.reset(token)
-
-    # Tavus bills per active-conversation minute -- end it on clear too,
-    # same reasoning as the old Streamlit "Clear Chat" button.
-    try:
-        from api.routes.avatar import end_tavus_for_session
-
-        end_tavus_for_session(session_id)
-    except Exception as exc:
-        logger.debug(f"No Tavus conversation to end for {session_id}: {exc}")
 
     return {"status": "cleared"}

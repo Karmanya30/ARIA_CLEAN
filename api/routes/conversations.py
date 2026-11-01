@@ -72,6 +72,17 @@ def patch(cid: str, req: Patch, owner_id: str | None = None):
     return out
 
 
+class Rating(BaseModel):
+    rating: int | None = None
+
+
+@router.put("/{cid}/messages/{message_id}/rating")
+def rate(cid: str, message_id: int, req: Rating, owner_id: str | None = None):
+    with _as(owner_id):
+        H.rate(cid, message_id, req.rating)
+    return {"status": "saved"}
+
+
 @router.delete("/{cid}")
 def delete(cid: str, owner_id: str | None = None):
     with _as(owner_id):

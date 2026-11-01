@@ -65,7 +65,7 @@ def main():
         results = list(pool.map(lambda item: check(*item), probes))
     path = Path(".audit/live-connections.json")
     path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps({"results": results, "limitations": "Connectivity/schema only; not market accuracy, freshness, grounded answers or browser voice/video. Tavus and ngrok not started."}, indent=2), encoding="utf-8")
+    path.write_text(json.dumps({"results": results, "limitations": "Connectivity/schema only; not market accuracy, freshness, grounded answers or browser voice/video."}, indent=2), encoding="utf-8")
     print(json.dumps(results, indent=2))
     return int(any(result["status"] != "VERIFIED" for result in results))
 

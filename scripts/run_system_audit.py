@@ -1,6 +1,6 @@
 """Repeatable Windows audit. Run from the repository with the test environment.
 
---live permits small synthetic Groq/Gemini calls; Tavus/ngrok are never started.
+--live permits small synthetic Groq/Gemini calls.
 Every failed check is recorded, remaining checks run, and the exit code fails.
 """
 import argparse

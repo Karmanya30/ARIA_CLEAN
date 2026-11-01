@@ -1,4 +1,4 @@
-"""core/orchestrator.py's smalltalk short-circuit -- found live via Tavus
+"""core/orchestrator.py's smalltalk short-circuit -- found in live conversation
 CVI Mode: greeting ARIA with "hey" was routed through
 modules/tutor/pipeline.py's generic fallback, whose prompt unconditionally
 instructs the LLM to explain the query as a financial concept in a rigid
