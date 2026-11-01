@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Archive, ArchiveRestore, Download, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, ChevronDown, Download, History, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react'
 import { api, CHAT_SAVED, type ConversationSummary } from '../api'
 import './ConversationList.css'
 
@@ -29,6 +29,7 @@ export function ConversationList({ activeId, onSelect, onActiveGone }: {
   const [archived, setArchived] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false) // narrow screens only: the list is a drawer under the top bar
   const seq = useRef(0) // a slow earlier response must not overwrite a newer one
 
   const load = useCallback((query: string, arch: boolean) => {
@@ -37,7 +38,7 @@ export function ConversationList({ activeId, onSelect, onActiveGone }: {
     api.listConversations(query, arch, 0).then((p) => {
       if (mine !== seq.current) return
       setItems(p.items); setNext(p.next_offset); setError(null)
-    }).catch((e) => { if (mine === seq.current) setError(e instanceof Error ? e.message : 'Could not load your chats') })
+    }).catch((e) => { if (mine === seq.current) setError(e instanceof Error && e.message !== 'Not Found' ? e.message : 'Chat history is unavailable right now.') })
       .finally(() => { if (mine === seq.current) setLoading(false) })
   }, [])
 
@@ -50,6 +51,13 @@ export function ConversationList({ activeId, onSelect, onActiveGone }: {
     const on = () => load(q, archived)
     window.addEventListener(CHAT_SAVED, on)
     return () => window.removeEventListener(CHAT_SAVED, on)
+  }, [q, archived, load])
+
+  useEffect(() => {
+    const again = () => { if (!document.hidden) load(q, archived) }
+    const timer = setInterval(again, 20000)
+    window.addEventListener('focus', again)
+    return () => { clearInterval(timer); window.removeEventListener('focus', again) }
   }, [q, archived, load])
 
   async function more() {
@@ -78,14 +86,19 @@ export function ConversationList({ activeId, onSelect, onActiveGone }: {
   const order = ['Pinned', 'Today', 'Yesterday', 'Previous 7 days', 'Previous 30 days', 'Older']
 
   return (
-    <section className="conv-list" aria-label="Chat history">
+    <section className={open ? 'conv-list open' : 'conv-list'} aria-label="Chat history">
+      <button type="button" className="conv-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <History size={15} aria-hidden="true" /> Chat history <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      <h2 className="conv-heading">Chats</h2>
+      <div className="conv-body">
       <label className="conv-search">
         <Search size={13} aria-hidden="true" />
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search chats" aria-label="Search chats" />
       </label>
       {error && <p className="conv-note" role="alert">{error}</p>}
       {!loading && !error && items.length === 0 && (
-        <p className="conv-note">{q ? 'No chats match your search.' : archived ? 'No archived chats.' : 'Your chats will appear here.'}</p>
+        <p className="conv-note">{q ? 'No chats match your search.' : archived ? 'No archived chats.' : 'No chats yet. Anything you ask in chat, voice or the live meeting is saved here.'}</p>
       )}
       {order.filter((g) => groups[g]).map((g) => (
         <div key={g} className="conv-group">
@@ -118,7 +131,8 @@ export function ConversationList({ activeId, onSelect, onActiveGone }: {
         </div>
       ))}
       {next !== null && <button type="button" className="conv-more" onClick={() => void more()}>Show more</button>}
-      <button type="button" className="conv-more" onClick={() => setArchived((a) => !a)}>{archived ? 'Back to chats' : 'Archived chats'}</button>
+      </div>
+      <button type="button" className="conv-more conv-archived" onClick={() => setArchived((a) => !a)}>{archived ? 'Back to chats' : 'Archived chats'}</button>
     </section>
   )
 }

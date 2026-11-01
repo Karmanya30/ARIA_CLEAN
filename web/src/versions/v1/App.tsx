@@ -96,7 +96,7 @@ export default function App() {
         active={tab}
         onChange={setTab}
         onNewSession={newSession}
-        newLabel={theme === 'vitara-clear' ? 'New chat' : 'New session'}
+        newLabel="New chat"
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
         history={<ConversationList activeId={sessionId} onSelect={(id) => { selectSession(id); setTab('chat') }} onActiveGone={newSession} />}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
