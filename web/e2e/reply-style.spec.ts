@@ -1,0 +1,35 @@
+import { test, expect } from '@playwright/test'
+
+// The answer is served by a stub so only the rendering is under test (no model, no quota).
+const reply = [
+  'A SIP invests a fixed amount every month.',
+  '',
+  '| Monthly amount | Years | Assumed return | Estimated value |',
+  '|---|---|---|---|',
+  '| ₹5,000 | 10 | 12% | ₹11.6 lakh |',
+  '',
+  '**Cognitive:** this label must not appear as a heading',
+].join('\n')
+
+for (const question of ['What is a SIP?', 'Explain compound interest', 'what does NAV mean', 'define asset allocation', 'tell me about debt funds']) {
+  test(`"${question}": answer shown as text and a table, no quiz, no empty section headings`, async ({ page }) => {
+    await page.addInitScript(() => {
+      for (const name of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, name, { value: undefined }) // never listen to the real microphone
+      localStorage.setItem('aria_owner_id', 'e2e-style-owner')
+    })
+    await page.route('**/api/chat', (route) => route.request().method() === 'POST'
+      ? route.fulfill({ json: { domain: 'tutor', query: question, response: reply } })
+      : route.continue())
+    await page.goto('/')
+    await expect(page.getByLabel('Message ARIA')).toBeVisible()
+    await page.getByLabel('Message ARIA').fill(question)
+    await page.getByLabel('Message ARIA').press('Enter')
+    await expect(page.locator('.bubble-user', { hasText: question })).toBeVisible()
+    await expect(page.locator('table')).toBeVisible()
+    await expect(page.locator('td', { hasText: '₹11.6 lakh' })).toBeVisible()
+    await expect(page.getByText('Submit', { exact: false })).toHaveCount(0)
+    await expect(page.locator('.quiz-widget, [class*="quiz"]')).toHaveCount(0)
+    await expect(page.locator('.response-card-label', { hasText: /^(Cognitive|Functional|Causal)$/ })).toHaveCount(0)
+    await expect(page.getByRole('group', { name: 'Message actions' })).toBeVisible()
+  })
+}

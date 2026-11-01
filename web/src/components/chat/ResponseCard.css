@@ -32,7 +32,6 @@
 
 .response-plain {
   color: var(--ink);
-  white-space: pre-wrap;
 }
 
 .response-error {
