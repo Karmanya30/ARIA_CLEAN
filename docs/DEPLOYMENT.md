@@ -20,7 +20,7 @@ One container runs the API and the built web app. Start with a private staging c
    | `ARIA_AUTH_MODE` | `accounts` |
    | `ARIA_APP_ORIGIN` | the public address, e.g. `https://aria.example.com` (must be HTTPS) |
    | `GOOGLE_CLIENT_ID` | optional, for Google sign-in |
-   | `ARIA_AUTH_ALLOW_SIGNUP` | `0` to close sign-up once your testers have accounts |
+   | `ARIA_AUTH_ALLOW_SIGNUP` | **Sign-up is closed by default.** Set `1` so your testers can create accounts, then back to `0` (or remove it) once they have |
    | `ARIA_WEB_SEARCH` | `0` to keep questions off search engines |
 
    `.env` is git-ignored; keep it that way.
@@ -44,13 +44,17 @@ One container runs the API and the built web app. Start with a private staging c
 
 ## Operations
 
-* **Data**: the database and saved audio clips are in the `aria-data` volume (`/var/aria`). Back it up: `docker run --rm -v ARIA_CLEAN_aria-data:/d -v "$PWD":/b alpine tar czf /b/aria-backup.tgz -C /d .` (the volume name is the compose project name plus `_aria-data`; see `docker volume ls`).
+* **Data**: the database and saved audio clips are in the `aria-data` volume (`/var/aria`). Back it up: `docker run --rm -v aria-data:/d -v "$PWD":/b alpine tar czf /b/aria-backup.tgz -C /d .`. The volume is named `aria-data` in `docker-compose.yml`. Stop the container first (`docker compose stop`) so the SQLite file is not copied mid-write, then `docker compose start`.
 * **Update**: `git pull && docker compose up -d --build`. The volume is kept.
 * **Logs**: `docker compose logs -f aria`. Each answer logs one `qa.answer` line with stage timings.
 * **Market, news and instrument caches** live inside the container and are rebuilt on demand; a restart simply refetches.
 * **Large research caches** (the all-NSE/BSE backtest results) are not shipped. The Research validation pages show whatever has been generated on that server; run `scripts/scenario_backtest_universe.py` there if you want them.
 
 ## Known limits
+
+* The server needs outbound internet: the sentence-embedding model is downloaded on first start, and market data, news and the LLMs are fetched live.
+* Rate limits (`ARIA_EXPENSIVE_REQUESTS_PER_MINUTE`, `ARIA_MAX_ACTIVE_REQUESTS`) apply per worker; set deployment-wide quotas at the reverse proxy.
+* Stock search covers the curated lists until the instrument universe is generated on the server (the log shows `universe.parquet missing`).
 
 * Free data sources can be late or wrong; ARIA labels the date and says when something is unavailable.
 * The Dockerfile and the Python CI job were written without a Docker daemon, so your first build is their first test. If a pinned package has no Linux wheel, the build log names it.

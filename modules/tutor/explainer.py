@@ -22,6 +22,7 @@ def _section(text: str, tag: str) -> str:
 
 
 def _parse_taxal(text: str, level: int) -> TaxalExplanation:
+    text = text.replace("**", "")  # the model often bolds the section tags; leaving them in splits wrongly and shows stray **
     return TaxalExplanation(
         cognitive=_section(text, "COGNITIVE:"),
         functional=_section(text, "FUNCTIONAL:"),
