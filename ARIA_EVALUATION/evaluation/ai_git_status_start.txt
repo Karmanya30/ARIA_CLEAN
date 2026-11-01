@@ -1,0 +1,143 @@
+ M .env.example
+ M README.md
+ M ai/llm/groq_client.py
+ M ai/llm/prompt_templates.py
+ M ai/llm/spoken.py
+ M api/auth.py
+ M api/main.py
+ M api/routes/avatar.py
+ M api/routes/chat.py
+ M api/routes/live.py
+ M api/routes/profile.py
+ M api/routes/research.py
+ M core/orchestrator.py
+ M docs/DEPLOYMENT.md
+ M docs/MEASUREMENTS.md
+ M docs/QA_PIPELINE.md
+ M interface/avatar/live.html
+ D interface/avatar/tavus_embed.html
+ M modules/equity_research/intelligence/pipeline.py
+ M modules/equity_research/intelligence/report.py
+ M modules/equity_research/intelligence/report_html.py
+ M modules/finance/pipeline.py
+ M modules/market/analyzer.py
+ M modules/market/pipeline.py
+ M modules/qa/models.py
+ M modules/qa/pipeline.py
+ M modules/qa/present.py
+ M modules/qa/trust.py
+ M reports/build_interview_guide.py
+ M requirements.txt
+ M scripts/aria_launcher.ps1
+ M scripts/audit_connections.py
+ M scripts/musetalk_server.py
+ M scripts/run_system_audit.py
+ M scripts/start_musetalk.bat
+ M tests/equity_research/test_intel_pipeline.py
+ M tests/qa/test_unified_pipeline.py
+ M tests/test_accounts.py
+ M tests/test_api_avatar.py
+ M tests/test_live_avatar.py
+ M tests/test_news.py
+ D tests/test_ngrok_tunnel_healing.py
+ M tests/test_orchestrator_smalltalk.py
+ M tests/test_resource_limits.py
+ D tests/test_tavus_recovery.py
+ M web/e2e-accounts/accounts.spec.ts
+ M web/e2e/voice-toggle.spec.ts
+ M web/e2e/workflows.spec.ts
+ M web/package-lock.json
+ M web/package.json
+ M web/playwright.config.ts
+ M web/src/App.tsx
+ M web/src/api.ts
+ M web/src/components/Sidebar.tsx
+ M web/src/components/chat/ChatTab.css
+ M web/src/components/chat/ChatTab.tsx
+ M web/src/components/chat/Markdown.tsx
+ M web/src/components/chat/ResearchReport.tsx
+ D web/src/components/chat/TavusTranscript.css
+ D web/src/components/chat/TavusTranscript.tsx
+ D web/src/components/chat/TavusVideo.css
+ D web/src/components/chat/TavusVideo.tsx
+ M web/src/components/disclaimer/DisclaimerStrip.tsx
+ M web/src/components/disclaimer/Disclaimers.css
+ M web/src/components/disclaimer/DisclaimersPage.tsx
+ M web/src/components/explore/SipPanel.tsx
+ M web/src/components/markets/MarketsTab.tsx
+ M web/src/components/markets/Panel.tsx
+ M web/src/components/markets/StockDrawer.tsx
+ M web/src/components/profile/StatementUpload.tsx
+ M web/src/components/research/IntelligenceTab.tsx
+ M web/src/components/research/ResearchTab.tsx
+ D web/src/hooks/useTavusSession.ts
+ M web/src/main.tsx
+ M web/src/types.ts
+ M web/src/versions/v1/App.tsx
+ M web/src/versions/v1/api.ts
+ M web/src/versions/v1/components/Sidebar.tsx
+ M web/src/versions/v1/components/chat/ChatTab.css
+ M web/src/versions/v1/components/chat/ChatTab.tsx
+ M web/src/versions/v1/components/chat/ResearchReport.tsx
+ D web/src/versions/v1/components/chat/TavusTranscript.css
+ D web/src/versions/v1/components/chat/TavusTranscript.tsx
+ D web/src/versions/v1/components/chat/TavusVideo.css
+ D web/src/versions/v1/components/chat/TavusVideo.tsx
+ M web/src/versions/v1/components/disclaimer/DisclaimerStrip.tsx
+ M web/src/versions/v1/components/disclaimer/Disclaimers.css
+ M web/src/versions/v1/components/disclaimer/DisclaimersPage.tsx
+ M web/src/versions/v1/components/explore/SipPanel.tsx
+ M web/src/versions/v1/components/markets/MarketsTab.tsx
+ M web/src/versions/v1/components/markets/Panel.tsx
+ M web/src/versions/v1/components/profile/StatementUpload.tsx
+ M web/src/versions/v1/components/research/IntelligenceTab.tsx
+ M web/src/versions/v1/components/research/ResearchTab.tsx
+ D web/src/versions/v1/hooks/useTavusSession.ts
+ M web/src/versions/v1/types.ts
+ M web/src/versions/v2/App.tsx
+ M web/src/versions/v2/api.ts
+ M web/src/versions/v2/components/Sidebar.tsx
+ M web/src/versions/v2/components/chat/ChatTab.css
+ M web/src/versions/v2/components/chat/ChatTab.tsx
+ M web/src/versions/v2/components/chat/ResearchReport.tsx
+ D web/src/versions/v2/components/chat/TavusTranscript.css
+ D web/src/versions/v2/components/chat/TavusTranscript.tsx
+ D web/src/versions/v2/components/chat/TavusVideo.css
+ D web/src/versions/v2/components/chat/TavusVideo.tsx
+ M web/src/versions/v2/components/disclaimer/DisclaimerStrip.tsx
+ M web/src/versions/v2/components/disclaimer/Disclaimers.css
+ M web/src/versions/v2/components/disclaimer/DisclaimersPage.tsx
+ M web/src/versions/v2/components/explore/SipPanel.tsx
+ M web/src/versions/v2/components/markets/MarketsTab.tsx
+ M web/src/versions/v2/components/markets/Panel.tsx
+ M web/src/versions/v2/components/profile/StatementUpload.tsx
+ M web/src/versions/v2/components/research/IntelligenceTab.tsx
+ M web/src/versions/v2/components/research/ResearchTab.tsx
+ D web/src/versions/v2/hooks/useTavusSession.ts
+ M web/src/versions/v2/types.ts
+?? .claude/agents/
+?? ARIA_EVALUATION/
+?? api/routes/feedback.py
+?? docs/ARIA_ACCURACY_VALIDATION.md
+?? docs/ARIA_AVATAR_HANDS_VALIDATION.md
+?? docs/ARIA_FINAL_VALIDATION.md
+?? docs/ARIA_LIVE_3_VALIDATION.md
+?? docs/ARIA_LIVE_MEETING.md
+?? docs/FEEDBACK_EMAIL_SETUP.md
+?? interface/avatar/office-wide-glasses.webp
+?? interface/avatar/office.webp
+?? interface/avatar/seated-office.webp
+?? modules/qa/safeguards.py
+?? scripts/live_meeting_dry_run.mjs
+?? scripts/live_microphone_dry_run.mjs
+?? tests/market/test_accuracy_repairs.py
+?? tests/market/test_snapshot_disclosure.py
+?? tests/qa/test_product_safeguards.py
+?? tests/test_feedback.py
+?? web/e2e/feedback.spec.ts
+?? web/e2e/live-meeting.spec.ts
+?? web/e2e/live-microphone.spec.ts
+?? web/src/components/chat/LiveMeeting.css
+?? web/src/components/chat/LiveMeeting.tsx
+?? web/src/components/feedback/
+ 111 files changed, 1342 insertions(+), 2538 deletions(-)
