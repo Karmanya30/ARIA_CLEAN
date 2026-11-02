@@ -63,6 +63,31 @@ def delete_profile(session_id: str) -> dict[str, bool]:
     return {"deleted": True}
 
 
+@router.delete("/everything")
+def erase_everything(session_id: str) -> dict[str, Any]:
+    """Erase all of this user's data: profile, transactions, chats and their turns, saved research reports, learning state,
+    conversation style, statement previews and audio tokens. Deleted chats are removed for good, not just hidden."""
+    from sqlalchemy import delete, select
+
+    from core.session import get_session
+    from shared import user_store as us
+    from shared.conversation_memory import Conversation, Turn
+
+    counts: dict[str, int] = {}
+    with us._SessionLocal() as db:
+        ids = db.scalars(select(Conversation.id).where(Conversation.owner_id == session_id)).all()
+        counts["turns"] = db.execute(delete(Turn).where(Turn.conversation_id.in_(ids))).rowcount if ids else 0
+        counts["conversations"] = db.execute(delete(Conversation).where(Conversation.owner_id == session_id)).rowcount
+        for name, model, col in (("reports", us.ResearchReportRecord, us.ResearchReportRecord.owner_id), ("transactions", us.TransactionRecord, us.TransactionRecord.user_id),
+                                 ("style", us.ConversationStyle, us.ConversationStyle.owner_id), ("learning", us.LearningState, us.LearningState.user_id),
+                                 ("previews", us.StatementPreviewRecord, us.StatementPreviewRecord.owner_id), ("audio", us.AudioArtifactRecord, us.AudioArtifactRecord.owner_id),
+                                 ("profile", us.FinancialProfile, us.FinancialProfile.user_id)):
+            counts[name] = db.execute(delete(model).where(col == session_id)).rowcount
+        db.commit()
+    get_session(session_id).pop("finance_pending", None)
+    return {"erased": True, "counts": counts}
+
+
 @router.delete("/style")
 def delete_conversation_style(session_id: str) -> dict[str, bool]:
     """Forget how this user likes ARIA to talk (learned preferences and the recent-feeling tags)."""

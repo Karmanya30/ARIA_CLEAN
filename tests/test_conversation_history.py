@@ -200,3 +200,15 @@ def test_deleted_chat_is_forgotten_by_memory(private):
     finally:
         store.current_owner.reset(token)
     assert not any("school fee" in r["text"] for r in found)
+
+
+def test_erase_everything_removes_chats_reports_and_profile(private):
+    c, o = private
+    a = seed(o, "my salary is 90000")
+    c.post("/api/profile", json={"session_id": o, "monthly_income": 90000})
+    r = c.delete("/api/profile/everything", params={"session_id": o})
+    assert r.status_code == 200 and r.json()["counts"]["turns"] >= 1
+    assert c.get(f"/api/conversations/{a}/messages", params={"owner_id": o}).status_code == 404
+    with store._SessionLocal() as db:
+        assert db.query(cm.Turn).filter(cm.Turn.conversation_id == a).count() == 0
+    assert c.get("/api/profile", params={"session_id": o}).json()["profile"]["monthly_income"] is None

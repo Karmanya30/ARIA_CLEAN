@@ -430,3 +430,16 @@
 .aria-account-panel p { margin: 6px 0; color: var(--ink-muted); }
 .aria-account-panel strong { color: var(--ink); }
 .aria-account-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+.settings-danger {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #c0392b;
+  background: transparent;
+  color: #c0392b;
+  font: inherit;
+  cursor: pointer;
+}
+.settings-danger:hover:not(:disabled) { background: #c0392b; color: #fff; }
+.settings-danger:disabled { opacity: .6; cursor: default; }

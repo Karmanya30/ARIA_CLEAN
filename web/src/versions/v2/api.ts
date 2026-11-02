@@ -203,6 +203,7 @@ export const api = {
     j<ProfileState>('/api/profile', { method: 'POST', body: JSON.stringify({ session_id: ownerId(), ...fields }) }),
 
   forgetStyle: () => j<{ deleted: boolean }>(`/api/profile/style?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
+  eraseEverything: () => j<{ erased: boolean }>(`/api/profile/everything?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
   deleteProfile: () => j<{ deleted: boolean }>(`/api/profile?session_id=${encodeURIComponent(ownerId())}`, { method: 'DELETE' }),
 
   getInsights: () => j<SpendingInsightsData>(`/api/transactions/insights?session_id=${encodeURIComponent(ownerId())}`),
