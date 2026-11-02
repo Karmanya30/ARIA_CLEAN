@@ -46,9 +46,10 @@ from musetalk.utils.face_parsing import FaceParsing  # noqa: E402
 from musetalk.utils.utils import datagen, load_all_model  # noqa: E402
 
 FPS, EXTRA_MARGIN, MIN_SIDE, MAX_OUT = 25, 10, 640, 1440
+SRC_FPS = 25  # frame rate of a video source (the lip-sync source is cut at 25 fps)
 torch.backends.cudnn.benchmark = True  # fixed-size batches: let cuDNN pick the fastest kernels once
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start"])
 S: dict = {"ready": False}
 gpu = threading.Lock()
 _turns, _tickets, _serving = threading.Condition(), itertools.count(), 0  # requests use the GPU strictly in arrival order
@@ -141,6 +142,10 @@ def _prepare(source: str) -> None:
 
 
 def _jpeg(frame: np.ndarray) -> bytes:
+    if S["avatar"].get("full"):  # same size and light sharpening as the page's idle video (ffmpeg lanczos + unsharp), so frames match it
+        frame = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_LANCZOS4)
+        frame = cv2.addWeighted(frame, 1.5, cv2.GaussianBlur(frame, (0, 0), 1.4), -0.5, 0)
+        return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
     s = S["avatar"]["scale"]
     if s < 1:
         frame = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
@@ -195,13 +200,18 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) 
                                                       audio_padding_length_left=2, audio_padding_length_right=2)
             finally:
                 os.unlink(f.name)
-            start = 0
+            start, positions, latents = 0, None, A["latents"]
             if A.get("full"):
+                # the head keeps moving at normal speed: output frame k comes from source frame start + k * 25/FPS, and the next
+                # phrase carries on from where this one ends
+                n_src, step = len(A["frames"]), SRC_FPS / FPS
                 start = A["cursor"]
-                A["cursor"] = (A["cursor"] + len(chunks)) % len(A["frames"])
-            if not put(("n", (len(chunks), start))):
+                positions = [(start + int(round(k * step))) % n_src for k in range(len(chunks))]
+                A["cursor"] = (start + int(round(len(chunks) * step))) % n_src
+                latents = [A["latents"][q] for q in positions]
+            if not put(("n", (len(chunks), start, positions))):
                 return
-            for whisper_batch, latent_batch in datagen(chunks, A["latents"], S["batch"], device=S["device"]):
+            for whisper_batch, latent_batch in datagen(chunks, latents, S["batch"], device=S["device"]):
                 real = len(whisper_batch)
                 if real < S["batch"]:  # a new batch size makes cuDNN re-tune for seconds: always run the full size, drop the padding
                     pad = S["batch"] - real
@@ -243,10 +253,13 @@ def _consume(q: queue.Queue, n_frames: int):
             if kind == "error":
                 raise payload
             if kind == "n":
-                i = payload[1]  # where in the source video this phrase starts (0 for a photo)
+                i, positions = payload[1], payload[2]  # where in the source video this phrase starts (0 for a photo)
                 yield struct.pack("<I", payload[0])
+                if S["avatar"].get("full"):
+                    yield struct.pack("<I", payload[1])  # whole-frame mode only: the loop position of the first frame
                 continue
-            jpgs = list(pool.map(_blend, [(i + d) % n_frames for d in range(len(payload))], payload))
+            idx = positions[produced:produced + len(payload)] if positions else [(i + d) % n_frames for d in range(len(payload))]
+            jpgs = list(pool.map(_blend, idx, payload))
             for jpg in jpgs:
                 yield struct.pack("<I", len(jpg)) + jpg
             i += len(payload)
