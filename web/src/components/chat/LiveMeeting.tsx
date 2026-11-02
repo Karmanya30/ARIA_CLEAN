@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Captions, MessageSquare, Mic, MicOff, PhoneOff, Send, Square, X } from 'lucide-react'
 import { api, ownerId } from '../../api'
 import type { HistoryTurn } from '../../types'
+import { useDragWidth } from '../useDragWidth'
 import { Markdown } from './Markdown'
 import { BrandLogo, BrandMark } from '../brand/BrandLogo'
 import './LiveMeeting.css'
@@ -20,6 +21,8 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
   const scroll = useRef<HTMLDivElement>(null)
   const [state, setState] = useState(initialState)
   const [chatOpen, setChatOpen] = useState(false)
+  // drag the chat's left edge to give the avatar or the conversation more room, like two windows side by side
+  const chatSize = useDragWidth('aria_meeting_chat_width', 400, 280, () => Math.min(720, window.innerWidth * 0.6), (x) => window.innerWidth - x - 16)
   const [captions, setCaptions] = useState(true)
   const [query, setQuery] = useState('')
   const [pending, setPending] = useState<{ query: string; response: string; turn: number; historyIndex: number; interrupted?: boolean } | null>(null)
@@ -117,7 +120,7 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
   const clock = `${Math.floor(elapsed / 60).toString().padStart(2, '0')}:${(elapsed % 60).toString().padStart(2, '0')}`
 
   return createPortal(
-    <section className={`live-meeting${chatOpen ? ' chat-open' : ''}`} role="dialog" aria-modal="true" aria-label="ARIA Live meeting"
+    <section className={`live-meeting${chatOpen ? ' chat-open' : ''}${chatSize.dragging ? ' resizing' : ''}`} style={{ '--chat-width': chatSize.width + 'px' } as React.CSSProperties} role="dialog" aria-modal="true" aria-label="ARIA Live meeting"
       onKeyDown={e => { if (e.key === 'Escape') { if (confirmEnd) setConfirmEnd(false); else closeChat() } }}>
       <header className="meeting-header">
         <div className="meeting-brand"><BrandLogo className="meeting-official-logo" /><div className="meeting-brand-meta"><span>LIVE</span><small>Your financial research companion</small></div></div>
@@ -131,6 +134,7 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
         <div className="meeting-status" role="status" data-state={state.status}>{state.label}</div>
       </main>
       <aside className="meeting-chat" id="meeting-chat" aria-label="Meeting conversation" inert={!chatOpen} aria-hidden={!chatOpen}>
+        <div className="meeting-resize" aria-label="Resize conversation" {...chatSize.handle} />
         <header><BrandMark className="meeting-chat-mark" /><div><strong>Conversation</strong><small>Voice and text, together</small></div><button onClick={closeChat} aria-label="Close chat"><X size={18} /></button></header>
         <div className="meeting-messages" ref={scroll} role="log" aria-label="Conversation messages" aria-live="polite" onScroll={e => { const el = e.currentTarget; followTranscript.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100 }}>
           {!history.length && !pending && <div className="meeting-empty"><BrandMark className="meeting-empty-mark" /><h2>A little clarity starts here.</h2><p>Ask a question aloud or write it below. It’s all one conversation.</p>{['Explain how a SIP works', 'Help me plan an emergency fund', 'Research a company'].map(text => <button key={text} disabled={!state.started || !state.connected} onClick={() => send(text)}>{text}<span>↗</span></button>)}</div>}

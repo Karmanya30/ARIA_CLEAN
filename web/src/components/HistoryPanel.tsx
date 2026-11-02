@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { MessageSquare, Mic, PanelLeft, Video, X } from 'lucide-react'
 import { ConversationList } from './ConversationList'
 import type { ChatMode } from '../types'
+import { useDragWidth } from './useDragWidth'
 import './HistoryPanel.css'
 
 export const TOGGLE_HISTORY = 'aria:toggle-history'
@@ -26,6 +27,7 @@ export function HistoryButton() {
  * how to continue it: chat, voice or video call. */
 export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId: string; onContinue: (id: string, mode: ChatMode) => void; onActiveGone: () => void }) {
   const [open, setOpen] = useState(false)
+  const size = useDragWidth('aria_history_width', 300, 220, () => Math.min(560, window.innerWidth * 0.6), (x) => x)
   const [picked, setPicked] = useState<string | null>(null)
 
   useEffect(() => {
@@ -37,6 +39,10 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
     document.body.classList.toggle('history-open', open)
     return () => document.body.classList.remove('history-open')
   }, [open])
+  useEffect(() => {
+    document.documentElement.style.setProperty('--history-w', size.width + 'px')
+    document.body.classList.toggle('history-resizing', size.dragging)
+  }, [size.width, size.dragging])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (picked) setPicked(null); else setOpen(false) } }
     window.addEventListener('keydown', onKey)
@@ -53,6 +59,7 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
           <button type="button" aria-label="Close chat history" onClick={() => setOpen(false)}><X size={16} /></button>
         </div>
         <ConversationList activeId={activeId} onSelect={setPicked} onActiveGone={onActiveGone} />
+        <div className="history-resize" aria-label="Resize chat history" {...size.handle} />
       </aside>
       {picked && (
         <div data-keep-active className="continue-backdrop" onClick={() => setPicked(null)}>

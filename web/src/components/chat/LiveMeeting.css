@@ -84,3 +84,11 @@
 @media(max-width:520px) { .meeting-official-logo .aria-brand-mark { width:34px; height:34px; } .meeting-official-logo .aria-brand-wordmark { font-size:18px; } .meeting-brand { gap:8px; } }
 
 .meeting-chats { padding:8px 12px; border:1px solid #ffffff1a !important; font-size:13px; }
+
+.meeting-resize { position:absolute; top:0; bottom:0; left:-4px; width:12px; cursor:col-resize; touch-action:none; z-index:4; }
+.meeting-resize::after { content:''; position:absolute; top:0; bottom:0; left:5px; width:2px; background:transparent; transition:background .15s; }
+.meeting-resize:hover::after,.meeting-resize:focus-visible::after,.resizing .meeting-resize::after { background:var(--meet-accent); }
+.resizing,.resizing * { user-select:none; cursor:col-resize !important; }
+.resizing .meeting-stage,.resizing .meeting-footer,.resizing .meeting-chat { transition:none !important; }
+.live-meeting iframe { pointer-events:auto; }
+.resizing iframe { pointer-events:none; }
