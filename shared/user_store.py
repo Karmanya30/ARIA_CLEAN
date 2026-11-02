@@ -56,6 +56,12 @@ class FinancialProfile(Base):
     emergency_fund_months = Column(Float, default=0.0)
     city_tier = Column(Integer, default=1)
     tax_regime = Column(String, default="new")
+    # Stage 12 -- modules/finance/instrument_recommender.py's horizon-fit
+    # scoring. horizon_years nullable: "not stated" must stay distinct
+    # from "stated as 0", so the scorer can skip horizon adjustments
+    # rather than assuming a value.
+    goal = Column(String, default="general")
+    horizon_years = Column(Float, nullable=True)
     risk_label = Column(String, nullable=True)
     risk_confidence = Column(Float, nullable=True)
     # JSON-encoded list[tuple[str, float]] -- the XGBoost risk model's own

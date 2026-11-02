@@ -7,8 +7,8 @@ SIP math together into one M1Response, narrated by the shared LLM client
 from __future__ import annotations
 
 from ai.llm.groq_client import generate_response
-from ai.llm.prompt_templates import M1_NARRATION
-from modules.finance import anomaly, budget_optimize, forecast_model, risk_model, tax
+from ai.llm.prompt_templates import M1_NARRATION, instrument_recommendation_prompt
+from modules.finance import anomaly, budget_optimize, forecast_model, instrument_recommender, risk_model, tax
 from modules.finance.schemas import BudgetAllocation, M1Response, SipPlan, UserFinancialInput
 
 # Equity/debt split by risk class — more aggressive risk tolerance -> more equity.
@@ -29,7 +29,7 @@ def _build_sip_plan(sip_amount: float, risk_label: str, tax_regime: str) -> SipP
     )
 
 
-def run(user_input: UserFinancialInput) -> M1Response:
+def run(user_input: UserFinancialInput, include_investment_plan_narrative: bool = False) -> M1Response:
     risk = risk_model.predict(
         monthly_income=user_input.monthly_income,
         age=user_input.age,
@@ -84,6 +84,23 @@ def run(user_input: UserFinancialInput) -> M1Response:
     )
     sip_plan = _build_sip_plan(budget.sip, risk.label, user_input.tax_regime)
 
+    # Stage 12 -- deterministic instrument-type ranking (real risk/horizon/
+    # tax/emergency-fund inputs, no LLM guessing the ranking itself) is
+    # always computed -- it's cheap (no LLM call) and useful structured
+    # data regardless of narration. Narrating it is a second LLM call, so
+    # that only happens when the caller says the query actually asked for
+    # it (modules/finance/pipeline.py's _wants_investment_plan gate).
+    investment_plan = instrument_recommender.recommend(
+        risk_label=risk.label,
+        horizon_years=user_input.horizon_years,
+        tax_regime=user_input.tax_regime,
+        emergency_fund_months=user_input.emergency_fund_months,
+    )
+    investment_narrative = ""
+    if include_investment_plan_narrative:
+        investment_prompt = instrument_recommendation_prompt([rec.model_dump() for rec in investment_plan])
+        investment_narrative = generate_response(investment_prompt)
+
     forecast_next_month_total = sum(f.forecast[0] for f in forecast) if forecast else 0.0
     top_factor = risk.top_features[0][0] if risk.top_features else "overall financial profile"
 
@@ -115,4 +132,6 @@ def run(user_input: UserFinancialInput) -> M1Response:
         sip_plan=sip_plan,
         tax=tax_result,
         natural_language=narration,
+        investment_plan=investment_plan,
+        investment_plan_narrative=investment_narrative,
     )
