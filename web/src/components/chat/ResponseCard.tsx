@@ -1,14 +1,8 @@
-import { AlertTriangle, CheckCircle2, Lightbulb, BarChart3 } from 'lucide-react'
 import { Markdown } from './Markdown'
 import './ResponseCard.css'
 
 // Modules 1/3/4 all use this contract.
-const SECTIONS: Array<[string, React.ReactNode, string, string]> = [
-  ['Insight', <Lightbulb size={14} />, 'var(--green)', 'var(--green-soft)'],
-  ['Analysis', <BarChart3 size={14} />, 'var(--blue)', 'var(--blue-soft)'],
-  ['Recommendation', <CheckCircle2 size={14} />, 'var(--emerald)', 'var(--emerald-soft)'],
-  ['Risk', <AlertTriangle size={14} />, 'var(--red)', 'var(--red-soft)'],
-]
+const SECTIONS = ['Insight', 'Analysis', 'Recommendation', 'Risk']
 
 function parseSections(text: string, labels: string[]): Record<string, string> {
   // models often write the section names as markdown headings (**Insight**): treat them like 'Insight:'
@@ -46,36 +40,15 @@ export function ResponseCard({ text }: { text: string }) {
     )
   }
 
-  let sections = parseSections(
-    value,
-    SECTIONS.map((s) => s[0]),
-  )
-  const defs = SECTIONS
-  if (Object.keys(sections).length === 0) {
-    return (
-      <div className="response-plain">
-        <Markdown text={value} />
-      </div>
-    )
-  }
+  // Older and deterministic replies are written as "Insight: ... Analysis: ... Recommendation: ... Risk: ...". They are shown as plain
+  // Markdown in that order, without the labels or coloured boxes, like every other answer.
+  const labelled = /^\s*\**Insight\**\s*:/i.test(value) // only text that starts in that format; an ordinary answer is never rewritten
+  const sections = labelled ? parseSections(value, SECTIONS) : {}
+  const parts = SECTIONS.map((label) => sections[label]).filter(Boolean)
 
   return (
-    <div className="response-cards">
-      {defs.map(([label, icon, color, bg]) => {
-        const content = sections[label]
-        if (!content) return null
-        return (
-          <div key={label} className="response-card" style={{ background: bg, borderLeftColor: color }}>
-            <div className="response-card-label" style={{ color }}>
-              {icon}
-              {label}
-            </div>
-            <div className="response-card-body">
-              <Markdown text={content} />
-            </div>
-          </div>
-        )
-      })}
+    <div className="response-plain">
+      <Markdown text={parts.length ? parts.join('\n\n') : value} />
     </div>
   )
 }

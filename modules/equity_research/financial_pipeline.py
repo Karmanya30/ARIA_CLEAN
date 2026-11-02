@@ -191,12 +191,7 @@ Value: {value_str}
 {f"Fiscal years compared: {' vs '.join(fiscal_years)}" if fiscal_years else ""}
 
 TASK: Write a 3-5 sentence financial analysis. Use this exact format:
-Insight: <direct answer with the exact numbers from above>
-Analysis: <what these numbers mean>
-Recommendation: <one practical takeaway>
-Risk: <one relevant risk or caveat>
-
-Stop after Risk.
+Write the answer as natural Markdown, not a template: lead with the direct answer (direct answer with the exact numbers from above); then what these numbers mean (short paragraphs or bullets, a table when comparing things); then one practical takeaway; end with one relevant risk or caveat. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
 
     explanation = generate_response(grounded_prompt)

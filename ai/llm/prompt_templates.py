@@ -72,13 +72,7 @@ TASK:
 Write a short explanation in simple Indian English, mentioning the risk
 profile, the SIP amount, and one key observation from the computed data.
 
-Return EXACTLY this format:
-Insight: <risk profile + SIP amount, the headline takeaway>
-Analysis: <what the forecast/anomalies/budget numbers mean together>
-Recommendation: <one practical next step>
-Risk: <one caveat — SIP returns are market-linked, not guaranteed>
-
-Stop after Risk.
+Write the answer as natural Markdown, not a template: lead with the direct answer (risk profile + SIP amount, the headline takeaway); then what the forecast/anomalies/budget numbers mean together (short paragraphs or bullets, a table when comparing things); then one practical next step; end with one caveat — SIP returns are market-linked, not guaranteed. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
 
 
@@ -118,13 +112,7 @@ STRICT RULES:
 5. Do not promise returns.
 6. Use Indian rupees and Indian context.
 
-Return EXACTLY this format:
-Insight: <one-line summary of the best-fit instrument type(s) and why>
-Analysis: <the reasoning across the ranked list, for and against>
-Recommendation: <practical next step -- which instrument type(s) to start with>
-Risk: <one caveat about market-linked returns and doing further research before committing>
-
-Stop after Risk.
+Write the answer as natural Markdown, not a template: lead with the direct answer (one-line summary of the best-fit instrument type(s) and why); then the reasoning across the ranked list, for and against (short paragraphs or bullets, a table when comparing things); then practical next step -- which instrument type(s) to start with; end with one caveat about market-linked returns and doing further research before committing. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
 
 
@@ -159,7 +147,7 @@ STRICT RULES:
 1. Use ONLY the numbers in the JSON result below. Do not calculate new figures or invent any.
 2. Do NOT mention fund names and do NOT promise returns.
 3. Use Indian context: ₹, lakhs, crores.
-4. Reply in exactly four short sections: Insight, Analysis, Recommendation, Risk.
+4. Reply as short natural Markdown (direct answer first, then the reasoning, a next step and one caution); no Insight/Analysis/Recommendation/Risk labels.
 
 QUESTION: {query}
 ENGINE RESULT (JSON): {result}
@@ -314,11 +302,7 @@ Instructions:
 - Do not promise returns.
 - Ask for missing numbers if the query does not provide enough detail.
 
-Return EXACTLY this format:
-Insight: <Summary or main takeaway>
-Analysis: <Detailed breakdown>
-Recommendation: <Practical next step>
-Risk: <Caveat or potential downside>
+Write the answer as natural Markdown, not a template: lead with the direct answer (Summary or main takeaway); then Detailed breakdown (short paragraphs or bullets, a table when comparing things); then Practical next step; end with Caveat or potential downside. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
 
 
@@ -343,11 +327,7 @@ Instructions:
 - For a question about "today", today_change_pct / today_trend describe the session dated as_of, NOT necessarily today. Explicitly state that date and say current conditions cannot be confirmed from an older snapshot. The five-day figures are a separate trend. Preserve freshness_note and never call these live prices.
 - Use only numbers that appear in the Context; do not add sector averages or other figures from memory.
 
-Return EXACTLY this format:
-Insight: <Key trend or observation>
-Analysis: <Detailed breakdown of market conditions>
-Recommendation: <Practical guidance (not personalized advice)>
-Risk: <Crucial caveat or missing data note>
+Write the answer as natural Markdown, not a template: lead with the direct answer (Key trend or observation); then Detailed breakdown of market conditions (short paragraphs or bullets, a table when comparing things); then Practical guidance (not personalized advice); end with Crucial caveat or missing data note. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
 
 
@@ -432,10 +412,5 @@ COMPUTED METRIC:
 TASK:
 Write a clear 3–5 sentence financial analysis answering the user's query.
 Structure your response as:
-Insight: <direct answer using the computed metric and real numbers>
-Analysis: <brief explanation of what the numbers mean>
-Recommendation: <one practical takeaway>
-Risk: <one relevant risk or caveat>
-
-Stop after Risk.
+Write the answer as natural Markdown, not a template: lead with the direct answer (direct answer using the computed metric and real numbers); then brief explanation of what the numbers mean (short paragraphs or bullets, a table when comparing things); then one practical takeaway; end with one relevant risk or caveat. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """

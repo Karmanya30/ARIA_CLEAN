@@ -272,9 +272,7 @@ Rules:
 - Keep the answer concise and practical.
 
 Return exactly this format:
-Insight: <state plainly this isn't a buy/sell recommendation, then the key data point>
-Analysis: <what the numbers and headlines actually show>
-Recommendation: <how to evaluate this further yourself, not a verdict>
+Write the answer as natural Markdown, not a template: lead with the direct answer (state plainly this isn't a buy/sell recommendation, then the key data point); then what the numbers and headlines actually show (short paragraphs or bullets, a table when comparing things); then how to evaluate this further yourself, not a verdict. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 Risk:
 """
 

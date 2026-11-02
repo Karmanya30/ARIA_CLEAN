@@ -140,8 +140,5 @@ Rules:
 - Keep it concise and factual, not hype-y.
 
 Return exactly this format:
-Insight: <one-line disclaimer that this isn't personalized advice>
-Analysis: <the beginner-friendly candidates with real data and general reasoning>
-Recommendation: <the recent top performers with real data and the "not predictive" caveat>
-Risk: <one caveat about doing further research -- this is objective data only, not due diligence>
+Write the answer as natural Markdown, not a template: lead with the direct answer (one-line disclaimer that this isn't personalized advice); then the beginner-friendly candidates with real data and general reasoning (short paragraphs or bullets, a table when comparing things); then the recent top performers with real data and the "not predictive" caveat; end with one caveat about doing further research -- this is objective data only, not due diligence. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """
