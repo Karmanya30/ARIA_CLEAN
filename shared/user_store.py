@@ -236,6 +236,8 @@ def _migrate_add_missing_columns() -> None:
     (the common case) is silently ignored rather than raising."""
     with _engine.begin() as conn:
         for statement in (
+            "ALTER TABLE financial_profiles ADD COLUMN goal VARCHAR DEFAULT 'general'",
+            "ALTER TABLE financial_profiles ADD COLUMN horizon_years FLOAT",
             "ALTER TABLE financial_profiles ADD COLUMN risk_top_features TEXT DEFAULT '[]'",
             "ALTER TABLE financial_profiles ADD COLUMN details_json TEXT DEFAULT '{}'",
             "ALTER TABLE financial_profiles ADD COLUMN sources_json TEXT DEFAULT '{}'",
