@@ -30,7 +30,7 @@ test('choosing New ARIA Avatar loads the video presenter on the old avatar scene
   const held = await cf.evaluate(() => { const v = document.querySelector('video') as HTMLVideoElement; return { paused: v.paused, t: v.currentTime, w: v.videoWidth, h: v.videoHeight } })
   expect(held.paused, 'the idle picture is held, not looping').toBe(true)
   expect(held.t, 'the held frame: eyes open, calm smile').toBeCloseTo(0.72, 1)
-  expect([held.w, held.h], 'stage-size 16:9 clip').toEqual([1280, 720])
+  expect([held.w, held.h], 'the whole old-avatar scene, in the old photo proportions (not a face crop)').toEqual([1440, 616])
   await page.reload()
   await expect(page.getByLabel('Avatar')).toHaveValue('new')
 })
