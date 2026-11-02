@@ -10,7 +10,7 @@ from typing import Any
 from loguru import logger
 
 from core.router import (_CONCEPT_QUESTION, decision_without_subject, is_broad_market_query, is_company_fact_query, is_equity_research_query,
-                         is_finance_concept_question, is_intelligence_query, route_query)
+                         is_finance_concept_question, is_intelligence_query, route_query, wants_stock_suggestions)
 from core.session import get_session, save_turn
 from modules.equity_research.intelligence.pipeline import company_intelligence
 from modules.equity_research.pipeline import run_pipeline as equity_research_pipeline
@@ -220,6 +220,14 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     elif is_intelligence_query(query, ticker) and (response := company_intelligence(query)):
         pass
     elif is_equity_research_query(query, ticker) or is_intelligence_query(query, ticker):
+        response = equity_research_pipeline(query, user_id=session_id)
+    elif wants_stock_suggestions(query):
+        # Checked ahead of the coarse domain bucket for the same reason as
+        # the two checks above -- classify_intent's FINANCE_KEYWORDS
+        # ("invest") is checked before MARKET_KEYWORDS ("stock"), so
+        # "which stock should I invest in" gets domain=="finance" and
+        # would otherwise never reach Module 4's beginner-screener path at
+        # all (found live -- verified against shared/intent_classifier.py).
         response = equity_research_pipeline(query, user_id=session_id)
     elif is_broad_market_query(query):
         response = market_pipeline(query)
