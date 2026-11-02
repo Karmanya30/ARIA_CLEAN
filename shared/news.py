@@ -192,7 +192,7 @@ def parse_feed(xml: bytes, fallback_source: str) -> list[dict]:
         if source and title.endswith(f" - {source}"):
             title = title[: -len(source) - 3].strip()
         if title and published and not _NOISE.search(title):
-            out.append({"title": title[:220], "source": source[:60], "published": published, "url": fields.get("link", "")})
+            out.append({"title": title[:220], "source": source[:60], "published": published, "url": fields.get("link", "") if fields.get("link", "").lower().startswith(("http://", "https://")) else ""})  # only web links (SEC-09)
     return out
 
 

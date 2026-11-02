@@ -186,6 +186,48 @@ def session_info(request: Request, response: Response):
     return config
 
 
+_VERIFY_SECONDS = 24 * 3600
+
+
+def verification_required():
+    """Sign-up needs a click on a link sent to the address (SEC-05). ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION=0 keeps instant sign-up,
+    for invite-only testing where nobody can register uninvited."""
+    return os.getenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "1") != "0"
+
+
+def send_mail(to, subject, body):
+    """Mail through the operator's SMTP settings (the feedback form's). Without them: ARIA_AUTH_DEV_MAIL=1 writes the mail to the
+    log for local development; otherwise sign-up is unavailable rather than silently unverified."""
+    from email.message import EmailMessage
+    import smtplib
+    import ssl
+    from api.routes.feedback import _config
+    config = _config()
+    if config is None:
+        if os.getenv("ARIA_AUTH_DEV_MAIL", "0") == "1":
+            from loguru import logger
+            logger.warning(f"[dev mail] to={to} subject={subject}\n{body}")
+            return
+        raise HTTPException(503, "Sign-up email is not configured yet. Please try again later.")
+    msg = EmailMessage()
+    msg["From"], msg["To"], msg["Subject"] = config["sender"], to, subject
+    msg.set_content(body)
+    try:
+        context = ssl.create_default_context()
+        server = smtplib.SMTP_SSL(config["host"], config["port"], timeout=15, context=context) if config["security"] == "ssl" else smtplib.SMTP(config["host"], config["port"], timeout=15)
+        with server:
+            if config["security"] == "starttls":
+                server.ehlo(); server.starttls(context=context); server.ehlo()
+            if config["username"]:
+                server.login(config["username"], config["password"])
+            server.send_message(msg)
+    except (OSError, smtplib.SMTPException):
+        raise HTTPException(502, "The sign-up email could not be sent. Please try again later.") from None
+
+
+_PENDING_MESSAGE = "If that address can be registered, we have sent a link to confirm it. Open it within 24 hours."
+
+
 @router.post("/register")
 def register(req: Credentials, request: Request, response: Response):
     _accounts(request)
@@ -194,14 +236,55 @@ def register(req: Credentials, request: Request, response: Response):
     email = _email(req.email)
     _throttle("register|" + email, _peer(request))  # its own budget: signing up does not use up the sign-in attempts
     store = _store()
-    account = {"id": uuid4().hex, "email": email}
-    encoded = password_hash(req.password)
-    try:
-        with store._SessionLocal() as db:
-            db.add(store.AccountRecord(**account, password_hash=encoded))
+    encoded = password_hash(req.password)  # always computed, so a taken address costs the same time
+    if not verification_required():
+        account = {"id": uuid4().hex, "email": email}
+        try:
+            with store._SessionLocal() as db:
+                db.add(store.AccountRecord(**account, password_hash=encoded))
+                db.commit()
+        except IntegrityError:
+            raise HTTPException(409, "This account cannot be created. Try signing in.") from None
+        return _session(account, response)
+    # Same answer whether or not the address already has an account (SEC-08); only the mail differs.
+    with store._SessionLocal() as db:
+        exists = db.query(store.AccountRecord).filter_by(email=email).one_or_none() is not None
+        token = secrets.token_urlsafe(32)
+        if not exists:
+            now = time.time()
+            db.query(store.PendingAccountRecord).filter(store.PendingAccountRecord.expires_at <= now).delete()
+            db.query(store.PendingAccountRecord).filter_by(email=email).delete()  # the newest link replaces older ones
+            db.add(store.PendingAccountRecord(token_hash=fingerprint(token), email=email, password_hash=encoded, expires_at=now + _VERIFY_SECONDS))
             db.commit()
-    except IntegrityError:
-        raise HTTPException(409, "This account cannot be created. Try signing in.") from None
+    if exists:
+        send_mail(email, "ARIA sign-up", "Someone tried to create an ARIA account with this address, which already has one. If it was you, sign in instead. If not, ignore this email.")
+    else:
+        send_mail(email, "Confirm your ARIA account", f"Open this link within 24 hours to finish creating your ARIA account:\n\n{origin()}/?verify={token}\n\nIf you did not ask for this, ignore this email.")
+    response.headers["Cache-Control"] = "no-store"
+    return {"pending": True, "message": _PENDING_MESSAGE}
+
+
+class VerifyRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=128)
+
+
+@router.post("/verify")
+def verify(req: VerifyRequest, request: Request, response: Response):
+    _accounts(request)
+    store = _store()
+    _throttle("verify|" + fingerprint(req.token), _peer(request))
+    with store._SessionLocal() as db:
+        row = db.get(store.PendingAccountRecord, fingerprint(req.token))
+        if row is None or row.expires_at <= time.time():
+            raise HTTPException(400, "This confirmation link is invalid or has expired. Sign up again.")
+        account = {"id": uuid4().hex, "email": row.email}
+        try:
+            db.add(store.AccountRecord(**account, password_hash=row.password_hash))
+            db.delete(row)
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(409, "This account cannot be created. Try signing in.") from None
     return _session(account, response)
 
 

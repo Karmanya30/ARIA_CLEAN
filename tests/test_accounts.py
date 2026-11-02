@@ -23,6 +23,7 @@ def accounts(monkeypatch):
     monkeypatch.setenv("ARIA_AUTH_MODE", "accounts")
     monkeypatch.setenv("ARIA_APP_ORIGIN", "http://testserver")
     monkeypatch.setenv("ARIA_AUTH_ALLOW_SIGNUP", "1")
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "0")  # most tests only need an account; the verified flow is tested below
     monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
     return TestClient(app, headers={"Origin": "http://testserver"})
 
@@ -268,3 +269,22 @@ def test_login_throttle_survives_a_full_table_and_a_good_login_clears_the_budget
     assert accounts.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 200
     for _ in range(9):
         assert accounts.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 200  # never locked out by successes
+
+
+def test_signup_needs_the_emailed_link_and_answers_the_same_for_taken_addresses(accounts, monkeypatch):
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "1")
+    mails = []
+    monkeypatch.setattr("api.auth.send_mail", lambda to, subject, body: mails.append((to, subject, body)))
+    email = uuid.uuid4().hex + "@example.test"
+    first = accounts.post("/api/auth/register", json={"email": email, "password": PASSWORD})
+    assert first.status_code == 200 and first.json()["pending"] is True and "user" not in first.json()
+    assert accounts.get("/api/auth/session").json()["user"] is None  # no session until the link is opened
+    assert accounts.post("/api/auth/login", json={"email": email, "password": PASSWORD}).status_code == 401
+    token = mails[0][2].split("?verify=")[1].split()[0]
+    assert accounts.post("/api/auth/verify", json={"token": "x" * 43}).status_code == 400
+    ok = accounts.post("/api/auth/verify", json={"token": token})
+    assert ok.status_code == 200 and ok.json()["user"]["email"] == email
+    assert accounts.post("/api/auth/verify", json={"token": token}).status_code == 400  # one use
+    second = accounts.post("/api/auth/register", json={"email": email, "password": PASSWORD})
+    assert second.status_code == first.status_code and second.json() == first.json()  # same answer for a taken address (SEC-08)
+    assert "already has one" in mails[-1][2]

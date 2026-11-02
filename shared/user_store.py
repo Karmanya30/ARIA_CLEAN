@@ -192,6 +192,15 @@ class AccountRecord(Base):
     google_sub = Column(String, nullable=True, unique=True)
 
 
+class PendingAccountRecord(Base):
+    """A sign-up waiting for its email link: the account is created only when the address owner opens it (SEC-05)."""
+    __tablename__ = "auth_pending"
+    token_hash = Column(String, primary_key=True)
+    email = Column(String, nullable=False, index=True)
+    password_hash = Column(Text, nullable=False)
+    expires_at = Column(Float, nullable=False, index=True)
+
+
 class AuthSessionRecord(Base):
     __tablename__ = "auth_sessions"
     token_hash = Column(String, primary_key=True)

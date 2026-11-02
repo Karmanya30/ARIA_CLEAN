@@ -14,6 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONUTF8=1 \
     ARIA_BIND_HOST=0.0.0.0 \
+    ARIA_AUTH_MODE=accounts \
     DB_URL=sqlite:////var/aria/aria.db
 WORKDIR /app
 

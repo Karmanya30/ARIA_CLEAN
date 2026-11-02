@@ -98,7 +98,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [])
   // The effect synchronizes external cookie/session state after an HTTP response.
   // oxlint-disable-next-line react/set-state-in-effect
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    // The link in the sign-up email opens the app with ?verify=<token>: confirm the address, then load the new session.
+    const token = new URLSearchParams(window.location.search).get('verify')
+    if (!token) { void load(); return }
+    window.history.replaceState(null, '', window.location.pathname + window.location.hash)
+    call('verify', { token }).then(() => { notifyTabs(); return load() }).catch((failure) => { setError((failure as Error).message); return load() })
+  }, [load])
   useEffect(() => {
     const changed = (event: StorageEvent) => { if (event.key === 'aria_auth_revision') void load() }
     window.addEventListener('storage', changed)
@@ -110,7 +116,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (busy) return
     const values = new FormData(event.currentTarget)
     setBusy(true); setError('')
-    try { await call(signup ? 'register' : 'login', { email: values.get('email'), password: values.get('password') }); notifyTabs(); await load() }
+    try {
+      const result = await call<{ pending?: boolean; message?: string }>(signup ? 'register' : 'login', { email: values.get('email'), password: values.get('password') })
+      if (result?.pending) { setNotice(result.message ?? 'Check your email to finish signing up.'); return }
+      notifyTabs(); await load()
+    }
     catch (failure) { setError((failure as Error).message) }
     finally { setBusy(false) }
   }
