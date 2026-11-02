@@ -22,7 +22,12 @@ _encoder: SentenceTransformer | None = None
 def _get_encoder() -> SentenceTransformer:
     global _encoder
     if _encoder is None:
-        _encoder = SentenceTransformer(SBERT_MODEL, device=SBERT_DEVICE)
+        # Use the local copy without asking the Hugging Face hub: with the hub unreachable the online lookup retried for ~218 s
+        # (REL-01). Only a model that is not on disk yet is fetched from the network.
+        try:
+            _encoder = SentenceTransformer(SBERT_MODEL, device=SBERT_DEVICE, local_files_only=True)
+        except Exception:
+            _encoder = SentenceTransformer(SBERT_MODEL, device=SBERT_DEVICE)
     return _encoder
 
 
