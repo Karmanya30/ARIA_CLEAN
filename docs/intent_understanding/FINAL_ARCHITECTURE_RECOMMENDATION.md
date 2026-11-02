@@ -1,4 +1,6 @@
-# Final architecture recommendation (provisional until the D/E test split is complete)
+# Final architecture recommendation
+
+> **Superseded by the complete held-out run:** see [COMPLETE_HELDOUT_BENCHMARK.md](COMPLETE_HELDOUT_BENCHMARK.md). On the full 130-question test split D scored 91.5% against 86.9% for the baseline (not significant, p = 0.31) and regressed safety-relevant and company-data questions; E matched the baseline, and E's model stage did not help (rules-only 88.5% against 86.9%). The answers to the ten questions below were written on the partial data; where they disagree with the complete benchmark, the complete benchmark wins. Keep `baseline` as the default.
 
 ```mermaid
 flowchart TD
