@@ -13,7 +13,7 @@ from ai.llm.prompt_templates import ENGINE_NARRATION, FACT_EXTRACTION, finance_p
 from core.session import get_session
 from modules.finance import anomaly, engine, spending
 from modules.finance import orchestrator as m1_orchestrator
-from modules.finance.sip_emi_calc import sip_future_value
+from modules.finance.sip_emi_calc import emi, sip_future_value
 from modules.finance.schemas import M1Response, Assets, Expenses, FinanceProfile, Transaction, UserFinancialInput
 from shared import finance_knowledge, user_store
 from shared import human_state
@@ -379,6 +379,31 @@ def build_context(query: str) -> dict[str, Any]:
 
 # "EMI on a 10 lakh loan", "calculate the EMI": the amount is the loan being asked about, not the user's own EMI
 _EMI_QUESTION = re.compile(r"\bemi\s+(?:on|for)\b|\b(?:calculate|compute|work out|find|what(?:'s| is| would be| will be)?)(?: the| an?)?\s+emi\b")
+
+
+def _emi_calc_answer(query: str) -> dict[str, Any] | None:
+    """"EMI on a 10 lakh loan at 9% for 5 years": the standard reducing-balance EMI from the terms in the question (no model, no profile)."""
+    t = query.lower()
+    if not _EMI_QUESTION.search(t):
+        return None
+    amounts = [a for a in _amounts(t) if a >= 1000]
+    rate = re.search(r"(\d+(?:\.\d+)?)\s*(?:%|percent|per cent)", t)
+    yrs = re.search(r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)", t)
+    months = re.search(r"(\d+)\s*months?", t)
+    if not amounts:
+        return None
+    if not rate or not (yrs or months):
+        text = f"To work out the EMI on {_inr(max(amounts))} I need the interest rate (for example 9%) and the loan period (for example 5 years)."
+    else:
+        years = float(yrs.group(1)) if yrs else int(months.group(1)) / 12
+        principal, pct = max(amounts), float(rate.group(1))
+        monthly = emi(principal, pct, years)
+        total = monthly * max(1, round(years * 12))
+        text = (f"Insight: The EMI on a loan of {_inr(principal)} at {pct:g}% a year for {years:g} years is about {_inr(round(monthly))} a month.\n"
+                f"Analysis: You would pay about {_inr(round(total))} in all, of which about {_inr(round(total - principal))} is interest (reducing-balance EMI).\n"
+                "Recommendation: Keep all your EMIs together under about 40% of your monthly income.\n"
+                "Risk: This is an estimate; the lender's rate, fees and rounding can change the figure.")
+    return {"domain": "finance", "query": query, "context": build_context(query), "response": text, "blocks": text_or_error_blocks(text)}
 
 
 def _regex_facts(query: str) -> dict[str, Any]:
@@ -981,6 +1006,8 @@ def run_pipeline(query: str, user_id: str = "default", *, intent_query: str | No
     if pend := get_session(sid).get("finance_pending"):
         if (out := _followup(query, uid, sid, pend)) is not None:
             return out
+    if (calc := _emi_calc_answer(query)) is not None:
+        return calc  # an EMI for a loan being asked about: answered from its own terms, nothing is saved to the profile
     stated: dict[str, Any] = {}
     notes = _remember(query, uid, sid, stated)
     hit = finance_intent(intent_query or query)

@@ -161,3 +161,9 @@ def test_general_answers_preserve_currency_and_code(text, monkeypatch):
     from ai.llm import groq_client
     monkeypatch.setattr(groq_client, "_BACKENDS", (("fake", lambda *args: text),))
     assert groq_client.generate_response("Explain this", system_prompt=dialogue.CONVERSATION_SYSTEM) == text
+
+
+def test_repeat_the_previous_answer_is_a_dialogue_act():
+    from shared.dialogue import act
+    assert act("Speak up the previous answer.") == "repeat" and act("repeat that") == "repeat"
+    assert act("what is a SIP") is None

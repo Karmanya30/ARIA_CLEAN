@@ -436,7 +436,11 @@ def _dialogue_reply(query: str, kind: str, session_id: str) -> dict[str, Any]:
     """Short social replies never become a lesson, a new valuation or an invented fact."""
     session = get_session(session_id)
     pending = session.get("finance_pending")
-    if pending and pending.get("confirm") and confirmation(query) is not None:
+    if kind == "repeat":
+        history = session.get("history", [])
+        said = str(history[-1]["response"].get("response", "")) if history else ""
+        response = {"domain": "smalltalk", "response": said or "There is no earlier answer to repeat yet. What would you like to ask?"}
+    elif pending and pending.get("confirm") and confirmation(query) is not None:
         response = finance_pipeline(query, user_id=session_id)
     elif pending and kind == "decline":
         session.pop("finance_pending", None)
