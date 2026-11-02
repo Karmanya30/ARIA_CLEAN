@@ -114,6 +114,12 @@ def route_label(query: str, correct: bool = True) -> tuple[str, dict]:
     return label, response
 
 
+
+@pytest.fixture(autouse=True)
+def _baseline_routing(monkeypatch):
+    """These tests cover the baseline chain's own clarify step; the adaptive default is tested in tests/intent."""
+    monkeypatch.setenv("ARIA_QUERY_ARCHITECTURE", "baseline")
+
 @pytest.mark.parametrize("query,expected", ROWS)
 def test_routes_like_the_clean_query(query, expected):
     assert route_label(query)[0] == expected
