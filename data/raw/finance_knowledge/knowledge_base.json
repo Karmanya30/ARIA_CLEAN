@@ -1,0 +1,206 @@
+[
+  {
+    "id": "reit",
+    "title": "REIT (Real Estate Investment Trust)",
+    "category": "investment_vehicles",
+    "content": "A REIT is a SEBI-regulated trust that owns and operates income-generating real estate (offices, malls, warehouses) and is listed on a stock exchange, letting retail investors buy units instead of physical property. It must distribute most of its net distributable cash flow to unit-holders periodically, so REITs are often used for real-estate exposure with rental-like income and daily liquidity, unlike buying property directly. Unit prices still move with the market and with the underlying real-estate cycle, so it carries market risk, not a fixed return."
+  },
+  {
+    "id": "invit",
+    "title": "InvIT (Infrastructure Investment Trust)",
+    "category": "investment_vehicles",
+    "content": "An InvIT is the infrastructure-sector counterpart to a REIT -- a SEBI-regulated, exchange-listed trust that pools money to own operating infrastructure assets (roads, power transmission lines, pipelines) that generate steady cash flows, distributed periodically to unit-holders. It offers infrastructure exposure with market-linked unit prices and liquidity, rather than direct project ownership."
+  },
+  {
+    "id": "arbitrage",
+    "title": "Arbitrage",
+    "category": "trading_concepts",
+    "content": "Arbitrage means simultaneously buying and selling the same or equivalent asset in different markets (or different forms, like a stock and its futures contract) to profit from a temporary price difference, with minimal directional market risk. In Indian markets, cash-futures arbitrage between the stock's spot price and its futures price is common. Arbitrage opportunities are usually small and short-lived because many participants compete to close the gap, and execution/transaction costs can erode the profit."
+  },
+  {
+    "id": "ipo",
+    "title": "IPO (Initial Public Offering)",
+    "category": "market_mechanics",
+    "content": "An IPO is the first time a private company sells shares to the public and gets listed on a stock exchange (NSE/BSE in India), raising capital and giving early investors/promoters an exit route. Retail investors typically apply through ASBA (Application Supported by Blocked Amount) via their bank, and shares are allotted by a lottery-like process if the issue is oversubscribed. Listing-day price can move sharply above or below the issue price, so IPO investing carries real risk despite the initial excitement."
+  },
+  {
+    "id": "fpo",
+    "title": "FPO (Follow-on Public Offering)",
+    "category": "market_mechanics",
+    "content": "An FPO is when an already-listed company issues additional shares to the public to raise more capital, distinct from an IPO (which is the first-ever listing). It can dilute existing shareholders' ownership percentage, and the market's reaction depends heavily on why the company is raising money (growth vs. covering losses/debt)."
+  },
+  {
+    "id": "short_selling",
+    "title": "Short Selling",
+    "category": "trading_concepts",
+    "content": "Short selling means selling a stock you don't currently own (borrowed, in regulated markets) expecting its price to fall, so you can buy it back later at a lower price and profit from the difference. It is a bet against a stock, the opposite of normal buying, and carries theoretically unlimited loss potential since a stock's price has no upper limit it can rise to. In India this is done intraday by retail investors or via regulated securities-lending mechanisms for longer positions, and is considerably higher-risk than simply buying and holding."
+  },
+  {
+    "id": "futures_and_options",
+    "title": "Futures and Options (F&O)",
+    "category": "trading_concepts",
+    "content": "Futures and options are derivative contracts whose value is based on an underlying stock or index. A futures contract obligates both parties to buy/sell at a set price on a future date; an options contract gives the buyer the right (not obligation) to do so, for a premium paid upfront. Both are leveraged instruments -- a small margin controls a much larger position -- which magnifies both gains and losses, and SEBI data has repeatedly shown most individual retail F&O traders lose money overall, making this a high-risk, not beginner-friendly, part of the market."
+  },
+  {
+    "id": "demat_account",
+    "title": "Demat Account",
+    "category": "market_mechanics",
+    "content": "A demat (dematerialized) account holds shares and other securities electronically instead of as physical certificates, and is required to buy or sell listed shares in India. It works alongside a trading account (for placing buy/sell orders) and is maintained by a depository participant registered with NSDL or CDSL."
+  },
+  {
+    "id": "kyc",
+    "title": "KYC (Know Your Customer)",
+    "category": "regulatory",
+    "content": "KYC is the mandatory identity- and address-verification process (PAN, Aadhaar, proof of address, etc.) that banks, mutual funds, brokers, and other regulated financial entities must complete before opening an account for a customer, as required by SEBI/RBI regulations aimed at preventing fraud and money laundering. It is typically a one-time process reusable across SEBI-registered intermediaries via KYC Registration Agencies (KRAs)."
+  },
+  {
+    "id": "gold_etf_sgb",
+    "title": "Gold ETF and Sovereign Gold Bond (SGB)",
+    "category": "investment_vehicles",
+    "content": "A Gold ETF is a mutual-fund unit that tracks the market price of gold and trades on a stock exchange, giving gold price exposure without holding physical gold, and can be bought or sold like a stock. A Sovereign Gold Bond (SGB) is a government-issued bond denominated in grams of gold, paying a small fixed annual interest on top of tracking the gold price, with a long tenure and tax benefits if held to maturity -- but SGBs are less liquid than Gold ETFs (tradable in smaller volumes, or held to maturity). Both avoid the making charges, storage risk, and purity concerns of physical gold."
+  },
+  {
+    "id": "corporate_bonds",
+    "title": "Corporate Bonds / Debentures",
+    "category": "investment_vehicles",
+    "content": "A corporate bond (or debenture) is a debt instrument where a company borrows money from investors and pays periodic interest (coupon), returning the principal at maturity. Bonds are rated by credit rating agencies (CRISIL, ICRA, CARE, etc.) for the issuer's ability to repay -- a lower rating means higher default risk and usually a higher interest rate to compensate. Unlike a bank FD, corporate bonds are not deposit-insured, so credit risk is real and issuer-specific."
+  },
+  {
+    "id": "g_secs",
+    "title": "Government Securities (G-Secs)",
+    "category": "investment_vehicles",
+    "content": "Government securities are debt instruments issued by the Government of India (or state governments) to borrow money, carrying very low credit risk since they're backed by the sovereign. Retail investors can buy them directly via the RBI Retail Direct platform or indirectly through gilt mutual funds. Prices of longer-tenure G-Secs still move with interest-rate changes, so there is interest-rate risk even though credit risk is minimal."
+  },
+  {
+    "id": "chit_fund",
+    "title": "Chit Fund",
+    "category": "investment_vehicles",
+    "content": "A chit fund is a rotating savings-and-credit arrangement where a fixed group of members contribute a fixed amount periodically into a pool, and each period one member (chosen by auction or lottery) gets access to the pooled amount. Registered chit funds are regulated under the Chit Funds Act, but the space has also seen many fraudulent, unregistered schemes -- verifying registration and the fund manager's track record matters more here than for regulated instruments like mutual funds."
+  },
+  {
+    "id": "recurring_deposit",
+    "title": "Recurring Deposit (RD)",
+    "category": "investment_vehicles",
+    "content": "A Recurring Deposit is a bank/post-office product where a fixed amount is deposited every month for a fixed tenure, earning a fixed interest rate similar to an FD, but built for people saving gradually rather than depositing a lump sum upfront. It suits short, disciplined savings goals but offers no equity-linked growth."
+  },
+  {
+    "id": "nsc",
+    "title": "National Savings Certificate (NSC)",
+    "category": "investment_vehicles",
+    "content": "The National Savings Certificate is a fixed-income, government-backed savings instrument sold through post offices, with a fixed tenure and a fixed interest rate that compounds annually, paid out at maturity. It qualifies for Section 80C deduction under the old tax regime, similar in spirit to a tax-saving FD but issued by the post office rather than a bank."
+  },
+  {
+    "id": "scss",
+    "title": "Senior Citizens Savings Scheme (SCSS)",
+    "category": "investment_vehicles",
+    "content": "SCSS is a government-backed savings scheme specifically for senior citizens (and certain early retirees), offering a fixed interest rate paid quarterly, with a defined tenure and a cap on the total deposit amount. It's considered one of the safer options for retirees needing regular income, and qualifies for Section 80C deduction under the old regime."
+  },
+  {
+    "id": "sukanya_samriddhi",
+    "title": "Sukanya Samriddhi Yojana",
+    "category": "investment_vehicles",
+    "content": "Sukanya Samriddhi Yojana is a government savings scheme meant for the financial future (education/marriage) of a girl child, opened by a parent/guardian before the child turns 10, with a long lock-in tied to the child's age. It offers a government-set interest rate, revised periodically, and Section 80C tax deduction under the old regime."
+  },
+  {
+    "id": "huf",
+    "title": "HUF (Hindu Undivided Family) for tax purposes",
+    "category": "taxation",
+    "content": "An HUF is a distinct legal/tax entity recognized under Indian tax law, formed automatically when a Hindu family exists, with its own PAN and its own income-tax filing separate from its individual members. Some families use an HUF to hold ancestral property or investments and claim a second set of basic exemptions/deductions, but setting one up and running it correctly has real legal formalities and is usually done with professional advice, not as a casual tax hack."
+  },
+  {
+    "id": "capital_gains_indexation",
+    "title": "Capital Gains Indexation",
+    "category": "taxation",
+    "content": "Indexation adjusts the purchase price of certain long-term assets (like debt mutual funds or real estate, subject to current tax rules) for inflation using the Cost Inflation Index (CII) published by the tax department each year, before calculating taxable capital gains -- so tax is paid on real gains rather than purely inflation-driven ones. Which asset classes and holding periods qualify for indexation is set by tax law and has changed in recent years, so the exact current rules should be confirmed rather than assumed."
+  },
+  {
+    "id": "tds",
+    "title": "TDS (Tax Deducted at Source)",
+    "category": "taxation",
+    "content": "TDS is tax the payer (employer, bank, etc.) deducts and deposits with the government at the time of paying income (salary, FD interest, etc.), rather than the recipient paying it all later. It's an advance collection of tax, not an extra tax -- the amount deducted shows up as credit (visible in Form 26AS/AIS) when filing the annual income tax return, and any excess deducted is refunded."
+  },
+  {
+    "id": "itr_form16",
+    "title": "Form 16 and ITR Filing",
+    "category": "taxation",
+    "content": "Form 16 is the annual TDS certificate an employer issues showing salary paid and tax deducted, used as the primary reference when filing an Income Tax Return (ITR). Filing an ITR is a legal requirement above certain income thresholds (and useful even below it, for loan/visa applications and claiming refunds), done annually on the income tax department's e-filing portal, with different ITR forms depending on income sources."
+  },
+  {
+    "id": "gst_personal_finance",
+    "title": "GST and Personal Finance",
+    "category": "taxation",
+    "content": "GST (Goods and Services Tax) is an indirect tax on goods and services, distinct from income tax -- it's paid as part of the price of what you buy, not filed by individual consumers. It matters for personal finance mainly through the effective cost of things like mutual fund/insurance charges (which include GST) and everyday purchases, not as something an individual investor files separately."
+  },
+  {
+    "id": "term_vs_endowment_ulip",
+    "title": "Term Insurance vs Endowment/ULIP",
+    "category": "insurance",
+    "content": "Term insurance is pure life-cover with no savings component -- it pays a large sum only on death within the policy term, has no maturity payout, and is the cheapest way to get meaningful life-cover for a given premium. Endowment and ULIP (Unit Linked Insurance Plan) policies mix a smaller life-cover with an investment/savings component, but historically deliver lower effective investment returns than buying term insurance and investing the difference separately, due to higher embedded charges. Financial planners commonly recommend separating insurance (buy term) from investing (mutual funds/other instruments) rather than mixing the two."
+  },
+  {
+    "id": "health_insurance",
+    "title": "Health Insurance Basics",
+    "category": "insurance",
+    "content": "Health insurance reimburses or directly pays hospitalization and related medical costs up to a chosen sum insured, in exchange for an annual premium. Key things to check before buying: the sum insured relative to local hospital costs, waiting periods for pre-existing conditions, room-rent limits/sub-limits that can reduce the actual payout, and whether the insurer has cashless-network hospitals nearby. It's generally recommended independent of any employer-provided cover, since employer cover typically ends with the job."
+  },
+  {
+    "id": "credit_card_trap",
+    "title": "Credit Card Interest and the Minimum-Due Trap",
+    "category": "debt",
+    "content": "Paying only the 'minimum amount due' on a credit card keeps the account in good standing but leaves the rest of the balance accruing interest at very high rates (commonly 3-4% per month, i.e. well above 36-40% annualized), often compounding on new purchases too -- this is one of the costliest common forms of consumer debt in India. Carrying a revolving balance for long is usually far more expensive than most other loans, so paying the full statement amount every cycle (or avoiding the revolve entirely) matters a lot more than the card's reward points or cashback."
+  },
+  {
+    "id": "loan_against_property_gold",
+    "title": "Loan Against Property / Gold Loan",
+    "category": "debt",
+    "content": "A loan against property or a gold loan is a secured loan where the borrower pledges an asset (real estate or gold jewellery) as collateral, which typically gets a lower interest rate than an unsecured personal loan because the lender has recourse to the asset on default. Gold loans are usually faster to get and shorter-tenure; loans against property are larger and longer-tenure. Missing payments risks losing the pledged asset, not just a credit-score hit, which is the key trade-off against an unsecured loan."
+  },
+  {
+    "id": "bull_bear_market",
+    "title": "Bull Market vs Bear Market",
+    "category": "market_mechanics",
+    "content": "A bull market is a sustained period of rising prices and investor optimism; a bear market is a sustained period of falling prices (commonly defined as a fall of 20%+ from a recent high) and pessimism. Both are broad market-cycle descriptions rather than precise, tradeable signals -- markets don't announce when a cycle has turned, which is why timing entries/exits around these labels is notoriously unreliable even for professionals."
+  },
+  {
+    "id": "circuit_breaker",
+    "title": "Circuit Breaker (Stock Exchange)",
+    "category": "market_mechanics",
+    "content": "A circuit breaker is an automatic, exchange-mandated trading halt (or a price band limiting how far a stock/index can move in a session) triggered when prices move too sharply too fast, meant to curb panic-driven volatility and give the market time to absorb information. Both individual stocks and the overall market (index-level circuit breakers) can be affected, and a stock hitting its circuit limit can mean an investor is temporarily unable to buy or sell it at all."
+  },
+  {
+    "id": "sebi_role",
+    "title": "SEBI's Role",
+    "category": "regulatory",
+    "content": "SEBI (Securities and Exchange Board of India) is the regulator for India's securities markets -- stock exchanges, listed companies, mutual funds, brokers, investment advisers, and research analysts all operate under its rules. Its core mandate is investor protection, market development, and regulating market participants, including setting disclosure norms for companies and conduct rules for anyone giving investment advice or recommending securities professionally."
+  },
+  {
+    "id": "rbi_role",
+    "title": "RBI's Role",
+    "category": "regulatory",
+    "content": "The Reserve Bank of India is India's central bank -- it regulates banks and NBFCs, manages monetary policy (including setting the repo rate, which influences loan and deposit interest rates economy-wide), oversees the payment system, and manages the rupee's exchange rate and the country's foreign exchange reserves. It's distinct from SEBI, which regulates securities markets rather than banking."
+  },
+  {
+    "id": "amfi_role",
+    "title": "AMFI's Role",
+    "category": "regulatory",
+    "content": "AMFI (Association of Mutual Funds in India) is the mutual fund industry's self-regulatory body, working under SEBI's oversight -- it certifies mutual fund distributors (the AMFI Registration Number, ARN), runs investor-awareness initiatives, and publishes standardized industry data like daily NAVs. It is not itself the regulator (SEBI is) but an industry body that supports SEBI's regulatory framework for mutual funds specifically."
+  },
+  {
+    "id": "expense_ratio_exit_load",
+    "title": "Expense Ratio and Exit Load",
+    "category": "investment_vehicles",
+    "content": "A mutual fund's expense ratio is the annual fee (as a % of assets) charged for managing the fund, deducted continuously from the fund's returns -- a lower expense ratio directly means more of the fund's gross return reaches the investor, all else equal, which is why passively managed index funds (with much lower expense ratios than actively managed funds) are often recommended for cost-conscious long-term investors. Exit load is a separate, one-time fee charged only if units are sold before a minimum holding period (e.g. within a year), meant to discourage short-term in-and-out trading of the fund."
+  },
+  {
+    "id": "swp_stp",
+    "title": "SWP and STP",
+    "category": "investment_vehicles",
+    "content": "A Systematic Withdrawal Plan (SWP) lets an investor withdraw a fixed amount from a mutual fund at regular intervals -- commonly used to generate a pseudo-income stream in retirement while the rest of the corpus stays invested. A Systematic Transfer Plan (STP) automatically moves a fixed amount periodically from one fund to another (often debt to equity), used to stagger a lump sum into the market gradually rather than investing it all at once, similar in spirit to a SIP but between funds rather than from a bank account."
+  },
+  {
+    "id": "fund_investing_styles",
+    "title": "Growth, Value, and Contra Fund Styles",
+    "category": "investment_vehicles",
+    "content": "These describe a fund manager's stock-picking philosophy, not different asset classes. A growth fund favors companies expected to grow earnings faster than average, often at higher valuations. A value fund favors companies that look cheap relative to their fundamentals, betting the market will re-rate them. A contra fund deliberately goes against prevailing market sentiment, buying currently out-of-favor sectors/stocks. No style consistently beats the others in every market phase, so this is a preference/diversification choice, not a guaranteed-better option."
+  }
+]

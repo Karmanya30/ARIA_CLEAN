@@ -14,7 +14,7 @@ from core.session import get_session
 from modules.finance import anomaly, engine, spending
 from modules.finance import orchestrator as m1_orchestrator
 from modules.finance.schemas import Assets, Expenses, FinanceProfile, Transaction, UserFinancialInput
-from shared import user_store
+from shared import finance_knowledge, user_store
 from shared import human_state
 from shared.human_state import soften
 from shared.ner import extract_entities
@@ -969,9 +969,14 @@ def _freeform(query: str) -> dict[str, Any]:
             ),
         }
 
-    # Generic path: no company detected, use LLM with context
+    # Generic path: no company detected, use LLM with context. Grounded in
+    # curated reference passages (shared/finance_knowledge.py) when the
+    # query matches one -- covers topics outside this module's
+    # deterministic paths above (e.g. "should I use a REIT or direct
+    # property") instead of falling straight to raw model recall.
     context = build_context(query)
-    prompt = finance_prompt(query, context)
+    grounding = finance_knowledge.grounding_for(query)
+    prompt = finance_prompt(query, context, grounding=grounding)
     answer = generate_response(prompt)
     return {
         "domain": "finance",

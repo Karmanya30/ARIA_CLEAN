@@ -12,6 +12,7 @@ from loguru import logger
 
 from ai.llm.groq_client import generate_response
 from modules.tutor import orchestrator as m2_orchestrator
+from shared import finance_knowledge
 from shared.ner import extract_entities
 
 
@@ -82,7 +83,9 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     # No finance concept was retrieved: answer normally rather than forcing a finance lesson.
     from shared.dialogue import CONVERSATION_SYSTEM
     from shared.conversation_memory import augment
-    answer = generate_response(augment(query, CONVERSATION_SYSTEM), system_prompt=CONVERSATION_SYSTEM)
+    grounding = finance_knowledge.grounding_for(query)  # curated passages for finance topics outside the concept KB (REIT, arbitrage, ...)
+    prompt = augment(query, CONVERSATION_SYSTEM) + (chr(10) * 2 + "REFERENCE PASSAGES (use where relevant, do not contradict):" + chr(10) + grounding if grounding else "")
+    answer = generate_response(prompt, system_prompt=CONVERSATION_SYSTEM)
     return {"domain": "tutor", "query": query, "context": {}, "response": answer}
 
 
