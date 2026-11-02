@@ -67,10 +67,12 @@ Emergency fund: ₹{emergency:,.0f}/month
 Free cash: ₹{free_cash:,.0f}
 Forecast spend: ₹{forecast:,.0f}
 Anomalies: {n_anomalies}
-
+{question_block}
 TASK:
 Write a short explanation in simple Indian English, mentioning the risk
 profile, the SIP amount, and one key observation from the computed data.
+If a USER QUESTION is given, answer THAT question first using only the numbers above; if these numbers cannot answer it,
+say plainly what is missing instead of guessing.
 
 Write the answer as natural Markdown, not a template: lead with the direct answer (risk profile + SIP amount, the headline takeaway); then what the forecast/anomalies/budget numbers mean together (short paragraphs or bullets, a table when comparing things); then one practical next step; end with one caveat — SIP returns are market-linked, not guaranteed. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """

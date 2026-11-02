@@ -909,7 +909,7 @@ def _legacy(query: str, user_id: str, sid: str) -> dict[str, Any]:
         # not on every income-bearing query (e.g. "what is my risk
         # profile" shouldn't silently double the LLM calls it makes).
         wants_plan = _wants_investment_plan(query)
-        m1_response = m1_orchestrator.run(profile, include_investment_plan_narrative=wants_plan)
+        m1_response = m1_orchestrator.run(profile, include_investment_plan_narrative=wants_plan, question=query)
         user_store.save_financial_profile(
             user_id,
             risk_label=m1_response.risk.label,

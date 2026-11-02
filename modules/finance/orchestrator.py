@@ -29,7 +29,7 @@ def _build_sip_plan(sip_amount: float, risk_label: str, tax_regime: str) -> SipP
     )
 
 
-def run(user_input: UserFinancialInput, include_investment_plan_narrative: bool = False) -> M1Response:
+def run(user_input: UserFinancialInput, include_investment_plan_narrative: bool = False, question: str = "") -> M1Response:
     risk = risk_model.predict(
         monthly_income=user_input.monthly_income,
         age=user_input.age,
@@ -121,6 +121,8 @@ def run(user_input: UserFinancialInput, include_investment_plan_narrative: bool 
         free_cash=budget.sip,
         forecast=forecast_next_month_total,
         n_anomalies=len(anomalies),
+        # the user's own question must reach the model: without it every question got the same risk-and-SIP summary
+        question_block=("\nUSER QUESTION:\n" + question.strip()[:500] + "\n") if question.strip() else "",
     )
     narration = generate_response(prompt)
 

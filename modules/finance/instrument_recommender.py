@@ -19,6 +19,7 @@ for Stage 12.
 """
 from __future__ import annotations
 
+import re
 import json
 from functools import lru_cache
 
@@ -40,6 +41,15 @@ _EMERGENCY_FUND_MONTHS_TARGET = 6.0
 
 
 @lru_cache(maxsize=1)
+def _is_80c_eligible(tax_treatment: str) -> bool:
+    """True only when the text says the instrument itself qualifies. \"no Section 80C benefit\" and \"a separate ... variant is 80C eligible\"
+    (the plain FD) mention 80C without qualifying; a plain substring test used to treat them as eligible (FIN-001)."""
+    t = tax_treatment.lower()
+    if re.search(r"\bno\b[^.;]*80c", t) or "variant" in t:
+        return False
+    return bool(re.search(r"80c", t))
+
+
 def _load_catalog() -> list[dict]:
     concepts = json.loads(CONCEPTS_KB_FILE.read_text(encoding="utf-8"))
     return [c for c in concepts if c.get("is_recommendable_instrument")]
@@ -99,7 +109,7 @@ def _score_instrument(
         reasons_for.append("Your emergency fund is already solid, and this instrument stays liquid too.")
 
     tax_treatment = instrument.get("tax_treatment", "")
-    mentions_80c = "80c" in tax_treatment.lower() or "80ccd" in tax_treatment.lower()
+    mentions_80c = _is_80c_eligible(tax_treatment)
     if mentions_80c:
         if tax_regime == "old":
             score += 15.0
