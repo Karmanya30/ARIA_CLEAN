@@ -34,6 +34,9 @@ FINANCE_KEYWORDS = (
     "equity",
     "nse",
     "bse",
+    # on-topic phrasing with none of the terms above used to fall into the ambiguous general bucket
+    "loan", "interest rate", "credit score", "credit card", "insurance", "retirement", "pension", "real estate",
+    "gold investment", "financial goal", "net worth", "emergency fund",
 )
 MARKET_KEYWORDS = (
     "stock",

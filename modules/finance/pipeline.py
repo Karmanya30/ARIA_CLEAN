@@ -13,6 +13,7 @@ from ai.llm.prompt_templates import ENGINE_NARRATION, FACT_EXTRACTION, finance_p
 from core.session import get_session
 from modules.finance import anomaly, engine, spending
 from modules.finance import orchestrator as m1_orchestrator
+from modules.finance.sip_emi_calc import sip_future_value
 from modules.finance.schemas import Assets, Expenses, FinanceProfile, Transaction, UserFinancialInput
 from shared import finance_knowledge, user_store
 from shared import human_state
@@ -167,11 +168,8 @@ def _parse_return_rate(query: str) -> float | None:
 
 
 def _future_value_monthly_sip(monthly_sip: float, annual_return_pct: float, years: int) -> float:
-    months = years * 12
-    monthly_rate = annual_return_pct / 100 / 12
-    if monthly_rate == 0:
-        return monthly_sip * months
-    return monthly_sip * (((1 + monthly_rate) ** months - 1) / monthly_rate) * (1 + monthly_rate)
+    # one tested SIP formula (modules/finance/sip_emi_calc.py); keyword arguments because its positional order differs
+    return sip_future_value(monthly=monthly_sip, years=years, annual_return_pct=annual_return_pct)
 
 
 def _build_sip_planning_response(query: str) -> str | None:
