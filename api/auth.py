@@ -113,22 +113,44 @@ def _session(account, response):
     return {"user": account}
 
 
-def _throttle(email):
+_THROTTLE_WINDOW = 900
+_THROTTLE_ROWS = 4096
+
+
+def _throttle(email, ip="unknown"):
+    """Sign-in attempt budget, per (email, address) pair so a stranger cannot lock the real owner out from another address (10 tries),
+    plus looser ceilings per email (100) and per address (60) against spraying. A full table evicts its oldest rows instead of
+    refusing everyone (QA-AUTH-002). Returns the pair's key so a successful sign-in can clear it."""
     store = _store()
+    keys = [(fingerprint(f"{email}|{ip}"), 10), (fingerprint(f"email|{email}"), 100), (fingerprint(f"ip|{ip}"), 60)]
     with store._SessionLocal() as db:
         db.execute(text("BEGIN IMMEDIATE"))
-        db.query(store.AuthThrottleRecord).filter(store.AuthThrottleRecord.expires_at <= time.time()).delete()
-        key = fingerprint(email)
-        row = db.get(store.AuthThrottleRecord, key)
-        if row is None:
-            if db.query(store.AuthThrottleRecord).count() >= 4096:
-                raise HTTPException(429, "Sign-in is busy. Please try again later.")
-            row = store.AuthThrottleRecord(key=key, attempts=0, expires_at=time.time() + 900)
-            db.add(row)
-        if row.attempts >= 10:
-            raise HTTPException(429, "Too many sign-in attempts. Please try again in 15 minutes.")
-        row.attempts += 1
+        now = time.time()
+        db.query(store.AuthThrottleRecord).filter(store.AuthThrottleRecord.expires_at <= now).delete()
+        if db.query(store.AuthThrottleRecord).count() >= _THROTTLE_ROWS - len(keys):
+            oldest = [r.key for r in db.query(store.AuthThrottleRecord).order_by(store.AuthThrottleRecord.expires_at).limit(_THROTTLE_ROWS // 16)]
+            db.query(store.AuthThrottleRecord).filter(store.AuthThrottleRecord.key.in_(oldest)).delete(synchronize_session=False)
+        for key, limit in keys:
+            row = db.get(store.AuthThrottleRecord, key)
+            if row is None:
+                row = store.AuthThrottleRecord(key=key, attempts=0, expires_at=now + _THROTTLE_WINDOW)
+                db.add(row)
+            if row.attempts >= limit:
+                raise HTTPException(429, "Too many sign-in attempts. Please try again in 15 minutes.")
+            row.attempts += 1
         db.commit()
+    return keys[0][0]
+
+
+def _throttle_clear(key):
+    store = _store()
+    with store._SessionLocal() as db:
+        db.query(store.AuthThrottleRecord).filter(store.AuthThrottleRecord.key == key).delete()
+        db.commit()
+
+
+def _peer(request):
+    return request.client.host if request.client else "unknown"
 
 
 class Credentials(BaseModel):
@@ -170,7 +192,7 @@ def register(req: Credentials, request: Request, response: Response):
     if os.getenv("ARIA_AUTH_ALLOW_SIGNUP", "0") != "1":
         raise HTTPException(403, "Account registration is disabled.")
     email = _email(req.email)
-    _throttle(email)
+    _throttle("register|" + email, _peer(request))  # its own budget: signing up does not use up the sign-in attempts
     store = _store()
     account = {"id": uuid4().hex, "email": email}
     encoded = password_hash(req.password)
@@ -187,7 +209,7 @@ def register(req: Credentials, request: Request, response: Response):
 def login(req: Credentials, request: Request, response: Response):
     _accounts(request)
     email = _email(req.email)
-    _throttle(email)
+    attempt = _throttle(email, _peer(request))
     store = _store()
     with store._SessionLocal() as db:
         row = db.query(store.AccountRecord).filter_by(email=email).one_or_none()
@@ -196,6 +218,7 @@ def login(req: Credentials, request: Request, response: Response):
         if not row or not row.password_hash or not valid:
             raise HTTPException(401, "Email or password is incorrect.")
         account = {"id": row.id, "email": row.email}
+    _throttle_clear(attempt)  # a successful sign-in does not count against the budget
     return _session(account, response)
 
 

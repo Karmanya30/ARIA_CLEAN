@@ -255,3 +255,16 @@ def test_google_nonce_survives_status_reads_and_rejects_stale_challenge(accounts
     nonce = accounts.get("/api/auth/session").json()["google_nonce"]
     accounts.cookies.set(auth.NONCE_COOKIE, f"1.{nonce}", domain="testserver.local", path="/")
     assert accounts.post("/api/auth/google", json={"credential": token}).status_code == 401
+
+
+def test_login_throttle_survives_a_full_table_and_a_good_login_clears_the_budget(accounts):
+    """QA-AUTH-002/003: a full table must not lock everyone out, and signing in successfully must not count against the owner."""
+    user = register(accounts)
+    with store._SessionLocal() as db:
+        db.query(store.AuthThrottleRecord).delete()
+        for i in range(4096):
+            db.add(store.AuthThrottleRecord(key=f"filler-{i}", attempts=1, expires_at=time.time() + 600 + i))
+        db.commit()
+    assert accounts.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 200
+    for _ in range(9):
+        assert accounts.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 200  # never locked out by successes
