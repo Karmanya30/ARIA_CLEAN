@@ -32,6 +32,17 @@ auth.mode()  # reject misspelled modes rather than falling back to private acces
 app = FastAPI(title="ARIA API", dependencies=[Depends(auth.authorize)])
 app.add_middleware(ResourceLimits)
 
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Basic hardening headers on every response (SEC-06). No CSP yet: the app loads fonts and the Google sign-in script."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")  # the live meeting and report viewer are same-origin frames
+    return response
+
+
 # The Vite dev server (default :5173) and the built static frontend served
 # from this same process both need to reach the API. Private mode keeps
 # the existing non-cookie behavior;

