@@ -1,7 +1,7 @@
 # Starts ARIA if it is not already running, then opens Edge:
 #   - API: port 8000, or the next free port if another app (e.g. Bhauly) holds 8000; the port is passed to vite (ARIA_API_PORT)
 #   - web: port 5173
-#   - with aria://launch-gpu: also the MuseTalk lip-sync server on port 8010 (GPU; the first start takes a few minutes)
+#   - also the MuseTalk lip-sync server on port 8010 when the GPU stack is present (or aria://launch-gpu); aria://launch-cpu skips it (first start takes a few minutes)
 # Re-running reuses current services; an outdated API is restarted only after workspace ownership is verified.
 # Called by Launch_ARIA.bat / the aria:// link (see register_launcher.ps1) or directly. The URL argument is ignored except for
 # the strings aria://launch and aria://launch-gpu, so a link on any page can only ever start ARIA, nothing else.
@@ -14,7 +14,11 @@ $root = Split-Path -Parent $PSScriptRoot
 $logDir = Join-Path $root "logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $logFile = Join-Path $logDir "launch.log"
-$gpu = $Url -like "aria://launch-gpu*"
+# The lip-sync server starts by itself when this machine can run it (MuseTalk installed and an NVIDIA GPU present);
+# aria://launch-cpu never starts it, aria://launch-gpu always tries.
+$gpuStack = (Test-Path "E:\musetalk\env\python.exe") -and [bool](Get-Command nvidia-smi -ErrorAction SilentlyContinue)
+$gpu = ($Url -like "aria://launch-gpu*") -or ($Url -eq "aria://launch" -and $gpuStack)
+$gpuAuto = $gpu -and ($Url -notlike "aria://launch-gpu*")   # started by itself: do not hold the browser back while the models load
 $MT_PORT = 8010; $WEB_PORT = 5173   # one GPU server serves the original avatar and the New ARIA Avatar (aria://launch-gpu-new is an alias)
 $py = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { $py = "python" }
@@ -178,7 +182,8 @@ try {
         $webProc = Start-Hidden "cmd.exe" @("/c", "npm run dev -- --port $WEB_PORT --strictPort") (Join-Path $root "web") "web"
         if (-not (Wait-Ready "web proxy" { Test-ReadyApi "http://localhost:$WEB_PORT" } 60 $webProc)) { throw "The web app cannot reach the current API session service on port $apiPort." }
     }
-    if ($mtWanted) {
+    if ($mtWanted -and $gpuAuto -and $mtProc) { Log "Lip-sync is loading in the background (a few minutes on the first start); the meeting uses the standard avatar until it is ready. Open a new meeting then." Yellow }
+    elseif ($mtWanted) {
         $ok = Wait-Ready "MuseTalk lip-sync (port $MT_PORT)" { $h = Get-Json "http://127.0.0.1:$MT_PORT/health" 2; [bool]($h -and $h.ready) } 480 $mtProc
         if (-not $ok) { $problems += "The lip-sync server did not start.`n`n$(Tail (Join-Path $logDir 'musetalk.err.log'))`n(logs\musetalk.err.log)" }
     }
