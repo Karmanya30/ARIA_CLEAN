@@ -643,9 +643,24 @@ function connect() {
   };
 }
 
-function ask(text) {
+// What ARIA said in the last seconds: a headset (Bluetooth ones especially) lets the microphone hear the end of her own sentence, and
+// the recogniser then hands it back as if the user had said it. That is the "ARIA repeats herself" loop.
+const spokenLog = [];
+const ECHO_WINDOW_MS = 25000;
+const words = (t) => t.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
+function isEcho(text) {
+  const now = performance.now();
+  while (spokenLog.length && now - spokenLog[0].at > ECHO_WINDOW_MS) spokenLog.shift();
+  const heard = words(text);
+  if (heard.length < 2 || !spokenLog.length) return false;
+  const said = new Set(spokenLog.flatMap((e) => words(e.text)));
+  const overlap = heard.filter((w) => said.has(w)).length / heard.length;
+  return overlap >= 0.7;  // most of what the microphone heard is ARIA's own recent wording
+}
+function ask(text, typed = false) {
   text = text.trim();
   if (!text || ended || !started || !ws || ws.readyState !== 1) return;
+  if (!typed && isEcho(text)) { console.info("ignored her own voice picked up by the microphone:", text); return; }
   text = text.slice(0, 1000);
   if (speaking) interrupt(false);
   turn += 1; tAsked = performance.now(); firstAudioSeen = false; answer = ""; awaitingEnd = false;
@@ -666,7 +681,11 @@ function ask(text) {
 
 function finishSpeaking() {
   speaking = false; awaitingEnd = false; stopBtn.disabled = true;
-  resumeListening();
+  // The browser's clock says the audio ended, but the headset is still playing the last moments (Bluetooth output can lag by a
+  // few hundred ms): reopening the microphone at once is how it heard the end of her own sentence.
+  const lag = ((speaker?.ctx?.outputLatency || 0) + (speaker?.ctx?.baseLatency || 0)) * 1000;
+  const guard = Math.min(1500, 500 + lag);
+  setTimeout(() => { if (!speaking && !ended) resumeListening(); }, guard);
 }
 
 function interrupt(send = true) {
@@ -682,6 +701,7 @@ function interrupt(send = true) {
 
 function b64ToBuffer(b64) { const bin = atob(b64); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out.buffer; }
 
+const playedChunks = new Set();
 async function onServer(m) {
   if (m.turn && m.turn !== turn) return;
   lastServerEvent = performance.now();
@@ -689,9 +709,13 @@ async function onServer(m) {
   else if (m.type === "thinking") { setState("thinking", "Looking that up…"); }  // the modules are working; she has said so
   else if (m.type === "text") { processing = false; answer += m.delta; publishState(); tellParent({ type: "text", text: m.delta, turn: m.turn }); }
   else if (m.type === "audio") {
+    const key = m.turn + ":" + m.seq;
+    if (m.seq !== undefined && playedChunks.has(key)) return;  // a re-sent chunk must not be spoken twice
+    if (m.seq !== undefined) playedChunks.add(key);
     const raw = b64ToBuffer(m.audio);
     const buffer = await speaker.ctx.decodeAudioData(raw.slice(0));  // decoding detaches its input
     if (m.turn !== turn) return;
+    spokenLog.push({ at: performance.now(), text: m.text || "" });
     if (!firstAudioSeen) {
       firstAudioSeen = true;
       const secs = (performance.now() - tAsked) / 1000;
@@ -880,7 +904,7 @@ micBtn.onclick = () => {
   else { stopRec(); $("userTranscript").textContent = ""; if (!speaking) setState("muted", "Microphone muted · ARIA is ready"); }
   publishState();
 };
-textEl.onkeydown = (e) => { if (e.key === "Enter") { ask(textEl.value); textEl.value = ""; } };
+textEl.onkeydown = (e) => { if (e.key === "Enter") { ask(textEl.value, true); textEl.value = ""; } };
 stopBtn.onclick = () => interrupt(true);
 
 // ── start ─────────────────────────────────────────────────────────────────
@@ -895,13 +919,13 @@ $("startBtn").onclick = async () => {
 };
 
 async function loadSpeaker() {
-  // MuseTalk when its GPU server is running (E:\musetalk), else the video presenter, else the seated photo, else 3D.
-  // ?avatar=video, ?avatar=photo or ?avatar=3d forces one.
+  // Unchanged order: MuseTalk when its GPU server is running (E:\musetalk), else the seated photo, else 3D.
+  // ?avatar=video is the separate "New ARIA Avatar"; ?avatar=photo or ?avatar=3d forces the others.
   if (!params.get("avatar")) {
     try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
   }
-  if (!params.get("avatar") || params.get("avatar") === "video") {
-    try { return await videoSpeaker(); } catch (err) { console.info("Video presenter not available:", err.message); }
+  if (params.get("avatar") === "video") {  // "New ARIA Avatar": only when chosen; the existing avatars below are unchanged
+    try { return await videoSpeaker(); } catch (err) { console.info("New ARIA Avatar not available:", err.message); }
   }
   const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/office-wide-glasses.webp", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
   if (photo) {
@@ -929,7 +953,7 @@ function endSession() {
 window.addEventListener("message", ev => {
   if (ev.origin !== location.origin || ev.source !== parent || ev.data?.source !== "aria-meeting" || ended) return;
   const m = ev.data;
-  if (m.type === "ask" && typeof m.text === "string") ask(m.text);
+  if (m.type === "ask" && typeof m.text === "string") ask(m.text, true);
   if (m.type === "mic") micBtn.click();
   if (m.type === "speak") speakControl();
   if (m.type === "captions") captionEl.hidden = !m.enabled;

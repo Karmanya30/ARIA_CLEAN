@@ -92,3 +92,6 @@
 .resizing .meeting-stage,.resizing .meeting-footer,.resizing .meeting-chat { transition:none !important; }
 .live-meeting iframe { pointer-events:auto; }
 .resizing iframe { pointer-events:none; }
+
+.meeting-avatar { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--meet-muted); }
+.meeting-avatar select { background:#151e19; color:var(--meet-ink); border:1px solid #ffffff1a; border-radius:10px; padding:7px 10px; font:inherit; font-size:13px; }

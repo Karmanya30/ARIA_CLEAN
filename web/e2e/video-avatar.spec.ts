@@ -1,18 +1,34 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
-// The live meeting uses the video presenter when no GPU lip-sync server is running.
-test('the live avatar is the video presenter and it is playing', async ({ page }) => {
+// "New ARIA Avatar" (video presenter) is a separate choice; the existing avatar stays the default.
+async function kind(page: Page) {
+  const el = page.locator('iframe[title="ARIA live avatar"]')
+  await expect(el).toBeVisible()
+  const cf = (await el.elementHandle().then((h) => h!.contentFrame()))!
+  return { cf, kind: await cf.evaluate(() => (window as any).__ariaLive?.kind?.() ?? null).catch(() => null) } // the page may still be loading
+}
+const open = async (page: Page) => {
   await page.addInitScript(() => { for (const n of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, n, { value: undefined }); localStorage.setItem('aria_owner_id', 'vid-' + Date.now()) })
   await page.goto('/#/chat')
-  const frameEl = page.locator('iframe[title="ARIA live avatar"]')
-  await expect(frameEl).toBeVisible()
-  const frame = page.frameLocator('iframe[title="ARIA live avatar"]')
-  await expect(frame.locator('video')).toHaveCount(2, { timeout: 20000 })
-  await expect.poll(async () => (await frameEl.elementHandle().then((h) => h!.contentFrame()))!.evaluate(() => (window as any).__ariaLive.kind()), { timeout: 20000 }).toBe('video')
-  const cf = (await frameEl.elementHandle().then((h) => h!.contentFrame()))!
+}
+
+test('the existing avatar is still the default', async ({ page }) => {
+  await open(page)
+  await expect(page.getByLabel('Avatar')).toHaveValue('classic')
+  await expect.poll(async () => (await kind(page)).kind, { timeout: 60000 }).not.toBeNull()
+  expect((await kind(page)).kind).not.toBe('video')
+  await expect(page.locator('iframe[title="ARIA live avatar"]')).toHaveAttribute('src', /^((?!avatar=video).)*$/)
+})
+
+test('choosing New ARIA Avatar loads the video presenter, plays it, and remembers the choice', async ({ page }) => {
+  await open(page)
+  await page.getByLabel('Avatar').selectOption('new')
+  await expect(page.locator('iframe[title="ARIA live avatar"]')).toHaveAttribute('src', /avatar=video/)
+  await expect.poll(async () => (await kind(page)).kind, { timeout: 25000 }).toBe('video')
+  const { cf } = await kind(page)
   const t0 = await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).currentTime)
   await page.waitForTimeout(1500)
-  const t1 = await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).currentTime)
-  expect(t1, 'the calm loop is playing').toBeGreaterThan(t0)
-  await page.screenshot({ path: '../.audit/video-avatar.png' })
+  expect(await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).currentTime), 'the calm loop is playing').toBeGreaterThan(t0)
+  await page.reload()
+  await expect(page.getByLabel('Avatar')).toHaveValue('new')
 })

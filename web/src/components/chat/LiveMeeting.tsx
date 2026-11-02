@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Captions, MessageSquare, Mic, MicOff, PhoneOff, Send, Square, X } from 'lucide-react'
 import { api, ownerId } from '../../api'
@@ -30,7 +30,11 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
   const [syncError, setSyncError] = useState('')
   const [elapsed, setElapsed] = useState(0)
   const [confirmEnd, setConfirmEnd] = useState(false)
-  const [src] = useState(() => `/avatar/live?session_id=${encodeURIComponent(sessionId)}&owner_id=${encodeURIComponent(ownerId())}&meeting=1`)
+  // Two avatars: "ARIA Avatar" (the original, the default) and "New ARIA Avatar" (video presenter). The choice is remembered.
+  const [avatar, setAvatar] = useState<'classic' | 'new'>(() => { try { return localStorage.getItem('aria_avatar') === 'new' ? 'new' : 'classic' } catch { return 'classic' } })
+  // computed once per avatar choice: a changing address would reload the avatar (and end the call)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const src = useMemo(() => `/avatar/live?session_id=${encodeURIComponent(sessionId)}&owner_id=${encodeURIComponent(ownerId())}&meeting=1${avatar === 'new' ? '&avatar=video' : ''}`, [avatar])
   const activeTurn = useRef(0)
   const historyRef = useRef(history)
   const followTranscript = useRef(true)
@@ -125,11 +129,27 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
       <header className="meeting-header">
         <div className="meeting-brand"><BrandLogo className="meeting-official-logo" /><div className="meeting-brand-meta"><span>LIVE</span><small>Your financial research companion</small></div></div>
         <div className="meeting-connection"><span data-connected={state.connected} />{state.connected ? 'Connected' : state.status === 'error' ? 'Connection lost' : state.started ? 'Reconnecting' : 'Connecting'}<time aria-label="Meeting duration">{clock}</time></div>
+        <label className="meeting-avatar">
+          <span>Avatar</span>
+          <select
+            aria-label="Avatar"
+            value={avatar}
+            onChange={(e) => {
+              const next = e.target.value === 'new' ? 'new' : 'classic'
+              if (state.started && !window.confirm('Switching the avatar restarts the meeting. Continue?')) return
+              try { localStorage.setItem('aria_avatar', next) } catch { /* private window */ }
+              setAvatar(next)
+            }}
+          >
+            <option value="classic">ARIA Avatar</option>
+            <option value="new">New ARIA Avatar</option>
+          </select>
+        </label>
         <button className="meeting-chats" onClick={() => window.dispatchEvent(new Event("aria:toggle-history"))} aria-label="Chat history">Chats</button>
         <button className="meeting-exit" onClick={end} aria-label="Leave meeting"><X size={19} /></button>
       </header>
       <main className="meeting-stage">
-        <iframe ref={frame} src={src} title="ARIA live avatar" allow="microphone; autoplay" />
+        <iframe key={avatar} ref={frame} src={src} title="ARIA live avatar" allow="microphone; autoplay" />
         <div className="meeting-stage-label"><span className="meeting-presence" /><strong>ARIA</strong><span>AI research assistant</span></div>
         <div className="meeting-status" role="status" data-state={state.status}>{state.label}</div>
       </main>
