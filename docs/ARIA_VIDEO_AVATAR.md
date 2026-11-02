@@ -19,7 +19,7 @@ Implemented from the improvement list (all inside the new avatar only):
 - **Motion tied to speech:** a sudden jump in the voice's loudness triggers the gesture clip (at most every 3.5 s). The talking clips play only while the voice is on and ease back to the calm loop in pauses.
 - **Sharper:** clips are upscaled to 1280 x 720 (Lanczos plus a light sharpen). This is an enlargement of 848 x 480 footage, not new detail.
 - **Accessibility:** with "reduce motion" the face is a still image.
-- Clips are served by `/avatar/presenter-<name>.mp4`. Browser tests check the default avatar is unchanged, the new one loads and plays, and the clip switches to a talking clip while a voice plays and back after.
+- The corner mark is outside the frame (see below). Clips are served by `/avatar/presenter-<name>.mp4`. Browser tests check the default avatar is unchanged, the new one loads and plays, and the clip switches to a talking clip while a voice plays and back after.
 
 ## Real lip-sync for the New ARIA Avatar (GPU)
 - Run `scripts\start_musetalk_new_avatar.bat` (port **8011**). It loads MuseTalk with `interface/avatar/presenter-lipsync.mp4` (6.2 s of the calm footage) as the source. The first start prepares the video (face tracking and masks; a few minutes) and caches it; later starts are quick.
@@ -31,10 +31,15 @@ Implemented from the improvement list (all inside the new avatar only):
 ## What this is not
 - Without the GPU server it is **not lip-sync**: the mouth follows the clip, not the words.
 - The lip-sync source is only 6.2 s of footage, looped; the mouth is generated, so very fast or unusual speech can look less natural than the footage.
-- The sample's own generator mark is still in the footage (left in on purpose: it marks the video as AI-generated).
+- The sample's corner mark (a small sparkle at the lower right of the original frame) is outside the picture: every clip is reframed (a 668 x 376 window, centred on her face) rather than painted over. This also makes her face larger in the frame.
 
 ## What to improve next
 1. **A longer lip-sync source,** and a 1080p one: 6.2 s loops visibly, and 848 x 480 is enlarged to the stage.
 2. **More states, same character.** Serious (for risk warnings), concerned and farewell need new footage from the same generator, character and background. The lip-sync path has only the calm source; thinking and greeting use the loops.
 3. **Longer, more varied talking footage** for the no-GPU mode: three clips repeat in a long answer.
 4. **Dark-mode and mobile framing:** the crop is a centred "cover" with the face slightly above centre; check portrait phones.
+
+## Launching
+- `Launch_ARIA.bat` starts ARIA (API and web) and opens Edge. `Launch_ARIA.bat gpu` also starts the original avatar's lip-sync server (port 8010); `Launch_ARIA.bat gpu-new` starts the New ARIA Avatar's server (port 8011). Run one GPU server at a time on an 8 GB GPU.
+- Launcher fix: when a backend from before an update was still running, the launcher stopped with "ARIA could not start" instead of restarting it, because it could not see which process owned the port. It now falls back to finding the backend process by its command line and checks ports by connecting to them. After an update the launcher restarts the old backend itself, which is what makes the new video clips available (the page quietly falls back to the old avatar if they are missing).
+- The first start of the new GPU server prepares the reframed video (a few minutes) and caches it.
