@@ -1,48 +1,70 @@
-"""ai/llm/audio_script.py's deterministic word-cap backstop -- the prompt
-(get_audio_script_prompt) asks for 2-3 sentences, but LLM instruction-
-following on exact length isn't reliable. This is the actual failure mode
-that let the voice pipeline read full paragraph answers aloud (see
-tests/test_api_avatar.py::test_long_response_is_shortened_before_being_spoken
-for the end-to-end version through the Tavus route)."""
-from ai.llm.audio_script import _MAX_WORDS, _enforce_word_cap, clean_for_tts, generate_audio_script
+"""ai/llm/audio_script.py's Stage 14 blocks= support -- building the
+spoken summary from a response's terse structural blocks (metric/risk/
+recommendation/alert) instead of compressing the full assembled prose in
+`detailed_script`. See shared/blocks.py::build_audio_summary for the
+extraction logic itself."""
+from ai.llm.audio_script import generate_audio_script
+from shared.blocks import build_audio_summary
 
 
-def test_short_text_passes_through_unchanged():
-    text = "SIP stands for Systematic Investment Plan."
-    assert _enforce_word_cap(text) == text
+def test_build_audio_summary_prefers_metric_over_text():
+    blocks = [
+        {"type": "text", "content": "A very long paragraph of narration that would otherwise need compressing."},
+        {"type": "metric", "label": "Monthly SIP", "value": "10,500", "unit": "INR/month"},
+    ]
+    summary = build_audio_summary(blocks)
+    assert "Monthly SIP: 10,500 INR/month" in summary
+    assert "very long paragraph" not in summary
 
 
-def test_long_text_is_truncated_to_a_sentence_boundary():
-    text = "First sentence here is short. Second sentence adds more detail than needed. " * 10
-    result = _enforce_word_cap(text)
-    words = result.split()
-    # Capped near _MAX_WORDS, plus a handful more for the appended closing
-    # phrase -- not unbounded like the input.
-    assert len(words) <= _MAX_WORDS + 10
-    assert result.endswith("Check the chat for the full details.")
+def test_build_audio_summary_includes_risk_and_recommendation():
+    blocks = [
+        {"type": "risk", "score": 0.82, "level": "Aggressive", "factors": []},
+        {"type": "recommendation", "title": "Consider an index fund", "rationale": "Matches your long horizon.", "actions": []},
+    ]
+    summary = build_audio_summary(blocks)
+    assert "Risk level: Aggressive (82% confidence)" in summary
+    assert "Consider an index fund: Matches your long horizon." in summary
 
 
-def test_truncation_does_not_cut_off_mid_sentence():
-    text = "Alpha beta gamma delta epsilon zeta eta theta iota kappa. " * 5
-    result = _enforce_word_cap(text)
-    # Everything before the appended closing phrase must end with real
-    # sentence-ending punctuation, not a bare truncated word.
-    before_closing = result.rsplit("Check the chat", 1)[0].strip()
-    assert before_closing.endswith((".", "!", "?"))
+def test_build_audio_summary_falls_back_to_text_when_no_structural_blocks():
+    blocks = [{"type": "text", "content": "Diversification means spreading your investments."}]
+    assert build_audio_summary(blocks) == "Diversification means spreading your investments."
 
 
-def test_generate_audio_script_returns_friendly_message_on_backend_error(monkeypatch):
+def test_build_audio_summary_empty_blocks_returns_empty_string():
+    assert build_audio_summary([]) == ""
+
+
+def test_generate_audio_script_uses_blocks_summary_over_detailed_script(monkeypatch):
     import ai.llm.audio_script as audio_script
 
-    monkeypatch.setattr(audio_script, "generate_audio", lambda prompt: "Error: backend down")
-    result = generate_audio_script("some detailed narration")
-    assert "went wrong" in result.lower()
+    captured_prompts = []
+    monkeypatch.setattr(audio_script, "generate_audio", lambda prompt: captured_prompts.append(prompt) or "spoken summary")
+
+    generate_audio_script(
+        "A very long detailed narration string that should be ignored when blocks are given.",
+        blocks=[{"type": "metric", "label": "Monthly SIP", "value": "10,500", "unit": "INR/month"}],
+    )
+    assert any("Monthly SIP: 10,500 INR/month" in p for p in captured_prompts)
+    assert not any("very long detailed narration" in p for p in captured_prompts)
 
 
-def test_generate_audio_script_handles_empty_input():
-    assert "couldn't generate" in generate_audio_script("").lower()
-    assert "couldn't generate" in generate_audio_script("   ").lower()
+def test_generate_audio_script_falls_back_to_detailed_script_when_blocks_omitted(monkeypatch):
+    import ai.llm.audio_script as audio_script
+
+    captured_prompts = []
+    monkeypatch.setattr(audio_script, "generate_audio", lambda prompt: captured_prompts.append(prompt) or "spoken summary")
+
+    generate_audio_script("Some narration text.")
+    assert any("Some narration text." in p for p in captured_prompts)
 
 
-def test_clean_for_tts_collapses_whitespace_and_adds_pauses():
-    assert clean_for_tts("Hello.  World.\nAgain.") == "Hello... World... Again."
+def test_generate_audio_script_falls_back_when_blocks_carry_no_usable_content(monkeypatch):
+    import ai.llm.audio_script as audio_script
+
+    captured_prompts = []
+    monkeypatch.setattr(audio_script, "generate_audio", lambda prompt: captured_prompts.append(prompt) or "spoken summary")
+
+    generate_audio_script("Fallback narration.", blocks=[])
+    assert any("Fallback narration." in p for p in captured_prompts)
