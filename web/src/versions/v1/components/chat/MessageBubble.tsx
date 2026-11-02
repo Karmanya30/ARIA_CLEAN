@@ -4,6 +4,7 @@ import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp, User } from 'lucide-react
 import type { HistoryTurn } from '../../types'
 import { ResponseCard } from './ResponseCard'
 import { ResearchReport } from './ResearchReport'
+import { BlockList } from './BlockRenderer'
 import { QuizWidget } from './QuizWidget'
 import { api } from '../../api'
 import { IntelligenceSummary } from './IntelligenceSummary'
@@ -16,6 +17,9 @@ const SUGGESTIONS: Record<string, string[]> = {
   equity_research: ['Show the bear case', 'How does it compare with its peers?'],
   company_intelligence: ['Show the bear case', 'How does it compare with its peers?'],
 }
+
+// Written text, explanations and quizzes are already shown by the answer text and the quiz widget; only the structured extras come from blocks.
+const PLAIN_BLOCKS = new Set(['text', 'explanation', 'definition', 'mcq', 'hint'])
 
 export function MessageBubble({
   turn,
@@ -83,6 +87,9 @@ export function MessageBubble({
                 </>
               )}
             </div>
+          )}
+          {Array.isArray(response.blocks) && response.blocks.some((b) => !PLAIN_BLOCKS.has(b.type)) && (
+            <BlockList blocks={response.blocks.filter((b) => !PLAIN_BLOCKS.has(b.type))} sessionId={sessionId} seed={`${sessionId}-${turn.query}`} onQuizAnswered={onQuizAnswered} />
           )}
           {response.domain === 'company_intelligence' && <IntelligenceSummary data={response} />}
           {response.profile_basis && <p className="bubble-caption">{response.profile_basis}</p>}

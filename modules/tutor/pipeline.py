@@ -13,6 +13,7 @@ from loguru import logger
 from ai.llm.groq_client import generate_response
 from modules.tutor import orchestrator as m2_orchestrator
 from shared import finance_knowledge
+from shared.blocks import MasteryBlock, dump_blocks, text_or_error_blocks
 from shared.ner import extract_entities
 
 
@@ -65,10 +66,12 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
         response_text = taxal_text(taxal)
         if want_quiz and result["quiz"]:
             response_text = f"Here's a quick question on {result['concept_name']}. Pick the answer you think is right."
+        blocks = [*text_or_error_blocks(response_text), MasteryBlock(topic=result["concept_name"], concept_id=result["concept_id"], score=result["mastery"]).model_dump()]  # the quiz itself is shown by the quiz widget
         return {
             "domain": "tutor",
             "query": query,
             "response": response_text,
+            "blocks": blocks,
             "concept": result["concept_name"],
             "concept_id": result["concept_id"],
             "level": result["level"],
@@ -86,7 +89,7 @@ def run_pipeline(query: str, user_id: str = "default") -> dict[str, Any]:
     grounding = finance_knowledge.grounding_for(query)  # curated passages for finance topics outside the concept KB (REIT, arbitrage, ...)
     prompt = augment(query, CONVERSATION_SYSTEM) + (chr(10) * 2 + "REFERENCE PASSAGES (use where relevant, do not contradict):" + chr(10) + grounding if grounding else "")
     answer = generate_response(prompt, system_prompt=CONVERSATION_SYSTEM)
-    return {"domain": "tutor", "query": query, "context": {}, "response": answer}
+    return {"domain": "tutor", "query": query, "context": {}, "response": answer, "blocks": text_or_error_blocks(answer)}
 
 
 def run(query: str, user_id: str = "default", *args: Any, **kwargs: Any) -> dict[str, Any]:
