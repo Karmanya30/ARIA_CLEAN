@@ -290,12 +290,15 @@ def test_sc03_websocket_requires_session_origin_and_matching_owner(accounts):
 
 
 def test_sc04_idle_websockets_cannot_starve_the_server(private):
-    """ResourceLimits.max_active (16) counts open sockets; 16 idle sockets make every other request 503."""
+    """Open sockets have their own cap (4 per peer) and do not use the request slots, so other requests keep working."""
     with ExitStack() as stack:
-        for _ in range(16):
+        for _ in range(4):
             stack.enter_context(private.websocket_connect("/api/live/ws"))
+        with pytest.raises(Exception):  # a fifth from the same peer is refused
+            with private.websocket_connect("/api/live/ws") as extra:
+                extra.receive_json()
         r = private.get("/api/health")
-        assert r.status_code == 200, f"/api/health answers {r.status_code} while 16 idle sockets are open"
+        assert r.status_code == 200, f"/api/health answers {r.status_code} while 4 idle sockets are open"
 
 
 # ---------------------------------------------------------------- D. injection, traversal, response headers
