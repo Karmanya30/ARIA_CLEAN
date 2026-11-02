@@ -110,7 +110,7 @@ def build(handler: Handler, parallel: bool = False):
         first = next((r["response"] for r in parts if r.get("ok")), None) or {}
         merged = {"domain": first.get("domain", "general"), "response": "\n\n".join(blocks), "multi_part": True,
                   "parts": [{"query": r["query"], "label": r["label"], "domain": (r["response"] or {}).get("domain"), "ok": bool(r.get("ok"))} for r in parts],
-                  "grounding": {"numbers_checked": all((r.get("grounding") or {}).get("numbers_checked") for r in parts if r.get("ok")),
+                  "grounding": {"numbers_checked": ok_parts > 0 and all((r.get("grounding") or {}).get("numbers_checked") for r in parts if r.get("ok")),
                                 "passed": all((r.get("grounding") or {}).get("passed", False) for r in parts), "fallback": ok_parts < len(parts),
                                 "unavailable": [r["query"] for r in parts if not r.get("ok")], "per_part": True}}
         # evidence of the first answered part travels with the merged reply so the UI can still show its context/report
