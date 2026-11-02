@@ -1,0 +1,182 @@
+[
+ {
+  "id": "FCS-001",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "ratio food Jan (8000/100000)",
+  "kind": "reference",
+  "actual": 0.08,
+  "expected": 0.08,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "FCS-002",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "empty history => zero forecast",
+  "kind": "boundary",
+  "actual": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "expected": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "FCS-003",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "income<=0 with history",
+  "kind": "invalid",
+  "actual": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "FCS-004",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "P10<=P50<=P90 for all categories/months",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "crossings=[] n=0"
+ },
+ {
+  "id": "FCS-005",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "non-negative",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "FCS-006",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "food forecast on flat history of 8000/mo (income 1L)",
+  "kind": "accuracy",
+  "actual": {
+   "p50": [
+    13793.68,
+    13591.29,
+    13141.97
+   ],
+   "p10": [
+    10067.9,
+    9506.38,
+    10070.71
+   ],
+   "p90": [
+    17458.61,
+    17400.68,
+    17414.9
+   ]
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "naive forecast = 8000"
+ },
+ {
+  "id": "FCS-007",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "housing forecast on flat history of 20000/mo (income 1L)",
+  "kind": "accuracy",
+  "actual": {
+   "p50": [
+    17185.28,
+    18630.26,
+    18752.2
+   ],
+   "p10": [
+    12446.94,
+    13385.34,
+    13939.86
+   ],
+   "p90": [
+    22412.71,
+    26037.45,
+    23719.45
+   ]
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "naive forecast = 20000"
+ },
+ {
+  "id": "FCS-008",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "emi forecast on flat history of 8000/mo (income 1L)",
+  "kind": "accuracy",
+  "actual": {
+   "p50": [
+    9023.25,
+    8581.36,
+    9437.17
+   ],
+   "p10": [
+    6387.3,
+    6133.94,
+    6662.13
+   ],
+   "p90": [
+    10355.95,
+    10691.26,
+    11714.93
+   ]
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "naive forecast = 8000"
+ },
+ {
+  "id": "FCS-009",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "transport forecast on flat history of 3000/mo (income 1L)",
+  "kind": "accuracy",
+  "actual": {
+   "p50": [
+    5415.51,
+    5407.95,
+    5488.38
+   ],
+   "p10": [
+    3689.84,
+    3277.09,
+    3438.81
+   ],
+   "p90": [
+    8302.76,
+    8101.38,
+    8308.39
+   ]
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "naive forecast = 3000"
+ },
+ {
+  "id": "FCS-010",
+  "feature": "Spend forecast LSTM (forecast_model.py)",
+  "case": "food forecast, same rupee spend, income 2L",
+  "kind": "scale",
+  "actual": [
+   26300.67,
+   26240.84,
+   25546.99
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "ratio-scaled model: input ratio halves"
+ }
+]

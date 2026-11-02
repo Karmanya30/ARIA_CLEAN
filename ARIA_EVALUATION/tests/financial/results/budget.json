@@ -1,0 +1,374 @@
+[
+ {
+  "id": "BUD-001",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=100000 emi=0 t1 Moderate em=6",
+  "kind": "reference",
+  "actual": 25000.0,
+  "expected": 25000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-002",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=100000 emi=0",
+  "kind": "property",
+  "actual": 100000.0,
+  "expected": 100000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-003",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=100000 emi=0",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-004",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=100000 emi=0 t1 Moderate",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 68.0,
+   "transport": 3.0,
+   "utilities": 4.0,
+   "emi": 0.0,
+   "sip": 25.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 0.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-005",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=100000 emi=20000 t1 Aggressive em=3",
+  "kind": "reference",
+  "actual": 35000.0,
+  "expected": 35000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-006",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=100000 emi=20000",
+  "kind": "property",
+  "actual": 100000.0,
+  "expected": 100000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-007",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=100000 emi=20000",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-008",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=100000 emi=20000 t1 Aggressive",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 33.0,
+   "transport": 3.0,
+   "utilities": 4.0,
+   "emi": 20.0,
+   "sip": 35.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 5.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-009",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=60000 emi=10000 t2 Conservative em=0",
+  "kind": "reference",
+  "actual": 9000.0,
+  "expected": 9000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-010",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=60000 emi=10000",
+  "kind": "property",
+  "actual": 60000.0,
+  "expected": 60000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-011",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=60000 emi=10000",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-012",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=60000 emi=10000 t2 Conservative",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 54.2,
+   "transport": 4.2,
+   "utilities": 5.0,
+   "emi": 16.7,
+   "sip": 15.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 5.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-013",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=40000 emi=25000 t3 Moderate em=2",
+  "kind": "reference",
+  "actual": 4000.0,
+  "expected": 4000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-014",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=40000 emi=25000",
+  "kind": "property",
+  "actual": 40000.0,
+  "expected": 40000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-015",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=40000 emi=25000",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-016",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=40000 emi=25000 t3 Moderate",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 12.5,
+   "transport": 5.0,
+   "utilities": 5.0,
+   "emi": 62.5,
+   "sip": 10.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 5.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-017",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=30000 emi=0 t3 Aggressive em=6",
+  "kind": "reference",
+  "actual": 10500.0,
+  "expected": 10500,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-018",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=30000 emi=0",
+  "kind": "property",
+  "actual": 30000.0,
+  "expected": 30000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-019",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=30000 emi=0",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-020",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=30000 emi=0 t3 Aggressive",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 51.7,
+   "transport": 6.7,
+   "utilities": 6.7,
+   "emi": 0.0,
+   "sip": 35.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 0.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-021",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "SIP max inc=250000 emi=50000 t1 Moderate em=12",
+  "kind": "reference",
+  "actual": 62500.0,
+  "expected": 62500,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-022",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "allocation sums to income (per-line rounding) inc=250000 emi=50000",
+  "kind": "property",
+  "actual": 250000.0,
+  "expected": 250000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-023",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "housing<=35% ent<=15% floors met inc=250000 emi=50000",
+  "kind": "constraint",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-024",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "split inc=250000 emi=50000 t1 Moderate",
+  "kind": "realism",
+  "actual": {
+   "housing": 0.0,
+   "food": 52.2,
+   "transport": 1.2,
+   "utilities": 1.6,
+   "emi": 20.0,
+   "sip": 25.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 0.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "percent of income per line"
+ },
+ {
+  "id": "BUD-025",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "income 0",
+  "kind": "invalid",
+  "actual": "ValueError: Cannot optimize a budget for zero or negative income.",
+  "expected": "raises ValueError",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-026",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "income negative",
+  "kind": "invalid",
+  "actual": "ValueError: Cannot optimize a budget for zero or negative income.",
+  "expected": "raises ValueError",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-027",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "EMI+floors > income",
+  "kind": "infeasible",
+  "actual": "ValueError: Budget is infeasible: fixed EMI (₹15,000) plus minimum living costs (₹18,000) al",
+  "expected": "raises ValueError",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "BUD-028",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "negative EMI -5000",
+  "kind": "invalid",
+  "actual": {
+   "housing": 0.0,
+   "food": 58000.0,
+   "transport": 3000.0,
+   "utilities": 4000.0,
+   "emi": -5000.0,
+   "sip": 20000.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 0.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "BUD-029",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "NaN income",
+  "kind": "invalid",
+  "actual": "EXC ValueError: Invalid input for linprog: b_eq must not contain values inf, nan, or None",
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "BUD-030",
+  "feature": "Budget LP (budget_optimize.py)",
+  "case": "unknown tier 9 / unknown risk 'Zzz'",
+  "kind": "invalid",
+  "actual": {
+   "housing": 0.0,
+   "food": 53000.0,
+   "transport": 3000.0,
+   "utilities": 4000.0,
+   "emi": 0.0,
+   "sip": 20000.0,
+   "entertainment": 0.0,
+   "emergency_fund_add": 0.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "silent fallback to tier-1 floors / Moderate cap"
+ }
+]

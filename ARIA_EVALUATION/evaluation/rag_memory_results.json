@@ -1,0 +1,310 @@
+{
+ "n40_facts_oldest": {
+  "archive_turns": 60,
+  "build_s": 17.4,
+  "paraphrase_semantic_cold": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.7,
+   "recall_in_selected_set": 0.85,
+   "mrr_at_5": 0.562,
+   "mean_selected": 8.1,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 121.8,
+   "p95_ms": 150.0,
+   "first_query_ms": 203.4
+  },
+  "paraphrase_semantic_warm": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.7,
+   "recall_in_selected_set": 0.85,
+   "mrr_at_5": 0.562,
+   "mean_selected": 8.1,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 92.5,
+   "p95_ms": 118.5,
+   "first_query_ms": 86.0
+  },
+  "paraphrase_lexical_only": {
+   "kind": "paraphrase",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 0.15,
+   "recall_in_selected_set": 0.2,
+   "mrr_at_5": 0.15,
+   "mean_selected": 2.9,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 7.7,
+   "p95_ms": 9.5,
+   "first_query_ms": 4.2
+  },
+  "lexical_query_semantic": {
+   "kind": "lexical",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 1.0,
+   "recall_in_selected_set": 1.0,
+   "mrr_at_5": 1.0,
+   "mean_selected": 7.8,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 113.9,
+   "p95_ms": 130.2,
+   "first_query_ms": 103.4
+  },
+  "lexical_query_lexical_only": {
+   "kind": "lexical",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 1.0,
+   "recall_in_selected_set": 1.0,
+   "mrr_at_5": 1.0,
+   "mean_selected": 3.5,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 6.5,
+   "p95_ms": 8.1,
+   "first_query_ms": 3.5
+  },
+  "context_for_lexical_queries": {
+   "n": 20,
+   "gold_included": 20,
+   "context_recall": 1.0,
+   "mean_records_included": 6.0,
+   "context_precision_mean": 0.168,
+   "mean_memory_tokens_utf8_bound": 4285,
+   "token_budget": 6000
+  },
+  "followup_reference_resolved": {
+   "what are its returns?": false,
+   "what is it about?": true,
+   "tell me more about this": true,
+   "how has that performed?": true,
+   "and their fees?": false,
+   "what about the same fund?": false,
+   "compare it with Nifty": true,
+   "isme kitna return hai?": false,
+   "continue": true,
+   "what are the returns?": false
+  },
+  "correction": {
+   "old_in_selected": true,
+   "corrected_in_selected": true,
+   "note": "both are replayed; only MEMORY_RULES text (not code) tells the model the later one supersedes"
+  },
+  "tag_breakout": {
+   "raw_closing_tag_in_context": true,
+   "occurrences": 2,
+   "stored_assistant_text_replayed": true
+  },
+  "isolation": {
+   "records_visible_to_other_owner": 0,
+   "leaked": false
+  },
+  "clear": {
+   "cleared_fact_still_retrievable": false
+  }
+ },
+ "n400_facts_oldest": {
+  "archive_turns": 420,
+  "build_s": 139.0,
+  "paraphrase_semantic_cold": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.05,
+   "recall_in_selected_set": 0.05,
+   "mrr_at_5": 0.05,
+   "mean_selected": 9.2,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 362.2,
+   "p95_ms": 426.7,
+   "first_query_ms": 435.5
+  },
+  "paraphrase_semantic_warm": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.05,
+   "recall_in_selected_set": 0.05,
+   "mrr_at_5": 0.05,
+   "mean_selected": 9.2,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 343.0,
+   "p95_ms": 391.0,
+   "first_query_ms": 375.9
+  },
+  "paraphrase_lexical_only": {
+   "kind": "paraphrase",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 0.2,
+   "recall_in_selected_set": 0.2,
+   "mrr_at_5": 0.163,
+   "mean_selected": 5.0,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 38.7,
+   "p95_ms": 55.8,
+   "first_query_ms": 55.8
+  },
+  "lexical_query_semantic": {
+   "kind": "lexical",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.6,
+   "recall_in_selected_set": 0.6,
+   "mrr_at_5": 0.6,
+   "mean_selected": 8.6,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 346.7,
+   "p95_ms": 390.2,
+   "first_query_ms": 311.0
+  },
+  "lexical_query_lexical_only": {
+   "kind": "lexical",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 1.0,
+   "recall_in_selected_set": 1.0,
+   "mrr_at_5": 1.0,
+   "mean_selected": 5.9,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 38.1,
+   "p95_ms": 54.7,
+   "first_query_ms": 40.4
+  },
+  "context_for_lexical_queries": {
+   "n": 20,
+   "gold_included": 12,
+   "context_recall": 0.6,
+   "mean_records_included": 4.3,
+   "context_precision_mean": 0.14,
+   "mean_memory_tokens_utf8_bound": 3908,
+   "token_budget": 6000
+  },
+  "isolation": {
+   "records_visible_to_other_owner": 0,
+   "leaked": false
+  },
+  "clear": {
+   "cleared_fact_still_retrievable": false
+  }
+ },
+ "n400_facts_newest": {
+  "archive_turns": 420,
+  "build_s": 104.7,
+  "paraphrase_semantic_cold": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.6,
+   "recall_in_selected_set": 0.65,
+   "mrr_at_5": 0.487,
+   "mean_selected": 9.7,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 289.0,
+   "p95_ms": 355.5,
+   "first_query_ms": 282.6
+  },
+  "paraphrase_semantic_warm": {
+   "kind": "paraphrase",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 0.6,
+   "recall_in_selected_set": 0.65,
+   "mrr_at_5": 0.487,
+   "mean_selected": 9.7,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 290.6,
+   "p95_ms": 307.8,
+   "first_query_ms": 290.3
+  },
+  "paraphrase_lexical_only": {
+   "kind": "paraphrase",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 0.2,
+   "recall_in_selected_set": 0.2,
+   "mrr_at_5": 0.163,
+   "mean_selected": 5.0,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 33.3,
+   "p95_ms": 41.4,
+   "first_query_ms": 27.6
+  },
+  "lexical_query_semantic": {
+   "kind": "lexical",
+   "semantic_flag": true,
+   "n_queries": 20,
+   "recall_at_5": 1.0,
+   "recall_in_selected_set": 1.0,
+   "mrr_at_5": 1.0,
+   "mean_selected": 9.2,
+   "semantic_status": [
+    "ok"
+   ],
+   "p50_ms": 287.6,
+   "p95_ms": 335.9,
+   "first_query_ms": 326.6
+  },
+  "lexical_query_lexical_only": {
+   "kind": "lexical",
+   "semantic_flag": false,
+   "n_queries": 20,
+   "recall_at_5": 1.0,
+   "recall_in_selected_set": 1.0,
+   "mrr_at_5": 1.0,
+   "mean_selected": 5.9,
+   "semantic_status": [
+    "disabled"
+   ],
+   "p50_ms": 32.6,
+   "p95_ms": 43.9,
+   "first_query_ms": 43.9
+  },
+  "context_for_lexical_queries": {
+   "n": 20,
+   "gold_included": 20,
+   "context_recall": 1.0,
+   "mean_records_included": 5.5,
+   "context_precision_mean": 0.18,
+   "mean_memory_tokens_utf8_bound": 4352,
+   "token_budget": 6000
+  },
+  "isolation": {
+   "records_visible_to_other_owner": 0,
+   "leaked": false
+  },
+  "clear": {
+   "cleared_fact_still_retrievable": false
+  }
+ },
+ "swallowed_embedding_exceptions": []
+}

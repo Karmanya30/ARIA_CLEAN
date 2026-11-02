@@ -1,0 +1,1952 @@
+[
+ {
+  "width": 1920,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1920,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1920,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ },
+ {
+  "width": 1440,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1440,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1440,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ },
+ {
+  "width": 1280,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1280,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1280,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ },
+ {
+  "width": 1100,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 20,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 10,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 1100,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 1100,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ },
+ {
+  "width": 768,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 768,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 768,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ },
+ {
+  "width": 390,
+  "route": "markets",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Markets"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 11,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "explore",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Explore"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "chat",
+  "inMeeting": true,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 0,
+  "h1text": [],
+  "landmarks": {
+   "main": 2,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 2,
+  "console": [
+   "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "warning: Talking photo unavailable, using the 3D avatar TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "error: Failed to load resource: net::ERR_FAILED",
+   "error: TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ],
+  "failed": [
+   "GET http://127.0.0.1:8010/health net::ERR_CONNECTION_REFUSED",
+   "GET https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs net::ERR_FAILED",
+   "GET https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs net::ERR_FAILED"
+  ],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "research",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Research reports"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "intelligence",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Company intelligence"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "profile",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Your Finance Profile"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "progress",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Your Learning Progress"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "feedback",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Help shape ARIA"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 1,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "settings",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Settings"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 1
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "route": "disclaimers",
+  "inMeeting": false,
+  "sideScroll": false,
+  "scrollW": 390,
+  "h1": 1,
+  "h1text": [
+   "Disclaimers"
+  ],
+  "landmarks": {
+   "main": 1,
+   "nav": 2
+  },
+  "unnamedBtn": [],
+  "unnamedBtnCount": 0,
+  "unlabeled": [],
+  "unlabeledCount": 0,
+  "small": 2,
+  "over": [],
+  "tabs": 9,
+  "tabsOut": [],
+  "navOverflow": false,
+  "imgNoAlt": 0,
+  "title": "ARIA",
+  "lang": "en",
+  "mainMulti": 1,
+  "console": [],
+  "failed": [],
+  "http": []
+ },
+ {
+  "width": 390,
+  "externalRequests": [
+   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1a7ca9c8a9/modules/talkinghead.mjs"
+  ]
+ }
+]

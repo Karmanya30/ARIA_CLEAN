@@ -1,0 +1,119 @@
+{
+ "data": {
+  "conversations": 151,
+  "turns_for_owner": 9000,
+  "turns_all_owners": 9400,
+  "avg_response_json_bytes": 4645,
+  "seed_s": 1.8,
+  "db_file_mb": 45.1
+ },
+ "list_page1": {
+  "n": 40,
+  "errors": 0,
+  "p50_ms": 75.4,
+  "p95_ms": 104.1,
+  "p99_ms": 113.8,
+  "max_ms": 118.4,
+  "resp_kb": 5.4
+ },
+ "list_page_deep_offset150": {
+  "n": 20,
+  "errors": 0,
+  "p50_ms": 74.3,
+  "p95_ms": 86.0,
+  "p99_ms": 94.2,
+  "max_ms": 96.2,
+  "resp_kb": 0.2
+ },
+ "search_title_hit(q=nifty)": {
+  "n": 15,
+  "errors": 0,
+  "p50_ms": 321.6,
+  "p95_ms": 355.5,
+  "p99_ms": 357.9,
+  "max_ms": 358.5,
+  "resp_kb": 6.5
+ },
+ "search_body_rare(q=question 7)": {
+  "n": 15,
+  "errors": 0,
+  "p50_ms": 297.9,
+  "p95_ms": 316.7,
+  "p99_ms": 317.7,
+  "max_ms": 317.9,
+  "resp_kb": 6.5
+ },
+ "search_miss(q=zzzqqq)": {
+  "n": 15,
+  "errors": 0,
+  "p50_ms": 238.4,
+  "p95_ms": 252.0,
+  "p99_ms": 253.1,
+  "max_ms": 253.3,
+  "resp_kb": 0.0
+ },
+ "messages_page50_big": {
+  "n": 40,
+  "errors": 0,
+  "p50_ms": 13.5,
+  "p95_ms": 15.9,
+  "p99_ms": 73.0,
+  "max_ms": 107.7,
+  "resp_kb": 236.3
+ },
+ "messages_page50_small": {
+  "n": 40,
+  "errors": 0,
+  "p50_ms": 12.6,
+  "p95_ms": 15.0,
+  "p99_ms": 16.4,
+  "max_ms": 16.4,
+  "resp_kb": 188.7
+ },
+ "export_json_big": {
+  "n": 5,
+  "errors": 0,
+  "p50_ms": 231.8,
+  "p95_ms": 337.9,
+  "p99_ms": 350.1,
+  "max_ms": 353.2,
+  "resp_kb": 14671.4
+ },
+ "export_json_50turns": {
+  "n": 10,
+  "errors": 0,
+  "p50_ms": 11.7,
+  "p95_ms": 13.8,
+  "p99_ms": 14.3,
+  "max_ms": 14.5,
+  "resp_kb": 195.3
+ },
+ "chat_history_unpaged_big": {
+  "n": 8,
+  "errors": 0,
+  "p50_ms": 186.3,
+  "p95_ms": 245.3,
+  "p99_ms": 266.3,
+  "max_ms": 271.6,
+  "resp_kb": 14166.2
+ },
+ "chat_history_unpaged_50turns": {
+  "n": 20,
+  "errors": 0,
+  "p50_ms": 12.2,
+  "p95_ms": 14.0,
+  "p99_ms": 14.1,
+  "max_ms": 14.1,
+  "resp_kb": 193.1
+ },
+ "memory_retrieve_bm25_owner_archive": {
+  "n": 9,
+  "p50_ms": 3244.2,
+  "max_ms": 3400.8,
+  "archive_records": 9000
+ },
+ "memory_build_context_ms_single": 3129.9,
+ "memory_context_chars": 4848,
+ "memory_context_tokens_utf8_upper_bound": 4849,
+ "rss_mb_end": 198
+}

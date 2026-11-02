@@ -1,0 +1,38 @@
+[
+ {
+  "import_api_main": {
+   "s": 1.06,
+   "rss_mb": 152
+  },
+  "import_core_orchestrator": {
+   "s": 10.16,
+   "rss_mb": 503
+  },
+  "sbert_load": {
+   "s": 0.35,
+   "rss_mb": 528
+  },
+  "sbert_first_encode": {
+   "s": 0.04,
+   "rss_mb": 575
+  },
+  "speller": {
+   "s": 1.28,
+   "rss_mb": 644
+  },
+  "ner_first_call": {
+   "s": 0.0,
+   "rss_mb": 644
+  },
+  "finbert_first_score": {
+   "s": 1.38,
+   "rss_mb": 1089
+  },
+  "concept_kb_first_search": {
+   "s": 0.01,
+   "rss_mb": 1089
+  },
+  "peak_rss_mb": 1089,
+  "wall_s": 17.5
+ }
+]

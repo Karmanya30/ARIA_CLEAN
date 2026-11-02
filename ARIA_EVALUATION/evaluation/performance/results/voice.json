@@ -1,0 +1,38 @@
+{
+ "piper_available": true,
+ "piper_load_plus_first_synth_s": 2.51,
+ "piper": {
+  "n": 20,
+  "p50_ms": 265,
+  "p95_ms": 323,
+  "max_ms": 335,
+  "rtf_p50": 0.049,
+  "rtf_p95": 0.055,
+  "audio_s_per_clip": [
+   4.0,
+   6.8,
+   5.5,
+   2.9,
+   6.5
+  ]
+ },
+ "whisper_load_s": 5.49,
+ "whisper_device": "cpu",
+ "whisper_cpu": {
+  "n": 10,
+  "p50_ms": 1879,
+  "p95_ms": 2262,
+  "max_ms": 2403,
+  "clip_s": 5.2,
+  "sample_transcript_nonempty": true
+ },
+ "rss_mb_inproc": 1087,
+ "event_loop_block": {
+  "transcribe_status": 200,
+  "transcribe_ms": 1748,
+  "health_polls_during": 1,
+  "health_max_ms_during": 1706,
+  "health_max_ms_before": 27
+ },
+ "peak_rss_mb_inproc": 1204
+}

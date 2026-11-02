@@ -1,0 +1,125 @@
+{
+ "md": {
+  "html": "<h2>Your SIP</h2>\n<p>Monthly <strong>₹10,000</strong> for 10 years at 12% gives about ₹23.2 lakh.</p>\n<table><thead><tr><th>Year</th><th>Value</th></tr></thead><tbody><tr><td>1</td><td>₹1,26,825</td></tr><tr><td>10</td><td>₹23,23,391</td></tr></tbody></table>\n<p></p>\n&lt;script&gt;window.__xss=1&lt;/script&gt; [link](https://example.com) \n<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n<p>Long unbroken text xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>",
+  "img": 1,
+  "actions": [
+   "Copy answer",
+   "Regenerate answer",
+   "What is my financial health score?",
+   "Can I start a SIP of ₹10,000?",
+   "What if I cut my expenses by ₹5,000 a mo"
+  ],
+  "links": [],
+  "sideScroll": false,
+  "tableScroll": {
+   "tw": 698,
+   "pw": 698,
+   "ov": "visible"
+  }
+ },
+ "copyLabel": "Copy answer",
+ "rateDisabledNoId": [],
+ "suggestionChips": [
+  "What is my financial health score?",
+  "Can I start a SIP of ₹10,000?",
+  "What if I cut my expenses by ₹5,000 a mo"
+ ],
+ "md390": {
+  "side": [
+   390,
+   390
+  ]
+ },
+ "feedback": {
+  "fields": [
+   [
+    "INPUT",
+    "text",
+    true,
+    null,
+    100,
+    ""
+   ],
+   [
+    "INPUT",
+    "email",
+    true,
+    null,
+    254,
+    ""
+   ],
+   [
+    "SELECT",
+    "select-one",
+    false,
+    null,
+    null,
+    ""
+   ],
+   [
+    "SELECT",
+    "select-one",
+    true,
+    null,
+    null,
+    ""
+   ],
+   [
+    "TEXTAREA",
+    "textarea",
+    true,
+    null,
+    5000,
+    ""
+   ]
+  ],
+  "btns": [
+   "Send feedback"
+  ],
+  "text": "YOUR VOICE MATTERS\nHelp shape ARIA\n\nTell us what works, what could be better, or where you found a bug. Your feedback helps us improve.\n\nShare your feedback\n\nAll fields are required so we can understand your experience and reach you if needed.\n\nYour name\nEmail address\nWhat would you like to share?\nFeedback\nBug report\nFeature suggestion\nOther\nHow did you hear about ARIA?\nSelect an option\nFriend or colleague\nCollege or university\nSocial media\nSearch engine\nEvent or presentation\nOther\nYour message\n",
+  "sendDisabledAtStart": false,
+  "afterShort": "ail helps.\n\nHave an idea for ARIA or found something that doesn’t feel right? We’d love to hear about it.\n\nReporting a bug?\n\nTell us what you were doing, what happened and what you expected. Please leave out passwords and sensitive financial details.",
+  "afterBadEmail": "ail helps.\n\nHave an idea for ARIA or found something that doesn’t feel right? We’d love to hear about it.\n\nReporting a bug?\n\nTell us what you were doing, what happened and what you expected. Please leave out passwords and sensitive financial details."
+ },
+ "profile": {
+  "text": "Your Finance Profile\n\nTell ARIA about yourself once and every answer gets personal. Everything here is optional.\n\nTell ARIA about yourself once and every answer gets personal. Start with the quick form below and skip anything you like.\nProfile 0% complete\nStill missing:\nAge\nPeople who depend on you\nMonthly take-home income\nIncome pattern\nMonthly expenses\nWhat you own\n+8 more\n1\nAbout you\n2\nIncome & expenses\n3\nAssets\n4\nLoans & insurance\n5\nGoals & preferences\nAbout you\n\nUsed to pick sensible benchmarks, like how big your emergency fund should be. Leave anything blank to skip it.\n\nAge\nCity\nCity type\nSkip / not sure\nMetro (tier 1)\nLarge city (tier 2)\nSmaller town (tier 3)\nWork\nSkip / not sure\nSal",
+  "btns": [
+   "Age",
+   "People who depend on you",
+   "Monthly take-home income",
+   "Income pattern",
+   "Monthly expenses",
+   "What you own",
+   "1About you",
+   "2Income & expenses",
+   "3Assets",
+   "4Loans & insurance",
+   "5Goals & preferences",
+   "Back",
+   "Skip",
+   "Save & next",
+   "Delete all my finance data",
+   "Hide",
+   "Add transaction",
+   "Load sample transactions (demo)"
+  ]
+ },
+ "exploreEmpty": "Explore\n\nFind any stock, mutual fund, ETF, coin, bond, index, commodity or currency. Open it to see its price, history and risks, test a SIP, and ask ARIA about it.\n\nSearch all instruments\nAll\nStocks\nMutual funds\nETFs\nCrypto\nBonds\nIndices\nCommodities\nCurrencies\n\nNo match for “zzzzqx”. Check the spelling, try the ticker or the fund house name, or choose All.",
+ "exploreResults": 12,
+ "drawer": {
+  "dialog": 1,
+  "text": "ICICI Prudential Nifty 50 ETF\nNIFTYIETF.NS · ETF · INR\n✕\nPrice\n₹212.68\n▲ +0.52\n▲ +0.25%\nData · Yahoo Finance · 12 Oct, 00:00 IST\nPrices are delayed about 15 minutes (Yahoo Finance); when the market is closed this is the last close.\nStale: showing the last value ARIA could fetch\nMarket risk\nTracking error\n\nA company.\n\n1D\n5D\n1M\n6M\n1Y\n5Y\nMax\n\t\n\t\n\n\t\n\t\nMove over or touch the chart to read a point.\nData · Yahoo Finance\nView data as table\nDay low\n210.55\nDay high\n214.80\n52-week low\n99.05\n52-week high\n223.24\nVolume\n1K\nMarket cap\n12.35Cr\nSector\nEnergy\nFirst date\n2021-01-12\nLast date\n2026-10-12\nReturn since start pct\n112.57\nCagr since start pct\n14.02\nReturn 1m pct\n-3.32\nReturn 3m pct\n-1.18\nReturn 6m pc"
+ },
+ "drawerEsc": 0,
+ "intelAtStart": "Company intelligence\n\nOne score that weighs business quality, valuation, price trend and what the news and management are saying, and flags where they disagree. It is a way to decide where to look closer, not a recommendation.\n\nAnalyse\nTry\nTCS\nInfosys\nHDFC Bank\nReliance\nITC\nLarsen & Toubro\nCheck the tone of any text",
+ "intelEmptySubmit": "Company intelligence\n\nOne score that weighs business quality, valuation, price trend and what the news and management are saying, and flags where they disagree. It is a way to decide where to look closer, not a recommendation.\n\nAnalyse\nTry\nTCS\nInfosys\nHDFC Bank\nReliance\nITC\nLarsen & Toubro\nCheck the",
+ "research": "Research reports\nGenerate research report\n\nSearch by partial name or ticker and select a company. Reports support NSE and BSE stocks.\n\nAsk ARIA for an “equity research report on …”, “DuPont analysis of …” or “mutual fund analysis of …” and it is saved here automatically.\n\nNo saved reports yet. Open Chat and ask for one, for example “equity research report on TCS”. It takes under a minute and appea",
+ "progress": "Your Learning Progress\n\nHow well you know each concept, estimated from your quiz answers.\n\nAsk ARIA to explain a financial concept and take a quick quiz: each concept you engage with appears here with a mastery score that updates as you answer.\nAsk ARIA to explain a concept",
+ "badHash": {
+  "url": "http://127.0.0.1:5177/#/nonsense",
+  "live": 0
+ },
+ "settings_ERR": "Error: locator.check: Error: strict mode violation: getByLabel('Night') resolved to 2 elements:\n    1) <button type=\"button\" class=\"mode-toggle\" aria-pressed=\"false\" aria-label=\"Switch to night mode\">…</button> aka getByRole('button', { nam",
+ "pagesConsole": [],
+ "pagesHttp": []
+}

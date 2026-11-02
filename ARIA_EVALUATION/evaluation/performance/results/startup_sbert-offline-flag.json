@@ -1,0 +1,18 @@
+[
+ {
+  "sbert_load": {
+   "s": 0.36,
+   "rss_mb": 467
+  },
+  "peak_rss_mb": 471,
+  "wall_s": 13.5
+ },
+ {
+  "sbert_load": {
+   "s": 0.34,
+   "rss_mb": 467
+  },
+  "peak_rss_mb": 472,
+  "wall_s": 13.9
+ }
+]

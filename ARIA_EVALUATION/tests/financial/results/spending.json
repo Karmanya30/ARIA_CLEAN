@@ -1,0 +1,189 @@
+[
+ {
+  "id": "SPD-001",
+  "feature": "Spending insights (spending.py)",
+  "case": "spend_avg",
+  "kind": "reference",
+  "actual": 47149.0,
+  "expected": 47149.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-002",
+  "feature": "Spending insights (spending.py)",
+  "case": "emi_avg",
+  "kind": "reference",
+  "actual": 10000.0,
+  "expected": 10000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-003",
+  "feature": "Spending insights (spending.py)",
+  "case": "savings_rate %",
+  "kind": "reference",
+  "actual": 42.9,
+  "expected": 42.9,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-004",
+  "feature": "Spending insights (spending.py)",
+  "case": "by_month spend 2026-01",
+  "kind": "reference",
+  "actual": 32049.0,
+  "expected": 32049.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-005",
+  "feature": "Spending insights (spending.py)",
+  "case": "by_month net 2026-01",
+  "kind": "reference",
+  "actual": 57951.0,
+  "expected": 57951.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-006",
+  "feature": "Spending insights (spending.py)",
+  "case": "by_month spend 2026-03",
+  "kind": "reference",
+  "actual": 77249.0,
+  "expected": 77249.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-007",
+  "feature": "Spending insights (spending.py)",
+  "case": "by_month net 2026-03",
+  "kind": "reference",
+  "actual": 12751.0,
+  "expected": 12751.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-008",
+  "feature": "Spending insights (spending.py)",
+  "case": "entertainment share_of_income",
+  "kind": "reference",
+  "actual": 15.6,
+  "expected": 15.6,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-009",
+  "feature": "Spending insights (spending.py)",
+  "case": "entertainment over_benchmark (8%)",
+  "kind": "reference",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-010",
+  "feature": "Spending insights (spending.py)",
+  "case": "trim = avg - 8% income",
+  "kind": "reference",
+  "actual": 7649,
+  "expected": 7649,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-011",
+  "feature": "Spending insights (spending.py)",
+  "case": "Netflix detected recurring",
+  "kind": "reference",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-012",
+  "feature": "Spending insights (spending.py)",
+  "case": "45000 charge flagged unusual",
+  "kind": "reference",
+  "actual": [
+   "Gadgetworld"
+  ],
+  "expected": [
+   "Gadgetworld"
+  ],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-013",
+  "feature": "Spending insights (spending.py)",
+  "case": "spent(food,2026-02)",
+  "kind": "reference",
+  "actual": 7200.0,
+  "expected": 7200.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-014",
+  "feature": "Spending insights (spending.py)",
+  "case": "food trend_pct last vs prev month",
+  "kind": "reference",
+  "actual": 1.4,
+  "expected": 1.4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-015",
+  "feature": "Spending insights (spending.py)",
+  "case": "<10 txns => unavailable",
+  "kind": "boundary",
+  "actual": false,
+  "expected": false,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-016",
+  "feature": "Spending insights (spending.py)",
+  "case": "no income, no profile",
+  "kind": "missing",
+  "actual": {
+   "income_avg": null,
+   "savings_rate": null
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "SPD-017",
+  "feature": "Spending insights (spending.py)",
+  "case": "year-boundary trend Dec->Jan (+100%)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SPD-018",
+  "feature": "Spending insights (spending.py)",
+  "case": "refund (negative amount) in spent()",
+  "kind": "invalid",
+  "actual": 1000.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "refunds net silently to 1000"
+ }
+]

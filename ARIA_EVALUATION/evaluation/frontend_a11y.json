@@ -1,0 +1,520 @@
+{
+ "contrast": {
+  "light:markets": {
+   "checked": 192,
+   "bad": 1,
+   "top": [
+    [
+     "button.nw-page-btn",
+     {
+      "n": 1,
+      "ratio": 2.51,
+      "need": 4.5,
+      "size": 13.5,
+      "sample": "Prev",
+      "fg": "rgb(26, 26, 23)",
+      "bg": "rgb(255,255,255)"
+     }
+    ]
+   ]
+  },
+  "light:explore": {
+   "checked": 33,
+   "bad": 0,
+   "top": []
+  },
+  "light:research": {
+   "checked": 23,
+   "bad": 1,
+   "top": [
+    [
+     "button.",
+     {
+      "n": 1,
+      "ratio": 2.75,
+      "need": 4.5,
+      "size": 15.5,
+      "sample": "Generate research report",
+      "fg": "rgb(255, 255, 255)",
+      "bg": "rgb(31,111,84)"
+     }
+    ]
+   ]
+  },
+  "light:intelligence": {
+   "checked": 28,
+   "bad": 2,
+   "top": [
+    [
+     "button.ri-primary",
+     {
+      "n": 2,
+      "ratio": 2.75,
+      "need": 4.5,
+      "size": 14,
+      "sample": "Analyse",
+      "fg": "rgb(255, 255, 255)",
+      "bg": "rgb(31,111,84)"
+     }
+    ]
+   ]
+  },
+  "light:profile": {
+   "checked": 66,
+   "bad": 1,
+   "top": [
+    [
+     "button.btn",
+     {
+      "n": 1,
+      "ratio": 3.35,
+      "need": 4.5,
+      "size": 14,
+      "sample": "Back",
+      "fg": "rgb(26, 26, 23)",
+      "bg": "rgb(255,255,255)"
+     }
+    ]
+   ]
+  },
+  "light:progress": {
+   "checked": 19,
+   "bad": 0,
+   "top": []
+  },
+  "light:feedback": {
+   "checked": 31,
+   "bad": 0,
+   "top": []
+  },
+  "light:settings": {
+   "checked": 20,
+   "bad": 0,
+   "top": []
+  },
+  "light:disclaimers": {
+   "checked": 89,
+   "bad": 0,
+   "top": []
+  },
+  "light:chat-normal": {
+   "checked": 26,
+   "bad": 0,
+   "top": []
+  },
+  "night:markets": {
+   "checked": 192,
+   "bad": 1,
+   "top": [
+    [
+     "button.nw-page-btn",
+     {
+      "n": 1,
+      "ratio": 3.43,
+      "need": 4.5,
+      "size": 13.5,
+      "sample": "Prev",
+      "fg": "rgb(233, 239, 233)",
+      "bg": "rgb(18,28,24)"
+     }
+    ]
+   ]
+  },
+  "night:explore": {
+   "checked": 33,
+   "bad": 0,
+   "top": []
+  },
+  "night:research": {
+   "checked": 23,
+   "bad": 1,
+   "top": [
+    [
+     "button.",
+     {
+      "n": 1,
+      "ratio": 2.96,
+      "need": 4.5,
+      "size": 15.5,
+      "sample": "Generate research report",
+      "fg": "rgb(4, 20, 13)",
+      "bg": "rgb(62,207,142)"
+     }
+    ]
+   ]
+  },
+  "night:intelligence": {
+   "checked": 28,
+   "bad": 2,
+   "top": [
+    [
+     "button.ri-primary",
+     {
+      "n": 2,
+      "ratio": 2.96,
+      "need": 4.5,
+      "size": 14,
+      "sample": "Analyse",
+      "fg": "rgb(4, 20, 13)",
+      "bg": "rgb(62,207,142)"
+     }
+    ]
+   ]
+  },
+  "night:profile": {
+   "checked": 63,
+   "bad": 0,
+   "top": []
+  },
+  "night:progress": {
+   "checked": 18,
+   "bad": 0,
+   "top": []
+  },
+  "night:feedback": {
+   "checked": 31,
+   "bad": 0,
+   "top": []
+  },
+  "night:settings": {
+   "checked": 20,
+   "bad": 0,
+   "top": []
+  },
+  "night:disclaimers": {
+   "checked": 89,
+   "bad": 0,
+   "top": []
+  },
+  "night:chat-normal": {
+   "checked": 26,
+   "bad": 0,
+   "top": []
+  }
+ },
+ "tabs": {
+  "markets": {
+   "first": [
+    "Read the full disclaimers|ring|vis",
+    "Skip to main content|ring|vis",
+    "Search all instruments|ring|vis",
+    "New chat|ring|vis",
+    "Switch to night mode|ring|vis",
+    "Markets|ring|vis",
+    "Explore|ring|vis",
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis"
+   ],
+   "noRing": 0,
+   "off": 0
+  },
+  "explore": {
+   "first": [
+    "INPUT|NORING|vis",
+    "All|ring|vis",
+    "Stocks|ring|vis",
+    "Mutual funds|ring|vis",
+    "ETFs|ring|vis",
+    "Crypto|ring|vis",
+    "Bonds|ring|vis",
+    "Indices|ring|vis",
+    "Commodities|ring|vis",
+    "Currencies|ring|vis",
+    "Reliance|ring|vis",
+    "Nifty 50|ring|vis",
+    "Parag Parikh|ring|vis",
+    "Bitcoin|ring|vis"
+   ],
+   "noRing": 2,
+   "off": 0
+  },
+  "research": {
+   "first": [
+    "Explore|ring|vis",
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "Report company|ring|vis",
+    "As generatedEquity researc|ring|vis",
+    "ARIA is an AI research and|NORING|vis",
+    "Read the full disclaimers|ring|vis"
+   ],
+   "noRing": 1,
+   "off": 0
+  },
+  "intelligence": {
+   "first": [
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "Company|ring|vis",
+    "TCS|ring|vis",
+    "Infosys|ring|vis",
+    "HDFC Bank|ring|vis",
+    "Reliance|ring|vis",
+    "ITC|ring|vis",
+    "Larsen & Toubro|ring|vis",
+    "Check the tone of any text|ring|vis"
+   ],
+   "noRing": 1,
+   "off": 0
+  },
+  "profile": {
+   "first": [
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "Age|ring|vis",
+    "People who depend on you|ring|vis",
+    "Monthly take-home income|ring|vis",
+    "Income pattern|ring|vis",
+    "Monthly expenses|ring|vis",
+    "What you own|ring|vis"
+   ],
+   "noRing": 0,
+   "off": 0
+  },
+  "progress": {
+   "first": [
+    "Ask ARIA to explain a conc|ring|vis",
+    "ARIA is an AI research and|NORING|vis",
+    "Read the full disclaimers|ring|vis",
+    "Skip to main content|ring|vis",
+    "Search all instruments|ring|vis",
+    "New chat|ring|vis",
+    "Switch to night mode|ring|vis",
+    "Markets|ring|vis",
+    "Explore|ring|vis",
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis"
+   ],
+   "noRing": 2,
+   "off": 0
+  },
+  "feedback": {
+   "first": [
+    "New chat|ring|vis",
+    "Switch to night mode|ring|vis",
+    "Markets|ring|vis",
+    "Explore|ring|vis",
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "INPUT|ring|vis"
+   ],
+   "noRing": 1,
+   "off": 0
+  },
+  "settings": {
+   "first": [
+    "New chat|ring|vis",
+    "Switch to night mode|ring|vis",
+    "Markets|ring|vis",
+    "Explore|ring|vis",
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "INPUT|ring|vis"
+   ],
+   "noRing": 1,
+   "off": 0
+  },
+  "disclaimers": {
+   "first": [
+    "Chat|ring|vis",
+    "Reports|ring|vis",
+    "Intelligence|ring|vis",
+    "Profile|ring|vis",
+    "Progress|ring|vis",
+    "Feedback|ring|vis",
+    "Settings|ring|vis",
+    "^NSEI100.00▲ +1.00%|ring|vis",
+    "Pause|ring|vis",
+    "Educational purpose|ring|vis",
+    "Free APIs and services|ring|vis",
+    "Not advice|ring|vis",
+    "Not SEBI-registered|ring|vis",
+    "AI can be wrong|ring|vis"
+   ],
+   "noRing": 0,
+   "off": 0
+  }
+ },
+ "motion": {
+  "normal": {
+   "markets": {
+    "tape-scroll:inf": 2
+   },
+   "explore": {
+    "tape-scroll:inf": 2
+   },
+   "settings": {
+    "tape-scroll:inf": 2
+   },
+   "chat": {
+    "tape-scroll:inf": 2
+   }
+  },
+  "reduce": {
+   "markets": {},
+   "explore": {},
+   "settings": {},
+   "chat": {}
+  }
+ },
+ "small": {
+  "markets": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ],
+  "explore": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ],
+  "research": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ],
+  "profile": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ],
+  "settings": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ],
+  "feedback": [
+   "Read the full disclaim 142x17",
+   "Skip to main content 174x41",
+   "Search all instruments 40x40",
+   "New chat 123x38",
+   "Switch to night mode 40x40",
+   "Markets 66x32",
+   "Explore 63x32",
+   "Chat 46x32",
+   "Reports 65x32",
+   "Intelligence 89x32",
+   "Profile 57x32",
+   "Progress 71x32",
+   "Feedback 75x32",
+   "Settings 69x32"
+  ]
+ },
+ "misc": {
+  "firstTabStop": "",
+  "skipLinkMovesFocus": "",
+  "navRole": {
+   "tablistParent": "ASIDE",
+   "tabindexes": "0,0,0,0,0,0,0,0,0",
+   "hasTabpanel": 0,
+   "ariaControls": null
+  },
+  "arrowMovesTab": "Settings",
+  "titles": {
+   "markets": "ARIA",
+   "explore": "ARIA",
+   "chat": "ARIA",
+   "research": "ARIA",
+   "intelligence": "ARIA",
+   "profile": "ARIA",
+   "progress": "ARIA",
+   "feedback": "ARIA",
+   "settings": "ARIA",
+   "disclaimers": "ARIA"
+  }
+ }
+}
