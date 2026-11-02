@@ -41,7 +41,7 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
-    const siblings = [...document.body.children].filter(el => el !== document.querySelector('.live-meeting')) as HTMLElement[]
+    const siblings = [...document.body.children].filter(el => el !== document.querySelector('.live-meeting') && !el.hasAttribute('data-keep-active')) as HTMLElement[]
     const previous = siblings.map(el => el.inert)
     siblings.forEach(el => { el.inert = true })
     const overflow = document.body.style.overflow
