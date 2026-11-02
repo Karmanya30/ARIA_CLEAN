@@ -442,59 +442,84 @@ async function photoSpeaker(opts = {}) {
   };
 }
 
-// Video presenter (no GPU needed): two looping clips of a real presenter, a calm listening loop and a talking loop. The talking
-// loop plays while ARIA's voice is on and eases back to the calm loop in the pauses between phrases, so the face is alive the whole
-// time. It is NOT lip-sync (the mouth follows the clip, not the words): MuseTalk, when its GPU server runs, is still used first.
+// "New ARIA Avatar": a video presenter built from real footage (no GPU needed). A small library of looping clips: calm listening,
+// a warm smile, a thinking tilt, three talking clips (one with a hand gesture) and a one-off greeting. The talking clips play while
+// ARIA's voice is on, rotate so the same gesture does not repeat, and a strong emphasis in the voice triggers the gesture clip.
+// Between phrases she eases back to the calm loop. This is NOT lip-sync (the mouth follows the clip, not the words); the GPU
+// lip-sync path (MuseTalk) is separate.
 async function videoSpeaker() {
   const stage = $("avatar");
-  const make = (src) => {
+  const names = ["idle", "smile", "tilt", "talk1", "talk2", "talk3", "greet"];
+  const clips = {}, hideTimers = {};
+  for (const n of names) {
     const v = document.createElement("video");
-    v.src = src; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto"; v.setAttribute("aria-hidden", "true");
-    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:42% 28%;opacity:0;transition:opacity 260ms ease";
+    v.src = `/avatar/presenter-${n}.mp4`; v.muted = true; v.loop = n !== "greet"; v.playsInline = true; v.preload = n === "idle" ? "auto" : "metadata";
+    v.setAttribute("aria-hidden", "true");
+    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:42% 28%;opacity:0;transition:opacity 280ms ease";
     stage.appendChild(v);
-    return v;
-  };
-  const idle = make("/avatar/presenter-idle.mp4"), talk = make("/avatar/presenter-talk.mp4");
-  const ready = (v) => new Promise((ok, bad) => {
+    clips[n] = v;
+  }
+  await new Promise((ok, bad) => {
+    const v = clips.idle;
     if (v.readyState >= 2) return ok();
     v.addEventListener("loadeddata", () => ok(), { once: true });
     v.addEventListener("error", () => bad(new Error("presenter video unavailable")), { once: true });
-  });
-  try { await Promise.all([ready(idle), ready(talk)]); } catch (err) { idle.remove(); talk.remove(); throw err; }
-  const motion = matchMedia("(prefers-reduced-motion: reduce)");  // accessibility: a still face, no movement
-  idle.style.opacity = "1";
-  if (!motion.matches) idle.play().catch(() => {});
+  }).catch((err) => { Object.values(clips).forEach((v) => v.remove()); throw err; });
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");  // accessibility: one still face, no movement
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  let shown = null;
+  function show(name, { random = false, restart = false } = {}) {
+    if (shown === name && !restart) return;
+    const v = clips[name];
+    if (!v) return;
+    clearTimeout(hideTimers[name]);
+    if (random && v.duration) v.currentTime = Math.random() * Math.max(0.1, v.duration - 0.6);
+    else if (restart) v.currentTime = 0;
+    if (!motion.matches || name === "idle") v.play().catch(() => {});
+    v.style.opacity = "1";
+    const old = shown && clips[shown];
+    if (old && shown !== name) { old.style.opacity = "0"; const o = shown; hideTimers[o] = setTimeout(() => { if (shown !== o) clips[o].pause(); }, 340); }
+    shown = name;
+  }
+  show("idle");
   setState("idle", "Ready");
 
   const ctx = new AudioContext(), analyser = ctx.createAnalyser();
   analyser.fftSize = 1024; analyser.connect(ctx.destination);
   const samples = new Uint8Array(analyser.fftSize);
-  let sources = [], endAt = 0, talking = false, lastVoice = 0, alive = true;
+  let sources = [], endAt = 0, alive = true, lastVoice = 0, prevLevel = 0, lastGesture = 0, talkSince = 0, nextTalkSwap = 0, idleSince = 0, nextIdleSwap = rnd(7000, 12000), greeted = false, greetUntil = 0;
+  const TALK = ["talk1", "talk2", "talk3"];
+  const otherTalk = () => { const options = TALK.filter((t) => t !== shown); return options[Math.floor(Math.random() * options.length)]; };
 
-  function setTalking(on) {
-    if (on === talking || motion.matches) return;
-    talking = on;
-    if (on) {
-      talk.currentTime = Math.random() * Math.max(0.1, (talk.duration || 10) - 0.5);  // never start every phrase on the same gesture
-      talk.play().catch(() => {});
-      talk.style.opacity = "1"; idle.style.opacity = "0";
-    } else {
-      idle.style.opacity = "1"; talk.style.opacity = "0";
-      setTimeout(() => { if (!talking) talk.pause(); }, 320);
-    }
-  }
   function tick(now) {
     if (!alive) return;
+    requestAnimationFrame(tick);
+    if (motion.matches) return;
     analyser.getByteTimeDomainData(samples);
     let sum = 0; for (const s of samples) { const x = (s - 128) / 128; sum += x * x; }
     const level = Math.sqrt(sum / samples.length);
     const speaking = ctx.currentTime < endAt - 0.01;
     if (speaking && level > 0.012) lastVoice = now;
-    setTalking(speaking && now - lastVoice < 320);
-    requestAnimationFrame(tick);
+    const talkingNow = speaking && now - lastVoice < 320;
+    if (talkingNow) {
+      const inTalk = TALK.includes(shown);
+      if (!inTalk) { show(otherTalk(), { random: true }); talkSince = now; nextTalkSwap = rnd(4500, 8000); }
+      else if (level - prevLevel > 0.06 && now - lastGesture > 3500) { lastGesture = now; show("talk2", { random: true }); talkSince = now; }  // emphasis: the hand-gesture clip
+      else if (now - talkSince > nextTalkSwap) { show(otherTalk(), { random: true }); talkSince = now; nextTalkSwap = rnd(4500, 8000); }
+    } else if (now < greetUntil) {
+      // the one-off greeting is playing; the calm loop follows when it ends
+    } else {
+      const thinking = stateEl.dataset.s === "thinking";
+      if (thinking) { if (shown !== "tilt") show("tilt", { random: true }); idleSince = now; }
+      else if (!["idle", "smile", "tilt"].includes(shown) || (shown === "greet")) { show("idle"); idleSince = now; }
+      else if (now - idleSince > nextIdleSwap) { const calm = ["idle", "smile", "tilt"].filter((c) => c !== shown); show(calm[Math.floor(Math.random() * calm.length)], { random: true }); idleSince = now; nextIdleSwap = rnd(7000, 12000); }
+    }
+    if (started && !greeted) { greeted = true; greetUntil = now + 2600; show("greet", { restart: true }); }  // a short hello when the meeting starts
+    prevLevel = level;
   }
   requestAnimationFrame(tick);
-  const visible = () => { if (document.hidden) { idle.pause(); talk.pause(); } else if (!motion.matches) { (talking ? talk : idle).play().catch(() => {}); } };
+  const visible = () => { if (document.hidden) Object.values(clips).forEach((v) => v.pause()); else if (!motion.matches && clips[shown]) clips[shown].play().catch(() => {}); };
   document.addEventListener("visibilitychange", visible);
 
   return {
@@ -506,9 +531,10 @@ async function videoSpeaker() {
       scheduleCaption(text, at, buffer.duration);
       sources.push(src); src.onended = () => { sources = sources.filter((x) => x !== src); };
     },
-    stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; setTalking(false); },
+    stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; },
     busy() { return ctx.currentTime < endAt - 0.01; },
-    dispose() { alive = false; document.removeEventListener("visibilitychange", visible); this.stop(); idle.remove(); talk.remove(); ctx.close(); },
+    current: () => shown,
+    dispose() { alive = false; document.removeEventListener("visibilitychange", visible); this.stop(); Object.values(clips).forEach((v) => v.remove()); ctx.close(); },
   };
 }
 
@@ -962,7 +988,7 @@ window.addEventListener("message", ev => {
 window.addEventListener("pagehide", endSession);
 window.addEventListener("keydown", ev => { if (ev.key === "Escape") tellParent({ type: "escape" }); });
 
-window.__ariaLive = { ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow(), express: (n) => speaker && speaker.express && speaker.express(n), pose: () => speaker && speaker.pose && speaker.pose() };  // used by the automated checks
+window.__ariaLive = { speaker: () => speaker, ask, interrupt, state: () => stateEl.dataset.s, kind: () => speaker && speaker.kind, blink: () => speaker && speaker.blinkNow && speaker.blinkNow(), express: (n) => speaker && speaker.express && speaker.express(n), pose: () => speaker && speaker.pose && speaker.pose() };  // used by the automated checks
 </script>
 </body>
 </html>

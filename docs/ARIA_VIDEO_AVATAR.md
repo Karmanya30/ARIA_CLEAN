@@ -10,10 +10,16 @@
 3. A listening state: a warm smile and a small head tilt. The photo avatar has nothing equivalent between phrases.
 4. Composition: eye contact, head-and-shoulders framing, shallow depth of field, soft frontal light. The chart wall ties the look to the product.
 
-## What was built (this change)
-- A new **video presenter** avatar mode in `interface/avatar/live.html`. It plays two seamless "boomerang" loops made from the sample (`presenter-idle.mp4` for listening, `presenter-talk.mp4` for speaking, about 0.7 MB each). The talking loop plays while ARIA's voice is on and eases back to the calm loop in pauses; the start point is random so phrases do not all begin on the same gesture. A reduced-motion setting shows a still face.
-- **It is a separate choice, "New ARIA Avatar".** The live meeting header has an Avatar selector with "ARIA Avatar" (the original, still the default, unchanged: MuseTalk on the GPU if running, else the photo, else 3D) and "New ARIA Avatar" (the video presenter). The choice is remembered on the device. `?avatar=video` selects the new one directly. Clip files are served by `/avatar/presenter-idle.mp4` and `/avatar/presenter-talk.mp4`.
-- Browser tests check that the original avatar is still the default and that choosing the new one loads and plays the video presenter.
+## What was built
+**New ARIA Avatar** is a separate choice. The live meeting header has an Avatar selector with "ARIA Avatar" (the original, still the default and unchanged: MuseTalk on the GPU if running, else the photo, else 3D) and "New ARIA Avatar" (the video presenter). The choice is remembered on the device; `?avatar=video` selects the new one directly.
+
+Implemented from the improvement list (all inside the new avatar only):
+- **More states, from the same footage:** a calm listening loop, a warm smile, a thinking tilt (shown while ARIA is working on an answer), and a one-off greeting when the meeting starts. They rotate on their own every 7 to 12 seconds so the face never freezes. These are cut from the one supplied video; a serious or concerned state and a farewell need new footage.
+- **Varied talking footage:** three talking clips (one with the hand gesture) chosen at random starting points and swapped every 4.5 to 8 seconds. They are cut around the squint frames, so those no longer appear.
+- **Motion tied to speech:** a sudden jump in the voice's loudness triggers the gesture clip (at most every 3.5 s). The talking clips play only while the voice is on and ease back to the calm loop in pauses.
+- **Sharper:** clips are upscaled to 1280 x 720 (Lanczos plus a light sharpen). This is an enlargement of 848 x 480 footage, not new detail.
+- **Accessibility:** with "reduce motion" the face is a still image.
+- Clips are served by `/avatar/presenter-<name>.mp4`. Browser tests check the default avatar is unchanged, the new one loads and plays, and the clip switches to a talking clip while a voice plays and back after.
 
 ## What this is not
 - It is **not lip-sync**. The mouth follows the clip, not ARIA's words. The video only knows "speaking" versus "not speaking", from the loudness of the voice.
@@ -21,7 +27,7 @@
 
 ## What to improve, in order of impact
 1. **Real lip-sync on this video.** MuseTalk can drive the lips of a source video, not only a photo. The server (`scripts/musetalk_server.py`) currently loads a photo. Giving it this video as the source is the biggest quality jump and needs your GPU to build and test; it was not done here.
-2. **More states, same character.** Greeting, thinking (glance up, brow raise), nodding while listening, serious (for risk warnings), pleased (good news), farewell. Generate them with the same generator, character and background so they cut together.
+2. **More states, same character.** Serious (for risk warnings), concerned and farewell need new footage from the same generator, character and background.
 3. **Longer, more varied talking footage.** A pool of 3 to 5 talking clips chained with cross-fades hides the repetition; a reversed hand gesture is a tell in a long answer.
 4. **Higher resolution.** 848 x 480 is stretched to a full-screen stage and looks soft. Use a 1080p source, or upscale once offline on your GPU.
 5. **Motion tied to speech.** Trigger gestures and brow raises from emphasis in the voice instead of only on and off.

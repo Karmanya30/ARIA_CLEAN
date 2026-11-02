@@ -249,8 +249,8 @@ def avatar_wide_office() -> FileResponse:
 
 @router.get("/avatar/presenter-{clip}.mp4")
 def avatar_presenter(clip: str) -> FileResponse:
-    """The two looping clips of the video presenter avatar (calm "idle" and "talk"); range requests are handled by FileResponse."""
-    if clip not in ("idle", "talk"):
+    """The looping clips of the video presenter avatar (New ARIA Avatar) (calm idle, smile, thinking tilt, three talking clips and a greeting); range requests are handled by FileResponse."""
+    if clip not in ("idle", "smile", "tilt", "talk1", "talk2", "talk3", "greet"):
         raise HTTPException(status_code=404, detail="No such clip.")
     path = _AVATAR_DIR / f"presenter-{clip}.mp4"
     if not path.exists():
