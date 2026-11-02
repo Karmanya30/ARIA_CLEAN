@@ -377,6 +377,10 @@ def build_context(query: str) -> dict[str, Any]:
     }
 
 
+# "EMI on a 10 lakh loan", "calculate the EMI": the amount is the loan being asked about, not the user's own EMI
+_EMI_QUESTION = re.compile(r"\bemi\s+(?:on|for)\b|\b(?:calculate|compute|work out|find|what(?:'s| is| would be| will be)?)(?: the| an?)?\s+emi\b")
+
+
 def _regex_facts(query: str) -> dict[str, Any]:
     """Offline fallback fact extraction: income, EMI and age stated in plain words."""
     # `is None`, not `or` -- an explicit "I earn 0" must not be discarded in
@@ -396,7 +400,8 @@ def _regex_facts(query: str) -> dict[str, Any]:
     monthly_wording = bool(re.search(r"\b(?:a|per)\s+month\b|\bmonthly\b", query_lower))
     if monthly_income is not None and annual_income and not monthly_wording:
         monthly_income /= 12
-    facts = {"monthly_income": monthly_income, "existing_emi": _parse_indian_amount(query, "emi"), "age": _extract_age(query)}
+    facts = {"monthly_income": monthly_income, "existing_emi": None if _EMI_QUESTION.search(query_lower) else _parse_indian_amount(query, "emi"),
+             "age": _extract_age(query)}
     return {k: v for k, v in facts.items() if v is not None}
 
 
