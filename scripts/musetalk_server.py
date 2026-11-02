@@ -22,6 +22,7 @@ import os
 import pickle
 import queue
 import struct
+import subprocess
 import sys
 import tempfile
 import threading
@@ -31,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor
 import cv2
 import numpy as np
 import torch
-from fastapi import FastAPI, Request, Response
+from fastapi import Body, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from transformers import WhisperModel
@@ -49,7 +50,7 @@ FPS, EXTRA_MARGIN, MIN_SIDE, MAX_OUT = 25, 10, 640, 1440
 SRC_FPS = 25  # frame rate of a video source (the lip-sync source is cut at 25 fps)
 torch.backends.cudnn.benchmark = True  # fixed-size batches: let cuDNN pick the fastest kernels once
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start", "X-Cursor"])
 S: dict = {"ready": False}
 gpu = threading.Lock()
 _turns, _tickets, _serving = threading.Condition(), itertools.count(), 0  # requests use the GPU strictly in arrival order
@@ -142,10 +143,7 @@ def _prepare(source: str) -> dict:
 
 
 def _jpeg(frame: np.ndarray, A: dict) -> bytes:
-    if A.get("full"):  # same size and light sharpening as the page's idle video (ffmpeg lanczos + unsharp), so frames match it
-        if frame.shape[1] != 1280:  # a source that is not already stage size
-            frame = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_LANCZOS4)
-            frame = cv2.addWeighted(frame, 1.5, cv2.GaussianBlur(frame, (0, 0), 1.4), -0.5, 0)
+    if A.get("full"):  # whole frames at the source's own size (the stage clip), so they match the page's idle video
         return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
     s = A["scale"]
     if s < 1:
@@ -153,7 +151,7 @@ def _jpeg(frame: np.ndarray, A: dict) -> bytes:
     return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 92])[1].tobytes()
 
 
-def _blend(k: int, face: np.ndarray, A: dict) -> bytes:
+def _blend(k: int, face: np.ndarray, A: dict, raw: bool = False):
     """MuseTalk's own blend (generated face pasted through a soft mask), but only for the rectangle it can change.
     The page draws this patch over the full-size photo, so nothing outside the face is ever re-encoded or altered."""
     x1, y1, x2, y2 = A["coords"][k]
@@ -166,11 +164,11 @@ def _blend(k: int, face: np.ndarray, A: dict) -> bytes:
     if A.get("full"):
         whole = A["frames"][k].copy()
         whole[ys:ye, xs:xe] = out
-        return _jpeg(whole, A)
+        return whole if raw else _jpeg(whole, A)
     return cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 94])[1].tobytes()
 
 
-def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, A: dict, start_req: int | None) -> None:
+def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, A: dict, start_req: int | None, fps: int, out_fps: int | None = None) -> None:
     """UNet + VAE on the GPU, one batch at a time, handing each batch's faces to the CPU side as soon as it is ready.
     Waits for its turn (arrival order); gives up as soon as the client has gone, so an abandoned request cannot hold the GPU."""
     global _serving
@@ -195,7 +193,7 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, 
                 f.write(wav)
             try:
                 feats, length = S["audio"].get_audio_feature(f.name, weight_dtype=S["dtype"])
-                chunks = S["audio"].get_whisper_chunk(feats, S["device"], S["dtype"], S["whisper"], length, fps=FPS,
+                chunks = S["audio"].get_whisper_chunk(feats, S["device"], S["dtype"], S["whisper"], length, fps=fps,
                                                       audio_padding_length_left=2, audio_padding_length_right=2)
             finally:
                 os.unlink(f.name)
@@ -203,12 +201,18 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, 
             if A.get("full"):
                 # the head keeps moving at normal speed: output frame k comes from source frame start + k * 25/FPS, and the next
                 # phrase carries on from where this one ends
-                n_src, step = len(A["frames"]), SRC_FPS / FPS
+                n_src, step = len(A["frames"]), SRC_FPS / fps
                 start = A["cursor"] if start_req is None else start_req % n_src  # the page may say where in the loop to begin
-                positions = [(start + int(round(k * step))) % n_src for k in range(len(chunks))]
-                A["cursor"] = (start + int(round(len(chunks) * step))) % n_src
-                latents = [A["latents"][q] for q in positions]
-            if not put(("n", (len(chunks), start, positions))):
+                if out_fps:  # video answer: the head moves at out_fps (every source frame), the mouth is generated at fps and held between
+                    n_out = max(1, round(len(chunks) * out_fps / fps))
+                    positions = [(start + int(round(j * SRC_FPS / out_fps))) % n_src for j in range(n_out)]
+                    A["cursor"] = (start + int(round(n_out * SRC_FPS / out_fps))) % n_src
+                    latents = [A["latents"][positions[min(n_out - 1, int(round(g * n_out / len(chunks))))]] for g in range(len(chunks))]
+                else:
+                    positions = [(start + int(round(k * step))) % n_src for k in range(len(chunks))]
+                    A["cursor"] = (start + int(round(len(chunks) * step))) % n_src
+                    latents = [A["latents"][q] for q in positions]
+            if not put(("n", (len(positions) if positions else len(chunks), start, positions, len(chunks)))):
                 return
             for whisper_batch, latent_batch in datagen(chunks, latents, S["batch"], device=S["device"]):
                 real = len(whisper_batch)
@@ -230,19 +234,19 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, 
             _turns.notify_all()
 
 
-def _generate(wav: bytes, ticket: int, A: dict, start_req: int | None = None):
+def _generate(wav: bytes, ticket: int, A: dict, start_req: int | None = None, fps: int | None = None, raw: bool = False, out_fps: int | None = None):
     """Stream frames. The GPU keeps working on the next batch while the CPU blends and encodes the previous one."""
     q: queue.Queue = queue.Queue(maxsize=3)
     stop = threading.Event()
-    threading.Thread(target=_gpu_worker, args=(wav, q, ticket, stop, A, start_req), daemon=True).start()
+    threading.Thread(target=_gpu_worker, args=(wav, q, ticket, stop, A, start_req, fps or FPS, out_fps), daemon=True).start()
     n_frames = len(A["frames"])
     try:
-        yield from _consume(q, n_frames, A)
+        yield from _consume(q, n_frames, A, raw)
     finally:
         stop.set()  # the client left (Stop pressed, tab closed) or we finished: release the GPU turn either way
 
 
-def _consume(q: queue.Queue, n_frames: int, A: dict):
+def _consume(q: queue.Queue, n_frames: int, A: dict, raw: bool = False):
     i, produced, t0 = 0, 0, time.perf_counter()
     with ThreadPoolExecutor(max_workers=4) as pool:
         while True:
@@ -252,15 +256,27 @@ def _consume(q: queue.Queue, n_frames: int, A: dict):
             if kind == "error":
                 raise payload
             if kind == "n":
-                i, positions = payload[1], payload[2]  # where in the source video this phrase starts (0 for a photo)
+                i, positions, n_out, n_gen = payload[1], payload[2], payload[0], payload[3]  # where in the source video this phrase starts (0 for a photo)
+                faces, j = [], 0
                 yield struct.pack("<I", payload[0])
-                if A.get("full"):
+                if A.get("full") and not raw:
                     yield struct.pack("<I", payload[1])  # whole-frame mode only: the loop position of the first frame
                 continue
+            if raw and n_out != n_gen:  # the mouth runs slower than the head: each generated face is held for several output frames
+                faces.extend(payload)
+                g = lambda j: min(n_gen - 1, int(j * n_gen / n_out + 0.5))
+                todo = []
+                while j < n_out and (g(j) < len(faces) or len(faces) == n_gen):
+                    todo.append(j)
+                    j += 1
+                for o in pool.map(lambda j: _blend(positions[j], faces[g(j)], A, raw), todo):
+                    yield o
+                produced += len(todo)
+                continue
             idx = positions[produced:produced + len(payload)] if positions else [(i + d) % n_frames for d in range(len(payload))]
-            jpgs = list(pool.map(lambda kf: _blend(kf[0], kf[1], A), zip(idx, payload)))
-            for jpg in jpgs:
-                yield struct.pack("<I", len(jpg)) + jpg
+            outs = list(pool.map(lambda kf: _blend(kf[0], kf[1], A, raw), zip(idx, payload)))
+            for o in outs:
+                yield o if raw else struct.pack("<I", len(o)) + o
             i += len(payload)
             produced += len(payload)
     total = time.perf_counter() - t0
@@ -274,6 +290,46 @@ async def lipsync(request: Request):
     A = S["avatars"].get(q.get("avatar") or "photo") or S["avatar"]  # "photo" (the original avatar) or "video" (the New ARIA Avatar)
     start = int(q["start"]) if (q.get("start") or "").lstrip("-").isdigit() else None
     return StreamingResponse(_generate(wav, next(_tickets), A, start), media_type="application/octet-stream", headers={"X-Fps": str(FPS)})
+
+
+def _video_bytes(wav: bytes, A: dict, start: int | None, gen_fps: int) -> tuple[bytes, int]:
+    """The whole phrase as one silent H.264 clip (the page plays it beside its own audio clock): frames are generated, then encoded once,
+    so playback is a plain <video> with no per-frame drawing in the page. Returns (mp4, loop position where the next phrase continues)."""
+    h, w = A["frames"][0].shape[:2]
+    fps = SRC_FPS
+    gen = _generate(wav, next(_tickets), A, start, gen_fps, raw=True, out_fps=fps)
+    count = struct.unpack("<I", next(gen))[0]
+    with tempfile.TemporaryDirectory() as d:
+        out = os.path.join(d, "a.mp4")
+        ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{w}x{h}", "-framerate", str(fps), "-i", "-",
+                               "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", out],
+                              stdin=subprocess.PIPE)
+        n = 0
+        try:
+            for frame in gen:
+                ff.stdin.write(frame.tobytes())
+                n += 1
+        finally:
+            ff.stdin.close()
+            ff.wait()
+        if n != count or ff.returncode:
+            raise RuntimeError(f"video encode failed ({n}/{count} frames, ffmpeg exit {ff.returncode})")
+        return open(out, "rb").read(), A["cursor"]
+
+
+@app.post("/lipsync_video")
+def lipsync_video(body: bytes = Body(...), avatar: str = "video", start: int | None = None, fps: int = 15):
+    """The New ARIA Avatar's answer as a video: POST the speech WAV, get a silent 25 fps MP4 (the source's own rate, so the head moves smoothly).
+    fps = mouth frames generated per second of speech (10..25): fewer is faster to produce, 25 is the finest mouth movement."""
+    A = S["avatars"].get(avatar)
+    if not A or not A.get("full"):
+        return Response("this avatar has no video mode", status_code=400)
+    fps = max(10, min(fps, 25))
+    try:
+        mp4, cursor = _video_bytes(body, A, start, fps)
+    except Exception as exc:
+        return Response(str(exc), status_code=500)
+    return Response(mp4, media_type="video/mp4", headers={"X-Fps": str(SRC_FPS), "X-Gen-Fps": str(fps), "X-Cursor": str(cursor)})
 
 
 @app.get("/idle.jpg")

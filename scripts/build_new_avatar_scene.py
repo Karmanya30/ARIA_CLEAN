@@ -21,9 +21,10 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MT = os.environ.get("MUSETALK_DIR", r"E:\musetalk\MuseTalk")
-OUT_W, OUT_H = 1280, 720
+OUT_W, OUT_H = 1440, 616   # the old avatar photo's own proportions (2.34:1), so the page frames it exactly like the old avatar and the whole office shows
 AV = os.path.join(ROOT, "interface", "avatar")
 SRC_VIDEO = os.environ.get("ARIA_AVATAR_VIDEO") or os.path.join(ROOT, ".audit", "src.mp4")  # the supplied video (copy it here once so the path has no spaces)
+KEEP_BELOW, FADE = 0.45, 0.35   # alpha is full down to this far below the chin (in face heights), then fades out over FADE
 OLD = os.path.join(AV, "office-wide-glasses.webp")
 
 
@@ -90,20 +91,14 @@ class Matte:
 
 
 def old_scene() -> tuple[np.ndarray, tuple[float, float, float, float]]:
-    """A 16:9 crop of the old photo around her, at the output size, and her face box in that crop."""
+    """The whole old photo at the output size, and her face box in it."""
     from PIL import Image
 
     im = cv2.cvtColor(np.array(Image.open(OLD).convert("RGB")), cv2.COLOR_RGB2BGR)
     box = face_boxes([im])[0]
-    cx = (box[0] + box[2]) / 2
-    ch = im.shape[0]
-    cw = ch * 16 / 9
-    x0 = int(round(min(max(cx - cw / 2, 0), im.shape[1] - cw)))
-    crop = im[:, x0:x0 + int(cw)]
-    k = OUT_W / crop.shape[1]
-    scene = cv2.resize(crop, (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
-    sbox = tuple((v - (x0 if i % 2 == 0 else 0)) * k for i, v in enumerate(box))
-    return scene, sbox
+    kx, ky = OUT_W / im.shape[1], OUT_H / im.shape[0]
+    scene = cv2.resize(im, (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
+    return scene, (box[0] * kx, box[1] * ky, box[2] * kx, box[3] * ky)
 
 
 def video_frames(start: float, end: float, fps: int = 25) -> list[np.ndarray]:
@@ -120,10 +115,16 @@ def compose(frames: list[np.ndarray], scene, sbox, matte: Matte, ref_box) -> lis
     tx = (sbox[0] + sbox[2]) / 2 - s * (ref_box[0] + ref_box[2]) / 2
     ty = (sbox[1] + sbox[3]) / 2 - s * (ref_box[1] + ref_box[3]) / 2
     M = np.array([[s, 0, tx], [0, s, ty]], np.float32)
+    # Only her head, neck and hair come from the video; below the chin the old photo's own blazer and closed blouse take over
+    # (her open collar showed as an orange patch and her body as a second person), fading over a third of a face height.
+    fh = sbox[3] - sbox[1]
+    y = np.arange(OUT_H, dtype=np.float32)[:, None]
+    keep = np.clip(((sbox[3] + KEEP_BELOW * fh) - y) / (FADE * fh), 0, 1) * np.ones((1, OUT_W), np.float32)
     for fr in frames:
         a = cv2.GaussianBlur(matte(fr), (0, 0), 2.5)  # soft edge
         wf = cv2.warpAffine(fr, M, (OUT_W, OUT_H), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE)
-        wa = cv2.warpAffine(a, M, (OUT_W, OUT_H), flags=cv2.INTER_LINEAR, borderValue=0)[..., None]
+        wa = cv2.warpAffine(a, M, (OUT_W, OUT_H), flags=cv2.INTER_LINEAR, borderValue=0)
+        wa = (wa * keep)[..., None]
         out.append((wf.astype(np.float32) * wa + scene.astype(np.float32) * (1 - wa)).astype(np.uint8))
     return out
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     scene, sbox = old_scene()
     matte = Matte()
-    calm = video_frames(10.6, 12.9)
+    calm = video_frames(10.6, 12.5)   # the supplied video has a thumbs-up gesture from 12.7 s to about 14.8 s: no clip may include it
     boxes = face_boxes(calm)
     ref = tuple(float(np.median([b[i] for b in boxes])) for i in range(4))
     print("old face box", [round(v) for v in sbox], "video face box", [round(v) for v in ref])
@@ -161,5 +162,5 @@ if __name__ == "__main__":
     calm_c = compose(calm, scene, sbox, matte, ref)
     write_clip(calm_c, "lipsync", boomerang=False, crf=17)   # the GPU server turns it into a back-and-forth loop itself
     write_clip(calm_c, "idle", boomerang=True, crf=21)       # the same frames, forward then backward: what the page shows when nothing happens
-    listen_c = compose(video_frames(14.4, 17.0), scene, sbox, matte, ref)
+    listen_c = compose(video_frames(15.2, 17.0), scene, sbox, matte, ref)
     write_clip(listen_c, "listen", boomerang=True, crf=22)   # attentive: a smile and a slight head tilt, only while she listens to the client
