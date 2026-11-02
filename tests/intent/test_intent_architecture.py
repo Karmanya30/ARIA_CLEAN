@@ -143,3 +143,11 @@ def test_rule_label_keeps_personal_questions_in_finance_and_concepts_in_tutor():
     assert orchestrator._rule_label("what is a SIP") == "tutor"
     assert orchestrator._rule_label("what is my SIP amount worth") == "finance"
     assert orchestrator._rule_label("tell me a joke") is None
+
+
+def test_graph_when_every_part_fails_numbers_are_not_reported_as_checked():
+    def boom(text, label):
+        raise RuntimeError("down")
+
+    out = graph.run_multi("q", [("a one two", "tutor"), ("b one two", "market")], boom)
+    assert out["grounding"]["numbers_checked"] is False and out["grounding"]["fallback"] is True
