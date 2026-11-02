@@ -138,8 +138,11 @@ try {
         $mtDir = if ($env:MUSETALK_DIR) { $env:MUSETALK_DIR } else { "E:\musetalk\MuseTalk" }
         $health = Get-Json "http://127.0.0.1:$MT_PORT/health"
         # a lip-sync server started before the New ARIA Avatar existed has no presenter video loaded: restart it once
-        if ($health -and $null -ne $health.ready -and -not $health.avatars.video -and (Test-Path "$root\interface\avatar\presenter-lipsync.mp4")) {
-            Log "The running MuseTalk server was started without the New ARIA Avatar; restarting it." Yellow
+        $clip = "$root\interface\avatar\presenter-lipsync.mp4"
+        $clipKey = if (Test-Path $clip) { (Get-FileHash $clip -Algorithm SHA1).Hash.ToLower().Substring(0, 12) } else { $null }
+        # the server keeps the clip in memory: one started before the clip was rebuilt would keep showing the old picture
+        if ($health -and $null -ne $health.ready -and $clipKey -and (-not $health.avatars.video -or $health.avatars.video.key -ne $clipKey)) {
+            Log "The running MuseTalk server was started without the current New ARIA Avatar clip; restarting it." Yellow
             Find-Proc "python.exe" "musetalk_server\.py" | ForEach-Object { & taskkill /PID $_.ProcessId /T /F | Out-Null }
             Wait-Ready "MuseTalk port release" { -not (Test-Port $MT_PORT) } 20 $null | Out-Null
             $health = $null

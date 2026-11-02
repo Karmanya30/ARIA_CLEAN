@@ -128,6 +128,7 @@ def _prepare(source: str) -> dict:
         os.makedirs(os.path.dirname(cache), exist_ok=True)
         with open(cache, "wb") as f:
             pickle.dump({**A, "latents": [t.cpu() for t in A["latents"]]}, f)
+    A["key"] = key  # reported by /health so the launcher can tell when the server holds an older copy of the clip
     h, w = A["frames"][0].shape[:2]
     A["scale"] = min(1.0, MAX_OUT / max(h, w))
     for (xs, ys, xe, ye), m in zip(A["mask_boxes"], A["masks"]):
@@ -348,7 +349,7 @@ def health():
     for name, V in S.get("avatars", {}).items():
         if V is not A:  # the second avatar (the New ARIA Avatar's presenter video), reached with /lipsync?avatar=video
             h, w = V["frames"][0].shape[:2]
-            extra[name] = {"source": V.get("name"), "size": [w, h], "mode": "frames" if V.get("full") else "patch", "frames": len(V["frames"])}
+            extra[name] = {"source": V.get("name"), "key": V.get("key"), "size": [w, h], "mode": "frames" if V.get("full") else "patch", "frames": len(V["frames"])}
     return {"source": S.get("source"), "ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None,
             "mode": "frames" if A and A.get("full") else "patch", "avatars": extra}
 
