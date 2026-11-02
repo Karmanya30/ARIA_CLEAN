@@ -95,3 +95,20 @@
 
 .meeting-avatar { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--meet-muted); }
 .meeting-avatar select { background:#151e19; color:var(--meet-ink); border:1px solid #ffffff1a; border-radius:10px; padding:7px 10px; font:inherit; font-size:13px; }
+
+/* Narrow windows: the header (brand, status, avatar choice, Chats, Leave) must always fit, so the buttons never leave the screen */
+.meeting-header { min-width:0; }
+.meeting-brand { min-width:0; flex:0 1 auto; }
+@media (max-width:900px) {
+  .meeting-header { padding:0 14px; gap:10px; }
+  .meeting-brand-meta small, .meeting-connection time { display:none; }
+  .meeting-avatar>span { display:none; }
+  .meeting-connection { gap:6px; }
+}
+@media (max-width:620px) {
+  .meeting-header { gap:6px; padding:0 10px; }
+  .meeting-brand-meta { display:none; }
+  .meeting-connection { font-size:0; }  /* just the status dot */
+  .meeting-avatar select { max-width:128px; padding:6px 6px; font-size:12px; }
+  .meeting-chats { padding:7px 9px; font-size:12px; }
+}
