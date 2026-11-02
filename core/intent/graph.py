@@ -27,6 +27,7 @@ from loguru import logger
 
 from core.intent.taxonomy import CLARIFY, EQUITY, FINANCE, GENERAL, INTEL, LOOKUP, MARKET, SMALLTALK, TUTOR
 
+_EVIDENCE = ("context", "report", "report_id", "company")  # what a part brings for the UI card
 TITLES = {FINANCE: "Your finances", TUTOR: "Learning", MARKET: "Market", EQUITY: "Company", INTEL: "Company intelligence",
           LOOKUP: "Data", GENERAL: "Answer", SMALLTALK: "Hello"}
 Handler = Callable[[str, str | None], dict[str, Any]]  # (sub-query text, label or None) -> a normal ARIA response dict
@@ -109,14 +110,15 @@ def build(handler: Handler, parallel: bool = False):
                 blocks.append(f"**{title}** ({r['query']})\nI couldn't complete this part just now, so I won't guess.")
         first = next((r["response"] for r in parts if r.get("ok")), None) or {}
         merged = {"domain": first.get("domain", "general"), "response": "\n\n".join(blocks), "multi_part": True,
-                  "parts": [{"query": r["query"], "label": r["label"], "domain": (r["response"] or {}).get("domain"), "ok": bool(r.get("ok"))} for r in parts],
+                  "parts": [{"query": r["query"], "label": r["label"], "domain": (r["response"] or {}).get("domain"), "ok": bool(r.get("ok")),
+                             **{k: r["response"][k] for k in _EVIDENCE if r.get("ok") and k in r["response"]}} for r in parts],
                   "grounding": {"numbers_checked": ok_parts > 0 and all((r.get("grounding") or {}).get("numbers_checked") for r in parts if r.get("ok")),
                                 "passed": all((r.get("grounding") or {}).get("passed", False) for r in parts), "fallback": ok_parts < len(parts),
                                 "unavailable": [r["query"] for r in parts if not r.get("ok")], "per_part": True}}
-        # evidence of the first answered part travels with the merged reply so the UI can still show its context/report
-        for key in ("context", "report", "report_id", "company"):
-            if key in first:
-                merged[key] = first[key]
+        # the report/context card is shown only when it supports the whole reply (one part has it); each part keeps its own under `parts`
+        carriers = [r["response"] for r in parts if r.get("ok") and any(k in r["response"] for k in _EVIDENCE)]
+        if len(carriers) == 1:
+            merged.update({k: carriers[0][k] for k in _EVIDENCE if k in carriers[0]})
         return {"response": merged, "trace": _node_trace("synthesise", t, ok_parts=ok_parts, parts=len(parts))}
 
     g = StateGraph(GraphState)

@@ -53,9 +53,6 @@ class Decision:
     trace: dict = field(default_factory=dict)
 
 
-forced_label: ContextVar[str | None] = ContextVar("aria_forced_label", default=None)  # set by the graph for one sub-task
-
-
 def _sr_ok(sem: semantic.SemanticChoice) -> bool:
     return sem.label is not None and sem.score >= threshold("sr_score") and sem.margin >= threshold("sr_margin")
 

@@ -9,6 +9,7 @@ already consumes a Module 4 response -- chat UI, TTS, the live avatar -- keeps w
 """
 from __future__ import annotations
 
+import contextvars
 import os
 import threading
 import time
@@ -196,8 +197,9 @@ def run_research(query: str, user_id: str = "default", target: Target | None = N
     # Narrative and debate are independent readers of the same immutable facts.
     # A report must come back inside a minute even when the model is slow or rate-limited: past the deadline the template text is used.
     pool = ThreadPoolExecutor(max_workers=2)
-    f_narr = pool.submit(agents.narrate, snap, an, val, ledger)
-    f_debate = pool.submit(agents.debate, snap, an, val, ledger)
+    # copy_context: the workers see the same owner, token counters and news block as this request
+    f_narr = pool.submit(contextvars.copy_context().run, agents.narrate, snap, an, val, ledger)
+    f_debate = pool.submit(contextvars.copy_context().run, agents.debate, snap, an, val, ledger)
     try:
         narr = f_narr.result(timeout=LLM_DEADLINE_S)
     except FutureTimeout:

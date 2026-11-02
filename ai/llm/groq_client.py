@@ -40,6 +40,8 @@ MODEL_NAME = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
 # gemini-3.6-flash as its replacement (checked live 2026-08-18).
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_MODEL_NAME = os.environ.get("GEMINI_MODEL_NAME", DEFAULT_GEMINI_MODEL)
+LLM_TIMEOUT_S = float(os.environ.get("ARIA_LLM_TIMEOUT_S", "30"))   # one provider call; the SDK default is 60 s plus retries
+LLM_BUDGET_S = float(os.environ.get("ARIA_LLM_BUDGET_S", "75"))    # all backends and passes of one generate_response call
 FALLBACK_GROQ_MODEL = os.environ.get("FALLBACK_GROQ_MODEL", "openai/gpt-oss-20b")
 SECOND_FALLBACK_GROQ_MODEL = os.environ.get("SECOND_FALLBACK_GROQ_MODEL", "qwen/qwen3.8-27b")  # its own daily allowance
 
@@ -115,6 +117,7 @@ def _call_groq(prompt: str, system_prompt: str, model: str | None = None) -> str
         messages=messages,
         temperature=0.6,
         top_p=0.9,
+        timeout=LLM_TIMEOUT_S,
         **({"reasoning_effort": "low"} if "gpt-oss" in (model or MODEL_NAME) else {}),  # fewer hidden reasoning tokens: faster, and kinder to the per-minute token cap
     )
     _record_usage("groq", model or MODEL_NAME, response, time.perf_counter() - started)
@@ -178,7 +181,7 @@ def _call_gemini(prompt: str, system_prompt: str, model: str | None = None) -> s
     response = client.models.generate_content(
         model=model or GEMINI_MODEL_NAME,
         contents=prompt,
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
+        config=types.GenerateContentConfig(system_instruction=system_prompt, http_options=types.HttpOptions(timeout=int(LLM_TIMEOUT_S * 1000))),
     )
     _record_usage("gemini", model or GEMINI_MODEL_NAME, response, time.perf_counter() - started)
     text = getattr(response, "text", None)
@@ -232,8 +235,11 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
     chain = [(n, (lambda p, s, m, f=f: f(p, s, groq_model or m)) if n == "groq" else f) for n, f in _BACKENDS]  # groq_model: Groq only (each model has its own per-minute token bucket)
     chain.append(("groq-small", lambda p, s, m: _call_groq(p, s, m or FALLBACK_GROQ_MODEL)))
     chain.append(("groq-qwen", lambda p, s, m: _call_groq(p, s, m or SECOND_FALLBACK_GROQ_MODEL)))
+    deadline = time.monotonic() + LLM_BUDGET_S  # a hung provider can no longer hold the turn (and the session lock) for minutes
     for attempt in range(2):
         for name, backend in chain:
+            if text is None and last_error is not None and time.monotonic() > deadline:
+                break
             if _dead.get(name, 0) > time.monotonic():  # its daily quota is spent: do not wait on it again
                 continue
             try:
@@ -244,7 +250,7 @@ def generate_response(prompt: str, system_prompt: str | None = None, model: str 
                 logger.warning(f"LLM backend '{name}' failed, trying next: {e}")
                 if "tokens per day" in str(e):
                     _dead[name] = time.monotonic() + 1800  # ponytail: fixed 30 min, parse the "try again in" hint if it matters
-        if text is not None or not re.search(r"429|503|rate limit|unavailable|overloaded", str(last_error), re.I):
+        if text is not None or time.monotonic() > deadline or not re.search(r"429|503|rate limit|unavailable|overloaded", str(last_error), re.I):
             break
         wait = re.search(r"try again in (?:(\d+)m)?(\d+(?:\.\d+)?)s", str(last_error))  # a per-minute cap names its own wait
         time.sleep(min(30.0, int(wait.group(1) or 0) * 60 + float(wait.group(2)) + 0.5) if wait else 2)
