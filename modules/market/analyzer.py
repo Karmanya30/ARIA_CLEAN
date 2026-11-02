@@ -20,6 +20,7 @@ from loguru import logger
 from modules.equity_research.intelligence import sentiment
 from modules.equity_research.intelligence.data import _ttl_cache
 from shared.news import fetch_news, format_headlines
+from shared.market_math import pct_change as _pct_change
 
 INDEX_TICKERS = {"nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN"}
 
@@ -34,12 +35,6 @@ SECTOR_TICKERS = {
     "pharma": ["SUNPHARMA.NS", "DRREDDY.NS", "CIPLA.NS", "DIVISLAB.NS"],
     "fmcg": ["HINDUNILVR.NS", "ITC.NS", "NESTLEIND.NS", "BRITANNIA.NS"],
 }
-
-def _pct_change(closes: list[float]) -> float | None:
-    if len(closes) < 2 or closes[0] == 0:
-        return None
-    return (closes[-1] - closes[0]) / closes[0] * 100
-
 
 @_ttl_cache(300)  # was lru_cache: index levels never refreshed until a restart
 def get_index_snapshot(name: str) -> dict[str, Any]:
