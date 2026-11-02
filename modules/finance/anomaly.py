@@ -70,7 +70,9 @@ def detect_for_user(transactions: list[Transaction] | None) -> list[AnomalyFlag]
 
     flags = []
     for i, txn in enumerate(transactions):
-        if preds[i] == -1:
+        # the forest always marks its contamination share (2% even in clean data): keep only those with a real reason
+        row = x.iloc[i]
+        if preds[i] == -1 and (row["amount_vs_median"] > 3 or abs(row["category_zscore"]) > 3):
             flags.append(
                 AnomalyFlag(transaction=txn, score=float(scores[i]), reason=_reason(x.iloc[i], txn))
             )
