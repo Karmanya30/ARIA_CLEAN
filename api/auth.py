@@ -320,7 +320,14 @@ async def authorize(request: HTTPConnection):
     if path.startswith(("/api/research/validation", "/api/research/scenario-backtest")):
         raise HTTPException(403, "This shared integration is available only in private mode until account isolation is added.")
     fields = {key: request.query_params.getlist(key) for key in ("owner_id", "session_id")}
-    if request.headers.get("content-type", "").startswith("application/json"):
+    # Whatever the Content-Type says (case, parameters, "+json" types, or none at all: FastAPI parses those as JSON too), a body that
+    # parses is checked, so a differently spelled header cannot smuggle another account's id past the owner check.
+    media = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if media == "multipart/form-data" or media == "application/x-www-form-urlencoded":
+        form = await request.form()
+        for key in fields:
+            fields[key].extend(form.getlist(key))
+    elif request.method not in ("GET", "HEAD", "OPTIONS"):
         try:
             body = await request.json()
         except ValueError:
@@ -329,10 +336,6 @@ async def authorize(request: HTTPConnection):
             for key in fields:
                 if key in body:
                     fields[key].append(body[key])
-    elif request.headers.get("content-type", "").startswith("multipart/form-data"):
-        form = await request.form()
-        for key in fields:
-            fields[key].extend(form.getlist(key))
     if any(value != account["id"] for value in fields["owner_id"]):
         raise HTTPException(403, "This data belongs to another account.")
     financial = path.startswith(("/api/profile", "/api/transactions"))

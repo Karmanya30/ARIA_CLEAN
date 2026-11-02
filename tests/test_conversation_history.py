@@ -178,3 +178,12 @@ def test_rating_is_saved_per_message_and_owner_scoped(private):
     assert c.put(url, params={"owner_id": o}, json={"rating": 5}).status_code == 422
     assert c.put(url, params={"owner_id": uuid.uuid4().hex}, json={"rating": 1}).status_code == 404
     assert c.put(f"/api/conversations/{sid}/messages/999999/rating", params={"owner_id": o}, json={"rating": 1}).status_code == 404
+
+
+def test_export_with_a_non_latin_title_does_not_fail(private):
+    c, o = private
+    sid = seed(o, "नमस्ते SIP क्या है")
+    r = c.patch(f"/api/conversations/{sid}", params={"owner_id": o}, json={"title": "म्यूचुअल फंड"})
+    assert r.status_code == 200
+    r = c.get(f"/api/conversations/{sid}/export", params={"owner_id": o})
+    assert r.status_code == 200 and "attachment" in r.headers["content-disposition"]

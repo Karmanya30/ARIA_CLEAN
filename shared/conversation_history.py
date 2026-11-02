@@ -24,7 +24,7 @@ def _mine(db, cid: str) -> Conversation:
 
 
 def _like(text: str) -> str:
-    return "%" + text.replace("\\", "\\\\").replace("%", "\%").replace("_", "\_") + "%"
+    return "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
 def _summary(row: Conversation, count: int, snippet: str | None = None) -> dict:
@@ -121,7 +121,7 @@ def export(cid: str, fmt: str = "json") -> tuple[str, str, str]:
         rows = db.scalars(select(Turn).where(Turn.conversation_id == cid, Turn.status == "complete").order_by(Turn.id)).all()
         turns = [(r.created_at, r.query, json.loads(r.response_json)) for r in rows]
         title = conv.title or "New chat"
-    slug = "".join(ch if ch.isalnum() else "-" for ch in title.lower()).strip("-")[:40] or "chat"
+    slug = "".join(ch if ch.isascii() and ch.isalnum() else "-" for ch in title.lower()).strip("-")[:40] or "chat"  # ASCII only: header values must be Latin-1
     if fmt == "markdown":
         body = f"# {title}\n\n" + "\n\n".join(f"**You** ({t})\n\n{q}\n\n**ARIA**\n\n{r.get('response', '')}" for t, q, r in turns)
         return f"{slug}.md", "text/markdown; charset=utf-8", body
