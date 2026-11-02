@@ -34,3 +34,20 @@ for (const question of ['What is a SIP?', 'Explain compound interest', 'what doe
     await expect(page.getByRole('group', { name: 'Message actions' })).toBeVisible()
   })
 }
+
+// The old four-box format ("Insight: ... Analysis: ... Recommendation: ... Risk: ...") must never be drawn as coloured cards.
+for (const ui of ['v1', 'v2']) {
+  test(`${ui}: labelled Insight/Analysis/Recommendation/Risk text is shown as plain Markdown, no cards`, async ({ page }) => {
+    await page.addInitScript((u) => { for (const n of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, n, { value: undefined }); localStorage.setItem('aria_owner_id', 'plain-' + Date.now()); localStorage.setItem('aria_version', u) }, ui)
+    await page.route('**/api/chat', (route) => route.request().method() === 'POST' ? route.fulfill({ json: { domain: 'equity_research', query: 'itc', response: 'Insight: ITC trades at ₹265.\nAnalysis:\n- Revenue is up\n- Margins are down\nRecommendation: Watch the next results.\nRisk: Earnings are volatile.' } }) : route.continue())
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Leave meeting' }).click({ timeout: 8000 }).catch(() => {})
+    await page.getByLabel('Message ARIA').fill('itc')
+    await page.getByLabel('Message ARIA').press('Enter')
+    await expect(page.getByText('ITC trades at ₹265.')).toBeVisible()
+    await expect(page.locator('.response-card')).toHaveCount(0)
+    await expect(page.locator('.response-card-label')).toHaveCount(0)
+    await expect(page.getByText('Insight', { exact: false })).toHaveCount(0)
+    await expect(page.getByText('Margins are down')).toBeVisible()
+  })
+}
