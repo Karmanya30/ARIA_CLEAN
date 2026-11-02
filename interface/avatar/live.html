@@ -1032,7 +1032,8 @@ $("startBtn").onclick = async () => {
   started = true;
   $("start").remove();
   textEl.disabled = false; textEl.focus();
-  if (SR || CAN_RECORD) { micBtn.disabled = false; if (!meeting) micBtn.click(); else resumeListening(); } else setState("muted", "Voice input needs microphone recording support. Open chat to type.");
+  // the mic stays closed until asked: opening it at once switches Bluetooth headsets to their quiet call mode
+  if (SR || CAN_RECORD) { micBtn.disabled = false; setState("muted", "Microphone muted. Press the microphone to speak, or type."); } else setState("muted", "Voice input needs microphone recording support. Open chat to type.");
 };
 
 async function loadSpeaker() {
