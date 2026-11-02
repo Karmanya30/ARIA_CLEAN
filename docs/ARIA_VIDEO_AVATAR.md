@@ -21,15 +21,20 @@ Implemented from the improvement list (all inside the new avatar only):
 - **Accessibility:** with "reduce motion" the face is a still image.
 - Clips are served by `/avatar/presenter-<name>.mp4`. Browser tests check the default avatar is unchanged, the new one loads and plays, and the clip switches to a talking clip while a voice plays and back after.
 
-## What this is not
-- It is **not lip-sync**. The mouth follows the clip, not ARIA's words. The video only knows "speaking" versus "not speaking", from the loudness of the voice.
-- The sample's own watermark and two squint frames are in the clips as they are.
+## Real lip-sync for the New ARIA Avatar (GPU)
+- Run `scripts\start_musetalk_new_avatar.bat` (port **8011**). It loads MuseTalk with `interface/avatar/presenter-lipsync.mp4` (6.2 s of the calm footage) as the source. The first start prepares the video (face tracking and masks; a few minutes) and caches it; later starts are quick.
+- With that server running, choosing "New ARIA Avatar" shows **lip-synced frames**: each phrase's voice goes to the server, which returns whole frames of the presenter with the mouth matching the speech, drawn in step with the audio. Between phrases the calm loops continue. Without the server, the avatar silently falls back to the clip library above (no lip-sync).
+- The original avatar's server (port 8010, the photo) is separate and is not affected. Both can be installed; run one at a time on an 8 GB GPU.
+- **Measured here** (RTX 4060 Laptop, 8 GB): 150 frames of speech generated in 7.9 s (18.9 frames per second, above the 15 fps the avatar plays at), so it keeps up with the voice. With a real speech clip, frames captured from a browser run show the mouth changing shape with the speech, natural head movement, the glasses intact and consistent lighting. That was judged by looking at the frames, not with a lip-sync score. The original photo server was re-run after the server change: 150 frames in 8.0 s, same mode as before.
+- The server change is small: a video source returns whole frames (the head moves, so one fixed patch position cannot be used) and the frame position carries on from phrase to phrase. A photo source behaves exactly as before.
 
-## What to improve, in order of impact
-1. **Real lip-sync on this video.** MuseTalk can drive the lips of a source video, not only a photo. The server (`scripts/musetalk_server.py`) currently loads a photo. Giving it this video as the source is the biggest quality jump and needs your GPU to build and test; it was not done here.
-2. **More states, same character.** Serious (for risk warnings), concerned and farewell need new footage from the same generator, character and background.
-3. **Longer, more varied talking footage.** A pool of 3 to 5 talking clips chained with cross-fades hides the repetition; a reversed hand gesture is a tell in a long answer.
-4. **Higher resolution.** 848 x 480 is stretched to a full-screen stage and looks soft. Use a 1080p source, or upscale once offline on your GPU.
-5. **Motion tied to speech.** Trigger gestures and brow raises from emphasis in the voice instead of only on and off.
-6. **Cleaner source.** Re-export without the generator mark, and remove the squint frames, or re-generate those seconds.
-7. **Dark-mode and mobile framing.** The crop is a centred "cover" with the face slightly above centre; check portrait phones.
+## What this is not
+- Without the GPU server it is **not lip-sync**: the mouth follows the clip, not the words.
+- The lip-sync source is only 6.2 s of footage, looped; the mouth is generated, so very fast or unusual speech can look less natural than the footage.
+- The sample's own generator mark is still in the footage (left in on purpose: it marks the video as AI-generated).
+
+## What to improve next
+1. **A longer lip-sync source,** and a 1080p one: 6.2 s loops visibly, and 848 x 480 is enlarged to the stage.
+2. **More states, same character.** Serious (for risk warnings), concerned and farewell need new footage from the same generator, character and background. The lip-sync path has only the calm source; thinking and greeting use the loops.
+3. **Longer, more varied talking footage** for the no-GPU mode: three clips repeat in a long answer.
+4. **Dark-mode and mobile framing:** the crop is a centred "cover" with the face slightly above centre; check portrait phones.
