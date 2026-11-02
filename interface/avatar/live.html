@@ -442,22 +442,21 @@ async function photoSpeaker(opts = {}) {
   };
 }
 
-// "New ARIA Avatar": a video presenter built from real footage. It stays CALM unless there is a reason to move:
-//  - listening or waiting: one calm loop of the presenter (the same footage the lip-sync uses), nothing else, no random smiles or tilts;
-//  - at the start of the meeting: a short hello;
-//  - while ARIA speaks: with the GPU lip-sync server (lipSyncVideoSpeaker below) the mouth follows the words; without it one of
-//    three talking clips plays for the phrase (the mouth follows the clip, not the words) and she returns to the calm loop in the pause.
-// All clips come from one video with the corner mark removed, and are shown at the stage size, so the background is the same everywhere.
+// "New ARIA Avatar": the presenter from the supplied video, placed on the original avatar's office scene (same background, desk and navy
+// blazer; scripts/build_new_avatar_scene.py). It behaves like a person in a meeting:
+//  - STABLE when nothing is happening and after she has finished speaking: one held calm frame, no random movement;
+//  - ATTENTIVE only while the client is speaking: a slight head tilt and a smile (she is "understanding");
+//  - SPEAKING: the mouth follows the words (GPU lip-sync, lipSyncVideoSpeaker below). Without the GPU server she keeps the stable
+//    face and a note says how to start it: moving the mouth to something unrelated to the words was worse than not moving it.
 async function videoSpeaker() {
   const stage = $("avatar");
-  const LOOP_FPS = 25;  // the idle loop is cut at 25 fps: frame index = time * 25 (the lip-sync server uses the same frames)
-  const names = ["idle", "talk1", "talk2", "talk3", "greet"];
+  const HOLD = 18;  // frame of the idle loop that is held: eyes open, calm smile (25 fps; the lip-sync starts from it)
   const clips = {};
-  for (const n of names) {
+  for (const n of ["idle", "listen"]) {
     const v = document.createElement("video");
-    v.src = `/avatar/presenter-${n}.mp4`; v.muted = true; v.loop = n !== "greet"; v.playsInline = true; v.preload = n === "idle" ? "auto" : "metadata";
+    v.src = `/avatar/presenter-${n}.mp4`; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
     v.setAttribute("aria-hidden", "true");
-    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;opacity:0;transition:opacity 220ms ease";
+    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;opacity:0;transition:opacity 260ms ease";
     stage.appendChild(v);
     clips[n] = v;
   }
@@ -467,71 +466,45 @@ async function videoSpeaker() {
     v.addEventListener("loadeddata", () => ok(), { once: true });
     v.addEventListener("error", () => bad(new Error("presenter video unavailable")), { once: true });
   }).catch((err) => { Object.values(clips).forEach((v) => v.remove()); throw err; });
-  const motion = matchMedia("(prefers-reduced-motion: reduce)");  // accessibility: one still face, no movement
-  const hide = {};
-
-  let shown = "idle";
-  function show(name, { random = false, restart = false } = {}) {
-    if (shown === name && !restart) return;
-    const v = clips[name];
-    if (!v) return;
-    clearTimeout(hide[name]);
-    if (random && v.duration) v.currentTime = Math.random() * Math.max(0.1, v.duration - 0.6);
-    else if (restart) v.currentTime = 0;
-    v.play().catch(() => {});
-    v.style.opacity = "1";
-    const old = shown;
-    if (old !== name && old !== "idle") { clips[old].style.opacity = "0"; hide[old] = setTimeout(() => { if (shown !== old) clips[old].pause(); }, 260); }
-    else if (old === "idle" && name !== "idle") hide.idleFade = setTimeout(() => { if (shown !== "idle") clips.idle.style.opacity = "0"; }, 260);
-    if (name === "idle") clips.idle.style.opacity = "1";
-    shown = name;
-  }
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");  // accessibility: always the held frame
+  clips.idle.currentTime = HOLD / 25;
+  clips.idle.pause();
   clips.idle.style.opacity = "1";
-  if (!motion.matches) clips.idle.play().catch(() => {});
   setState("idle", "Ready");
 
   const ctx = new AudioContext(), analyser = ctx.createAnalyser();
   analyser.fftSize = 1024; analyser.connect(ctx.destination);
-  const samples = new Uint8Array(analyser.fftSize);
-  let sources = [], endAt = 0, alive = true, lastVoice = 0, prevLevel = 0, greeted = false, greetUntil = 0, talkStarted = 0;
-  const TALK = ["talk1", "talk2", "talk3"];
-  let lastTalk = "";
+  let sources = [], endAt = 0, alive = true, shown = "idle", holdTimer = 0, userHeardAt = 0;
 
+  function show(name) {
+    if (shown === name) return;
+    clearTimeout(holdTimer);
+    if (name === "listen") {
+      clips.listen.currentTime = 0; clips.listen.play().catch(() => {});
+      clips.listen.style.opacity = "1";
+    } else {  // back to the held frame: fade, then park the clips
+      clips.listen.style.opacity = "0";
+      holdTimer = setTimeout(() => { clips.listen.pause(); clips.idle.currentTime = HOLD / 25; }, 300);
+    }
+    shown = name;
+  }
+  // is the client speaking? the microphone path detects voice (capture) or the browser recogniser has words (interimTranscript)
+  const userSpeaking = (now) => window.__forceUserSpeaking === true || !!(typeof interimTranscript === "string" && interimTranscript) || !!(typeof capture === "object" && capture && capture.heard && now - capture.lastSound < 1200);
   function tick(now) {
     if (!alive) return;
     requestAnimationFrame(tick);
-    if (motion.matches) return;
-    analyser.getByteTimeDomainData(samples);
-    let sum = 0; for (const s of samples) { const x = (s - 128) / 128; sum += x * x; }
-    const level = Math.sqrt(sum / samples.length);
     const speaking = ctx.currentTime < endAt - 0.01;
-    if (speaking && level > 0.012) lastVoice = now;
-    const talkingNow = speaking && now - lastVoice < 320 && !api.holdIdle;
-    if (talkingNow) {
-      if (!TALK.includes(shown)) {  // one clip for the phrase; a strong start (emphasis) uses the hand-gesture clip
-        const pool = TALK.filter((t) => t !== lastTalk);
-        const pick = level - prevLevel > 0.06 ? "talk2" : pool[Math.floor(Math.random() * pool.length)];
-        show(pick, { random: true }); lastTalk = pick; talkStarted = now;
-      }
-    } else if (now < greetUntil) {
-      // the hello is playing
-    } else if (shown !== "idle") {
-      show("idle");
-    }
-    if (started && !greeted) { greeted = true; greetUntil = now + 2500; show("greet", { restart: true }); }
-    prevLevel = level;
+    const listen = !motion.matches && !speaking && userSpeaking(performance.now());
+    if (listen) userHeardAt = now;
+    show(listen || (shown === "listen" && now - userHeardAt < 700) ? "listen" : "idle");  // hold the attentive look through a short pause
   }
   requestAnimationFrame(tick);
-  const visible = () => { if (document.hidden) Object.values(clips).forEach((v) => v.pause()); else if (!motion.matches) { clips[shown].play().catch(() => {}); clips.idle.play().catch(() => {}); } };
+  const visible = () => { if (document.hidden) { clips.listen.pause(); } else if (shown === "listen") clips.listen.play().catch(() => {}); };
   document.addEventListener("visibilitychange", visible);
 
-  const api = {
-    kind: "video", ctx, analyser, blinkNow() {}, express() {}, pose: () => ({ rot: 0, bob: 0, sway: 0, s: 1, half: 0 }),
-    holdIdle: false,  // set by the lip-sync wrapper: its frames cover the stage, so no talking clip is needed underneath
-    idleVideo: clips.idle, loopFps: LOOP_FPS,
-    seekLoop(index) { const d = clips.idle.duration || 0; if (d) clips.idle.currentTime = ((index / LOOP_FPS) % d + d) % d; },
-    loopIndex() { return Math.round(clips.idle.currentTime * LOOP_FPS); },
-    play(buffer, text) {
+  return {
+    kind: "video", ctx, analyser, HOLD, blinkNow() {}, express() {}, pose: () => ({ rot: 0, bob: 0, sway: 0, s: 1, half: 0 }),
+    play(buffer, text) {  // no lip-sync server: she says it with the stable face
       const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
       const at = Math.max(ctx.currentTime + 0.02, endAt);
       src.start(at); endAt = at + buffer.duration;
@@ -541,26 +514,23 @@ async function videoSpeaker() {
     stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; },
     busy() { return ctx.currentTime < endAt - 0.01; },
     current: () => shown,
-    dispose() { alive = false; document.removeEventListener("visibilitychange", visible); this.stop(); Object.values(clips).forEach((v) => v.remove()); ctx.close(); },
+    dispose() { alive = false; clearTimeout(holdTimer); document.removeEventListener("visibilitychange", visible); this.stop(); Object.values(clips).forEach((v) => v.remove()); ctx.close(); },
   };
-  return api;
 }
 
-// "New ARIA Avatar" with real lip-sync (GPU): ARIA's voice for each phrase goes to the MuseTalk server for this video
-// (scripts/start_musetalk_new_avatar.bat, port 8011), which streams back whole frames of the presenter with the mouth matching the
-// voice. They are drawn in step with the audio clock, over the idle loop that is playing underneath: each phrase's first frame is
-// the idle loop's own position, so the face and the background do not jump when she starts or stops speaking. If the server is not
-// running, videoSpeaker() above is used instead.
+// "New ARIA Avatar" with real lip-sync (GPU): ARIA's voice for each phrase goes to the MuseTalk server (the same server as the original
+// avatar's, /lipsync?avatar=video), which streams back whole frames of the presenter with the mouth matching the words. They are drawn in
+// step with the audio clock over the held frame; every phrase starts from that frame, and she is back on it when she stops.
+// If the server is not running (or was started before this avatar existed), videoSpeaker() above is used, with a note.
 async function lipSyncVideoSpeaker() {
-  const BASE = params.get("musetalk_new") || `http://${location.hostname}:8011`;
+  const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
   const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1200) }).then((r) => r.json());
-  if (!health.ready || health.source !== "presenter-lipsync.mp4" || health.mode !== "frames") throw new Error("the lip-sync server for the new avatar is not running");
+  if (!health.ready || !health.avatars || !health.avatars.video) throw new Error("the lip-sync server is not running, or was started before the New ARIA Avatar existed");
   const base = await videoSpeaker();
-  base.holdIdle = true;
   const ctx = base.ctx, analyser = base.analyser;
   const canvas = document.createElement("canvas");
   canvas.width = 1280; canvas.height = 720;
-  canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;opacity:0;transition:opacity 120ms ease";
+  canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;opacity:0;transition:opacity 120ms ease";
   $("avatar").appendChild(canvas);
   const g = canvas.getContext("2d");
   let clips = [], sources = [], endAt = 0, pending = 0, gen = 0, ctl = new AbortController(), prevBegun = Promise.resolve(), alive = true;
@@ -575,11 +545,11 @@ async function lipSyncVideoSpeaker() {
       let scheduled = false;
       const frames = [];
       try {
-        const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw, signal });
+        const res = await fetch(`${BASE}/lipsync?avatar=video&start=${base.HOLD}`, { method: "POST", body: raw, signal });
         if (!res.ok) throw new Error("Lip-sync service unavailable");
         const reader = res.body.getReader();
-        let buf = new Uint8Array(0), total = null, startIdx = null, started = false, tFirst = 0;
-        const clip = { frames, start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 15), startIdx: 0 };
+        let buf = new Uint8Array(0), total = null, skipped = false, started = false, tFirst = 0;
+        const clip = { frames, start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 15) };
         const need = () => {  // buffer enough frames that the stream cannot fall behind the voice
           if (frames.length < 4) return 6;
           const rate = (frames.length - 1) / Math.max((performance.now() - tFirst) / 1000, 0.05);
@@ -592,7 +562,6 @@ async function lipSyncVideoSpeaker() {
           if (myGen !== gen) return;
           const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
           clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
-          clip.startIdx = startIdx || 0;
           scheduled = true;
           scheduleCaption(text, clip.start, buffer.duration, forTurn);
           sources.push(src); clips.push(clip);
@@ -605,7 +574,7 @@ async function lipSyncVideoSpeaker() {
           const merged = new Uint8Array(buf.length + value.length); merged.set(buf); merged.set(value, buf.length); buf = merged;
           for (;;) {
             if (total === null) { if (buf.length < 4) break; total = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
-            if (startIdx === null) { if (buf.length < 4) break; startIdx = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
+            if (!skipped) { if (buf.length < 4) break; buf = buf.slice(4); skipped = true; continue; }  // the loop position the server started from (this page asked for the held frame)
             if (buf.length < 4) break;
             const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
             if (buf.length < 4 + n) break;
@@ -620,7 +589,7 @@ async function lipSyncVideoSpeaker() {
         await begin();
       } catch (e) {
         if (e.name !== "AbortError") console.error(e);
-        if (myGen === gen) {  // the server failed for this phrase: still say it, the calm loop stays on screen
+        if (myGen === gen) {  // the server failed for this phrase: still say it, with the stable face
           await before;
           if (myGen !== gen || scheduled) return;
           const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
@@ -634,14 +603,11 @@ async function lipSyncVideoSpeaker() {
       }
     })();
   }
-  let active = null;
   function draw() {
     if (!alive) return;
     requestAnimationFrame(draw);
     const t = ctx.currentTime;
     const clip = clips.find((c) => t >= c.start && t < c.start + c.dur);
-    if (clip && clip !== active) { active = clip; base.seekLoop(clip.startIdx); }  // the idle loop continues from this phrase's position
-    if (!clip) active = null;
     const bmp = clip ? clip.frames[Math.min(clip.frames.length - 1, Math.floor((t - clip.start) * clip.fps))] : null;
     if (bmp) { g.drawImage(bmp, 0, 0, canvas.width, canvas.height); canvas.style.opacity = "1"; } else canvas.style.opacity = "0";
     clips = clips.filter((c) => { if (c.start + c.dur > t - 1) return true; c.frames.forEach((f) => f.close()); return false; });
@@ -654,7 +620,7 @@ async function lipSyncVideoSpeaker() {
       gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
       for (const s of sources) { try { s.stop(); } catch (e) {} }
       clips.forEach((c) => c.frames.forEach((f) => f.close()));
-      sources = []; clips = []; endAt = 0; active = null; base.stop();
+      sources = []; clips = []; endAt = 0; base.stop();
     },
     busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
     dispose() { alive = false; this.stop(); canvas.remove(); base.dispose(); },
@@ -1074,8 +1040,12 @@ async function loadSpeaker() {
     try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
   }
   if (params.get("avatar") === "video") {  // "New ARIA Avatar": only when chosen; the existing avatars below are unchanged
-    try { return await lipSyncVideoSpeaker(); } catch (err) { console.info("New ARIA Avatar lip-sync not available (" + err.message + "); using the video loops"); }
-    try { return await videoSpeaker(); } catch (err) { console.info("New ARIA Avatar not available:", err.message); }
+    try { return await lipSyncVideoSpeaker(); } catch (err) { console.info("New ARIA Avatar lip-sync not available:", err.message); }
+    try {
+      const v = await videoSpeaker();
+      $("note").textContent = "The New ARIA Avatar's lip-sync needs the GPU server: start ARIA with Launch_ARIA.bat gpu (restart it if it was already running).";
+      return v;
+    } catch (err) { console.info("New ARIA Avatar not available:", err.message); }
   }
   const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/office-wide-glasses.webp", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
   if (photo) {

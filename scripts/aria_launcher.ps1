@@ -15,8 +15,7 @@ $logDir = Join-Path $root "logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $logFile = Join-Path $logDir "launch.log"
 $gpu = $Url -like "aria://launch-gpu*"
-$gpuNew = $Url -like "aria://launch-gpu-new*"   # the video presenter's lip-sync server instead of the original avatar's
-$MT_PORT = if ($gpuNew) { 8011 } else { 8010 }; $WEB_PORT = 5173
+$MT_PORT = 8010; $WEB_PORT = 5173   # one GPU server serves the original avatar and the New ARIA Avatar (aria://launch-gpu-new is an alias)
 $py = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { $py = "python" }
 $env:PYTHONIOENCODING = "utf-8"; $env:PYTHONUNBUFFERED = "1"
@@ -134,11 +133,18 @@ try {
         $mtWanted = $true
         $mtDir = if ($env:MUSETALK_DIR) { $env:MUSETALK_DIR } else { "E:\musetalk\MuseTalk" }
         $health = Get-Json "http://127.0.0.1:$MT_PORT/health"
+        # a lip-sync server started before the New ARIA Avatar existed has no presenter video loaded: restart it once
+        if ($health -and $null -ne $health.ready -and -not $health.avatars.video -and (Test-Path "$root\interface\avatar\presenter-lipsync.mp4")) {
+            Log "The running MuseTalk server was started without the New ARIA Avatar; restarting it." Yellow
+            Find-Proc "python.exe" "musetalk_server\.py" | ForEach-Object { & taskkill /PID $_.ProcessId /T /F | Out-Null }
+            Wait-Ready "MuseTalk port release" { -not (Test-Port $MT_PORT) } 20 $null | Out-Null
+            $health = $null
+        }
         if ($health -and $null -ne $health.ready) { Log "MuseTalk already running on port $MT_PORT (ready=$($health.ready))" }
         elseif (Find-Proc "python.exe" "musetalk_server\.py") { Log "MuseTalk is already starting" }
         elseif (Test-Port $MT_PORT) { $problems += "Port $MT_PORT is used by another app, so the lip-sync server cannot start."; $mtWanted = $false }
         else {
-            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\$(if ($gpuNew) { 'presenter-lipsync.mp4' } else { 'office-wide-glasses.webp' })") |
+            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\office-wide-glasses.webp") |
                 Where-Object { -not (Test-Path $_) }
             if ($missing) { $problems += "Lip-sync server files are missing: " + ($missing -join ", "); $mtWanted = $false }
             else {
@@ -153,7 +159,7 @@ try {
                 Log "Windows memory (RAM + page file) free: $freeGb GB"
                 if ($freeGb -lt 6) { Log "Warning: Windows memory is nearly full ($freeGb GB free), lip-sync may stop mid-sentence. Close big programs (python jobs such as Bhauly) first." Yellow }
                 Log "Starting MuseTalk on port $MT_PORT (first start takes a few minutes: loading models to the GPU)"
-                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\$(if ($gpuNew) { 'start_musetalk_new_avatar.bat' } else { 'start_musetalk.bat' })`"") $root "musetalk"
+                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\start_musetalk.bat`"") $root "musetalk"
             }
         }
     }

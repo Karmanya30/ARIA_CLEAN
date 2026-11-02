@@ -1,36 +1,28 @@
 # ARIA video avatar ("New ARIA Avatar")
 
-## The sample video (measured with ffprobe, ffmpeg and frame differencing)
-- 20.0 seconds, 848 x 480, 24 fps, H.264, a silent audio track. A presenter in a glass office with a screen of charts. A small sparkle mark sits at the lower right of the original frame.
-- About 0 to 9.5 s she speaks and gestures; from about 10.5 s she is calm and smiling. Only about two seconds (10.6 to 12.9 s) are truly still; elsewhere her head moves noticeably (frame-difference motion 1.2 to 2.5 against 0.45 to 0.9 in the calm stretch).
-- Two frames (around 3.5 s and 6.5 s) show a squint; the talking clips are cut around them.
+## What it is
+A second avatar next to the original. The live meeting header has an **Avatar** selector: "ARIA Avatar" (the original, still the default and unchanged) and "New ARIA Avatar". The choice is remembered on the device.
 
-## How the New ARIA Avatar works now
-It is a separate choice. The live meeting header has an **Avatar** selector: "ARIA Avatar" (the original, still the default and unchanged) and "New ARIA Avatar". The choice is remembered on the device.
+The New ARIA Avatar uses the **original avatar's scene**: the same bright office (window with the city view, plants, shelves, desk), the same seated figure and the same navy blazer and white blouse, with the **moving presenter from the supplied video** on top. The video itself was generated with a different background (a dark office with a charts wall), so the clips are rebuilt: the presenter is cut out of every frame (MuseTalk's face-parsing network), moved and scaled so her face lands on the old avatar's face, and blended with a soft edge over a 16:9 crop of the old photo. Her hands and body are the old photo's, so only the head moves. The video's corner mark is not in the result because the whole background is replaced. Build script: `scripts/build_new_avatar_scene.py` (run it with the MuseTalk Python environment; it reads the video from `.audit/src.mp4` or `ARIA_AVATAR_VIDEO`).
 
-**It stays calm unless there is a reason to move.** An earlier version swapped between smiles, tilts and different clips every few seconds for no reason, with a different background each time; that was removed.
-- **Listening or waiting:** one calm loop (the same 2.3 s of footage the lip-sync uses, played forward then backward). Nothing else.
-- **Start of the meeting:** a short hello clip, once.
-- **While ARIA speaks, with the GPU lip-sync server running:** the mouth follows the words (below).
-- **While ARIA speaks, without it:** one of three talking clips is picked for the phrase and she returns to the calm loop in the pause. The mouth follows the clip, not the words, so this is **not lip-sync**.
-- **Reduce motion:** a still face.
-
-**One consistent background.** Every clip is cut from the same video at the full 16:9 frame (office and charts visible, shoulders in view), shown at the same size. The sparkle mark at the lower right is removed in place (an interpolating filter over a 48 x 44 pixel area over a dark, blurred chair, away from her face); the rest of the frame is untouched.
+## How it behaves
+- **Stable** when nothing is happening and after she has finished speaking: one held frame (eyes open, calm smile), no random movement.
+- **Attentive only while the client is speaking:** a slight head tilt and a smile, then she settles again. The signal is the microphone's voice detection or the browser recogniser's words.
+- **Speaking, with the GPU server:** real lip-sync; the mouth follows the words.
+- **Speaking, without the GPU server:** she keeps the stable face and the page shows a note saying how to start the server. An earlier version played generic talking clips here; their mouth movement had no relation to the words, so they were removed.
+- **Reduce motion:** always the held frame.
 
 ## Real lip-sync (GPU)
-- Run `Launch_ARIA.bat gpu-new` (or `scripts\start_musetalk_new_avatar.bat`; port **8011**). It loads MuseTalk with `interface/avatar/presenter-lipsync.mp4` (the calm 2.3 s at 25 fps). The first start prepares the video and caches it; later starts take about a minute.
-- Each phrase's voice goes to the server, which returns whole frames of the presenter with the mouth matching the speech, drawn in step with the audio. The frames are the same footage, upscaled and sharpened the same way as the idle loop, and **each phrase starts at the idle loop's own position**; the idle loop is moved to the matching position, so neither the face nor the background jumps when she starts or stops speaking. Head movement during speech plays at normal speed.
-- Without the server the avatar silently uses the talking clips above.
-- The original avatar's server (port 8010, the photo) is separate and unaffected. Run one GPU server at a time on an 8 GB GPU.
-- **Measured here** (RTX 4060 Laptop, 8 GB): 150 frames generated in 8.3 s (18.2 frames per second, above the 15 fps it plays at). Frames captured from a browser run with real speech show the mouth changing shape with the words, the same office in idle and speech, glasses intact. That was judged by looking at the frames, not with a lip-sync score. The original photo server was re-run after the earlier server change and gave the same output as before (150 frames in 8.0 s).
+- One server serves **both** avatars. `Launch_ARIA.bat gpu` (or `aria://launch-gpu`) starts `scripts/musetalk_server.py` with the original photo and `--source-video interface/avatar/presenter-lipsync.mp4`; the models are loaded once (`/lipsync` = original avatar, `/lipsync?avatar=video` = New ARIA Avatar). `gpu-new` is an alias. If a lip-sync server that was started before this avatar existed is still running, the launcher restarts it once.
+- Each phrase's voice goes to the server, which returns whole 1280 x 720 frames of the presenter in the old scene with the mouth matching the speech; the page draws them in step with the audio. Every phrase starts from the held frame, and she returns to it when she stops.
+- **Measured here** (RTX 4060 Laptop, 8 GB): 150 frames in 7.9 s (19 frames per second, above the 15 fps it plays at). The original avatar's output from the same server is unchanged (150 frames, same protocol). Frames captured from a browser run with real speech show the mouth following the words, the same office in idle and speech, and the attentive tilt while the client speaks. That was judged by looking at the frames, not with a lip-sync score.
 
 ## Launching
-- `Launch_ARIA.bat` starts ARIA (API and web) and opens Edge. `Launch_ARIA.bat gpu` also starts the original avatar's lip-sync server (8010); `gpu-new` starts the New ARIA Avatar's (8011).
-- Launcher fix: when a backend from before an update was still running, the launcher stopped with "ARIA could not start" because it could not identify the port's owner. It now falls back to finding the backend by its command line and checks ports by connecting. After an update it restarts the old backend itself, which is what makes the new video clips available (the page quietly falls back to the old avatar if they are missing).
+- `Launch_ARIA.bat` starts ARIA and opens Edge; `Launch_ARIA.bat gpu` also starts the lip-sync server. If the backend from before an update is still running, the launcher restarts it (an earlier version stopped with "ARIA could not start" because it could not identify the port's owner).
+- The page quietly falls back to the old avatar if the new clips are missing (an outdated backend returns 404 for them).
 
 ## Limits and what to improve next
-- The calm source is only 2.3 s, so the idle loop repeats every 4.6 s; a longer calm take (and a 1080p one) would look less repetitive. 848 x 480 is enlarged for the stage.
-- No serious, concerned or farewell expressions: they need new footage from the same generator, character and background.
-- Three talking clips repeat in a long answer in the no-GPU mode.
-- The mouth is generated by the model, so very fast or unusual speech can look less natural than the footage.
-- Check portrait phones and dark mode framing.
+- The presenter's head is composited on the old photo's body. Her head moves slightly more than the old avatar's, and where the head meets the shoulders the blend relies on both being the same blazer; look for a seam at the collar on very large screens.
+- The calm source is only 2.4 s of footage, so speech repeats a small range of head movement. A longer calm take, or a clip generated directly from the old avatar image (image to video, same scene) would remove the compositing.
+- No serious, concerned or farewell expressions: those need new footage.
+- If you hear no voice at the start of a meeting with a Bluetooth headset: opening the microphone switches many Bluetooth headsets to a low-quality call mode, which makes the output quiet or garbled. This is a device behaviour, not tested here; try a wired headset or mute the microphone at the start.
