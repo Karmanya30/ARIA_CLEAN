@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MessageSquare, Mic, PanelLeft, Video, X } from 'lucide-react'
 import { ConversationList } from './ConversationList'
 import type { ChatMode } from '../types'
@@ -42,10 +43,11 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
     return () => window.removeEventListener('keydown', onKey)
   }, [picked])
 
-  return (
+  // Rendered straight into <body> so the modal live meeting (which makes the rest of the page inert) can leave it active
+  return createPortal(
     <>
-      {open && <div className="history-backdrop" onClick={() => setOpen(false)} />}
-      <aside id="history-panel" className={open ? 'history-panel open' : 'history-panel'} aria-label="Previous chats" aria-hidden={!open} inert={!open}>
+      {open && <div data-keep-active className="history-backdrop" onClick={() => setOpen(false)} />}
+      <aside data-keep-active id="history-panel" className={open ? 'history-panel open' : 'history-panel'} aria-label="Previous chats" aria-hidden={!open} inert={!open}>
         <div className="history-panel-head">
           <strong>Chats</strong>
           <button type="button" aria-label="Close chat history" onClick={() => setOpen(false)}><X size={16} /></button>
@@ -53,7 +55,7 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
         <ConversationList activeId={activeId} onSelect={setPicked} onActiveGone={onActiveGone} />
       </aside>
       {picked && (
-        <div className="continue-backdrop" onClick={() => setPicked(null)}>
+        <div data-keep-active className="continue-backdrop" onClick={() => setPicked(null)}>
           <div className="continue-dialog" role="dialog" aria-modal="true" aria-label="How do you want to continue?" onClick={(e) => e.stopPropagation()}>
             <h2>How do you want to continue?</h2>
             <div className="continue-ways">
@@ -67,6 +69,7 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body,
   )
 }
