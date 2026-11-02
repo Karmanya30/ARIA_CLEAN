@@ -35,7 +35,9 @@ export function ResponseCard({ text }: { text: string }) {
   if (value.startsWith('Error:')) {
     return (
       <div className="response-error">
-        <p>ARIA couldn't put an answer together just now. Please try again in a moment.</p>
+        <p>{/too many requests|busy/i.test(value)
+          ? "You're sending messages quickly. Please wait about a minute and try again."
+          : "ARIA couldn't put an answer together just now. Please try again in a moment."}</p>
       </div>
     )
   }

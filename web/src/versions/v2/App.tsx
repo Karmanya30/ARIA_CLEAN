@@ -41,7 +41,7 @@ function useTab(): [string, (id: string) => void, number, string | null] {
   const [idx, setIdx] = useState(() => (window.history.state?.idx as number | undefined) ?? 0)
   const [prev, setPrev] = useState<string | null>(null)
   useEffect(() => {
-    if (window.history.state?.idx === undefined) window.history.replaceState({ idx: 0, tab: tabFromHash() }, '')
+    if (window.history.state?.idx === undefined) window.history.replaceState({ idx: 0, tab: tabFromHash() }, '', `#/${tabFromHash()}`) // an unknown route is rewritten to the page it shows
     const onPop = (e: PopStateEvent) => {
       setTabState(tabFromHash())
       setIdx((e.state?.idx as number | undefined) ?? 0)
@@ -70,6 +70,8 @@ export default function App() {
   // Vitara Clear uses shorter tab names so the whole bar fits at laptop widths
   const tabs = tabsFor(theme).map((t) => (SHORT_LABEL[t.id] ? { ...t, label: SHORT_LABEL[t.id] } : t)) // short labels everywhere so the whole bar fits without scrolling
   const prevLabel = tabs.find((t) => t.id === prev)?.label
+  const pageLabel = tab === 'disclaimers' ? 'Disclaimers' : tabs.find((t) => t.id === tab)?.label
+  useEffect(() => { document.title = pageLabel ? `${pageLabel} - ARIA` : 'ARIA' }, [pageLabel])
   const askInChat = (q: string) => { setPendingAsk(q); setTab('chat') }
 
   // A browser with no saved chat (new device, or just signed in) opens the most recent one stored on the server.
@@ -90,9 +92,9 @@ export default function App() {
 
   return (
     <>
+    <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }}>Skip to main content</a>
     <DisclaimerStrip onOpen={() => setTab('disclaimers')} />
     <div className="app-shell">
-      <a className="skip-link" href="#main">Skip to main content</a>
       <Sidebar
         tabs={tabs}
         active={tab}

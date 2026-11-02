@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageSquare, Mic, PanelLeft, Video, X } from 'lucide-react'
 import { ConversationList } from './ConversationList'
@@ -43,8 +43,22 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
     document.documentElement.style.setProperty('--history-w', size.width + 'px')
     document.body.classList.toggle('history-resizing', size.dragging)
   }, [size.width, size.dragging])
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {  // the dialog takes focus when it opens and gives it back when it closes
+    if (!picked) return
+    const back = document.activeElement as HTMLElement | null
+    dialogRef.current?.querySelector('button')?.focus()
+    return () => back?.focus?.()
+  }, [picked])
+  const trapTab = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab') return
+    const items = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button') ?? [])
+    const first = items[0], last = items[items.length - 1]
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+  }
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (picked) setPicked(null); else setOpen(false) } }
+    const onKey =(e: KeyboardEvent) => { if (e.key === 'Escape') { if (picked) setPicked(null); else setOpen(false) } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [picked])
@@ -63,7 +77,7 @@ export function HistoryPanel({ activeId, onContinue, onActiveGone }: { activeId:
       </aside>
       {picked && (
         <div data-keep-active className="continue-backdrop" onClick={() => setPicked(null)}>
-          <div className="continue-dialog" role="dialog" aria-modal="true" aria-label="How do you want to continue?" onClick={(e) => e.stopPropagation()}>
+          <div ref={dialogRef} className="continue-dialog" role="dialog" aria-modal="true" aria-label="How do you want to continue?" onClick={(e) => e.stopPropagation()} onKeyDown={trapTab}>
             <h2>How do you want to continue?</h2>
             <div className="continue-ways">
               {WAYS.map((w) => (

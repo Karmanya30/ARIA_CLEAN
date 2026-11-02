@@ -150,6 +150,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
   }
 
   async function clearChat() {
+    if (history.length && !window.confirm('Clear this chat? Its messages will be removed and cannot be brought back.')) return
     setCaptureEpoch(value => value + 1)
     await api.clearChat(sessionId)
     setHistory([])
