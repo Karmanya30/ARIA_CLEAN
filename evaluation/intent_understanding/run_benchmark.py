@@ -118,7 +118,7 @@ def load(split, bench="benchmark_v1.jsonl"):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arch", required=True, choices=list("ABCDE"))
+    ap.add_argument("--arch", required=True, choices=list("ABCDEH"))
     ap.add_argument("--split", default="dev", choices=["dev", "test", "all", "challenge"])
     ap.add_argument("--bench", default="benchmark_v1.jsonl")
     ap.add_argument("--llm", default="replay", choices=["record", "replay", "off"])
@@ -138,7 +138,7 @@ def main():
     from modules.finance.pipeline import finance_intent
     from shared.understand import normalize
 
-    llm = CachedLLM(args.llm if args.arch in "DE" else "off")
+    llm = CachedLLM(args.llm if args.arch in ("D", "E", "H") else "off")
 
     def stub(name):
         def f(*a, **k):
@@ -179,7 +179,7 @@ def main():
         for p in patches:
             st.enter_context(p)
         orchestrator.handle_query("hello", session_id="__warm")  # exclude one-time model loading from latency
-        if args.arch in "BDE":
+        if args.arch in ("B", "D", "E", "H"):
             from core.intent import semantic
             semantic.classify("warm up")
         clear_session("__warm")

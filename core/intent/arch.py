@@ -6,12 +6,15 @@ ARIA_QUERY_ARCHITECTURE:
   langgraph (C)          A + LangGraph workflow (decomposition of multi-part questions, per-part verification)
   structured (D)         structured LLM understanding + Semantic Router + LangGraph; replaces the keyword/regex routing
   hybrid (E)             A's deterministic rules first, then structured understanding + Semantic Router + LangGraph
+  adaptive (H, "E2")     rules first; the model is consulted only for the kinds of question where it helped (see needs_model), and it may only
+                         overrule the rules where that helped (see guard): company data, out-of-scope and small talk stay with the rules
 Independent switches for ablations: ARIA_SR_MODE=fallback|override (B), ARIA_INTENT_LLM=0 (turn the LLM off in D/E), ARIA_INTENT_GRAPH=0.
 Any failure in a new component returns "no opinion" (None) and the baseline route runs.
 """
 from __future__ import annotations
 
 import os
+import re
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 
@@ -21,7 +24,7 @@ from core.intent import semantic
 from core.intent.taxonomy import CLARIFY, GENERAL, SMALLTALK
 
 ALIASES = {"baseline": "A", "a": "A", "semantic_router": "B", "b": "B", "langgraph": "C", "c": "C",
-           "structured": "D", "d": "D", "hybrid": "E", "e": "E"}
+           "structured": "D", "d": "D", "hybrid": "E", "e": "E", "adaptive": "H", "e2": "H", "h": "H"}
 
 # Thresholds. Defaults are overwritten by evaluation/intent_understanding/calibrate.py output (dev split only) via env or thresholds.json.
 DEFAULTS = {"sr_score": 0.30, "sr_margin": 0.05, "llm_intent": 0.75, "llm_context": 0.70, "sr_veto": 0.45}
@@ -32,7 +35,7 @@ def architecture() -> str:
 
 
 # Dev-split optima per variant (evaluation/intent_understanding/calibrate.py); only the router veto moved from the starting values.
-BY_ARCH = {"D": {"sr_veto": 0.7}, "E": {"sr_veto": 0.55}}
+BY_ARCH = {"D": {"sr_veto": 0.7}, "E": {"sr_veto": 0.55}, "H": {"sr_veto": 0.55}}
 
 
 def threshold(name: str) -> float:
@@ -95,6 +98,59 @@ def decide_structured(query: str, history: list[dict], *, deterministic_label: s
         return Decision(clarify=u.clarification_question or "Do you want help with your own money, or information about a company or the market?",
                         source="llm_sr_disagree", trace=trace)
     return Decision(label=u.primary_intent, source="llm", sub_queries=subs, trace=trace)
+
+
+# ---- H ("E2"): adaptive hybrid -------------------------------------------------------------------------------------------------
+# Designed from dev-split behaviour of D versus the rules: D was better on concept questions, follow-ups, multi-part and calculation
+# questions, and worse on company data, out-of-scope requests and small talk. H therefore (1) asks the model only for the first kind and
+# (2) lets the model overrule the rules only where that kind of change helped.
+_CONCEPT = re.compile(r"^\s*(what('?s| is| are| does)|define|explain|how (does|do|is)|difference between|why (do|does|is)|teach me|meaning of|samjhao)\b|\bkya (hai|hota)", re.I)
+_MULTI = re.compile(r"\?.*\?|;|\bthen\b|\b(?:and|also)\s+(?:what|how|is|are|calculate|tell|explain|show|price|the)\b", re.I)
+_FOLLOW = re.compile(r"^\s*(and|also|what about|how about|why|its|it|that|this|give me an example|example)\b", re.I)
+_DEICTIC = re.compile(r"\b(it|its|that|this|those|these|one|them|other)\b", re.I)
+
+
+def needs_model(query: str, history: list[dict], rule_label: str | None, ticker: str | None) -> tuple[bool, str]:
+    """(consult the model?, why). Cheap and local: no tokens."""
+    if rule_label is None:
+        return True, "rules_unplaced"
+    if _MULTI.search(query):
+        return True, "multi_part"
+    if history and (len(query.split()) <= 6 or _FOLLOW.match(query)):
+        return True, "follow_up"
+    if _CONCEPT.search(query) and not ticker and rule_label != "tutor":
+        return True, "concept_not_tutor"
+    sem = semantic.classify(query)
+    if sem.label and sem.label != rule_label and sem.score >= threshold("sr_veto"):
+        return True, "router_disagrees"
+    return False, "rules_confident"
+
+
+def guard(rule_label: str | None, ticker: str | None, query: str, d: Decision) -> Decision:
+    """Keep the model's decision only where it is allowed to overrule the rules; otherwise the rules' route runs (Decision with no label)."""
+    rules = Decision(source="rules_guard", trace={**d.trace, "guarded": True})
+    if len(d.sub_queries) >= 2:
+        return d  # splitting a multi-part question is where the model was clearly better
+    if d.clarify:
+        # a question back only when the rules had nothing, or when a referent is plainly missing; otherwise answer as the rules would
+        return d if rule_label is None and (_DEICTIC.search(query) or len(query.split()) <= 3) else rules
+    if not d.label:
+        return d
+    if rule_label is None:
+        if d.label == SMALLTALK and d.trace.get("sr_label") != SMALLTALK:
+            return rules  # small talk needs two signals: the model alone called "recommend a good movie" small talk
+        if d.label in ("equity_research", "company_intelligence") and not ticker:
+            from modules.qa import lookup
+            if lookup.is_data_question(query):
+                return rules  # "revenue of <small company>" belongs to the data-lookup stage of the normal chain
+        return d
+    if rule_label in ("data_lookup", "company_intelligence", "general", "smalltalk"):
+        return rules  # company facts and out-of-scope requests: the rules were right more often than the model
+    if rule_label == "equity_research":
+        if d.label == "equity_research" or (d.label == "tutor" and _CONCEPT.search(query) and not ticker):
+            return d
+        return rules
+    return d  # finance / market / tutor / clarify: the model's reading was better than the keyword rules
 
 
 def log(decision: Decision, query: str) -> None:
