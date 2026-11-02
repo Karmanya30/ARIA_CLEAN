@@ -268,7 +268,7 @@ def clear(session_id: str) -> None:
 
 
 _STOP = set("the a an is are was were to of and or in on it this that what about we i my you your our with for do did".split())
-_FOLLOWUP = re.compile(r"\b(it|this|that|those|previous|earlier|continue|conclude|compare|remember|discussed)\b", re.I)
+_FOLLOWUP = re.compile(r"\b(it|its|this|that|those|them|their|same|isme|iska|previous|earlier|continue|conclude|compare|remember|discussed)\b", re.I)
 
 
 def words(text: str) -> list[str]:
@@ -343,13 +343,17 @@ def retrieve(session_id: str, query: str, limit: int = 12) -> tuple[list[dict], 
             qv = _embedding(resolved)
             # Score the original user statement separately: serialization and a
             # generic assistant acknowledgement can dilute a short useful fact.
+            window = int(os.getenv("ARIA_MEMORY_SEMANTIC_CANDIDATES", "200"))
+            seen: set[int] = set()
+            candidates = [r for r in records[: window // 2] + lexical[: window // 2] if not (r["id"] in seen or seen.add(r["id"]))]
             ranked = [(r, max(sum(a*b for a, b in zip(qv, _embedding(text)))
                               for text in (r["query"], r["text"])))
-                      for r in records[:int(os.getenv("ARIA_MEMORY_SEMANTIC_CANDIDATES", "200"))]]
+                      for r in candidates]
             rankings.append([r for r, s in sorted(ranked, key=lambda x: x[1], reverse=True) if s >= .25])
             semantic_status = "ok"
-        except Exception:
+        except Exception as exc:
             semantic_status = "unavailable"
+            logger.warning(f"memory semantic stage unavailable: {type(exc).__name__}")
     fused: dict[int, float] = {}
     for ranking in rankings:
         for rank, record in enumerate(ranking):

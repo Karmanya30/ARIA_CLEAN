@@ -51,7 +51,8 @@ def ungrounded(reply: str, source: str, lenient: bool = False) -> list[float]:
     bad = []
     for match in _NUM.finditer(reply):
         n = float(match.group().replace(",", ""))
-        if n == int(n) and (n <= 31 or n in _OK_INTS or 1900 <= n <= 2100) and not (lenient and n <= 31 and _claim_like(reply, match)):
+        year = 1900 <= n <= 2100 and "," not in match.group() and not _CURRENCY_BEFORE.search(reply[max(0, match.start() - 4):match.start()])
+        if n == int(n) and (n <= 31 or n in _OK_INTS or year) and not (n <= 31 and _claim_like(reply, match)):
             continue
         unit = _UNIT_RE.match(reply[match.end():])
         # "473,080 crore" quoted from data that already says crore matches as written; "4.7 lakh" matches the scaled value
@@ -63,7 +64,8 @@ def ungrounded(reply: str, source: str, lenient: bool = False) -> list[float]:
 
 _FISCAL_YEAR = re.compile(r"\b(?:FY|F\.Y\.?)\s*\d{2,4}\s*[-‐-―−/]\s*\d{2,4}\b|\b(?:19|20)\d{2}\s*[-‐-―−/]\s*\d{2}\b", re.I)
 _INDEX_NAME = re.compile(r"\b(nifty|sensex|bse|cnx)[\s-]*(?:50|100|200|500|30)\b", re.I)
-_CLAIM_AFTER =re.compile(r"\s*(?:%|×|x\b|times\b|per ?cent|percent)|[-‐-―−]\d", re.I)
+_CLAIM_AFTER =re.compile(r"\s*(?:%|×|x\b|times\b|per ?cent|percent|rupees?\b|rs\b|crores?\b|lakhs?\b)|[-‐-―−]\d", re.I)
+_CURRENCY_BEFORE = re.compile(r"(?:₹|\brs\.?|\binr)\s*$", re.I)
 _CLAIM_BEFORE = re.compile(r"\d[-‐-―−]$")
 
 

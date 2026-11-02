@@ -7,6 +7,17 @@ from shared import conversation_memory as memory
 _SESSIONS: dict[str, dict[str, Any]] = {}
 _LOCKS: dict[str, RLock] = {}
 _LOCK_GUARD = RLock()
+MAX_CACHED_SESSIONS = 500  # idle conversations beyond this are dropped from memory (the database keeps them; the next turn reloads)
+
+
+def _evict(keep: str) -> None:
+    """Drops the least recently used cached sessions that nobody is working on. ponytail: the tiny per-session RLocks are kept."""
+    for sid in list(_SESSIONS)[: max(0, len(_SESSIONS) - MAX_CACHED_SESSIONS)]:
+        lock = _LOCKS.get(sid)
+        if sid != keep and (lock is None or lock.acquire(blocking=False)):
+            _SESSIONS.pop(sid, None)
+            if lock is not None:
+                lock.release()
 
 @contextmanager
 def session_lock(session_id: str):
@@ -32,6 +43,9 @@ def get_session(session_id: str = "default") -> dict[str, Any]:
     with session_lock(session_id):
         if session_id not in _SESSIONS:
             _SESSIONS[session_id] = memory.load(session_id)
+        else:
+            _SESSIONS[session_id] = _SESSIONS.pop(session_id)  # most recently used goes last
+        _evict(session_id)
         return _SESSIONS[session_id]
 
 def clear_session(session_id: str = "default") -> None:

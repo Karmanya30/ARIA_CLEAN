@@ -3,6 +3,7 @@
 import contextvars
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from typing import Any
@@ -261,7 +262,7 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     # never rewrites or discards the answer -- see shared/domain_guard.py's
     # validate_output docstring for why.
     # Same for every mode: bounded wait, so a slow classifier costs a missing tag, never a late reply.
-    output_guard = _output_guard(query, response.get("response", ""))
+    output_guard = {"available": False} if response.get("degraded") else _output_guard(query, response.get("response", ""))  # nothing to classify in a degraded reply
     if output_guard["available"]:
         response["domain_guard_output"] = output_guard
 
@@ -321,6 +322,22 @@ def _run_label(label: str, query: str, shown: str, session_id: str) -> dict[str,
     return None
 
 
+_PASS_THROUGH = (PermissionError, ValueError, LookupError)  # ownership/validation errors keep their HTTP meaning (403/409/404)
+_NO_GUESS = ("data_lookup", "equity_research", "company_intelligence")
+
+
+def _degraded_reply(shown: str, domain: str = "general") -> dict[str, Any]:
+    from modules.qa.trust import DEGRADED
+    return {"domain": domain, "query": shown, "response": DEGRADED, "degraded": True}
+
+
+def _run_part(label: str, text: str, session_id: str) -> dict[str, Any]:
+    resp = _run_label(label, text, text, session_id)
+    if resp is None and label in _NO_GUESS:
+        raise LookupError(f"no grounded answer for the {label} part")  # the graph reports it as not completed
+    return resp or _with_news(text, _general_reply)
+
+
 def _understand(query: str, history: list[dict]):
     from core.intent import understanding
     return understanding.understand(query, history)
@@ -356,12 +373,17 @@ def _architecture_route(query: str, shown: str, session_id: str) -> dict[str, An
         if a in ("C", "D", "E", "H") and os.getenv("ARIA_INTENT_GRAPH", "1") != "0":
             plan = list(d.sub_queries) or (graph.split_by_rules(query, _rule_label) if a in ("C", "E", "H") else [])
         if len(plan) >= 2:
-            resp = graph.run_multi(shown, plan, lambda text, label: _run_label(label or _rule_label(text) or "general", text, text, session_id)
-                                   or _with_news(text, _general_reply))
+            resp = graph.run_multi(shown, plan, lambda text, label: _run_part(label or _rule_label(text) or "general", text, session_id))
             resp["intent_route"] = d.trace
             return resp
         if d.label:
-            resp = _run_label(d.label, query, shown, session_id)
+            try:
+                resp = _run_label(d.label, query, shown, session_id)
+            except _PASS_THROUGH:
+                raise
+            except Exception as exc:  # the module failed: say so, do not run it again (and its side effects) through the baseline chain
+                logger.warning(f"{d.label} pipeline failed ({type(exc).__name__}); not retrying through the baseline chain")
+                return _degraded_reply(shown, d.label)
             if resp is not None:
                 resp["intent_route"] = d.trace
                 return resp
@@ -381,14 +403,22 @@ def _focus_company(focus) -> str | None:
 
 _GUARD_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="aria-guard")
 GUARD_TIMEOUT_S = float(os.getenv("ARIA_OUTPUT_GUARD_TIMEOUT_S", "3"))
+GUARD_COOLDOWN_S = float(os.getenv("ARIA_OUTPUT_GUARD_COOLDOWN_S", "30"))
+
+
+_guard_off_until = 0.0  # monotonic time until which the guard is skipped after a timeout or failure
 
 
 def _output_guard(query: str, text: str) -> dict[str, Any]:
+    global _guard_off_until
+    if time.monotonic() < _guard_off_until:
+        return {"available": False}  # the classifier is stuck or the provider is down: do not queue more calls on it
     future = _GUARD_POOL.submit(contextvars.copy_context().run, validate_output, query, text)
     try:
         return future.result(timeout=GUARD_TIMEOUT_S)
     except Exception as exc:  # timeout or classifier failure: the tag is a transparency extra, never required
         logger.warning(f"output guard skipped: {type(exc).__name__}")
+        _guard_off_until = time.monotonic() + GUARD_COOLDOWN_S
         return {"available": False}
 
 
@@ -444,7 +474,18 @@ def _dialogue_reply(query: str, kind: str, session_id: str) -> dict[str, Any]:
 
 def handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode", correct: bool = True) -> dict[str, Any]:
     from core.session import execute_turn
-    return execute_turn(session_id, query, lambda: _handle_query(query, session_id, mode, correct))
+
+    def answer() -> dict[str, Any]:
+        try:
+            return _handle_query(query, session_id, mode, correct)
+        except _PASS_THROUGH:
+            raise
+        except Exception as exc:  # noqa: BLE001 - a module bug must reach the user as the honest degraded reply, not a 500
+            logger.exception(f"answer pipeline failed ({type(exc).__name__})")
+            response = _degraded_reply(query)
+            save_turn(session_id, query, response)
+            return response
+    return execute_turn(session_id, query, answer)
 
 
 def _handle_query(query: str, session_id: str = "default", mode: str = "Normal Mode", correct: bool = True) -> dict[str, Any]:

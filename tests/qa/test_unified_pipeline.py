@@ -247,8 +247,7 @@ def test_a_dead_model_degrades_honestly_on_every_channel(call, mock_llm, monkeyp
         assert out.get("degraded") or out["grounding"]["fallback"]
 
 
-def test_an_unexpected_failure_is_a_clean_error_not_a_hang(monkeypatch):
+def test_an_unexpected_failure_is_the_degraded_reply_not_a_500(monkeypatch):
     monkeypatch.setattr("core.orchestrator.equity_research_pipeline", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
-    with pytest.raises(RuntimeError):  # surfaced to the framework (500), and the turn is marked interrupted, not left pending
-        client_raise = TestClient(app, raise_server_exceptions=True)
-        client_raise.post("/api/chat", json={"query": QUESTION, "session_id": _sid()})
+    r = TestClient(app, raise_server_exceptions=True).post("/api/chat", json={"query": QUESTION, "session_id": _sid()})
+    assert r.status_code == 200 and r.json().get("degraded") and "won't guess" in r.json()["response"]
