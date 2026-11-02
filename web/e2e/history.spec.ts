@@ -9,11 +9,11 @@ async function leaveMeeting(page: Page) {
 }
 
 async function openHistory(page: Page) {
-  if (!(await page.locator('.history-drawer.open').count())) await page.locator('.history-toggle').click()
+  if (!(await page.locator('.history-panel.open').count())) await page.locator('.history-button').click()
 }
 
 async function closeHistory(page: Page) {
-  if (await page.locator('.history-drawer.open').count()) await page.keyboard.press('Escape')
+  if (await page.locator('.history-panel.open').count()) await page.keyboard.press('Escape')
 }
 
 async function device(browser: Browser) {
@@ -35,7 +35,7 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   await a.page.goto('/')
   await leaveMeeting(a.page)
   // ask through the app's own API route so the answer does not depend on a language model
-  await expect(a.page.locator('.history-toggle')).toBeVisible() // the app has started and chosen its session id
+  await expect(a.page.locator('.history-button')).toBeVisible() // the app has started and chosen its session id
   const sid = await a.page.evaluate(() => localStorage.getItem('aria_session_id'))
   const res = await a.page.request.post('/api/chat', { data: { query: 'hello', session_id: sid, owner_id: owner, request_id: crypto.randomUUID() } })
   expect(res.ok(), `${res.status()} ${await res.text()}`).toBeTruthy()

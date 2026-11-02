@@ -122,6 +122,7 @@ export function LiveMeeting({ sessionId, history, onHistory, onEnd }: {
       <header className="meeting-header">
         <div className="meeting-brand"><BrandLogo className="meeting-official-logo" /><div className="meeting-brand-meta"><span>LIVE</span><small>Your financial research companion</small></div></div>
         <div className="meeting-connection"><span data-connected={state.connected} />{state.connected ? 'Connected' : state.status === 'error' ? 'Connection lost' : state.started ? 'Reconnecting' : 'Connecting'}<time aria-label="Meeting duration">{clock}</time></div>
+        <button className="meeting-chats" onClick={() => window.dispatchEvent(new Event("aria:toggle-history"))} aria-label="Chat history">Chats</button>
         <button className="meeting-exit" onClick={end} aria-label="Leave meeting"><X size={19} /></button>
       </header>
       <main className="meeting-stage">

@@ -68,9 +68,11 @@ function Composer({
   )
 }
 
-export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled }: { sessionId: string; onOpenProfile?: () => void; pendingAsk?: string | null; onAskHandled?: () => void }) {
+export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, continueAs }: { sessionId: string; onOpenProfile?: () => void; pendingAsk?: string | null; onAskHandled?: () => void; continueAs?: { mode: ChatMode; n: number } | null }) {
   const [mode, setMode] = useState<ChatMode>(pendingAsk ? 'Normal Mode' : 'Live Avatar (Free)')
   const [history, setHistory] = useState<HistoryTurn[]>([])
+  // a past chat was opened from the history panel: switch to the way the user chose (chat, voice or video call)
+  useEffect(() => { if (continueAs) setMode(continueAs.mode) }, [continueAs])
   const [query, setQuery] = useState('')
   const [captureEpoch, setCaptureEpoch] = useState(0)
   const [captureBusy, setCaptureBusy] = useState(false)

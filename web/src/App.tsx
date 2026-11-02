@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Sidebar, SIDEBAR_TABS, MARKETS_TAB, EXPLORE_TAB } from './components/Sidebar'
-import { HistoryDrawer } from './components/HistoryDrawer'
+import { HistoryPanel, HistoryButton, type Continue } from './components/HistoryPanel'
 import { api } from './api'
 import { ChatTab } from './components/chat/ChatTab'
 import { ProfileTab } from './components/profile/ProfileTab'
@@ -62,6 +62,7 @@ function useTab(): [string, (id: string) => void, number, string | null] {
 export default function App() {
   const [sessionId, resetSession, selectSession, restored] = useSessionId()
   const [tab, setTab, idx, prev] = useTab()
+  const [continueAs, setContinueAs] = useState<Continue | null>(null) // how a reopened chat is continued: chat, voice or video call
   const [pendingAsk, setPendingAsk] = useState<string | null>(null)
   const [theme, setThemeState] = useState<ThemeId>(getTheme)
   const [instrumentId, setInstrumentId] = useState<string | null>(null) // any instrument opened from search / Explore, shown in its drawer
@@ -99,17 +100,18 @@ export default function App() {
         onNewSession={newSession}
         newLabel="New chat"
         search={<GlobalSearch label={theme === 'vitara-clear' ? 'Search anything' : 'Search'} onOpenInstrument={setInstrumentId} onBrowse={() => setTab('explore')} />}
+        history={tab === 'chat' ? <HistoryButton /> : undefined}
         extra={hasMarkets(theme) ? <ModeToggle /> : undefined}
       />
       {theme === 'vitara-markets' && <TickerTape onOpen={(s) => { setSelectedSymbol(s); setTab('markets') }} />}
-      {tab === 'chat' && <HistoryDrawer activeId={sessionId} onSelect={selectSession} onActiveGone={newSession} />}
+      {tab === 'chat' && <HistoryPanel activeId={sessionId} onContinue={(id, mode) => { selectSession(id); setContinueAs((c) => ({ mode, n: (c?.n ?? 0) + 1 })); setTab('chat') }} onActiveGone={newSession} />}
       <main className="app-main" id="main" tabIndex={-1}>
         {tab !== defaultTab(theme) && idx > 0 && prevLabel && (
           <button type="button" className="back-bar" onClick={() => window.history.back()}>
             <ArrowLeft size={15} aria-hidden="true" /> Back to {prevLabel}
           </button>
         )}
-        {tab === 'chat' && <ChatTab sessionId={sessionId} onOpenProfile={() => setTab('profile')} pendingAsk={pendingAsk} onAskHandled={() => setPendingAsk(null)} />}
+        {tab === 'chat' && <ChatTab sessionId={sessionId} continueAs={continueAs} onOpenProfile={() => setTab('profile')} pendingAsk={pendingAsk} onAskHandled={() => setPendingAsk(null)} />}
         {tab === 'markets' && <MarketsTab onAsk={askInChat} onOpenStock={setSelectedSymbol} selectedSymbol={selectedSymbol} />}
         {tab === 'explore' && <ExploreTab onOpenInstrument={setInstrumentId} />}
         {tab === 'disclaimers' && <DisclaimersPage />}

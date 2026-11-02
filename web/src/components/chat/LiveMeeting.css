@@ -82,3 +82,5 @@
 .meeting-chat>header>div { margin-right:auto; }
 .meeting-empty .meeting-empty-mark { width:48px; height:48px; margin-bottom:16px; }
 @media(max-width:520px) { .meeting-official-logo .aria-brand-mark { width:34px; height:34px; } .meeting-official-logo .aria-brand-wordmark { font-size:18px; } .meeting-brand { gap:8px; } }
+
+.meeting-chats { padding:8px 12px; border:1px solid #ffffff1a !important; font-size:13px; }
