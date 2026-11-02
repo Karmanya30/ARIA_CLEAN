@@ -8,14 +8,15 @@ from ai.llm.groq_client import generate_response
 from ai.llm.prompt_templates import market_prompt
 from modules.finance import personal
 from modules.market.analyzer import MarketAnalyzer
+from shared import finance_knowledge
 
 
 def build_context(query: str) -> dict[str, Any]:
     return MarketAnalyzer().analyze(query)
 
 
-def build_prompt(query: str, context: dict[str, Any] | None = None) -> str:
-    return market_prompt(query, context or build_context(query))
+def build_prompt(query: str, context: dict[str, Any] | None = None, grounding: str = "") -> str:
+    return market_prompt(query, context or build_context(query), grounding=grounding)
 
 
 
@@ -69,7 +70,8 @@ def run_pipeline(query: str) -> dict[str, Any]:
     note = ("Available index snapshots are dated " + ", ".join(dates) + "; these are delayed observations, not verified live prices.") if dates else ""
     if note:
         context['freshness_note'] = note
-    prompt = build_prompt(query, context)
+    # general market-mechanics questions (circuit breaker, short selling) are grounded in the curated finance knowledge
+    prompt = build_prompt(query, context, grounding=finance_knowledge.grounding_for(query))
     answer, fallback = grounded_market_text(generate_response(prompt), context)
     response = {"domain": "market", "query": query, "context": context, "response": answer, "market_semantic_fallback": fallback}
     if note:
