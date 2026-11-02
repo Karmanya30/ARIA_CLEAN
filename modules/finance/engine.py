@@ -80,8 +80,9 @@ def goal_plan(goal: dict, p: dict) -> dict[str, Any]:
     infl = EDU_INFLATION if any(w in goal["name"].lower() for w in ("educat", "college", "school", "mba")) else INFLATION
     future = goal["target"] * (1 + infl) ** years
     gap = max(0.0, future - (goal.get("saved") or 0) * (1 + rate / 100) ** years)
+    # no time left: the whole gap is needed now, not "nothing"
     return {"name": goal["name"], "target": goal["target"], "years": years, "future_target": round(future),
-            "sip_needed": round(sip_emi_calc.sip_required(gap, years, rate))}
+            "sip_needed": round(sip_emi_calc.sip_required(gap, years, rate) if years > 0 else gap)}
 
 
 def goals(p: dict) -> list[dict[str, Any]]:
@@ -175,6 +176,8 @@ def afford_purchase(p: dict, price: float, kind: str = "personal", down_pct: flo
 
 def afford_sip(p: dict, amount: float) -> dict[str, Any]:
     surplus = snapshot(p)["monthly_surplus"]
+    if surplus is None:
+        return {"verdict": "unknown", "reasons": ["monthly surplus is unknown: income and expenses are needed"], "numbers": {"amount": amount}}
     years, rate = p.get("horizon_years") or 10, _ret(p)
     verdict = "yes" if amount <= 0.8 * surplus else "stretch" if amount <= surplus else "no"
     return {"verdict": verdict, "reasons": [f"monthly surplus is ₹{surplus:,.0f}"],
@@ -186,6 +189,9 @@ def sip_capacity(p: dict) -> dict[str, Any]:
     """How much SIP the profile can carry when the user names no amount: 30/50/70% of surplus, always leaving a 10% buffer."""
     s = snapshot(p)
     surplus, em, rate = s["monthly_surplus"], s["emergency_months"], _ret(p)
+    if surplus is None:
+        return {"verdict": "unknown", "surplus": None, "emergency_months": em, "rate_pct": rate, "tiers": [], "first_build_emergency_fund": False,
+                "emergency_shortfall_months": 0.0, "emergency_shortfall_amount": 0}
     spend = (total_expenses(p) or 0) + (total_emi(p) or 0)
     tiers = [{"name": n, "amount": (a := round(min(f * surplus, 0.9 * surplus)) if surplus > 0 else 0),
               "future_value_10y": round(sip_emi_calc.sip_future_value(a, 10, rate)), "future_value_20y": round(sip_emi_calc.sip_future_value(a, 20, rate))}

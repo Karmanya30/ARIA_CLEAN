@@ -14,7 +14,7 @@ def sip_future_value(monthly: float, years: float, annual_return_pct: float) -> 
     if monthly <= 0 or years <= 0:
         return 0.0
     r = annual_return_pct / 12 / 100
-    n = int(round(years * 12))
+    n = max(1, int(round(years * 12)))  # a sub-month tenure is one month, not zero
     if r == 0:
         return monthly * n
     return monthly * ((pow(1 + r, n) - 1) / r) * (1 + r)
@@ -25,7 +25,7 @@ def sip_required(target: float, years: float, annual_return_pct: float) -> float
     if target <= 0 or years <= 0:
         return 0.0
     r = annual_return_pct / 12 / 100
-    n = int(round(years * 12))
+    n = max(1, int(round(years * 12)))  # a sub-month tenure is one month, not zero
     if r == 0:
         return target / n
     return target / (((pow(1 + r, n) - 1) / r) * (1 + r))
@@ -36,7 +36,7 @@ def emi(principal: float, annual_rate_pct: float, years: float) -> float:
     if principal <= 0 or years <= 0:
         return 0.0
     r = annual_rate_pct / 12 / 100
-    n = int(round(years * 12))
+    n = max(1, int(round(years * 12)))  # a sub-month tenure is one month, not zero
     if r == 0:
         return principal / n
     return principal * r * pow(1 + r, n) / (pow(1 + r, n) - 1)
@@ -45,5 +45,5 @@ def emi(principal: float, annual_rate_pct: float, years: float) -> float:
 def emi_total_interest(principal: float, annual_rate_pct: float, years: float) -> float:
     """Total interest paid over the loan tenure."""
     monthly = emi(principal, annual_rate_pct, years)
-    n = int(round(years * 12))
+    n = max(1, int(round(years * 12)))  # a sub-month tenure is one month, not zero
     return max(0.0, monthly * n - principal)

@@ -7,6 +7,8 @@ alone already exceeds 30% of income.
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 from scipy.optimize import linprog
 
@@ -22,6 +24,11 @@ FLOORS = {
     2: {"food": 7_500, "utilities": 3_000, "transport": 2_500},
     3: {"food": 5_000, "utilities": 2_000, "transport": 2_000},
 }
+
+# After SIP is maximised, what is left is shared by these weights (a usual household split), each line capped at a share of income;
+# whatever the caps cannot take goes to the emergency/savings line. Without this the solver dumped all the slack into one line (food 68%).
+_SHARE = {"housing": 0.30, "food": 0.20, "transport": 0.08, "utilities": 0.07, "entertainment": 0.10, "emergency": 0.25}
+_CAP = {"housing": 0.35, "food": 0.25, "transport": 0.12, "utilities": 0.10, "entertainment": 0.15}  # emergency has no cap
 
 # Max SIP as a fraction of income, by risk class
 SIP_CAP = {"Conservative": 0.15, "Moderate": 0.25, "Aggressive": 0.35}
@@ -40,8 +47,10 @@ def optimize_budget(
     infeasible (e.g. EMI + mandatory floors already exceed income) instead
     of crashing — callers should surface this directly to the user.
     """
-    if income <= 0:
-        raise ValueError("Cannot optimize a budget for zero or negative income.")
+    if not (isinstance(income, (int, float)) and math.isfinite(income)) or income <= 0:
+        raise ValueError("Cannot optimize a budget for zero, negative or unknown income.")
+    if not math.isfinite(existing_emi) or existing_emi < 0:
+        raise ValueError("Existing EMI must be zero or a positive amount.")
 
     floor = FLOORS.get(city_tier, FLOORS[1])
     sip_cap_ratio = SIP_CAP.get(risk_label, SIP_CAP["Moderate"])
@@ -86,7 +95,27 @@ def optimize_budget(
         raise ValueError(f"Budget optimizer could not find a feasible allocation: {result.message}")
 
     x = result.x
-    values = {name: round(float(val), 0) for name, val in zip(_VARS, x)}
+    values = {name: float(val) for name, val in zip(_VARS, x)}
+    # second step: SIP and EMI stay as solved; share the rest sensibly between the other lines
+    lo = {n: b[0] for n, b in zip(_VARS, bounds)}
+    free = income - values["emi"] - values["sip"] - sum(lo[n] for n in _SHARE)
+    alloc, open_ = {n: lo[n] for n in _SHARE}, set(_SHARE)
+    while open_ and free > 1e-9:
+        w = sum(_SHARE[n] for n in open_)
+        capped = {n for n in open_ if n in _CAP and alloc[n] + free * _SHARE[n] / w > _CAP[n] * income}
+        if not capped:
+            for n in open_:
+                alloc[n] += free * _SHARE[n] / w
+            free = 0.0
+            break
+        for n in capped:
+            free -= max(0.0, _CAP[n] * income - alloc[n])
+            alloc[n] = max(alloc[n], _CAP[n] * income)
+        open_ -= capped
+    if free > 1e-9:  # everything capped: savings take the rest
+        alloc["emergency"] += free
+    values.update(alloc)
+    values = {name: round(val, 0) for name, val in values.items()}
     return BudgetAllocation(
         housing=values["housing"],
         food=values["food"],

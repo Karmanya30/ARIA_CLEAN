@@ -40,3 +40,12 @@ def test_catches_an_injected_large_outlier():
 def test_no_transactions_does_not_crash():
     assert detect_for_user(None) == []
     assert detect_for_user([]) == []
+
+
+def test_clean_history_gets_no_flags():
+    from datetime import date, timedelta
+    from modules.finance.anomaly import detect_for_user
+    from modules.finance.schemas import Transaction
+
+    txns = [Transaction(date=date(2026, 1, 1) + timedelta(days=i), category="Food", amount=500 + (i % 5) * 10) for i in range(60)]
+    assert detect_for_user(txns) == []
