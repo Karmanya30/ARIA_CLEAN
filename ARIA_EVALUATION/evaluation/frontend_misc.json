@@ -1,0 +1,57 @@
+{
+ "skipFocus": [
+  "main",
+  "#main"
+ ],
+ "stripStop": {
+  "overflowX": "visible",
+  "tabindex": null,
+  "sw": 860,
+  "cw": 860,
+  "firstFocusable": null
+ },
+ "firstTab": "mk-pillbtn / India",
+ "night_ERR": "TimeoutError: locator.check: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=mode][value=night]')\u001b[22m\n",
+ "feedbackStatus": {
+  "configured": true
+ },
+ "feedbackError": "SMTP down",
+ "feedbackKept": "Synthetic message for audit only.",
+ "feedbackSuccess": "Thank you for helping us improve.\n\nYour feedback has been sent to the ARIA team.\n\nSend another response",
+ "feedbackShortValidity": "Please lengthen this text to 10 characters or more (you are currently using 5 characters).",
+ "feedbackFormErrorsAriaInvalid": 0,
+ "intelBtn": [
+  true,
+  "0.5"
+ ],
+ "intelResult": "Company intelligence\n\nOne score that weighs business quality, valuation, price trend and what the news and management are saying, and flags where they disagree. It is a way to decide where to look closer, not a recommendation.\n\nAnalyse\n← New search\n67\n/100\nTestco Limited TESTCO.NS\nMixed overall\n\nTestco Limited scores 67/100 (mixed).\n\nThe valuation model's call is HOLD; the fundamentals are mixed (2 strong, 1 weak of 5 pillars): the call stands on valuation alone.\n\nWhat drives the score\nQuality weight 25%\n100\nFinancial safety weight 15%\n100\nGrowth weight 15%\n50\nValuation lenses weight 10%\n0\nValuation upside weight 15%\n50\nTechnical weight 10%\n50\nTone weight 10%\n0\nThe six pillars\nQuality\nStrong",
+ "ageValidity": [
+  "18",
+  "100",
+  "Value must be greater than or equal to 18."
+ ],
+ "profileAfterBadAge": "Your Finance Profile\n\nTell ARIA about yourself once and every answer gets personal. Everything here is optional.\n\nTell ARIA about yourself once and every answer gets personal. Start with the quick form below and skip anything you like.\nProfile 0% complete\nStill missing:\nAge\nPeople who depend on you\n",
+ "txnForm": "Date\nCategory\nhousing\nfood\ntransport\nutilities\nemi\nentertainment\nmedical\nother\nAmount (₹)\nMerchant (optional)\nChannel (optional)\n—\nupi\ncard\ncash\nnetbanking\nAdd transaction",
+ "txnEmptyAdd": "no message",
+ "afterSample": "Your Finance Profile\n\nTell ARIA about yourself once and every answer gets personal. Everything here is optional.\n\nTell ARIA about yourself once and every answer gets personal. Start with the quick form below and skip anything you like.\nProfile 0% complete\nStill missing:\nAge\nPeople who depend on you\nMonthly take-home income\nIncome pattern\nMonthly expenses\nWhat you own\n+8 more\n1\nAbout you\n2\nIncome & expenses\n3\nAssets\n4\nLoans & insurance\n5\nGoals & preferences\nAbout you\n\nUsed to pick sensible benchmarks, like how big your emergency fund should be. Leave anything blank to skip it.\n\nAge\nEnter a value between 18 and 100.\nCity\nCity type\nSkip / not sure\nMetro (tier 1)\nLarge city (tier 2)\nSmaller town (tier 3)\nWork\nSkip / not sure\nSalaried\nSelf employed\nBusiness\nRetired\nStudent\nMarital status\nSkip / not sure\nSingle\nMarried\nDivorced\nWidowed\nPeople who depend on you\nChildren, parents or others you support.\nBack\nSkip\nSave & next\n\nPlease fix the highlighted field first, or clear it to skip.\n\nDelete all my finance data\n\nYour Transactions\n\nFeeds Module 1's LSTM spend forecast and Isolation Forest anomaly detector — both need real transaction history to produce anything beyond a zero-signal default. Anomaly detection needs 10+ entries.\n\nSpending insights\nSept 2026–Oct 2026 · 2 month(s)\nHide\n\nYou spend about ₹58k a month; 48% goes to other.\n\nCalculated from your uploaded transactions, not AI estimates. Benchmarks are rules of thumb, not advice.\n\nAsk in chat:\nAnalyse my spending\nWhere can I cut",
+ "deleteConfirm": "Delete all your finance data (profile and transactions)? This cannot be undone.",
+ "drawerFocus": "DIV",
+ "sipInputs": 1,
+ "sipZero": "k ARIA about ICICI Prudential Nifty 50 ETF\nAI\n\nAI-generated and educational only, not investment advice or a recommendation. ARIA is not a SEBI-registered adviser. Data may be delayed or wrong. Read the full disclaimers\n\nWhat is ICICI Prudential Nifty 50 ETF in simple words?\nWhat are the main risks of ICICI Prudential Nifty 50 ETF?\nWhat does ICICI Prudential Nifty 50 ETF track and what does it cost?\nHow is an ETF different from an index fund?\nYour question about ICICI Prudential Nifty 50 ETF\nAsk",
+ "drawerKeyFacts": [
+  "Return since start pct",
+  "Cagr since start pct",
+  "Return 1m pct",
+  "Return 3m pct",
+  "Return 6m pct",
+  "Return 1y pct",
+  "Return 3y pct"
+ ],
+ "drawerFocusTrap": false,
+ "console": [
+  "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+ ],
+ "http": [
+  "500 POST http://127.0.0.1:5177/api/feedback"
+ ]
+}

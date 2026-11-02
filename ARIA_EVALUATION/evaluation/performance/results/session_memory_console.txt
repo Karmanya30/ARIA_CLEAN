@@ -1,0 +1,9 @@
+{'turns_before': 5, 'p50_ms': 11.8, 'max_ms': 12.8}
+{'turns_before': 95, 'p50_ms': 48.2, 'max_ms': 49.7}
+{'turns_before': 295, 'p50_ms': 126.3, 'max_ms': 186.7}
+{'turns_before': 595, 'p50_ms': 231.8, 'max_ms': 249.3}
+{'turns_before': 995, 'p50_ms': 312.3, 'max_ms': 360.5}
+{'sessions': 50, 'turns_total': 500, 'rss_mb': 159, 'delta_mb': 15, 'cached_sessions': 50, 'locks': 50}
+{'sessions': 100, 'turns_total': 1000, 'rss_mb': 132, 'delta_mb': -12, 'cached_sessions': 100, 'locks': 100}
+
+[exited with code 0]

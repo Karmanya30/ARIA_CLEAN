@@ -1,0 +1,493 @@
+{
+ "A": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 26.6,
+   "p95": 3090.5,
+   "p99": 7659.7,
+   "max": 218876,
+   "mean": 1232.7,
+   "over_1s": 53,
+   "over_5s": 14
+  },
+  "excluding_over_60s": {
+   "n": 516,
+   "p50": 26.6,
+   "p95": 2569.0,
+   "p99": 7346.0,
+   "max": 9411,
+   "mean": 391.1,
+   "over_1s": 51,
+   "over_5s": 12
+  },
+  "outliers_over_60s_ms": [
+   217873,
+   218876
+  ],
+  "model_calls_per_query": 0.0,
+  "tokens_per_query": 0.0,
+  "recorded_model_ms_per_query": 0.0,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.884,
+  "rep_p50_p95": [
+   [
+    22.6,
+    2522.2
+   ],
+   [
+    28.5,
+    2596.5
+   ]
+  ],
+  "slowest_5": [
+   [
+    218876,
+    "what about infosys",
+    "equity_research"
+   ],
+   [
+    217873,
+    "what about infosys",
+    "equity_research"
+   ],
+   [
+    9411,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    8471,
+    "Kaynes ka revenue kitna hai?",
+    "data_lookup"
+   ],
+   [
+    8246,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 17.4,
+   "clarify": 29.4,
+   "company_intelligence": 23.0,
+   "data_lookup": 2041.6,
+   "equity_research": 26.9,
+   "finance": 23.4,
+   "general": 28.5,
+   "market": 26.1,
+   "smalltalk": 23.1,
+   "support": 27.8,
+   "tutor": 25.5
+  }
+ },
+ "B": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 26.2,
+   "p95": 2032.2,
+   "p99": 4750.5,
+   "max": 8662,
+   "mean": 277.0,
+   "over_1s": 42,
+   "over_5s": 5
+  },
+  "excluding_over_60s": {
+   "n": 518,
+   "p50": 26.2,
+   "p95": 2032.2,
+   "p99": 4750.5,
+   "max": 8662,
+   "mean": 277.0,
+   "over_1s": 42,
+   "over_5s": 5
+  },
+  "outliers_over_60s_ms": [],
+  "model_calls_per_query": 0.0,
+  "tokens_per_query": 0.0,
+  "recorded_model_ms_per_query": 0.0,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.888,
+  "rep_p50_p95": [
+   [
+    30.2,
+    2040.4
+   ],
+   [
+    18.7,
+    1561.7
+   ]
+  ],
+  "slowest_5": [
+   [
+    8662,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ],
+   [
+    8244,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    6564,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    6105,
+    "CAGR if 1 lakh became 2.5 lakh in 6 year",
+    "general"
+   ],
+   [
+    5304,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 28.2,
+   "company_intelligence": 19.4,
+   "data_lookup": 1764.8,
+   "equity_research": 21.4,
+   "finance": 22.2,
+   "general": 48.1,
+   "market": 23.9,
+   "smalltalk": 46.8,
+   "support": 28.8,
+   "tutor": 27.0
+  }
+ },
+ "C": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 20.8,
+   "p95": 2630.1,
+   "p99": 6120.7,
+   "max": 219043,
+   "mean": 1164.3,
+   "over_1s": 52,
+   "over_5s": 10
+  },
+  "excluding_over_60s": {
+   "n": 516,
+   "p50": 20.8,
+   "p95": 2395.5,
+   "p99": 5752.0,
+   "max": 7012,
+   "mean": 321.4,
+   "over_1s": 50,
+   "over_5s": 8
+  },
+  "outliers_over_60s_ms": [
+   218197,
+   219043
+  ],
+  "model_calls_per_query": 0.0,
+  "tokens_per_query": 0.0,
+  "recorded_model_ms_per_query": 0.0,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.896,
+  "rep_p50_p95": [
+   [
+    20.3,
+    2373.2
+   ],
+   [
+    22.0,
+    2346.0
+   ]
+  ],
+  "slowest_5": [
+   [
+    219043,
+    "what about infosys",
+    "equity_research"
+   ],
+   [
+    218197,
+    "what about infosys",
+    "equity_research"
+   ],
+   [
+    7012,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    6843,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    6510,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 17.6,
+   "clarify": 22.7,
+   "company_intelligence": 18.1,
+   "data_lookup": 1759.0,
+   "equity_research": 20.6,
+   "finance": 19.8,
+   "general": 26.3,
+   "market": 20.4,
+   "smalltalk": 25.6,
+   "support": 20.2,
+   "tutor": 20.5
+  }
+ },
+ "D": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 41.8,
+   "p95": 1625.1,
+   "p99": 3350.2,
+   "max": 4868,
+   "mean": 217.2,
+   "over_1s": 39,
+   "over_5s": 0
+  },
+  "excluding_over_60s": {
+   "n": 518,
+   "p50": 41.8,
+   "p95": 1625.1,
+   "p99": 3350.2,
+   "max": 4868,
+   "mean": 217.2,
+   "over_1s": 39,
+   "over_5s": 0
+  },
+  "outliers_over_60s_ms": [],
+  "model_calls_per_query": 0.888,
+  "tokens_per_query": 1154.1,
+  "recorded_model_ms_per_query": 1111.9,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.911,
+  "rep_p50_p95": [
+   [
+    37.4,
+    1379.7
+   ],
+   [
+    46.9,
+    2047.2
+   ]
+  ],
+  "slowest_5": [
+   [
+    4868,
+    "price of Tata Motors, Tata Steel and Tat",
+    "data_lookup"
+   ],
+   [
+    4792,
+    "market cap of Zomato",
+    "data_lookup"
+   ],
+   [
+    4217,
+    "relience share price",
+    "equity_research"
+   ],
+   [
+    3970,
+    "how did Bitcoin, Ethereum and gold do th",
+    "data_lookup"
+   ],
+   [
+    3646,
+    "price of Tata Motors, Tata Steel and Tat",
+    "data_lookup"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 14.5,
+   "clarify": 39.1,
+   "company_intelligence": 40.2,
+   "data_lookup": 1570.9,
+   "equity_research": 42.0,
+   "finance": 42.1,
+   "general": 38.5,
+   "market": 38.9,
+   "smalltalk": 23.3,
+   "support": 23.8,
+   "tutor": 41.7
+  }
+ },
+ "E": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 28.5,
+   "p95": 1760.3,
+   "p99": 5154.6,
+   "max": 10660,
+   "mean": 279.6,
+   "over_1s": 34,
+   "over_5s": 6
+  },
+  "excluding_over_60s": {
+   "n": 518,
+   "p50": 28.5,
+   "p95": 1760.3,
+   "p99": 5154.6,
+   "max": 10660,
+   "mean": 279.6,
+   "over_1s": 34,
+   "over_5s": 6
+  },
+  "outliers_over_60s_ms": [],
+  "model_calls_per_query": 0.127,
+  "tokens_per_query": 163.5,
+  "recorded_model_ms_per_query": 151.0,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.884,
+  "rep_p50_p95": [
+   [
+    27.9,
+    1751.6
+   ],
+   [
+    28.9,
+    2015.7
+   ]
+  ],
+  "slowest_5": [
+   [
+    10660,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    9186,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    8206,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ],
+   [
+    7520,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ],
+   [
+    5411,
+    "market cap of Zomato",
+    "data_lookup"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 23.4,
+   "clarify": 41.9,
+   "company_intelligence": 28.1,
+   "data_lookup": 2224.6,
+   "equity_research": 26.5,
+   "finance": 27.4,
+   "general": 44.8,
+   "market": 26.8,
+   "smalltalk": 26.4,
+   "support": 25.4,
+   "tutor": 28.1
+  }
+ },
+ "H": {
+  "reps": 2,
+  "queries_per_rep": 259,
+  "all": {
+   "n": 518,
+   "p50": 40.2,
+   "p95": 1798.6,
+   "p99": 5712.1,
+   "max": 9942,
+   "mean": 290.5,
+   "over_1s": 42,
+   "over_5s": 6
+  },
+  "excluding_over_60s": {
+   "n": 518,
+   "p50": 40.2,
+   "p95": 1798.6,
+   "p99": 5712.1,
+   "max": 9942,
+   "mean": 290.5,
+   "over_1s": 42,
+   "over_5s": 6
+  },
+  "outliers_over_60s_ms": [],
+  "model_calls_per_query": 0.293,
+  "tokens_per_query": 383.3,
+  "recorded_model_ms_per_query": 378.2,
+  "cache_misses": 0,
+  "errors": 0,
+  "lenient_accuracy_all259": 0.95,
+  "rep_p50_p95": [
+   [
+    43.5,
+    1954.7
+   ],
+   [
+    36.9,
+    1729.8
+   ]
+  ],
+  "slowest_5": [
+   [
+    9942,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    8575,
+    "kitna kharch hua food pe",
+    "finance"
+   ],
+   [
+    7125,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ],
+   [
+    6746,
+    "how does leverage affect real estate ret",
+    "tutor"
+   ],
+   [
+    6268,
+    "Kaynes ka revenue kitna hai?",
+    "data_lookup"
+   ]
+  ],
+  "p50_by_route": {
+   "care": 20.6,
+   "clarify": 38.1,
+   "company_intelligence": 40.2,
+   "data_lookup": 1887.6,
+   "equity_research": 41.0,
+   "finance": 39.7,
+   "general": 39.9,
+   "market": 38.0,
+   "smalltalk": 20.6,
+   "support": 21.0,
+   "tutor": 42.2
+  }
+ }
+}

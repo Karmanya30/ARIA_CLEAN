@@ -1,0 +1,90 @@
+{
+ "catalog_first_call_s": 0.28,
+ "catalog_items": 4759,
+ "per_query": {
+  "market cap of Zomato": {
+   "instruments.search_ms_each": [
+    2956,
+    2581,
+    2492,
+    2407
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "tell me about sip number 3 for beginners": {
+   "instruments.search_ms_each": [
+    1548,
+    1510,
+    1146,
+    1122
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "revenue of Kaynes Technology": {
+   "instruments.search_ms_each": [
+    1519,
+    1798,
+    1750,
+    1625
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "what about infosys": {
+   "instruments.search_ms_each": [
+    1170,
+    1186,
+    1162,
+    1177
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "pe ratio of tcs": {
+   "instruments.search_ms_each": [
+    37,
+    41,
+    39,
+    41
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "hello there friend": {
+   "instruments.search_ms_each": [
+    1478,
+    1527,
+    1567,
+    1530
+   ],
+   "lookup.candidates_ms_each": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ }
+}

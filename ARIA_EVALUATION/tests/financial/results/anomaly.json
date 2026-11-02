@@ -1,0 +1,92 @@
+[
+ {
+  "id": "ANO-001",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "fewer than 10 txns => []",
+  "kind": "boundary",
+  "actual": [],
+  "expected": [],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ANO-002",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "None => []",
+  "kind": "missing",
+  "actual": [],
+  "expected": [],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ANO-003",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "injected ~100x outlier is flagged first",
+  "kind": "reference",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "flags=[(50000.0, 0.878), (498.0, 0.607)]"
+ },
+ {
+  "id": "ANO-004",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "flag count ~ contamination 2% (<=5 of 61)",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "n_flags=2"
+ },
+ {
+  "id": "ANO-005",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "reason ratio equals amount/category median",
+  "kind": "explanation",
+  "actual": 122.9,
+  "expected": 122.9,
+  "result": "PASS",
+  "note": "Amount ₹50,000 is 122.9x this user's median 'food' transaction."
+ },
+ {
+  "id": "ANO-006",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "no outlier at all: number flagged anyway",
+  "kind": "false-positive",
+  "actual": 2,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "contamination=0.02 forces ~2% flagged in clean data"
+ },
+ {
+  "id": "ANO-007",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "all-identical amounts (30)",
+  "kind": "boundary",
+  "actual": 0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "ANO-008",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "all-zero amounts (30)",
+  "kind": "boundary",
+  "actual": 0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "ANO-009",
+  "feature": "Anomaly (anomaly.py, IsolationForest)",
+  "case": "negative amount (log1p of < -1 => NaN)",
+  "kind": "invalid",
+  "actual": 1,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ }
+]

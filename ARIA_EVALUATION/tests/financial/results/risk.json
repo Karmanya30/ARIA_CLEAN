@@ -1,0 +1,84 @@
+[
+ {
+  "id": "RSK-001",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "predict(200000, 35, 0, 0, 1)",
+  "kind": "probe",
+  "actual": [
+   "Conservative",
+   0.581
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no oracle (learned model)"
+ },
+ {
+  "id": "RSK-002",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "predict(25000, 28, 3, 15000, 3)",
+  "kind": "probe",
+  "actual": [
+   "Moderate",
+   0.889
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no oracle (learned model)"
+ },
+ {
+  "id": "RSK-003",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "predict(80000, 45, 2, 10000, 2)",
+  "kind": "probe",
+  "actual": [
+   "Moderate",
+   0.829
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no oracle (learned model)"
+ },
+ {
+  "id": "RSK-004",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "predict(1000000000.0, 40, 0, 0, 1)",
+  "kind": "probe",
+  "actual": [
+   "Conservative",
+   0.581
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no oracle (learned model)"
+ },
+ {
+  "id": "RSK-005",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "negative income / age 5 / age 200",
+  "kind": "invalid",
+  "actual": [
+   "Moderate",
+   "Moderate",
+   "Conservative"
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "RSK-006",
+  "feature": "Risk profile XGBoost (risk_model.py)",
+  "case": "deterministic",
+  "kind": "property",
+  "actual": [
+   "Moderate",
+   0.6834635139
+  ],
+  "expected": [
+   "Moderate",
+   0.6834635139
+  ],
+  "result": "PASS",
+  "note": ""
+ }
+]

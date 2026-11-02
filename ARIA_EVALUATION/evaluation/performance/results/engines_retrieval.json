@@ -1,0 +1,166 @@
+{
+ "env": {
+  "OMP": "2",
+  "cpu_logical": 22
+ },
+ "engines": {
+  "sip_future_value": {
+   "n": 2000,
+   "p50_ms": 0.0005,
+   "p95_ms": 0.0006,
+   "p99_ms": 0.0009,
+   "max_ms": 0.027
+  },
+  "sip_required": {
+   "n": 2000,
+   "p50_ms": 0.0005,
+   "p95_ms": 0.0006,
+   "p99_ms": 0.0008,
+   "max_ms": 0.014
+  },
+  "emi": {
+   "n": 2000,
+   "p50_ms": 0.0006,
+   "p95_ms": 0.0007,
+   "p99_ms": 0.0008,
+   "max_ms": 0.004
+  },
+  "tax_new": {
+   "n": 2000,
+   "p50_ms": 0.0044,
+   "p95_ms": 0.0049,
+   "p99_ms": 0.0068,
+   "max_ms": 0.064
+  },
+  "tax_old": {
+   "n": 2000,
+   "p50_ms": 0.0052,
+   "p95_ms": 0.0056,
+   "p99_ms": 0.0064,
+   "max_ms": 0.037
+  },
+  "snapshot": {
+   "n": 2000,
+   "p50_ms": 0.0065,
+   "p95_ms": 0.0069,
+   "p99_ms": 0.0083,
+   "max_ms": 0.047
+  },
+  "goals": {
+   "n": 2000,
+   "p50_ms": 0.0104,
+   "p95_ms": 0.0163,
+   "p99_ms": 0.0182,
+   "max_ms": 0.114
+  },
+  "retirement": {
+   "n": 2000,
+   "p50_ms": 0.0045,
+   "p95_ms": 0.005,
+   "p99_ms": 0.0078,
+   "max_ms": 0.024
+  },
+  "health_score": {
+   "n": 2000,
+   "p50_ms": 0.0331,
+   "p95_ms": 0.0399,
+   "p99_ms": 0.0524,
+   "max_ms": 0.135
+  },
+  "afford_purchase": {
+   "n": 2000,
+   "p50_ms": 0.0046,
+   "p95_ms": 0.0082,
+   "p99_ms": 0.0103,
+   "max_ms": 0.082
+  },
+  "afford_sip": {
+   "n": 2000,
+   "p50_ms": 0.0071,
+   "p95_ms": 0.0156,
+   "p99_ms": 0.0172,
+   "max_ms": 0.094
+  },
+  "what_if": {
+   "n": 2000,
+   "p50_ms": 0.1205,
+   "p95_ms": 0.1484,
+   "p99_ms": 0.2336,
+   "max_ms": 0.389
+  },
+  "tax_compare": {
+   "n": 2000,
+   "p50_ms": 0.0094,
+   "p95_ms": 0.01,
+   "p99_ms": 0.0113,
+   "max_ms": 0.077
+  }
+ },
+ "text": {
+  "normalize": {
+   "n": 200,
+   "p50_ms": 0.5063,
+   "p95_ms": 0.8003,
+   "p99_ms": 1.1517,
+   "max_ms": 1.483,
+   "per_query_note": "each sample = 10 queries"
+  },
+  "finance_intent": {
+   "n": 500,
+   "p50_ms": 0.1975,
+   "p95_ms": 0.4017,
+   "p99_ms": 0.4612,
+   "max_ms": 4.201,
+   "per_query_note": "each sample = 10 queries"
+  }
+ },
+ "trust_enforce": {
+  "n": 200,
+  "p50_ms": 0.0044,
+  "p95_ms": 0.0047,
+  "p99_ms": 0.0065,
+  "max_ms": 0.02
+ },
+ "sbert_first_call_s": 0.49,
+ "rss_mb_after_sbert_load": 631,
+ "rss_mb_before_sbert": 563,
+ "concept_kb": {
+  "queries_distinct": 70,
+  "n": 280,
+  "p50_ms": 18.3805,
+  "p95_ms": 27.3174,
+  "p99_ms": 31.6551,
+  "max_ms": 34.121
+ },
+ "concept_best_gate": {
+  "queries_distinct": 63,
+  "n": 140,
+  "p50_ms": 19.4573,
+  "p95_ms": 23.6855,
+  "p99_ms": 27.3326,
+  "max_ms": 29.465
+ },
+ "finance_knowledge": {
+  "queries_distinct": 63,
+  "n": 140,
+  "p50_ms": 18.906,
+  "p95_ms": 23.3551,
+  "p99_ms": 27.9289,
+  "max_ms": 37.119
+ },
+ "faiss_read_index_ms": {
+  "n": 300,
+  "p50_ms": 0.565,
+  "p95_ms": 1.1591,
+  "p99_ms": 1.3413,
+  "max_ms": 1.684
+ },
+ "sbert_encode_one_ms": {
+  "n": 100,
+  "p50_ms": 16.0996,
+  "p95_ms": 22.7752,
+  "p99_ms": 24.4859,
+  "max_ms": 26.527
+ },
+ "rss_mb_end": 625
+}

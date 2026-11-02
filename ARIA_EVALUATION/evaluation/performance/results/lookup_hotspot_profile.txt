@@ -1,0 +1,22 @@
+         24668963 function calls in 12.512 seconds
+
+   Ordered by: cumulative time
+   List reduced from 80 to 14 due to restriction <14>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.036    0.018   12.512    6.256 E:\ARIA\modules\market\instruments.py:442(search)
+    38938    0.122    0.000   12.470    0.000 E:\ARIA\modules\market\instruments.py:381(_score)
+    38292    0.125    0.000   12.192    0.000 {built-in method builtins.any}
+   505850    0.828    0.000   12.067    0.000 E:\ARIA\modules\market\instruments.py:391(<genexpr>)
+   310634    0.557    0.000    8.532    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:597(ratio)
+   310634    1.940    0.000    7.384    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:421(get_matching_blocks)
+   801964    2.862    0.000    4.242    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:305(find_longest_match)
+   310634    0.146    0.000    2.454    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:120(__init__)
+   310634    0.259    0.000    2.308    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:184(set_seqs)
+   310634    0.149    0.000    1.989    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:222(set_seq2)
+   310634    1.129    0.000    1.840    0.000 C:\Users\jtmah\anaconda3\Lib\difflib.py:266(__chain_b)
+  4105378    0.739    0.000    0.739    0.000 {method 'get' of 'dict' objects}
+  3428090    0.598    0.000    0.598    0.000 {method 'append' of 'list' objects}
+   740638    0.317    0.000    0.560    0.000 C:\Users\jtmah\anaconda3\Lib\collections\__init__.py:450(_make)
+
+

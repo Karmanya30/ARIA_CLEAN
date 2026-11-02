@@ -1,0 +1,134 @@
+{
+ "journal_mode": "wal",
+ "pool": "QueuePool size=5",
+ "writers_separate_conversations": [
+  {
+   "threads": 1,
+   "same_conversation": false,
+   "cycles_ok": 40,
+   "errors": {},
+   "wall_s": 0.53,
+   "throughput_cycles_per_s": 75.8,
+   "p50_ms": 10.9,
+   "p95_ms": 24.1,
+   "p99_ms": 31.5,
+   "max_ms": 32.4
+  },
+  {
+   "threads": 2,
+   "same_conversation": false,
+   "cycles_ok": 80,
+   "errors": {},
+   "wall_s": 1.16,
+   "throughput_cycles_per_s": 69.0,
+   "p50_ms": 17.4,
+   "p95_ms": 67.0,
+   "p99_ms": 85.4,
+   "max_ms": 96.6
+  },
+  {
+   "threads": 4,
+   "same_conversation": false,
+   "cycles_ok": 160,
+   "errors": {},
+   "wall_s": 2.24,
+   "throughput_cycles_per_s": 71.3,
+   "p50_ms": 15.8,
+   "p95_ms": 134.5,
+   "p99_ms": 350.5,
+   "max_ms": 1327.0
+  },
+  {
+   "threads": 8,
+   "same_conversation": false,
+   "cycles_ok": 320,
+   "errors": {},
+   "wall_s": 3.98,
+   "throughput_cycles_per_s": 80.5,
+   "p50_ms": 13.9,
+   "p95_ms": 297.3,
+   "p99_ms": 1387.1,
+   "max_ms": 2103.4
+  }
+ ],
+ "writers_same_conversation": [
+  {
+   "threads": 1,
+   "same_conversation": true,
+   "cycles_ok": 25,
+   "errors": {},
+   "wall_s": 0.33,
+   "throughput_cycles_per_s": 75.6,
+   "p50_ms": 13.2,
+   "p95_ms": 15.7,
+   "p99_ms": 17.7,
+   "max_ms": 18.3
+  },
+  {
+   "threads": 4,
+   "same_conversation": true,
+   "cycles_ok": 100,
+   "errors": {},
+   "wall_s": 1.41,
+   "throughput_cycles_per_s": 70.8,
+   "p50_ms": 15.6,
+   "p95_ms": 86.1,
+   "p99_ms": 581.9,
+   "max_ms": 895.7
+  },
+  {
+   "threads": 8,
+   "same_conversation": true,
+   "cycles_ok": 200,
+   "errors": {},
+   "wall_s": 2.86,
+   "throughput_cycles_per_s": 70.0,
+   "p50_ms": 16.4,
+   "p95_ms": 452.7,
+   "p99_ms": 1106.3,
+   "max_ms": 1597.9
+  }
+ ],
+ "leases": {
+  "race_8_workers_same_request_id": {
+   "lease": 1,
+   "RequestBusy": 7
+  },
+  "retry_after_crash_within_lease": "RequestBusy -> HTTP 409 for the remaining lease time",
+  "lease_seconds_default": 1800,
+  "takeover_after_expiry": {
+   "new_lease_differs": true,
+   "stale_worker_complete": "rejected RequestBusy (correct)",
+   "final_status": "complete"
+  },
+  "retry_after_fail": "new lease granted",
+  "retry_after_Error_reply": "regenerates (new lease)",
+  "retry_after_DEGRADED_reply_same_request_id": "replays stored degraded answer, status=complete"
+ },
+ "read_under_write": [
+  {
+   "readers": 6,
+   "writers": 0,
+   "secs": 8,
+   "read_pairs": 1432,
+   "write_cycles": 0,
+   "errors": 0,
+   "read_p50_ms": 33.0,
+   "read_p95_ms": 45.2,
+   "read_p99_ms": 53.0,
+   "read_max_ms": 136.5
+  },
+  {
+   "readers": 6,
+   "writers": 2,
+   "secs": 8,
+   "read_pairs": 771,
+   "write_cycles": 197,
+   "errors": 0,
+   "read_p50_ms": 61.6,
+   "read_p95_ms": 85.5,
+   "read_p99_ms": 95.2,
+   "read_max_ms": 122.1
+  }
+ ]
+}

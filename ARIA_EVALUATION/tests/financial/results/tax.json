@@ -1,0 +1,915 @@
+[
+ {
+  "id": "TAX-001",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=0 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-002",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=0 taxable",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-003",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=100000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-004",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=100000 taxable",
+  "kind": "reference",
+  "actual": 25000.0,
+  "expected": 25000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-005",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=300000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-006",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=300000 taxable",
+  "kind": "reference",
+  "actual": 225000.0,
+  "expected": 225000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-007",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=475000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-008",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=475000 taxable",
+  "kind": "reference",
+  "actual": 400000.0,
+  "expected": 400000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-009",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=500000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-010",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=500000 taxable",
+  "kind": "reference",
+  "actual": 425000.0,
+  "expected": 425000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-011",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=575000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-012",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=575000 taxable",
+  "kind": "reference",
+  "actual": 500000.0,
+  "expected": 500000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-013",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=600000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-014",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=600000 taxable",
+  "kind": "reference",
+  "actual": 525000.0,
+  "expected": 525000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-015",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=775000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-016",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=775000 taxable",
+  "kind": "reference",
+  "actual": 700000.0,
+  "expected": 700000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-017",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=800000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-018",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=800000 taxable",
+  "kind": "reference",
+  "actual": 725000.0,
+  "expected": 725000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-019",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1000000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-020",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1000000 taxable",
+  "kind": "reference",
+  "actual": 925000.0,
+  "expected": 925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-021",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1275000 total tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-022",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1275000 taxable",
+  "kind": "reference",
+  "actual": 1200000.0,
+  "expected": 1200000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-023",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1275001 total tax",
+  "kind": "reference",
+  "actual": 1.04,
+  "expected": 1.04,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-024",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1275001 taxable",
+  "kind": "reference",
+  "actual": 1200001.0,
+  "expected": 1200001,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-025",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1280000 total tax",
+  "kind": "reference",
+  "actual": 5200.0,
+  "expected": 5200.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-026",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1280000 taxable",
+  "kind": "reference",
+  "actual": 1205000.0,
+  "expected": 1205000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-027",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1300000 total tax",
+  "kind": "reference",
+  "actual": 26000.0,
+  "expected": 26000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-028",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1300000 taxable",
+  "kind": "reference",
+  "actual": 1225000.0,
+  "expected": 1225000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-029",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1350000 total tax",
+  "kind": "reference",
+  "actual": 74100.0,
+  "expected": 74100.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-030",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1350000 taxable",
+  "kind": "reference",
+  "actual": 1275000.0,
+  "expected": 1275000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-031",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1500000 total tax",
+  "kind": "reference",
+  "actual": 97500.0,
+  "expected": 97500.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-032",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1500000 taxable",
+  "kind": "reference",
+  "actual": 1425000.0,
+  "expected": 1425000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-033",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1800000 total tax",
+  "kind": "reference",
+  "actual": 150800.0,
+  "expected": 150800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-034",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=1800000 taxable",
+  "kind": "reference",
+  "actual": 1725000.0,
+  "expected": 1725000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-035",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2000000 total tax",
+  "kind": "reference",
+  "actual": 192400.0,
+  "expected": 192400.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-036",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2000000 taxable",
+  "kind": "reference",
+  "actual": 1925000.0,
+  "expected": 1925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-037",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2475000 total tax",
+  "kind": "reference",
+  "actual": 312000.0,
+  "expected": 312000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-038",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2475000 taxable",
+  "kind": "reference",
+  "actual": 2400000.0,
+  "expected": 2400000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-039",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2800000 total tax",
+  "kind": "reference",
+  "actual": 413400.0,
+  "expected": 413400.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-040",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=2800000 taxable",
+  "kind": "reference",
+  "actual": 2725000.0,
+  "expected": 2725000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-041",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=3000000 total tax",
+  "kind": "reference",
+  "actual": 475800.0,
+  "expected": 475800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-042",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=3000000 taxable",
+  "kind": "reference",
+  "actual": 2925000.0,
+  "expected": 2925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-043",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=4500000 total tax",
+  "kind": "reference",
+  "actual": 943800.0,
+  "expected": 943800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-044",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=4500000 taxable",
+  "kind": "reference",
+  "actual": 4425000.0,
+  "expected": 4425000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-045",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=5000000 total tax",
+  "kind": "reference",
+  "actual": 1099800.0,
+  "expected": 1099800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-046",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=5000000 taxable",
+  "kind": "reference",
+  "actual": 4925000.0,
+  "expected": 4925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-047",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=7500000 total tax",
+  "kind": "reference",
+  "actual": 1879800.0,
+  "expected": 1879800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-048",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=7500000 taxable",
+  "kind": "reference",
+  "actual": 7425000.0,
+  "expected": 7425000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-049",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=10000000 total tax",
+  "kind": "reference",
+  "actual": 2659800.0,
+  "expected": 2659800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-050",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=10000000 taxable",
+  "kind": "reference",
+  "actual": 9925000.0,
+  "expected": 9925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-051",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=25000000 total tax",
+  "kind": "reference",
+  "actual": 7339800.0,
+  "expected": 7339800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-052",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=25000000 taxable",
+  "kind": "reference",
+  "actual": 24925000.0,
+  "expected": 24925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-053",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=50000000 total tax",
+  "kind": "reference",
+  "actual": 15139800.0,
+  "expected": 15139800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-054",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime gross=50000000 taxable",
+  "kind": "reference",
+  "actual": 49925000.0,
+  "expected": 49925000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-055",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=300000 80C=0 80D=0 age=None",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-056",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=550000 80C=0 80D=0 age=None",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-057",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=600000 80C=100000 80D=20000 age=None",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-058",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=800000 80C=150000 80D=25000 age=None",
+  "kind": "reference",
+  "actual": 28600.0,
+  "expected": 28600.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-059",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=1000000 80C=200000 80D=40000 age=None",
+  "kind": "reference",
+  "actual": 70200.0,
+  "expected": 70200.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-060",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=1500000 80C=150000 80D=0 age=None",
+  "kind": "reference",
+  "actual": 210600.0,
+  "expected": 210600.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-061",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=5000000 80C=150000 80D=25000 age=None",
+  "kind": "reference",
+  "actual": 1294800.0,
+  "expected": 1294800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-062",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=700000 80C=0 80D=60000 age=65",
+  "kind": "reference",
+  "actual": 31200.0,
+  "expected": 31200.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-063",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=900000 80C=150000 80D=50000 age=70",
+  "kind": "reference",
+  "actual": 41600.0,
+  "expected": 41600.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-064",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=650000 80C=0 80D=0 age=82",
+  "kind": "reference",
+  "actual": 20800.0,
+  "expected": 20800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-065",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=400000 80C=0 80D=0 age=62",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-066",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime gross=3000000 80C=150000 80D=25000 age=35",
+  "kind": "reference",
+  "actual": 670800.0,
+  "expected": 670800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-067",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime: taxable exactly 12L (gross 12.75L) => 0 tax (87A)",
+  "kind": "boundary",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-068",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime: gross 12.75L+1 => marginal relief caps tax at excess (1 * 1.04)",
+  "kind": "boundary",
+  "actual": 1.04,
+  "expected": 1.04,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-069",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime: gross 12.75L => effective rate 0",
+  "kind": "boundary",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-070",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "new regime: gross 24L tax by hand: 20k+40k+60k+80k+(2325000-2000000)*.25=281250 => *1.04 (test expectation corrected after first run)",
+  "kind": "hand calc",
+  "actual": 292500.0,
+  "expected": 292500.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-071",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime: taxable exactly 5L (gross 5.5L, no ded) => 0",
+  "kind": "boundary",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-072",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime: taxable 5L+1 has NO marginal relief (documented): 12,500 + 0.2 => tax 12500.2*1.04",
+  "kind": "boundary",
+  "actual": 13000.21,
+  "expected": 13000.208,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-073",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "old regime cliff 5.5L -> 5.50001L",
+  "kind": "explanation",
+  "actual": [
+   0.0,
+   13000.21
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "jump of ~13,000 is the law (no relief in old regime)"
+ },
+ {
+  "id": "TAX-074",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "80C cap 1.5L: 3L claimed == 1.5L claimed",
+  "kind": "boundary",
+  "actual": 117000.0,
+  "expected": 117000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-075",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "80D cap non-senior 25k",
+  "kind": "boundary",
+  "actual": 156000.0,
+  "expected": 156000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-076",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "80D cap senior 50k",
+  "kind": "boundary",
+  "actual": 145600.0,
+  "expected": 145600.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-077",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "is_senior flag == age 60",
+  "kind": "boundary",
+  "actual": 83200.0,
+  "expected": 83200.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-078",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "negative income -> 0 tax",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-079",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "zero income effective rate 0 (no div by 0)",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-080",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "negative 80C deduction must not raise tax above the no-deduction figure",
+  "kind": "invalid",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "tax with 80C=-200000 is 163800.0 vs 106600.0 with 80C=0 (negative deduction is added to taxable income)"
+ },
+ {
+  "id": "TAX-081",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "total == tax_before_cess + cess within 0.01 after separate rounding",
+  "kind": "rounding",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "278376.28 vs 267669.5+10706.78"
+ },
+ {
+  "id": "TAX-082",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "compute(monthly=100000, new) == tax_new(1.2M)",
+  "kind": "consistency",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-083",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "compute_tax(income) wrapper",
+  "kind": "consistency",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-084",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "gross Rs 1 Cr new regime INCLUDING 10% surcharge (statute) vs ARIA",
+  "kind": "statute",
+  "actual": 2659800.0,
+  "expected": 2925780.0,
+  "result": "FAIL",
+  "note": "surcharge (10% >50L, 15% >1Cr, 25% >2Cr) is not implemented in tax.py: grep 'surcharge' finds nothing in modules/finance"
+ },
+ {
+  "id": "TAX-085",
+  "feature": "India income tax (modules/finance/tax.py)",
+  "case": "income above 50L: ARIA understates tax by",
+  "kind": "statute",
+  "actual": 265980.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "INR at 1 Cr gross"
+ },
+ {
+  "id": "TAX-086",
+  "feature": "tax_compare (engine.py)",
+  "case": "new_tax",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-087",
+  "feature": "tax_compare (engine.py)",
+  "case": "old_tax",
+  "kind": "reference",
+  "actual": 111800.0,
+  "expected": 111800.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-088",
+  "feature": "tax_compare (engine.py)",
+  "case": "better regime",
+  "kind": "reference",
+  "actual": "new",
+  "expected": "new",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-089",
+  "feature": "tax_compare (engine.py)",
+  "case": "saving",
+  "kind": "reference",
+  "actual": 111800,
+  "expected": 111800,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-090",
+  "feature": "tax_compare (engine.py)",
+  "case": "no income -> None (no guessed number)",
+  "kind": "missing",
+  "actual": null,
+  "expected": null,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "TAX-091",
+  "feature": "tax_compare (engine.py)",
+  "case": "senior old_tax",
+  "kind": "reference",
+  "actual": 54080.0,
+  "expected": 54080.0,
+  "result": "PASS",
+  "note": ""
+ }
+]

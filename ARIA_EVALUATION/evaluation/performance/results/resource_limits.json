@@ -1,0 +1,6 @@
+{
+ "max_active": 4,
+ "http_with_4_open_websockets": 503,
+ "retry_after": "60",
+ "http_after_closing_one": 200
+}

@@ -1,0 +1,672 @@
+[
+ {
+  "id": "SIP-001",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=5000 years=10 rate=12%",
+  "kind": "reference",
+  "actual": 1161695.382,
+  "expected": 1161695.382,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-002",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=10 rate=12%",
+  "kind": "reference",
+  "actual": 4304.054297,
+  "expected": 4304.054297,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-003",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=10000 years=20 rate=10%",
+  "kind": "reference",
+  "actual": 7656969.096,
+  "expected": 7656969.096,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-004",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=20 rate=10%",
+  "kind": "reference",
+  "actual": 1305.999786,
+  "expected": 1305.999786,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-005",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=25000 years=3 rate=8%",
+  "kind": "reference",
+  "actual": 1020144.87,
+  "expected": 1020144.87,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-006",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=3 rate=8%",
+  "kind": "reference",
+  "actual": 24506.32331,
+  "expected": 24506.32331,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-007",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=1000 years=30 rate=15%",
+  "kind": "reference",
+  "actual": 7009820.606,
+  "expected": 7009820.606,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-008",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=30 rate=15%",
+  "kind": "reference",
+  "actual": 142.6570031,
+  "expected": 142.6570031,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-009",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=5000 years=0.5 rate=12%",
+  "kind": "reference",
+  "actual": 31067.67605,
+  "expected": 31067.67605,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-010",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=0.5 rate=12%",
+  "kind": "reference",
+  "actual": 160938.9769,
+  "expected": 160938.9769,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-011",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=7500 years=1.5 rate=6.5%",
+  "kind": "reference",
+  "actual": 142164.8015,
+  "expected": 142164.8015,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-012",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=1.5 rate=6.5%",
+  "kind": "reference",
+  "actual": 52755.67455,
+  "expected": 52755.67455,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-013",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=100 years=40 rate=1%",
+  "kind": "reference",
+  "actual": 59038.30389,
+  "expected": 59038.30389,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-014",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=1000000 years=40 rate=1%",
+  "kind": "reference",
+  "actual": 1693.815598,
+  "expected": 1693.815598,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-015",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV 5000/mo 10y 12% (hand figure 1,161,695)",
+  "kind": "worked example",
+  "actual": 1161695.382,
+  "expected": 1161695.4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-016",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV rate 0 => contributions only",
+  "kind": "boundary",
+  "actual": 600000,
+  "expected": 600000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-017",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP at rate 0",
+  "kind": "boundary",
+  "actual": 5000.0,
+  "expected": 5000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-018",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "round-trip required->FV",
+  "kind": "property",
+  "actual": 2000000.0,
+  "expected": 2000000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-019",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV invalid monthly=0 years=10 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-020",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV invalid monthly=-5000 years=10 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-021",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV invalid monthly=5000 years=0 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-022",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV invalid monthly=5000 years=-3 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-023",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP target=0 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-024",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV years=0.04 (rounds to 0 months)",
+  "kind": "boundary",
+  "actual": 0.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "silently 0.0: a 1-month horizon is treated as no investment"
+ },
+ {
+  "id": "SIP-025",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP years=0.04 (n rounds to 0) must not crash",
+  "kind": "boundary",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC ZeroDivisionError: float division by zero"
+ },
+ {
+  "id": "SIP-026",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "required SIP years=0.04 rate=0 must not crash",
+  "kind": "boundary",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC ZeroDivisionError: division by zero"
+ },
+ {
+  "id": "SIP-027",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV monthly=NaN",
+  "kind": "invalid",
+  "actual": NaN,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "NaN propagates, no validation"
+ },
+ {
+  "id": "SIP-028",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV rate=-1200% (r=-1)",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no rate validation; nonsense in, number out"
+ },
+ {
+  "id": "SIP-029",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "FV rate -6% (negative return) vs loop",
+  "kind": "boundary",
+  "actual": 258440.3471,
+  "expected": 258440.3471,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-030",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=1000000 rate=8.5% years=20",
+  "kind": "reference",
+  "actual": 8678.232334,
+  "expected": 8678.232334,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-031",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=1000000 rate=8.5% years=20",
+  "kind": "reference",
+  "actual": 1082775.76,
+  "expected": 1082775.76,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-032",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=500000 rate=12% years=5",
+  "kind": "reference",
+  "actual": 11122.22384,
+  "expected": 11122.22384,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-033",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=500000 rate=12% years=5",
+  "kind": "reference",
+  "actual": 167333.4305,
+  "expected": 167333.4305,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-034",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=2500000 rate=9.25% years=15",
+  "kind": "reference",
+  "actual": 25729.80724,
+  "expected": 25729.80724,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-035",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=2500000 rate=9.25% years=15",
+  "kind": "reference",
+  "actual": 2131365.304,
+  "expected": 2131365.304,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-036",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=100000 rate=24% years=1",
+  "kind": "reference",
+  "actual": 9455.959662,
+  "expected": 9455.959662,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-037",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=100000 rate=24% years=1",
+  "kind": "reference",
+  "actual": 13471.51595,
+  "expected": 13471.51595,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-038",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=5000000 rate=7% years=30",
+  "kind": "reference",
+  "actual": 33265.12476,
+  "expected": 33265.12476,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-039",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=5000000 rate=7% years=30",
+  "kind": "reference",
+  "actual": 6975444.913,
+  "expected": 6975444.913,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-040",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI P=300000 rate=13% years=0.5",
+  "kind": "reference",
+  "actual": 51912.85523,
+  "expected": 51912.85523,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-041",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest P=300000 rate=13% years=0.5",
+  "kind": "reference",
+  "actual": 11477.1314,
+  "expected": 11477.1314,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-042",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI 10L @8.5% 20y (published calculators: 8,678)",
+  "kind": "worked example",
+  "actual": 8678.232334,
+  "expected": 8678.23,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-043",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI rate 0 => P/n",
+  "kind": "boundary",
+  "actual": 10000.0,
+  "expected": 10000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-044",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI principal 0 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-045",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI principal<0 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-046",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI years 0 -> 0.0",
+  "kind": "invalid",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-047",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI years=0.04 (n rounds to 0) must not crash",
+  "kind": "boundary",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC ZeroDivisionError: float division by zero"
+ },
+ {
+  "id": "SIP-048",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI years=0.04 rate=0 must not crash",
+  "kind": "boundary",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC ZeroDivisionError: division by zero"
+ },
+ {
+  "id": "SIP-049",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI negative rate -3%",
+  "kind": "invalid",
+  "actual": 1542.710201,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "accepted; below P/n"
+ },
+ {
+  "id": "SIP-050",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "EMI rate 100000%",
+  "kind": "boundary",
+  "actual": 8333333.333,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no upper bound; pow overflow guarded?"
+ },
+ {
+  "id": "SIP-051",
+  "feature": "SIP/EMI (modules/finance/sip_emi_calc.py)",
+  "case": "total interest never negative (max(0,..))",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-052",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "FV monthly=5000 years=10 rate=12",
+  "kind": "reference",
+  "actual": 1161695.382,
+  "expected": 1161695.382,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-053",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "agrees with sip_emi_calc (5000,10,12)",
+  "kind": "consistency",
+  "actual": 1161695.382,
+  "expected": 1161695.382,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-054",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "FV monthly=10000 years=3 rate=8",
+  "kind": "reference",
+  "actual": 408057.9479,
+  "expected": 408057.9479,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-055",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "agrees with sip_emi_calc (10000,3,8)",
+  "kind": "consistency",
+  "actual": 408057.9479,
+  "expected": 408057.9479,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-056",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "FV monthly=50000 years=1 rate=14",
+  "kind": "reference",
+  "actual": 647504.3695,
+  "expected": 647504.3695,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-057",
+  "feature": "SIP duplicate (finance/pipeline.py::_future_value_monthly_sip)",
+  "case": "agrees with sip_emi_calc (50000,1,14)",
+  "kind": "consistency",
+  "actual": 647504.3695,
+  "expected": 647504.3695,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-058",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'my income is 60,000 per month'",
+  "kind": "reference",
+  "actual": 60000.0,
+  "expected": 60000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-059",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'salary 12 lpa'",
+  "kind": "reference",
+  "actual": 1200000.0,
+  "expected": 1200000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-060",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'I earn 1.5 lakh'",
+  "kind": "reference",
+  "actual": 150000.0,
+  "expected": 150000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-061",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'emi of 25k'",
+  "kind": "reference",
+  "actual": 25000.0,
+  "expected": 25000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-062",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'loan 2 crore'",
+  "kind": "reference",
+  "actual": 20000000.0,
+  "expected": 20000000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-063",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "parse 'save 6 lakh a year'",
+  "kind": "reference",
+  "actual": 600000.0,
+  "expected": 600000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-064",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "'12 lpa' is annual 12 lakh (unit sanity)",
+  "kind": "explanation",
+  "actual": 1200000.0,
+  "expected": 1200000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-065",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "'invest 10 percent of 50000'",
+  "kind": "invalid",
+  "actual": 10.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "first number after keyword wins (10): the percent is read as rupees"
+ },
+ {
+  "id": "SIP-066",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "return rate '14% pa' ",
+  "kind": "reference",
+  "actual": 14.0,
+  "expected": 14.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "SIP-067",
+  "feature": "Indian amount parsing (finance/pipeline.py)",
+  "case": "return rate '0%'",
+  "kind": "boundary",
+  "actual": 0.0,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "0.0 is falsy; `target_return or 12.0` then replaces it with 12 (explanation would say 'requested return' not 0%)"
+ }
+]

@@ -1,0 +1,247 @@
+{
+ "header": [
+  {
+   "width": 1920,
+   "vw": 1920,
+   "chats": {
+    "l": 1756,
+    "r": 1825,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 1849,
+    "r": 1888,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 1592,
+    "r": 1732,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 759,
+    "r": 1161,
+    "w": 402,
+    "h": 74
+   }
+  },
+  {
+   "width": 1440,
+   "vw": 1440,
+   "chats": {
+    "l": 1276,
+    "r": 1345,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 1369,
+    "r": 1408,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 1112,
+    "r": 1252,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 519,
+    "r": 921,
+    "w": 402,
+    "h": 74
+   }
+  },
+  {
+   "width": 1280,
+   "vw": 1280,
+   "chats": {
+    "l": 1116,
+    "r": 1185,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 1209,
+    "r": 1248,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 952,
+    "r": 1092,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 439,
+    "r": 841,
+    "w": 402,
+    "h": 74
+   }
+  },
+  {
+   "width": 1100,
+   "vw": 1100,
+   "chats": {
+    "l": 936,
+    "r": 1005,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 1029,
+    "r": 1068,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 772,
+    "r": 912,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 349,
+    "r": 751,
+    "w": 402,
+    "h": 74
+   }
+  },
+  {
+   "width": 768,
+   "vw": 768,
+   "chats": {
+    "l": 628,
+    "r": 697,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 721,
+    "r": 760,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 464,
+    "r": 604,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 183,
+    "r": 585,
+    "w": 402,
+    "h": 74
+   }
+  },
+  {
+   "width": 390,
+   "vw": 390,
+   "chats": {
+    "l": 432,
+    "r": 501,
+    "w": 69,
+    "h": 43
+   },
+   "exit": {
+    "l": 509,
+    "r": 548,
+    "w": 39,
+    "h": 46
+   },
+   "avatar": {
+    "l": 284,
+    "r": 424,
+    "w": 140,
+    "h": 36
+   },
+   "controls": {
+    "l": 49,
+    "r": 341,
+    "w": 292,
+    "h": 66
+   }
+  }
+ ],
+ "meeting": {
+  "statusText": "Ready",
+  "connected": "Connected\n00:01",
+  "tabOrder": [
+   "Chat history",
+   "Leave meeting",
+   "IFRAME",
+   "Unmute microphone",
+   "Start listening",
+   "Toggle captions",
+   "Toggle chat",
+   "End session",
+   "ARIA is an AI research and e [OUTSIDE]",
+   "Avatar",
+   "Chat history",
+   "Leave meeting"
+  ],
+  "chatInertClosed": true,
+  "chatInertOpen": false,
+  "focusAfterOpen": "Message ARIA",
+  "transcript": "A little clarity starts here.\n\nAsk a question aloud or write it below. It’s all one conversation.\n\nExplain how a SIP works\n↗\nHelp me plan an emergency fund\n↗\nResearch a company\n↗",
+  "resize": {
+   "before": 400,
+   "after": 400,
+   "stored": null
+  },
+  "resizeHandleAttrs": {
+   "role": "separator",
+   "tabindex": "0",
+   "ariaValue": "400"
+  },
+  "escapeClosed": false,
+  "avatarConfirm": "Switching the avatar restarts the meeting. Continue?",
+  "avatarAfterDismiss": "classic",
+  "historyOpenInMeeting": 1,
+  "historyZ": {
+   "panel": [
+    0,
+    300
+   ],
+   "zPanel": "10001",
+   "zMeeting": "10000"
+  },
+  "confirmShown": 1,
+  "confirmFocus": "Stay in meeting",
+  "afterLeave": {
+   "meeting": 0,
+   "mode": "Normal Mode",
+   "h1": [
+    "ARIA chat"
+   ]
+  },
+  "console": []
+ },
+ "meeting390": {
+  "chat": [
+   -148,
+   222,
+   70,
+   674
+  ],
+  "composer": [
+   -133,
+   207,
+   566,
+   657
+  ],
+  "controls": [
+   -109,
+   183,
+   691,
+   757
+  ],
+  "vh": 800
+ }
+}

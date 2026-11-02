@@ -73,7 +73,7 @@ def sec_sip_emi(r: Rec):
     # duplicate implementation in finance pipeline (extracted by AST, module not imported: it opens user DB code paths)
     src = (ROOT / "modules/finance/pipeline.py").read_text(encoding="utf8")
     tree = ast.parse(src)
-    ns: dict = {"re": re}
+    ns: dict = {"re": re, "sip_future_value": C.sip_future_value}  # pipeline now delegates to sip_emi_calc
     for node in tree.body:
         if isinstance(node, ast.Assign) and any(getattr(t, "id", "") in ("_AMOUNT",) for t in node.targets):
             exec(compile(ast.Module([node], []), "p", "exec"), ns)  # noqa: S102
@@ -117,7 +117,7 @@ def sec_tax(r: Rec):
     r.close(f, "new regime: taxable exactly 12L (gross 12.75L) => 0 tax (87A)", "boundary", T.tax_new(1275000).total_tax, 0.0)
     r.close(f, "new regime: gross 12.75L+1 => marginal relief caps tax at excess (1 * 1.04)", "boundary", T.tax_new(1275001).total_tax, 1.04, abs_=0.011)
     r.close(f, "new regime: gross 12.75L => effective rate 0", "boundary", T.tax_new(1275000).effective_rate, 0.0)
-    r.close(f, "new regime: gross 24L tax by hand: 20k+40k+60k+(taxable 2325000-1600000)*.20=145000 => 265000*1.04", "hand calc", T.tax_new(2400000).total_tax, (20000 + 40000 + 60000 + (2325000 - 1600000) * 0.20) * 1.04, abs_=0.011)
+    r.close(f, "new regime: gross 24L tax by hand: 20k+40k+60k+80k+(2325000-2000000)*.25=281250 => *1.04 (test expectation corrected after first run)", "hand calc", T.tax_new(2400000).total_tax, (20000 + 40000 + 60000 + 80000 + (2325000 - 2000000) * 0.25) * 1.04, abs_=0.011)
     r.close(f, "old regime: taxable exactly 5L (gross 5.5L, no ded) => 0", "boundary", T.tax_old(550000).total_tax, 0.0)
     r.close(f, "old regime: taxable 5L+1 has NO marginal relief (documented): 12,500 + 0.2 => tax 12500.2*1.04", "boundary", T.tax_old(550001).total_tax, 12500.2 * 1.04, abs_=0.02)
     # cliff check: stated behaviour of old regime (no marginal relief in law either: true, none exists for old regime)

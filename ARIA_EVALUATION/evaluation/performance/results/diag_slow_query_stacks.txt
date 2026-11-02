@@ -1,0 +1,47 @@
+Timeout (0:00:25)!
+Thread 0x00004178 (most recent call first):
+  File "C:\Users\jtmah\anaconda3\Lib\concurrent\futures\thread.py", line 90 in _worker
+  File "C:\Users\jtmah\anaconda3\Lib\threading.py", line 994 in run
+  File "C:\Users\jtmah\anaconda3\Lib\threading.py", line 1043 in _bootstrap_inner
+  File "C:\Users\jtmah\anaconda3\Lib\threading.py", line 1014 in _bootstrap
+
+Thread 0x0000c64c (most recent call first):
+  File "E:\ARIA\ARIA_EVALUATION\evaluation\performance\common.py", line 73 in connect
+  File "C:\Users\jtmah\anaconda3\Lib\socket.py", line 849 in create_connection
+  File "E:\ARIA\ARIA_EVALUATION\evaluation\performance\common.py", line 78 in cc
+  File "E:\ARIA\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 208 in connect_tcp
+  File "E:\ARIA\.venv\Lib\site-packages\httpcore\_sync\connection.py", line 124 in _connect
+  File "E:\ARIA\.venv\Lib\site-packages\httpcore\_sync\connection.py", line 78 in handle_request
+  File "E:\ARIA\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 288 in handle_request
+  File "E:\ARIA\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236 in handle_request
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_transports\default.py", line 250 in handle_request
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_client.py", line 1014 in _send_single_request
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_client.py", line 979 in _send_handling_redirects
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_client.py", line 942 in _send_handling_auth
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_client.py", line 914 in send
+  File "E:\ARIA\.venv\Lib\site-packages\httpx\_client.py", line 825 in request
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 507 in _http_backoff_base
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 599 in http_backoff
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 722 in _httpx_follow_relative_redirects_with_backoff
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1621 in get_hf_file_metadata
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 88 in _inner_fn
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1714 in _get_metadata_or_catch_error
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1089 in _hf_hub_download_to_cache_dir
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1019 in hf_hub_download
+  File "E:\ARIA\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 88 in _inner_fn
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\util\file_io.py", line 116 in load_file_path
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 1094 in _load_config_modules
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 1002 in _load_modules
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 216 in __init__
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\sentence_transformer\model.py", line 188 in __init__
+  File "E:\ARIA\.venv\Lib\site-packages\sentence_transformers\util\decorators.py", line 41 in wrapper
+  File "E:\ARIA\shared\vector_store.py", line 25 in _get_encoder
+  File "E:\ARIA\shared\conversation_memory.py", line 293 in _embedding
+  File "E:\ARIA\shared\conversation_memory.py", line 343 in retrieve
+  File "E:\ARIA\shared\conversation_memory.py", line 397 in build_context
+  File "E:\ARIA\shared\conversation_memory.py", line 442 in context_for
+  File "C:\Users\jtmah\anaconda3\Lib\contextlib.py", line 141 in __enter__
+  File "E:\ARIA\core\session.py", line 56 in execute_turn
+  File "E:\ARIA\core\orchestrator.py", line 447 in handle_query
+  File "E:\ARIA\evaluation\intent_understanding\run_benchmark.py", line 198 in main
+  File "E:\ARIA\ARIA_EVALUATION\evaluation\performance\diag_slow_query.py", line 20 in <module>

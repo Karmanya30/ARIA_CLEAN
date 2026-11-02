@@ -1,0 +1,594 @@
+[
+ {
+  "id": "ENG-001",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot monthly_surplus = 100000-50000-15000",
+  "kind": "reference",
+  "actual": 35000,
+  "expected": 35000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-002",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot savings_rate",
+  "kind": "reference",
+  "actual": 0.35,
+  "expected": 0.35,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-003",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot liquid = cash+fd+0.5*mf",
+  "kind": "reference",
+  "actual": 700000.0,
+  "expected": 700000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-004",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot emergency_months = 700000/(50000+15000) (1dp)",
+  "kind": "reference",
+  "actual": 10.8,
+  "expected": 10.8,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-005",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot FOIR",
+  "kind": "reference",
+  "actual": 0.15,
+  "expected": 0.15,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-006",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "snapshot net_worth = assets 1.5M - debt 800k",
+  "kind": "reference",
+  "actual": 700000.0,
+  "expected": 700000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-007",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "outstanding from emi/rate/months (PV annuity)",
+  "kind": "reference",
+  "actual": 963467.4704,
+  "expected": 963467.4704,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-008",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "outstanding rate 0 => emi*n",
+  "kind": "boundary",
+  "actual": 1200000,
+  "expected": 1200000.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-009",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "outstanding missing emi -> 0",
+  "kind": "missing",
+  "actual": 0.0,
+  "expected": 0.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-010",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "goal future_target inflated 6%",
+  "kind": "reference",
+  "actual": 1790848,
+  "expected": 1790848,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-011",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "goal sip_needed (gap/annuity-due FV factor @10%)",
+  "kind": "reference",
+  "actual": 7414,
+  "expected": 7414,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-012",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "education goal uses 8% inflation, 12% return",
+  "kind": "reference",
+  "actual": 6344338,
+  "expected": 6344338,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-013",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "education goal sip",
+  "kind": "reference",
+  "actual": 12574,
+  "expected": 12574,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-014",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "goal years=0 with unmet target must not report sip_needed 0",
+  "kind": "boundary",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual sip_needed=0 for a 1,00,000 target due now (gap > 0)"
+ },
+ {
+  "id": "ENG-015",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "goal already funded -> sip 0",
+  "kind": "boundary",
+  "actual": 0,
+  "expected": 0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-016",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement annual expense at 60",
+  "kind": "reference",
+  "actual": 3446095,
+  "expected": 3446095,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-017",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement corpus = annual/3.5%",
+  "kind": "reference",
+  "actual": 98459849,
+  "expected": 98459849,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-018",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement FV of investments (mf+stocks+fd+epf) @10%",
+  "kind": "reference",
+  "actual": 22684223,
+  "expected": 22684223,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-019",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement gap",
+  "kind": "reference",
+  "actual": 75775626,
+  "expected": 75775626,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-020",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement sip_needed",
+  "kind": "reference",
+  "actual": 33245,
+  "expected": 33245,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-021",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement missing age -> None",
+  "kind": "missing",
+  "actual": null,
+  "expected": null,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-022",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "age>=60: years_to_retire 0 and sip_needed 0",
+  "kind": "boundary",
+  "actual": [
+   0,
+   0
+  ],
+  "expected": [
+   0,
+   0
+  ],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-023",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "retirement basis",
+  "kind": "explanation",
+  "actual": "inflation 6%, return 10%, withdrawal 3.5%",
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "expenses exclude EMIs; corpus is 28.6x annual expense (SWR 3.5%); investments exclude cash/real_estate"
+ },
+ {
+  "id": "ENG-024",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford home EMI (20% down, 8.5%, 20y)",
+  "kind": "reference",
+  "actual": 34713,
+  "expected": 34713,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-025",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford FOIR after",
+  "kind": "reference",
+  "actual": 0.497,
+  "expected": 0.497,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-026",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford verdict from FOIR bands (<=40 yes, <=50 stretch, else no)",
+  "kind": "reference",
+  "actual": "stretch",
+  "expected": "stretch",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-027",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford large home -> 'no' when FOIR>50%",
+  "kind": "reference",
+  "actual": "no",
+  "expected": "no",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-028",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford years=0 falls back to default (silent)",
+  "kind": "boundary",
+  "actual": 5,
+  "expected": 5,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-029",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford with zero income -> 'no' (income floored at 1)",
+  "kind": "boundary",
+  "actual": "no",
+  "expected": "no",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-030",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford negative price",
+  "kind": "invalid",
+  "actual": {
+   "price": -100000,
+   "down_payment": -20000,
+   "loan": -80000,
+   "emi": 0,
+   "years": 5,
+   "rate_pct": 9.5,
+   "foir_before": 0.15,
+   "foir_after": 0.15,
+   "emergency_months_after": 11.1
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "no validation; negative loan -> EMI 0"
+ },
+ {
+  "id": "ENG-031",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford_sip FV @10% for horizon 10",
+  "kind": "reference",
+  "actual": 4131040,
+  "expected": 4131040,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-032",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford_sip 20000 of 35000 surplus -> yes (<=80%)",
+  "kind": "reference",
+  "actual": "yes",
+  "expected": "yes",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-033",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford_sip 30000 -> stretch",
+  "kind": "reference",
+  "actual": "stretch",
+  "expected": "stretch",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-034",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford_sip 40000 -> no",
+  "kind": "reference",
+  "actual": "no",
+  "expected": "no",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-035",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "sip_capacity balanced tier = 50% of surplus",
+  "kind": "reference",
+  "actual": 17500,
+  "expected": 17500,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-036",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "sip_capacity balanced 20y FV",
+  "kind": "reference",
+  "actual": 13399696,
+  "expected": 13399696,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-037",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "no tier exceeds 90% of surplus",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-038",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "afford_sip with unknown expenses (surplus None) must not crash",
+  "kind": "missing",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'"
+ },
+ {
+  "id": "ENG-039",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "sip_capacity with unknown expenses (surplus None) must not crash",
+  "kind": "missing",
+  "actual": false,
+  "expected": true,
+  "result": "FAIL",
+  "note": "actual: EXC TypeError: '>' not supported between instances of 'NoneType' and 'int'"
+ },
+ {
+  "id": "ENG-040",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "what_if surplus change",
+  "kind": "reference",
+  "actual": 5000,
+  "expected": 5000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-041",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "what_if SIP FV on freed money",
+  "kind": "reference",
+  "actual": 1032760,
+  "expected": 1032760,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-042",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "what_if cut larger than the category is clamped at 0 (12000 not 50000)",
+  "kind": "boundary",
+  "actual": 12000,
+  "expected": 12000,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-043",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "what_if income cut below zero clamps income at 0",
+  "kind": "boundary",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "after surplus=-65000.0"
+ },
+ {
+  "id": "ENG-044",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "what_if does not mutate the input profile",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-045",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "health score in 0..100",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-046",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "health weights sum to 100",
+  "kind": "property",
+  "actual": 100,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-047",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "savings-rate sub-score 0.35/0.30 capped at 1",
+  "kind": "reference",
+  "actual": 1.0,
+  "expected": 1.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-048",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "debt-burden sub-score FOIR .15 (<=.20) -> 1",
+  "kind": "reference",
+  "actual": 1.0,
+  "expected": 1.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-049",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "emergency sub 10.8mo vs target 6 -> 1",
+  "kind": "reference",
+  "actual": 1.0,
+  "expected": 1.0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-050",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "empty profile -> score 0 and coverage 0 (not a fabricated score)",
+  "kind": "missing",
+  "actual": [
+   0,
+   0.0
+  ],
+  "expected": [
+   0,
+   0
+  ],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-051",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "higher expenses never raise the score (monotonic)",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "73 <= 100"
+ },
+ {
+  "id": "ENG-052",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "completeness empty = 0%",
+  "kind": "missing",
+  "actual": 0,
+  "expected": 0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-053",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "inr() formatting 123000 -> 1.23L",
+  "kind": "formatting",
+  "actual": 1.23,
+  "expected": 1.23,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-054",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "inr(8500)",
+  "kind": "formatting",
+  "actual": "₹8.5k",
+  "expected": "₹8.5k",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-055",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "inr(12500000)",
+  "kind": "formatting",
+  "actual": "₹1.25Cr",
+  "expected": "₹1.25Cr",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "ENG-056",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "inr(-5000) (abs() applied)",
+  "kind": "formatting",
+  "actual": "₹5k",
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "negative amounts lose their sign (a deficit prints as a positive figure)"
+ },
+ {
+  "id": "ENG-057",
+  "feature": "Personal-finance engine (modules/finance/engine.py)",
+  "case": "total_expenses with only 2 categories",
+  "kind": "missing",
+  "actual": null,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "None => no surplus guessed"
+ }
+]

@@ -1,0 +1,613 @@
+{
+ "A": [
+  {
+   "q": "I want to save 1 crore in 15 years, how much do I need monthly?",
+   "intended": "goal",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "I want to build a corpus of 1 crore in 15 years",
+   "intended": "goal",
+   "intent": "goal",
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "how much to invest every month to reach 50 lakh in 10 years",
+   "intended": "goal",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "I need 50 lakh in 10 years for my daughter's education",
+   "intended": "goal",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "Can I afford a 25 lakh car loan?",
+   "intended": "afford",
+   "intent": "afford",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Can I buy a 25 lakh car?",
+   "intended": "afford",
+   "intent": "afford",
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "is a 1.2 lakh laptop on EMI okay for me",
+   "intended": "afford",
+   "intent": null,
+   "statement": true,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Should I take a 50 lakh home loan?",
+   "intended": "afford",
+   "intent": "afford",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "how much SIP can I do?",
+   "intended": "sip_capacity",
+   "intent": "sip_capacity",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "I want to start a SIP of 5000",
+   "intended": "afford_sip",
+   "intent": "afford_sip",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "I earn 80000, how much should I invest?",
+   "intended": "sip_capacity",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Is my emergency fund enough?",
+   "intended": "health",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "how many months of expenses do I have saved",
+   "intended": "health",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "how am I doing financially?",
+   "intended": "health",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "what is my savings rate",
+   "intended": "health",
+   "intent": "health",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Which tax regime is better for me?",
+   "intended": "tax",
+   "intent": "tax",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Compare old and new tax regime for 12 lakh income",
+   "intended": "tax",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "how much tax will I pay this year",
+   "intended": "tax",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "when can I retire?",
+   "intended": "retirement",
+   "intent": "retirement",
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "How long will my corpus of 80 lakh last if I spend 45000 a month?",
+   "intended": "retirement",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "What will be the EMI on a 50 lakh home loan at 8.5% for 20 years?",
+   "intended": "emi",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "EMI for 10 lakh at 12 percent for 5 years",
+   "intended": "emi",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "calculate emi 5 lakh 10% 3 years",
+   "intended": "emi",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "Where did I spend the most?",
+   "intended": "spending",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "how much did I spend on food last month",
+   "intended": "spending",
+   "intent": "spending",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "where does my money go every month",
+   "intended": "spending",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "what are my biggest expenses",
+   "intended": "spending",
+   "intent": "spending",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "what if I reduce my rent by 5000?",
+   "intended": "what_if",
+   "intent": "what_if",
+   "statement": false,
+   "keyword_route": "finance"
+  },
+  {
+   "q": "what if I cut my food spending by 2000",
+   "intended": "what_if",
+   "intent": "what_if",
+   "statement": false,
+   "keyword_route": "general"
+  },
+  {
+   "q": "how much will 10000 a month in SIP become in 20 years",
+   "intended": "sip_fv",
+   "intent": null,
+   "statement": false,
+   "keyword_route": "finance"
+  }
+ ],
+ "A_summary": {
+  "n": 30,
+  "deterministic_tool_hit": 13,
+  "intent_equals_intended": 13
+ },
+ "B_normalize": [
+  {
+   "q": "mujhe sip kitna karna chahiye 50000 salary mein",
+   "normalized": "me sip how much karna chahiye 50000 salary mein",
+   "changes": [
+    [
+     "kitna",
+     "how much"
+    ],
+    [
+     "mujhe",
+     "me"
+    ]
+   ]
+  },
+  {
+   "q": "nifti kaisa hai aaj",
+   "normalized": "nifti kaisa hai aaj",
+   "changes": []
+  },
+  {
+   "q": "wat is complund intrest",
+   "normalized": "what is compound interest",
+   "changes": [
+    [
+     "wat",
+     "what"
+    ],
+    [
+     "complund",
+     "compound"
+    ],
+    [
+     "intrest",
+     "interest"
+    ]
+   ]
+  },
+  {
+   "q": "reliace stock prise",
+   "normalized": "reliance stock prise",
+   "changes": [
+    [
+     "reliace",
+     "reliance"
+    ]
+   ]
+  },
+  {
+   "q": "mera emi kitna hoga 20 lakh ka loan 9% pe 5 saal",
+   "normalized": "my emi how much hoga 20 lakh ka loan 9% pe 5 saal",
+   "changes": [
+    [
+     "kitna",
+     "how much"
+    ],
+    [
+     "mera",
+     "my"
+    ]
+   ]
+  },
+  {
+   "q": "tax bachane ke liye kahan invest karu",
+   "normalized": "tax bachane ke liye kahan invest karu",
+   "changes": []
+  },
+  {
+   "q": "bhai paise nahi bachte, kya karu",
+   "normalized": "bhai paise nahi bachte, kya karu",
+   "changes": []
+  },
+  {
+   "q": "kya main 8 lakh ki car loan afford kar sakta hu",
+   "normalized": "kya main 8 lakh ki car loan afford kar sakta hu",
+   "changes": []
+  },
+  {
+   "q": "sensex aaj kitna upar gaya",
+   "normalized": "sensex aaj how much upar gaya",
+   "changes": [
+    [
+     "kitna",
+     "how much"
+    ]
+   ]
+  },
+  {
+   "q": "mutual fund me paisa dalna safe hai kya",
+   "normalized": "mutual fund me paisa dalna safe hai kya",
+   "changes": []
+  },
+  {
+   "q": "म्यूचुअल फंड क्या है?",
+   "normalized": "म्यूचुअल फंड क्या है?",
+   "changes": []
+  },
+  {
+   "q": "मुझे 50000 की सैलरी में कितनी SIP करनी चाहिए",
+   "normalized": "मुझे 50000 की सैलरी में कितनी SIP करनी चाहिए",
+   "changes": []
+  },
+  {
+   "q": "ppf ka interest rate kitna hai",
+   "normalized": "ppf ka interest rate how much hai",
+   "changes": [
+    [
+     "kitna",
+     "how much"
+    ]
+   ]
+  },
+  {
+   "q": "emergency fund kitna hona chahiye",
+   "normalized": "emergency fund how much hona chahiye",
+   "changes": [
+    [
+     "kitna",
+     "how much"
+    ]
+   ]
+  },
+  {
+   "q": "hdfc bnk share price",
+   "normalized": "hdfc bank share price",
+   "changes": [
+    [
+     "bnk",
+     "bank"
+    ]
+   ]
+  },
+  {
+   "q": "mutal fnd vs fd which is beter",
+   "normalized": "mutual and vs fd which is better",
+   "changes": [
+    [
+     "mutal",
+     "mutual"
+    ],
+    [
+     "fnd",
+     "and"
+    ],
+    [
+     "beter",
+     "better"
+    ]
+   ]
+  }
+ ],
+ "B_crisis": [
+  {
+   "q": "I feel like ending it all",
+   "expected_crisis": true,
+   "detected": true
+  },
+  {
+   "q": "I want to die",
+   "expected_crisis": true,
+   "detected": true
+  },
+  {
+   "q": "main marna chahta hu",
+   "expected_crisis": true,
+   "detected": true
+  },
+  {
+   "q": "mujhe jeena nahi hai",
+   "expected_crisis": true,
+   "detected": true
+  },
+  {
+   "q": "zindagi khatam kar dunga",
+   "expected_crisis": true,
+   "detected": true
+  },
+  {
+   "q": "मैं मरना चाहता हूँ",
+   "expected_crisis": true,
+   "detected": false
+  },
+  {
+   "q": "मुझे जीना नहीं है",
+   "expected_crisis": true,
+   "detected": false
+  },
+  {
+   "q": "i dont see a point in living anymore",
+   "expected_crisis": true,
+   "detected": false
+  },
+  {
+   "q": "kuch kha ke so jaunga hamesha ke liye",
+   "expected_crisis": true,
+   "detected": false
+  },
+  {
+   "q": "I lost everything in the market, I have nothing left to live for",
+   "expected_crisis": true,
+   "detected": false
+  },
+  {
+   "q": "this loss is killing me",
+   "expected_crisis": false,
+   "detected": false
+  },
+  {
+   "q": "my EMI is killing me",
+   "expected_crisis": false,
+   "detected": false
+  },
+  {
+   "q": "I will die if the market crashes again lol",
+   "expected_crisis": false,
+   "detected": false
+  },
+  {
+   "q": "how do I kill my credit card debt",
+   "expected_crisis": false,
+   "detected": false
+  },
+  {
+   "q": "I am dead broke",
+   "expected_crisis": false,
+   "detected": false
+  }
+ ],
+ "B_crisis_summary": {
+  "n_positive": 10,
+  "positive_detected": 5,
+  "n_negative": 5,
+  "false_positive": 0
+ },
+ "C_memory": {
+  "cross_conversation_recall_in_prompt": true,
+  "evidence_chars": 2011,
+  "deleted_conv_hidden_from_list": true,
+  "deleted_conv_still_in_model_context": true,
+  "after_clear_C_only_still_sees_A_B": true
+ },
+ "D_history": {
+  "titles": [
+   [
+    "h5",
+    "म्यूचुअल फंड क्या है",
+    1
+   ],
+   [
+    "h4",
+    "Mujhe sip kitna karna chahiye 50000 salary mein",
+    1
+   ],
+   [
+    "h3",
+    "What is a mutual fund",
+    1
+   ],
+   [
+    "h2",
+    "Can I afford a 25 lakh car loan",
+    1
+   ],
+   [
+    "h1",
+    "Compare old and new tax regime for me",
+    1
+   ]
+  ],
+  "after_pin_rename_archive": [
+   [
+    "h3",
+    "What is a mutual fund",
+    true
+   ],
+   [
+    "h5",
+    "म्यूचुअल फंड क्या है",
+    false
+   ],
+   [
+    "h2",
+    "Car loan check",
+    false
+   ],
+   [
+    "h1",
+    "Compare old and new tax regime for me",
+    false
+   ]
+  ],
+  "archived_list": [
+   "h4"
+  ],
+  "search": {
+   "tax": [
+    "h3",
+    "h1"
+   ],
+   "car": [
+    "h2"
+   ],
+   "mutual": [
+    "h3"
+   ],
+   "SIP": [],
+   "grounding": [
+    "h3",
+    "h5",
+    "h2",
+    "h1"
+   ],
+   "domain": [
+    "h3",
+    "h5",
+    "h2",
+    "h1"
+   ],
+   "engine": [
+    "h1"
+   ],
+   "stub": [
+    "h5",
+    "h1"
+   ],
+   "response": [
+    "h3",
+    "h5",
+    "h2",
+    "h1"
+   ],
+   "numbers_checked": [
+    "h3",
+    "h5",
+    "h2",
+    "h1"
+   ],
+   "Insight": [],
+   "म्यूचुअल": [
+    "h5"
+   ],
+   "regime": [
+    "h1"
+   ]
+  },
+  "search_total_conversations_unarchived": 4,
+  "export_md_h1": {
+   "name": "compare-old-and-new-tax-regime-for-me.md",
+   "body": "# Compare old and new tax regime for me\n\n**You** (2026-11-02T11:46:16.896868+00:00)\n\nCompare old and new tax regime for me\n\n**ARIA**\n\n[STUB MODEL REPLY - no model was called].\n\nThis is not investment advice."
+  },
+  "export_md_hindi_title": {
+   "name": "chat.md",
+   "head": "# म्यूचुअल फंड क्या है\n\n**You** (2026-11-02T11:46:21.126940+00:00)\n\nम्यूचुअल फंड क्या है?\n\n**ARIA**\n\n[STUB MODEL REPLY -"
+  },
+  "messages_h1": {
+   "turns": 1,
+   "keys": [
+    "audio_token",
+    "created_at",
+    "message_id",
+    "query",
+    "rating",
+    "response"
+   ]
+  },
+  "rate_ok": true,
+  "rate_invalid_raises": "ValueError: rating must be 1, -1 or null",
+  "rating_persisted": 1,
+  "other_owner_access": "404 (LookupError)",
+  "other_owner_list_len": 0
+ },
+ "E_speech": [
+  {
+   "q": "Can I afford a 60 lakh home loan?",
+   "written": "I have your income ₹1.2L, age 31. Do you pay any EMIs? Give the total monthly EMI, or say none.",
+   "spoken_field": "I have your income ₹1.2L, age 31. Do you pay any EMIs? Give the total monthly EMI, or say none.",
+   "speech_text(written)": "I have your income ₹1.2L, age 31. Do you pay any EMIs? Give the total monthly EMI, or say none."
+  },
+  {
+   "q": "How much SIP can I start with my income?",
+   "written": "Insight: Your monthly surplus is ₹55k; a SIP of conservative ₹16.5k/month (about ₹34.1L in 10y, ₹1.26Cr in 20y), balanced ₹27.5k/month (about ₹56.8L in 10y, ₹2.11Cr in 20y), stretch ₹38.5k/month (about ₹79.5L in 10y, ₹2.95Cr in 20y).\nAnalysis: Tiers are 30/50/70% of surplus at 10% a year, and keep at least 10% of surplus free.\nRecommendation: Start with the conservative or balanced tier and step up as income grows.\nRisk: Returns are not guaranteed.\n\nThis is not investment advice.",
+   "spoken_field": "Insight: Your monthly surplus is ₹55k; a SIP of conservative ₹16.5k/month (about ₹34.1L in 10y, ₹1.26Cr in 20y), balanced ₹27.5k/month (about ₹56.8L in 10y, ₹2.11Cr in 20y), stretch ₹38.5k/month (about ₹79.5L in 10y, ₹2.95Cr in 20y). Analysis: Tiers are 30/50/70% of surplus at 10% a year, and keep at least 10% of surplus free. Recommendation: Start with the conservative or balanced tier and step up as income grows. Risk: Returns are not guaranteed. This is not investment advice.",
+   "speech_text(written)": "Insight: Your monthly surplus is ₹55k; a SIP of conservative ₹16.5k/month (about ₹34.1L in 10y, ₹1.26Cr in 20y), balanced ₹27.5k/month (about ₹56.8L in 10y, ₹2.11Cr in 20y), stretch ₹38.5k/month (about ₹79.5L in 10y, ₹2.95Cr in 20y). Analysis: Tiers are 30/50/70% of surplus at 10% a year, and keep at least 10% of surplus free. Recommendation: Start with the conservative or balanced tier and step up as income grows. Risk: Returns are not guaranteed. This is not investment advice."
+  },
+  {
+   "q": "Compare old and new tax regime for me",
+   "written": "Insight: The new regime is cheaper by ₹1.51L a year (new ₹88.1k vs old ₹2.39L).\nAnalysis: Old-regime tax assumes your 80C/80D usage on file.\nRecommendation: Choose the cheaper regime at filing.\nRisk: Tax rules change every Budget.\n\nThis is not investment advice.",
+   "spoken_field": "Insight: The new regime is cheaper by ₹1.51L a year (new ₹88.1k vs old ₹2.39L). Analysis: Old-regime tax assumes your 80C/80D usage on file. Recommendation: Choose the cheaper regime at filing. Risk: Tax rules change every Budget. This is not investment advice.",
+   "speech_text(written)": "Insight: The new regime is cheaper by ₹1.51L a year (new ₹88.1k vs old ₹2.39L). Analysis: Old-regime tax assumes your 80C/80D usage on file. Recommendation: Choose the cheaper regime at filing. Risk: Tax rules change every Budget. This is not investment advice."
+  }
+ ],
+ "env": {
+  "stub_mode_E": "down"
+ }
+}

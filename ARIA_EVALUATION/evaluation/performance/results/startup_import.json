@@ -1,0 +1,26 @@
+[
+ {
+  "import_api_main": {
+   "s": 1.09,
+   "rss_mb": 151
+  },
+  "peak_rss_mb": 151,
+  "wall_s": 2.6
+ },
+ {
+  "import_api_main": {
+   "s": 1.08,
+   "rss_mb": 152
+  },
+  "peak_rss_mb": 152,
+  "wall_s": 2.4
+ },
+ {
+  "import_api_main": {
+   "s": 1.1,
+   "rss_mb": 152
+  },
+  "peak_rss_mb": 152,
+  "wall_s": 2.5
+ }
+]

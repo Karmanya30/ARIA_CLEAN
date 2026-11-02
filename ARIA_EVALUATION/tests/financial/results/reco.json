@@ -1,0 +1,3807 @@
+[
+ {
+  "id": "REC-001",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-002",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-003",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-004",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-005",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-006",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 99,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-007",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 67.0,
+  "expected": 52,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-008",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 83,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-009",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-010",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-011",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-012",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-013",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 99,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-014",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 67.0,
+  "expected": 52,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-015",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 33.0,
+  "expected": 33,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-016",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-017",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-018",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-019",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 57.0,
+  "expected": 57,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-020",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 74,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-021",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 42.0,
+  "expected": 52,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-022",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-023",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-024",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-025",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-026",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-027",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 74,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-028",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 42.0,
+  "expected": 52,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-029",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-030",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-031",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-032",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-033",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-034",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-035",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 37.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-036",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-037",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-038",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-039",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-040",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-041",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-042",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 37.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-043",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 3.0,
+  "expected": 3,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-044",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-045",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-046",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-047",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 27.0,
+  "expected": 27,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-048",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-049",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 12.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-050",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-051",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-052",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 38,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-053",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-054",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-055",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-056",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 12.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-057",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-058",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-059",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-060",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-061",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-062",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-063",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 37.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-064",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 93,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-065",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-066",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-067",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-068",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-069",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-070",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 37.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-071",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 43.0,
+  "expected": 43,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-072",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-073",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-074",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-075",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 27.0,
+  "expected": 27,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-076",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-077",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 12.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-078",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-079",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-080",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-081",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-082",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-083",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-084",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 12.0,
+  "expected": 22,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-085",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-086",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-087",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-088",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-089",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-090",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-091",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-092",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 93,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-093",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-094",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-095",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-096",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-097",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-098",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-099",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 43.0,
+  "expected": 43,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-100",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-101",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-102",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-103",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 67.0,
+  "expected": 67,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-104",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-105",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-106",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-107",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-108",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 78,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-109",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-110",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-111",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-112",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Conservative hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-113",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-114",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-115",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-116",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-117",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-118",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-119",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 91.0,
+  "expected": 76,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-120",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-121",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-122",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-123",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-124",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 83,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-125",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-126",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 91.0,
+  "expected": 76,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-127",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 57.0,
+  "expected": 57,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-128",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-129",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-130",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-131",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 33.0,
+  "expected": 33,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-132",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-133",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 66.0,
+  "expected": 76,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-134",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-135",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-136",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 92,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-137",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-138",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-139",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 82.0,
+  "expected": 82,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-140",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 66.0,
+  "expected": 76,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-141",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-142",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-143",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-144",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-145",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-146",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-147",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 61.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-148",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-149",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-150",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-151",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-152",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-153",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-154",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 61.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-155",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 27.0,
+  "expected": 27,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-156",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-157",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-158",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-159",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 3.0,
+  "expected": 3,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-160",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-161",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 36.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-162",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-163",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-164",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 62,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-165",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-166",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-167",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-168",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 36.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-169",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-170",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-171",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-172",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-173",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-174",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-175",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 61.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-176",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-177",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-178",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-179",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-180",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-181",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 77.0,
+  "expected": 77,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-182",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 61.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-183",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 67.0,
+  "expected": 67,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-184",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-185",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-186",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-187",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 3.0,
+  "expected": 3,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-188",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-189",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 36.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-190",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-191",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-192",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-193",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-194",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-195",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 52.0,
+  "expected": 52,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-196",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 36.0,
+  "expected": 46,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-197",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-198",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-199",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-200",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-201",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-202",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-203",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 86,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-204",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-205",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-206",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-207",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-208",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 93,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-209",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-210",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 86,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-211",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 67.0,
+  "expected": 67,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-212",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-213",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-214",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-215",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 43.0,
+  "expected": 43,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-216",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-217",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 76.0,
+  "expected": 86,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-218",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-219",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-220",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-221",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 68,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-222",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-223",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 92.0,
+  "expected": 92,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-224",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Moderate hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 76.0,
+  "expected": 86,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-225",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 74,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-226",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-227",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-228",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-229",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 34,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-230",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 83,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-231",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=None old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-232",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 99,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-233",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-234",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 99.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-235",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-236",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 59,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-237",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 83.0,
+  "expected": 83,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-238",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=None old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-239",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 49.0,
+  "expected": 49,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-240",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-241",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-242",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-243",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 9.0,
+  "expected": 9,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-244",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-245",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=None new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 90.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-246",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 74,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-247",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-248",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 74.0,
+  "expected": 84,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-249",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-250",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 34,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-251",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 58.0,
+  "expected": 58,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-252",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=None new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 90.0,
+  "expected": 100,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-253",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-254",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-255",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-256",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-257",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 4.0,
+  "expected": 4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-258",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-259",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=1 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 85.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-260",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-261",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-262",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-263",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-264",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 29.0,
+  "expected": 29,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-265",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-266",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=1 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 85.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-267",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 19.0,
+  "expected": 19,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-268",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-269",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-270",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-271",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-272",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-273",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=1 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 60.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-274",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-275",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-276",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 54,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-277",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-278",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 4.0,
+  "expected": 4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-279",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-280",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=1 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 60.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-281",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-282",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-283",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-284",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-285",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 4.0,
+  "expected": 4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-286",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-287",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=5 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 85.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-288",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-289",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-290",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-291",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-292",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 29.0,
+  "expected": 29,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-293",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 53.0,
+  "expected": 53,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-294",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=5 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 85.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-295",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 59,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-296",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-297",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-298",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-299",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 0.0,
+  "expected": 0,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-300",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-301",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=5 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 60.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-302",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-303",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-304",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-305",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-306",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 4.0,
+  "expected": 4,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-307",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 28.0,
+  "expected": 28,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-308",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=5 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 60.0,
+  "expected": 70,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-309",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-310",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-311",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-312",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-313",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-314",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 93,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-315",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=15 old em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-316",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-317",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-318",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-319",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-320",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 69.0,
+  "expected": 69,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-321",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 93.0,
+  "expected": 93,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-322",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=15 old em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-323",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 59.0,
+  "expected": 59,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-324",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-325",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-326",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-327",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 19.0,
+  "expected": 19,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-328",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-329",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=15 new em=0 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-330",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 84,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-331",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-332",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 84.0,
+  "expected": 94,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-333",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 34.0,
+  "expected": 44,
+  "result": "FAIL",
+  "note": ""
+ },
+ {
+  "id": "REC-334",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 44.0,
+  "expected": 44,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-335",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 68.0,
+  "expected": 68,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-336",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity Aggressive hz=15 new em=6 (rules, TRUE 80C eligibility)",
+  "kind": "reference",
+  "actual": 100.0,
+  "expected": 100,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-337",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "elss: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "Section 80C eligible under the old regime; LTCG on equity applies after the lock"
+ },
+ {
+  "id": "REC-338",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "etf: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": false,
+  "result": "FAIL",
+  "note": "LTCG/STCG rules for equity funds; no Section 80C benefit."
+ },
+ {
+  "id": "REC-339",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "index_fund: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": false,
+  "result": "FAIL",
+  "note": "LTCG/STCG rules for equity funds; no Section 80C benefit."
+ },
+ {
+  "id": "REC-340",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fd: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": false,
+  "result": "FAIL",
+  "note": "Interest is fully taxable as regular income; a separate 5-year tax-saver FD vari"
+ },
+ {
+  "id": "REC-341",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ppf: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "EEE -- contribution, interest, and maturity are all tax-exempt; Section 80C elig"
+ },
+ {
+  "id": "REC-342",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "nps: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": "Additional deduction under Section 80CCD(1B) beyond the 80C limit (old regime); "
+ },
+ {
+  "id": "REC-343",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "direct_equity: substring '80c' flag == real 80C eligibility",
+  "kind": "defect-probe",
+  "actual": true,
+  "expected": false,
+  "result": "FAIL",
+  "note": "LTCG/STCG rules for equity; no Section 80C benefit."
+ },
+ {
+  "id": "REC-344",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "deterministic",
+  "kind": "property",
+  "actual": [
+   {
+    "instrument_id": "elss",
+    "instrument_name": "ELSS (Equity Linked Savings Scheme)",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~3-year minimum."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "etf",
+    "instrument_name": "ETF (Exchange-Traded Fund)",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "index_fund",
+    "instrument_name": "Index Fund",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "direct_equity",
+    "instrument_name": "Direct Equity (Stocks)",
+    "score": 76.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Your 10-year horizon comfortably covers its typical ~7-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "It's typically more volatile/higher-risk than fits a moderate profile.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "fd",
+    "instrument_name": "Fixed Deposit (FD)",
+    "score": 58.0,
+    "fit": "consider",
+    "reasons_for": [
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "It's typically more conservative than your moderate risk tolerance calls for -- fine as a stabilizer, not your main growth engine.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "nps",
+    "instrument_name": "NPS (National Pension System)",
+    "score": 52.0,
+    "fit": "consider",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "Your 10-year horizon is shorter than the ~15 years this instrument typically needs, given its lock-in and/or volatility.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "ppf",
+    "instrument_name": "PPF (Public Provident Fund)",
+    "score": 28.0,
+    "fit": "not_a_fit",
+    "reasons_for": [],
+    "reasons_against": [
+     "It's typically more conservative than your moderate risk tolerance calls for -- fine as a stabilizer, not your main growth engine.",
+     "Your 10-year horizon is shorter than the ~15 years this instrument typically needs, given its lock-in and/or volatility.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   }
+  ],
+  "expected": [
+   {
+    "instrument_id": "elss",
+    "instrument_name": "ELSS (Equity Linked Savings Scheme)",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~3-year minimum."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "etf",
+    "instrument_name": "ETF (Exchange-Traded Fund)",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "index_fund",
+    "instrument_name": "Index Fund",
+    "score": 92.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "direct_equity",
+    "instrument_name": "Direct Equity (Stocks)",
+    "score": 76.0,
+    "fit": "strong_fit",
+    "reasons_for": [
+     "Your 10-year horizon comfortably covers its typical ~7-year minimum.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "It's typically more volatile/higher-risk than fits a moderate profile.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "fd",
+    "instrument_name": "Fixed Deposit (FD)",
+    "score": 58.0,
+    "fit": "consider",
+    "reasons_for": [
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "It's typically more conservative than your moderate risk tolerance calls for -- fine as a stabilizer, not your main growth engine.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "nps",
+    "instrument_name": "NPS (National Pension System)",
+    "score": 52.0,
+    "fit": "consider",
+    "reasons_for": [
+     "Its typical risk level matches your moderate risk profile well.",
+     "Your emergency fund is already solid, and this instrument stays liquid too."
+    ],
+    "reasons_against": [
+     "Your 10-year horizon is shorter than the ~15 years this instrument typically needs, given its lock-in and/or volatility.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   },
+   {
+    "instrument_id": "ppf",
+    "instrument_name": "PPF (Public Provident Fund)",
+    "score": 28.0,
+    "fit": "not_a_fit",
+    "reasons_for": [],
+    "reasons_against": [
+     "It's typically more conservative than your moderate risk tolerance calls for -- fine as a stabilizer, not your main growth engine.",
+     "Your 10-year horizon is shorter than the ~15 years this instrument typically needs, given its lock-in and/or volatility.",
+     "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+    ]
+   }
+  ],
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-345",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "sorted descending",
+  "kind": "property",
+  "actual": true,
+  "expected": true,
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-346",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label elss score 92.0",
+  "kind": "reference",
+  "actual": "strong_fit",
+  "expected": "strong_fit",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-347",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label etf score 92.0",
+  "kind": "reference",
+  "actual": "strong_fit",
+  "expected": "strong_fit",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-348",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label index_fund score 92.0",
+  "kind": "reference",
+  "actual": "strong_fit",
+  "expected": "strong_fit",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-349",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label direct_equity score 76.0",
+  "kind": "reference",
+  "actual": "strong_fit",
+  "expected": "strong_fit",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-350",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label fd score 58.0",
+  "kind": "reference",
+  "actual": "consider",
+  "expected": "consider",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-351",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label nps score 52.0",
+  "kind": "reference",
+  "actual": "consider",
+  "expected": "consider",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-352",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "fit label ppf score 28.0",
+  "kind": "reference",
+  "actual": "not_a_fit",
+  "expected": "not_a_fit",
+  "result": "PASS",
+  "note": ""
+ },
+ {
+  "id": "REC-353",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "unknown risk label 'Foo'",
+  "kind": "invalid",
+  "actual": [
+   [
+    "etf",
+    92.0
+   ],
+   [
+    "index_fund",
+    92.0
+   ],
+   [
+    "elss",
+    67.0
+   ]
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "falls back to Moderate silently"
+ },
+ {
+  "id": "REC-354",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "negative horizon",
+  "kind": "boundary",
+  "actual": [
+   [
+    "fd",
+    58.0
+   ],
+   [
+    "etf",
+    52.0
+   ],
+   [
+    "index_fund",
+    52.0
+   ]
+  ],
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": ""
+ },
+ {
+  "id": "REC-355",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "NPS _is_illiquid (catalogue lock_in_years=None)",
+  "kind": "probe",
+  "actual": false,
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "NPS is locked to ~60 in reality"
+ },
+ {
+  "id": "REC-356",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ETF explanation under new regime",
+  "kind": "explanation",
+  "actual": {
+   "for": [
+    "Its typical risk level matches your moderate risk profile well.",
+    "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+    "Your emergency fund is already solid, and this instrument stays liquid too."
+   ],
+   "against": [
+    "You're on the new tax regime, so this instrument's main tax-saving benefit doesn't apply to you."
+   ],
+   "score": 92.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "ETF has no 80C benefit"
+ },
+ {
+  "id": "REC-357",
+  "feature": "Instrument recommender (instrument_recommender.py)",
+  "case": "ETF explanation under old regime",
+  "kind": "explanation",
+  "actual": {
+   "for": [
+    "Its typical risk level matches your moderate risk profile well.",
+    "Your 10-year horizon comfortably covers its typical ~5-year minimum.",
+    "Your emergency fund is already solid, and this instrument stays liquid too.",
+    "Under your old tax regime, this qualifies for a Section 80C-family deduction."
+   ],
+   "against": [],
+   "score": 100.0
+  },
+  "expected": "-",
+  "result": "OBSERVED",
+  "note": "ETF has no 80C benefit"
+ }
+]

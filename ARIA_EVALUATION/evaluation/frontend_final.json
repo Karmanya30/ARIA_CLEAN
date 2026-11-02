@@ -1,0 +1,64 @@
+{
+ "night": [
+  "night",
+  "night"
+ ],
+ "nightPersist": "light",
+ "settingsText": "Settings\nAppearance\nColour mode\nLight\nNight\nAuto\n\nNight is a dark trading-terminal look. Auto follows your device.\n\nAbout ARIA\nARIA\nAI FOR REAL INSIGHTS & ANALYSIS\n\nARIA is an AI research and education tool, not a SEBI-registered adviser. Read the full disclaimers.",
+ "skipOnSettings": {
+  "hash": "#main",
+  "h1": [
+   "Markets"
+  ]
+ },
+ "widths": [
+  [
+   600,
+   {
+    "chats": 697,
+    "exit": 760,
+    "scrollW": 984
+   }
+  ],
+  [
+   560,
+   {
+    "chats": 697,
+    "exit": 760,
+    "scrollW": 944
+   }
+  ],
+  [
+   520,
+   {
+    "chats": 501,
+    "exit": 548,
+    "scrollW": 1030
+   }
+  ],
+  [
+   480,
+   {
+    "chats": 501,
+    "exit": 548,
+    "scrollW": 950
+   }
+  ],
+  [
+   430,
+   {
+    "chats": 501,
+    "exit": 548,
+    "scrollW": 850
+   }
+  ],
+  [
+   414,
+   {
+    "chats": 501,
+    "exit": 548,
+    "scrollW": 818
+   }
+  ]
+ ]
+}
