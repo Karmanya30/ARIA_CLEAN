@@ -538,6 +538,114 @@ async function videoSpeaker() {
   };
 }
 
+// "New ARIA Avatar" with real lip-sync (GPU): ARIA's voice for each phrase goes to the MuseTalk server for this video
+// (scripts/start_musetalk_new_avatar.bat, port 8011), which streams back whole frames of the presenter with the mouth matching the
+// voice. They are drawn in step with the audio clock; between phrases the calm video loops continue underneath. If the server is not
+// running, videoSpeaker() above is used instead (loops only, no lip-sync).
+async function lipSyncVideoSpeaker() {
+  const BASE = params.get("musetalk_new") || `http://${location.hostname}:8011`;
+  const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1200) }).then((r) => r.json());
+  if (!health.ready || health.source !== "presenter-lipsync.mp4" || health.mode !== "frames") throw new Error("the lip-sync server for the new avatar is not running");
+  const base = await videoSpeaker();
+  const ctx = base.ctx, analyser = base.analyser;
+  const canvas = document.createElement("canvas");
+  canvas.width = health.size[0]; canvas.height = health.size[1];
+  canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:42% 28%;opacity:0;transition:opacity 140ms ease";
+  $("avatar").appendChild(canvas);
+  const g = canvas.getContext("2d");
+  let clips = [], sources = [], endAt = 0, pending = 0, gen = 0, ctl = new AbortController(), prevBegun = Promise.resolve(), alive = true;
+
+  function playClip(buffer, text, raw) {
+    const myGen = gen, signal = ctl.signal, forTurn = turn;
+    const before = prevBegun;
+    let markBegun;
+    prevBegun = new Promise((ok) => (markBegun = ok));
+    pending += 1;
+    (async () => {
+      let scheduled = false;
+      const frames = [];
+      try {
+        const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw, signal });
+        if (!res.ok) throw new Error("Lip-sync service unavailable");
+        const reader = res.body.getReader();
+        let buf = new Uint8Array(0), total = null, started = false, tFirst = 0;
+        const clip = { frames, start: 0, dur: buffer.duration, fps: +(res.headers.get("X-Fps") || 15) };
+        const need = () => {  // buffer enough frames that the stream cannot fall behind the voice
+          if (frames.length < 4) return 6;
+          const rate = (frames.length - 1) / Math.max((performance.now() - tFirst) / 1000, 0.05);
+          return Math.min(total, 6 + (rate < clip.fps ? Math.ceil((clip.fps - rate) * clip.dur * 1.15) + 2 : 0));
+        };
+        let beginPromise = null;
+        const begin = () => beginPromise ||= (async () => {
+          started = true;
+          await before;
+          if (myGen !== gen) return;
+          const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
+          clip.start = Math.max(ctx.currentTime + 0.03, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
+          scheduled = true;
+          scheduleCaption(text, clip.start, buffer.duration, forTurn);
+          sources.push(src); clips.push(clip);
+          src.onended = () => { sources = sources.filter((s) => s !== src); };
+          markBegun();
+        })();
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done || myGen !== gen) break;
+          const merged = new Uint8Array(buf.length + value.length); merged.set(buf); merged.set(value, buf.length); buf = merged;
+          for (;;) {
+            if (total === null) { if (buf.length < 4) break; total = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true); buf = buf.slice(4); continue; }
+            if (buf.length < 4) break;
+            const n = new DataView(buf.buffer, buf.byteOffset).getUint32(0, true);
+            if (buf.length < 4 + n) break;
+            const bitmap = await createImageBitmap(new Blob([buf.slice(4, 4 + n)], { type: "image/jpeg" }));
+            if (myGen !== gen) { bitmap.close(); break; }
+            frames.push(bitmap);
+            if (frames.length === 1) tFirst = performance.now();
+            buf = buf.slice(4 + n);
+            if (!started && frames.length >= need()) begin();
+          }
+        }
+        await begin();
+      } catch (e) {
+        if (e.name !== "AbortError") console.error(e);
+        if (myGen === gen) {  // the server failed for this phrase: still say it, the looping video stays on screen
+          await before;
+          if (myGen !== gen || scheduled) return;
+          const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
+          const at = Math.max(ctx.currentTime + 0.03, endAt); src.start(at); endAt = at + buffer.duration;
+          scheduleCaption(text, at, buffer.duration, forTurn);
+          sources.push(src); src.onended = () => { sources = sources.filter((s) => s !== src); };
+        }
+      } finally {
+        if (!scheduled || myGen !== gen) frames.forEach((f) => f.close());
+        markBegun(); pending -= 1;
+      }
+    })();
+  }
+  function draw() {
+    if (!alive) return;
+    requestAnimationFrame(draw);
+    const t = ctx.currentTime;
+    const clip = clips.find((c) => t >= c.start && t < c.start + c.dur);
+    const bmp = clip ? clip.frames[Math.min(clip.frames.length - 1, Math.floor((t - clip.start) * clip.fps))] : null;
+    if (bmp) { g.drawImage(bmp, 0, 0, canvas.width, canvas.height); canvas.style.opacity = "1"; } else canvas.style.opacity = "0";
+    clips = clips.filter((c) => { if (c.start + c.dur > t - 1) return true; c.frames.forEach((f) => f.close()); return false; });
+  }
+  requestAnimationFrame(draw);
+  return {
+    kind: "video-lipsync", ctx, analyser, blinkNow() {}, express() {}, pose: base.pose, current: base.current,
+    play(buffer, text, raw) { playClip(buffer, text, raw); },
+    stop() {
+      gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
+      for (const s of sources) { try { s.stop(); } catch (e) {} }
+      clips.forEach((c) => c.frames.forEach((f) => f.close()));
+      sources = []; clips = []; endAt = 0; base.stop();
+    },
+    busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
+    dispose() { alive = false; this.stop(); canvas.remove(); base.dispose(); },
+  };
+}
+
 // MuseTalk v1.5 (photoreal lip-sync, local GPU): each phrase's WAV goes to the MuseTalk server, which streams back
 // 25 fps frames; the clip starts once its first frames are in and stays in step with the audio clock.
 async function museTalkSpeaker() {
@@ -951,6 +1059,7 @@ async function loadSpeaker() {
     try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
   }
   if (params.get("avatar") === "video") {  // "New ARIA Avatar": only when chosen; the existing avatars below are unchanged
+    try { return await lipSyncVideoSpeaker(); } catch (err) { console.info("New ARIA Avatar lip-sync not available (" + err.message + "); using the video loops"); }
     try { return await videoSpeaker(); } catch (err) { console.info("New ARIA Avatar not available:", err.message); }
   }
   const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/office-wide-glasses.webp", { cache: "no-store" }).then((r) => r.ok).catch(() => false));

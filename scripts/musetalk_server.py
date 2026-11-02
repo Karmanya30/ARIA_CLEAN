@@ -133,6 +133,10 @@ def _prepare(source: str) -> None:
     A["alpha"] = [(np.asarray(m.convert("L") if hasattr(m, "convert") else m, dtype=np.float32) / 255.0)[..., None] for m in A["masks"]]
     xs, ys, xe, ye = A["mask_boxes"][0]
     A["patch"] = [xs / w, ys / h, xe / w, ye / h]  # where the patch goes, as fractions of the photo (resolution independent)
+    # A video source: the head moves, so a fixed patch position would drift. Whole frames are returned instead, and the frame
+    # position carries on from one phrase to the next (cursor) so consecutive phrases are continuous.
+    A["full"] = os.path.splitext(source)[1].lower() not in (".png", ".jpg", ".jpeg", ".webp", ".bmp")
+    A["cursor"] = 0
     S["avatar"] = A
 
 
@@ -154,6 +158,10 @@ def _blend(k: int, face: np.ndarray) -> bytes:
     patch[y1 - ys:y2 - ys, x1 - xs:x2 - xs] = cv2.resize(face.astype(np.uint8), (x2 - x1, y2 - y1))
     alpha = A["alpha"][k]
     out = (patch.astype(np.float32) * alpha + base.astype(np.float32) * (1 - alpha)).astype(np.uint8)
+    if A.get("full"):
+        whole = A["frames"][k].copy()
+        whole[ys:ye, xs:xe] = out
+        return _jpeg(whole)
     return cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 94])[1].tobytes()
 
 
@@ -187,7 +195,11 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) 
                                                       audio_padding_length_left=2, audio_padding_length_right=2)
             finally:
                 os.unlink(f.name)
-            if not put(("n", len(chunks))):
+            start = 0
+            if A.get("full"):
+                start = A["cursor"]
+                A["cursor"] = (A["cursor"] + len(chunks)) % len(A["frames"])
+            if not put(("n", (len(chunks), start))):
                 return
             for whisper_batch, latent_batch in datagen(chunks, A["latents"], S["batch"], device=S["device"]):
                 real = len(whisper_batch)
@@ -222,7 +234,7 @@ def _generate(wav: bytes, ticket: int):
 
 
 def _consume(q: queue.Queue, n_frames: int):
-    i, t0 = 0, time.perf_counter()
+    i, produced, t0 = 0, 0, time.perf_counter()
     with ThreadPoolExecutor(max_workers=4) as pool:
         while True:
             kind, payload = q.get()
@@ -231,14 +243,16 @@ def _consume(q: queue.Queue, n_frames: int):
             if kind == "error":
                 raise payload
             if kind == "n":
-                yield struct.pack("<I", payload)
+                i = payload[1]  # where in the source video this phrase starts (0 for a photo)
+                yield struct.pack("<I", payload[0])
                 continue
             jpgs = list(pool.map(_blend, [(i + d) % n_frames for d in range(len(payload))], payload))
             for jpg in jpgs:
                 yield struct.pack("<I", len(jpg)) + jpg
             i += len(payload)
+            produced += len(payload)
     total = time.perf_counter() - t0
-    print(f"{i} frames in {total:.2f}s ({i / max(total, 1e-6):.1f} fps)", flush=True)
+    print(f"{produced} frames in {total:.2f}s ({produced / max(total, 1e-6):.1f} fps)", flush=True)
 
 
 @app.post("/lipsync")
@@ -259,7 +273,8 @@ def health():
     if A:
         h, w = A["frames"][0].shape[:2]
         size = [round(w * A["scale"]), round(h * A["scale"])]
-    return {"source": S.get("source"), "ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None}
+    return {"source": S.get("source"), "ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None,
+            "mode": "frames" if A and A.get("full") else "patch"}
 
 
 if __name__ == "__main__":
