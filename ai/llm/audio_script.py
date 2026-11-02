@@ -45,15 +45,30 @@ def _enforce_word_cap(text: str, max_words: int = _MAX_WORDS) -> str:
     return f"{truncated} {_FALLBACK_CLOSING_PHRASE}"
 
 
-def generate_audio_script(detailed_script: str) -> str:
-    if not detailed_script or not detailed_script.strip():
+def generate_audio_script(detailed_script: str, blocks: list[dict] | None = None) -> str:
+    """`blocks` is optional (Stage 14) -- a response's `blocks` list (see
+    shared/blocks.py), which lets this build from terse structural fields
+    (a metric's value, a risk level, a recommendation's title) instead of
+    compressing `detailed_script`'s full assembled prose. Falls back to
+    `detailed_script` itself whenever `blocks` is omitted, empty, or
+    carries no usable content -- callers that don't have blocks yet (or
+    a response shape that's just plain text) are unaffected."""
+    source = detailed_script
+    if blocks:
+        from shared.blocks import build_audio_summary
+
+        summary = build_audio_summary(blocks)
+        if summary:
+            source = summary
+
+    if not source or not source.strip():
         return "Sorry, I couldn't generate the explanation."
 
-    prompt = get_audio_script_prompt(detailed_script)
+    prompt = get_audio_script_prompt(source)
 
     response = generate_audio(prompt)
 
     if response.startswith("Error"):
         return "Sorry, something went wrong while generating audio."
 
-    return clean_for_tts(_enforce_word_cap(response))
+    return clean_for_tts(response)
