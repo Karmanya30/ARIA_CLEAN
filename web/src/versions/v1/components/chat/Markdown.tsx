@@ -31,10 +31,12 @@ function normalizeEmphasis(text: string): string {
 // Streamlit UI rendered this via st.markdown() natively; plain React <div>
 // text left the raw ** markers visible. This renders the same subset
 // (no raw HTML, no images) inline wherever response text is shown.
+// Images are never drawn: a remote image URL written by a model (for example after text injected through a web snippet) would make the
+// browser send whatever is in the URL to another site.
 export function Markdown({ text }: { text: string }) {
   return (
     <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{normalizeEmphasis(text)}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} disallowedElements={['img']} unwrapDisallowed>{normalizeEmphasis(text)}</ReactMarkdown>
     </div>
   )
 }
