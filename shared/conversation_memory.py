@@ -35,7 +35,7 @@ class Conversation(store.Base):
     title = Column(String)  # None until the first answer is saved; the user can rename it
     pinned = Column(Integer, nullable=False, default=0)
     archived = Column(Integer, nullable=False, default=0)
-    deleted_at = Column(String)  # soft delete: the turns stay for the memory archive until purged
+    deleted_at = Column(String)  # set when the chat is deleted; its turns are removed then
     created_at = Column(String)
     updated_at = Column(String)
 
@@ -306,7 +306,7 @@ def retrieve(session_id: str, query: str, limit: int = 12) -> tuple[list[dict], 
     conversation(session_id)
     with store._SessionLocal() as db:
         rows = db.scalars(select(Turn).join(Conversation).where(
-            Conversation.owner_id == owner(session_id), Turn.id > Conversation.cleared_through,
+            Conversation.owner_id == owner(session_id), Conversation.deleted_at.is_(None), Turn.id > Conversation.cleared_through,
             Turn.status == "complete").order_by(Turn.id.desc())).all()
         records = [_record(r) for r in rows]
         # Saved report versions already have owner, timestamps and full provenance.

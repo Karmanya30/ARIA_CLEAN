@@ -187,3 +187,16 @@ def test_export_with_a_non_latin_title_does_not_fail(private):
     assert r.status_code == 200
     r = c.get(f"/api/conversations/{sid}/export", params={"owner_id": o})
     assert r.status_code == 200 and "attachment" in r.headers["content-disposition"]
+
+
+def test_deleted_chat_is_forgotten_by_memory(private):
+    c, o = private
+    a = seed(o, "my daughter's school fee is 1.2 lakh")
+    b = seed(o, "something else entirely")
+    assert c.delete(f"/api/conversations/{a}", params={"owner_id": o}).status_code == 200
+    token = store.current_owner.set(o)
+    try:
+        found, _ = cm.retrieve(b, "daughter school fee")
+    finally:
+        store.current_owner.reset(token)
+    assert not any("school fee" in r["text"] for r in found)

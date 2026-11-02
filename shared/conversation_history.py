@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, delete as sql_delete, func, or_, select
 
 from shared import user_store as store
 from shared.conversation_memory import Conversation, Turn, owner
@@ -83,7 +83,13 @@ def archive(cid: str, on: bool) -> dict:
 
 
 def delete(cid: str) -> None:
-    _update(cid, deleted_at=datetime.now(timezone.utc).isoformat())
+    """Deleting a chat forgets it: its turns are removed, so the assistant cannot recall them in another conversation."""
+    with store._SessionLocal() as db:
+        row = _mine(db, cid)
+        row.deleted_at = datetime.now(timezone.utc).isoformat()
+        row.state_json = "{}"
+        db.execute(sql_delete(Turn).where(Turn.conversation_id == cid))
+        db.commit()
 
 
 def messages(cid: str, *, before: int | None = None, limit: int = 50) -> dict:
