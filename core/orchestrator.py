@@ -337,6 +337,14 @@ def _architecture_route(query: str, shown: str, session_id: str) -> dict[str, An
         confident = _rule_label(query) is not None
         if a == "B":
             d = arch.decide_b(query, deterministic_confident=confident)
+        elif a == "H":
+            rl, tk = _rule_label(query), resolve_company(query)
+            ask, why = arch.needs_model(query, history, rl, tk)
+            if not ask or os.getenv("ARIA_INTENT_LLM", "1") == "0":
+                d = arch.Decision(source="rules", trace={"why": why})
+            else:
+                d = arch.guard(rl, tk, query, arch.decide_structured(query, history, deterministic_label=None, understand_fn=_understand))
+                d.trace["why"] = why
         elif a == "C" or (a == "E" and confident):
             d = arch.Decision(source="rules")
         else:  # D, or E when the rules could not place the question
@@ -345,8 +353,8 @@ def _architecture_route(query: str, shown: str, session_id: str) -> dict[str, An
         if d.clarify:
             return {"domain": "clarify", "query": shown, "response": d.clarify, "intent_route": d.trace}
         plan: list[tuple[str, str | None]] = []
-        if a in ("C", "D", "E") and os.getenv("ARIA_INTENT_GRAPH", "1") != "0":
-            plan = list(d.sub_queries) or (graph.split_by_rules(query, _rule_label) if a in ("C", "E") else [])
+        if a in ("C", "D", "E", "H") and os.getenv("ARIA_INTENT_GRAPH", "1") != "0":
+            plan = list(d.sub_queries) or (graph.split_by_rules(query, _rule_label) if a in ("C", "E", "H") else [])
         if len(plan) >= 2:
             resp = graph.run_multi(shown, plan, lambda text, label: _run_label(label or _rule_label(text) or "general", text, text, session_id)
                                    or _with_news(text, _general_reply))
