@@ -13,8 +13,10 @@ def make_u(**over):
     return QueryUnderstanding.model_validate(base)
 
 
-def test_default_architecture_is_the_baseline(monkeypatch):
+def test_default_architecture_is_adaptive_and_baseline_can_be_chosen(monkeypatch):
     monkeypatch.delenv("ARIA_QUERY_ARCHITECTURE", raising=False)
+    assert arch.architecture() == "H"
+    monkeypatch.setenv("ARIA_QUERY_ARCHITECTURE", "baseline")
     assert arch.architecture() == "A"
     from core import orchestrator
     assert orchestrator._architecture_route("anything at all", "anything at all", "s") is None

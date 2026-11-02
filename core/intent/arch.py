@@ -31,7 +31,8 @@ DEFAULTS = {"sr_score": 0.30, "sr_margin": 0.05, "llm_intent": 0.75, "llm_contex
 
 
 def architecture() -> str:
-    return ALIASES.get(os.getenv("ARIA_QUERY_ARCHITECTURE", "baseline").strip().lower(), "A")
+    # adaptive (H) is the default; ARIA_QUERY_ARCHITECTURE=baseline restores the earlier routing
+    return ALIASES.get(os.getenv("ARIA_QUERY_ARCHITECTURE", "adaptive").strip().lower(), "A")
 
 
 # Dev-split optima per variant (evaluation/intent_understanding/calibrate.py); only the router veto moved from the starting values.

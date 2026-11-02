@@ -1,6 +1,6 @@
 # Adaptive hybrid (H) versus structured understanding (D)
 
-Setting: `ARIA_QUERY_ARCHITECTURE=H` (adaptive) or `D` (structured understanding on every question). The default is still the baseline (A). Nothing here is switched on by default.
+Setting: `ARIA_QUERY_ARCHITECTURE=H` (adaptive) or `D` (structured understanding on every question). The default is H (adaptive) since 2026-11-03; set `ARIA_QUERY_ARCHITECTURE=baseline` to go back to the earlier routing. Without a working model key, H falls back to the baseline routing.
 
 ## What H does
 Rules and the semantic router answer on their own when they are confident. The model is asked only when the question looks ambiguous, multi-part or follow-up (`needs_model` in `core/intent/arch.py`); a guard then checks the model's route against the rules before it is used.
@@ -32,5 +32,5 @@ D's run is complete (no missing recorded calls). The per-question results are in
 - Both are well above the baseline (74.3% on the same questions).
 - Not measured: end-to-end hallucination rate per variant with a real model, and real-user latency. The model calls were replayed from a recorded cache.
 
-## Recommendation
-Keep the baseline as the default until the extra delay is accepted. If accuracy matters most, use D; if delay and cost matter, use H. Both need a model key that is not rate limited.
+## Decision
+H is the default: it is 17 points above the baseline on the fresh questions and calls the model on fewer than half of them. D is available for accuracy-first use.
