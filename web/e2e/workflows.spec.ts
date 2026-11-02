@@ -300,6 +300,7 @@ for (const version of ['v2']) {
     await page.route('**/api/profile?*', async route => { await gate; await route.continue() })
     await page.getByRole('tab', { name: 'Chat', exact: true }).click()
     await page.getByRole('button', { name: 'End session', exact: true }).click()
+    await expect(page.getByRole('tab', { name: 'Chat', exact: true })).toBeFocused()  // ending the meeting returns focus to where it came from; wait for that before moving it
     await page.getByLabel('Message ARIA', { exact: true }).focus()
     revealOnboarding()
     await expect(page.locator('#onb-income')).toBeVisible()
@@ -404,6 +405,7 @@ for (const version of ['v2']) {
     await page.reload()
     await expect(page.getByLabel('Age', { exact: true })).toHaveValue('32')
     await page.getByRole('button', { name: /New (session|chat)/ }).click()
+    await page.getByRole('button', { name: 'Leave meeting', exact: true }).click()  // a new chat opens as a live meeting by default
     await page.getByRole('tab', { name: /Your Profile|^Profile$/ }).click()
     await expect(page.getByLabel('Age', { exact: true })).toHaveValue('32')
     const storageState = await page.context().storageState()

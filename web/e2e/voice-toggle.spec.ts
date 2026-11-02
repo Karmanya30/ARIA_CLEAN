@@ -80,7 +80,7 @@ for (const version of ['v2']) {
     await captured(page)
     await expect(page.locator('.voice-disk-status')).toHaveText('Listening…')
     await expect(page.getByRole('textbox', { name: 'Message ARIA', exact: true })).toBeDisabled()
-    await expect(page.getByRole('button', { name: 'Send message', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Send message', exact: true })).toHaveCount(0)  // no send button while listening
     expect(transcriptions).toBe(0)
     expect(messages).toBe(0)
     await page.getByRole('button', { name: 'Stop listening', exact: true }).click()
