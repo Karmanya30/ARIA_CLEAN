@@ -28,8 +28,14 @@ _REPAIR = {"why", "how", "what", "why so", "how so", "what do you mean", "what d
            "give me an example", "samjha nahi", "samajh nahi aaya", "matlab", "kyun", "kaise"}
 
 
+# "speak up the previous answer", "repeat that", "read the last reply again": the answer already given, no model needed
+_REPEAT = re.compile(r"^(?:please )?(?:speak up|say|repeat|read(?: out)?|tell me|play)(?: again| once more)?(?: (?:the|that|it|your))?(?: (?:previous|last|earlier))?(?: (?:answer|reply|response|one))?(?: (?:again|once more|out|aloud))?$")
+
+
 def act(text: str) -> str | None:
     value = clean(text)
+    if _REPEAT.match(value) and re.search(r"(answer|reply|response|that|it|again|once more)", value):
+        return "repeat"
     for kind, phrases in (("acknowledge", _ACK), ("affirm", _YES), ("decline", _NO),
                           ("continue", _CONTINUE), ("clarify", _REPAIR)):
         if value in phrases:

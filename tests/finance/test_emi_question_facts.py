@@ -8,3 +8,11 @@ def test_loan_amount_in_an_emi_question_is_not_the_users_emi():
 
 def test_stated_emi_is_still_remembered():
     assert _regex_facts("my EMI is 12000 and I earn 60000")["existing_emi"] == 12000
+
+
+def test_emi_question_is_answered_from_the_loan_terms():
+    from modules.finance.pipeline import _emi_calc_answer
+    text = _emi_calc_answer("What would be the EMI on a 10 lakh loan at 9% for 5 years?")["response"]
+    assert "20.8k" in text  # 10 lakh, 9%, 5 years: 20,758 a month
+    assert "rate" in _emi_calc_answer("calculate emi for 1000000 loan")["response"]
+    assert _emi_calc_answer("my EMI is 12000 and I earn 60000") is None
