@@ -377,6 +377,31 @@ def _plan_of(meta: dict) -> str:
     return "Direct" if "direct" in str(meta.get("scheme_name", "")).lower() else "Regular"
 
 
+_vocab: tuple[int, frozenset] = (0, frozenset())
+_fuzzy_cache: dict[str, frozenset] = {}
+
+
+def _fuzzy_words(t: str) -> frozenset:
+    """Catalogue words that are a close spelling of t. One pass over the distinct words per query token (cached), not per item."""
+    global _vocab
+    items = catalog()["items"]
+    if _vocab[0] != id(items):
+        _vocab = (id(items), frozenset(w for it in items for w in it["_words"] if w.isalpha()))
+        _fuzzy_cache.clear()
+    if t not in _fuzzy_cache:
+        sm = SequenceMatcher(None, "", t)  # seq2 is analysed once; seq1 changes per word
+        hit = set()
+        for w in _vocab[1]:
+            if abs(len(w) - len(t)) <= 2:
+                sm.set_seq1(w)
+                if sm.real_quick_ratio() >= 0.8 and sm.quick_ratio() >= 0.8 and sm.ratio() >= 0.8:
+                    hit.add(w)
+        if len(_fuzzy_cache) > 2000:
+            _fuzzy_cache.clear()
+        _fuzzy_cache[t] = frozenset(hit)
+    return _fuzzy_cache[t]
+
+
 # ── search ─────────────────────────────────────────────────────────────────────────────────────────────────────
 def _score(it: dict, q: str, toks: list[str]) -> float:
     if not toks:
@@ -388,10 +413,7 @@ def _score(it: dict, q: str, toks: list[str]) -> float:
         if t in hay or (t2 and (t2 != t or len(t2) >= 4) and t2 in hay2):
             continue
         # Conservative spelling tolerance: short symbols and numeric identifiers must stay precise.
-        if len(t2) >= 4 and t2.isalpha() and any(
-            w.isalpha() and abs(len(w) - len(t2)) <= 2
-            and SequenceMatcher(None, t2, w).ratio() >= 0.8 for w in it["_words"]
-        ):
+        if len(t2) >= 4 and t2.isalpha() and not _fuzzy_words(t2).isdisjoint(it["_words"]):
             fuzzy = True
         else:
             return 0
