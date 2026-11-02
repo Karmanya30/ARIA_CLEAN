@@ -15,7 +15,8 @@ $logDir = Join-Path $root "logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $logFile = Join-Path $logDir "launch.log"
 $gpu = $Url -like "aria://launch-gpu*"
-$MT_PORT = 8010; $WEB_PORT = 5173
+$gpuNew = $Url -like "aria://launch-gpu-new*"   # the video presenter's lip-sync server instead of the original avatar's
+$MT_PORT = if ($gpuNew) { 8011 } else { 8010 }; $WEB_PORT = 5173
 $py = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { $py = "python" }
 $env:PYTHONIOENCODING = "utf-8"; $env:PYTHONUNBUFFERED = "1"
@@ -29,7 +30,10 @@ function Show-Box($text, $icon = "Error") {
     try { Add-Type -AssemblyName System.Windows.Forms; [void][System.Windows.Forms.MessageBox]::Show($text, "ARIA launcher", "OK", $icon) } catch { }
 }
 function Tail($file, $n = 12) { if (Test-Path $file) { (Get-Content $file -Tail $n -ErrorAction SilentlyContinue) -join "`n" } }
-function Test-Port($port) { [bool](Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) }
+function Test-Port($port) {
+    if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) { return $true }
+    try { $c = New-Object Net.Sockets.TcpClient; $c.Connect("127.0.0.1", [int]$port); $c.Close(); return $true } catch { return $false }
+}
 function Test-Http($url, $secs = 3) { try { (Invoke-WebRequest $url -UseBasicParsing -TimeoutSec $secs).StatusCode -eq 200 } catch { $false } }
 function Get-Json($url, $secs = 3) { try { Invoke-RestMethod $url -UseBasicParsing -TimeoutSec $secs } catch { $null } }
 function Test-AriaApi($port) { $j = Get-Json "http://127.0.0.1:$port/openapi.json"; [bool]($j -and $j.info.title -eq "ARIA API") }
@@ -93,6 +97,7 @@ try {
     }
     if (-not (Test-CurrentApi "http://127.0.0.1:$apiPort")) {
         $owner = Port-Owner $apiPort
+        if (-not $owner) { $owner = Find-Proc "python.exe" ("uvicorn\s+api\.main:app.*--port\s+$apiPort\b") | Where-Object { Test-OwnedApi $_ } | Select-Object -First 1 }
         if (-not (Test-AriaApi $apiPort) -or -not (Test-OwnedApi $owner)) {
             throw "The API on port $apiPort is not the current backend for this ARIA workspace. Its process was left running."
         }
@@ -133,7 +138,7 @@ try {
         elseif (Find-Proc "python.exe" "musetalk_server\.py") { Log "MuseTalk is already starting" }
         elseif (Test-Port $MT_PORT) { $problems += "Port $MT_PORT is used by another app, so the lip-sync server cannot start."; $mtWanted = $false }
         else {
-            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\office-wide-glasses.webp") |
+            $missing = @("$mtDir\..\env\python.exe", "$mtDir\models\musetalkV15\unet.pth", "$PSScriptRoot\musetalk_server.py", "$root\interface\avatar\$(if ($gpuNew) { 'presenter-lipsync.mp4' } else { 'office-wide-glasses.webp' })") |
                 Where-Object { -not (Test-Path $_) }
             if ($missing) { $problems += "Lip-sync server files are missing: " + ($missing -join ", "); $mtWanted = $false }
             else {
@@ -148,7 +153,7 @@ try {
                 Log "Windows memory (RAM + page file) free: $freeGb GB"
                 if ($freeGb -lt 6) { Log "Warning: Windows memory is nearly full ($freeGb GB free), lip-sync may stop mid-sentence. Close big programs (python jobs such as Bhauly) first." Yellow }
                 Log "Starting MuseTalk on port $MT_PORT (first start takes a few minutes: loading models to the GPU)"
-                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\start_musetalk.bat`"") $root "musetalk"
+                $mtProc = Start-Hidden "cmd.exe" @("/c", "`"$PSScriptRoot\$(if ($gpuNew) { 'start_musetalk_new_avatar.bat' } else { 'start_musetalk.bat' })`"") $root "musetalk"
             }
         }
     }
