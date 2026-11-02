@@ -1,7 +1,7 @@
 # Deployment guide for the query-architecture variants
 
 ## Default: nothing changes
-`ARIA_QUERY_ARCHITECTURE` unset or `baseline` runs today's routing; `core.intent` is not imported. Install nothing.
+`ARIA_QUERY_ARCHITECTURE` unset means adaptive (H); `baseline` runs the earlier routing and `core.intent` is not imported.
 
 ## Enabling a variant
 1. `pip install -r requirements-intent.txt` (semantic-router 1.1.1 and langgraph 1.2.19, both MIT; tested with the pins in `requirements.txt`, which are unchanged). They add about 40 transitive packages; the Docker image only needs them if you set a variant.
