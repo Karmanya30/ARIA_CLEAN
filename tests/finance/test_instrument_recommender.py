@@ -67,3 +67,13 @@ def test_scores_are_bounded_0_to_100():
                 for emergency in (0, 3, 6, 12):
                     for r in recommend(risk, horizon, regime, emergency):
                         assert 0.0 <= r.score <= 100.0
+
+
+def test_only_real_80c_instruments_get_the_old_regime_bonus():
+    """FIN-001: 'no Section 80C benefit' and the plain FD's 'a separate variant is 80C eligible' are not eligibility."""
+    from modules.finance.instrument_recommender import _is_80c_eligible as eligible
+
+    assert eligible("Section 80C eligible under the old regime; LTCG on equity applies after the lock-in.")
+    assert eligible("Additional deduction under Section 80CCD(1B) beyond the 80C limit (old regime)")
+    assert not eligible("LTCG/STCG rules for equity funds; no Section 80C benefit.")
+    assert not eligible("Interest is fully taxable as regular income; a separate 5-year tax-saver FD variant is 80C eligible under the old regime.")

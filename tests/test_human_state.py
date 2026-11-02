@@ -356,3 +356,14 @@ def test_crisis_detection_catches_paraphrases_and_hindi_and_ignores_money_idioms
     for text in ("my SIP will kill my savings", "the market is killing my portfolio", "I am hurting financially", "kill switch for my trading app",
                  "harm done by inflation", "life insurance worth buying", "how to cut myself some slack on budget"):
         assert not human_state.is_crisis(text), text
+
+
+def test_crisis_detection_catches_indirect_hinglish_and_devanagari_but_not_money_idioms():
+    from shared.human_state import is_crisis
+
+    for text in ("main marna chahta hu", "मैं मरना चाहता हूँ", "मुझे जीना नहीं है", "i dont see a point in living anymore",
+                 "kuch kha ke so jaunga hamesha ke liye", "I lost everything in the market, I have nothing left to live for"):
+        assert is_crisis(text), text
+    for text in ("this loss is killing me", "my EMI is killing me", "I am dead broke", "how do I kill my credit card debt",
+                 "how much to live on after retirement", "I can't see a point in this SIP"):
+        assert not is_crisis(text), text

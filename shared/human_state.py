@@ -102,8 +102,20 @@ def _score(text: str, cat: str) -> float:
     return 1 - math.exp(-total) if total else 0.0
 
 
+# Phrasings the first pattern missed (found by the user-value audit: 5 of 10 test phrasings were caught): indirect English
+# ("I don't see a point in living", "nothing left to live for"), Hinglish ("so jaunga hamesha ke liye") and Devanagari Hindi, where
+# \b does not work, so this is a separate pattern. Ordinary money idioms ("my EMI is killing me", "dead broke") stay unflagged.
+CRISIS_MORE = re.compile(
+    r"\b(?:(?:don'?t|do not|can'?t|cannot|no longer) see (?:a |any )?(?:point|reason|purpose) (?:in|to|of) (?:liv\w*|go(?:ing)? on|be(?:ing)? alive)|"
+    r"nothing (?:left )?to live for|(?:not|n'?t) worth living|(?:can'?t|cannot) (?:go on|take it anymore) living|"
+    r"hamesha ke liye (?:so|chala|chali|khatam)|(?:so jaunga|so jaungi|chala jaunga|chali jaungi) hamesha|"
+    r"jeene ka (?:koi )?(?:matlab|maksad|mann|man)|jee ke kya karna|khud ko khatam)\b"
+    r"|मरना चाह|मर जाना चाह|मरने का (?:मन|दिल)|जीना नहीं|जीने का (?:मन|कोई कारण)|जीने की (?:इच्छा|वजह)|आत्महत्या|ज़िन्दगी खत्म|जिंदगी खत्म|ज़िंदगी खत्म|जान दे")
+
+
 def is_crisis(msg: str) -> bool:
-    return bool(CRISIS.search(msg.lower().replace("’", "'")))
+    text = msg.lower().replace("’", "'")
+    return bool(CRISIS.search(text) or CRISIS_MORE.search(text))
 
 
 def analyze(msg: str, prev: dict | None = None, now: float | None = None) -> dict:
