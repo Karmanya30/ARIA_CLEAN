@@ -20,26 +20,34 @@ test('the existing avatar is still the default', async ({ page }) => {
   await expect(page.locator('iframe[title="ARIA live avatar"]')).toHaveAttribute('src', /^((?!avatar=video).)*$/)
 })
 
-test('choosing New ARIA Avatar loads the video presenter, plays it, and remembers the choice', async ({ page }) => {
+test('choosing New ARIA Avatar loads the video presenter on the old avatar scene, held steady, and remembers the choice', async ({ page }) => {
   await open(page)
   await page.getByLabel('Avatar').selectOption('new')
   await expect(page.locator('iframe[title="ARIA live avatar"]')).toHaveAttribute('src', /avatar=video/)
   await expect.poll(async () => (await kind(page)).kind, { timeout: 25000 }).toBe('video')
   const { cf } = await kind(page)
-  const t0 = await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).currentTime)
-  await page.waitForTimeout(1500)
-  expect(await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).currentTime), 'the calm loop is playing').toBeGreaterThan(t0)
+  await page.waitForTimeout(1200)
+  const held = await cf.evaluate(() => { const v = document.querySelector('video') as HTMLVideoElement; return { paused: v.paused, t: v.currentTime, w: v.videoWidth, h: v.videoHeight } })
+  expect(held.paused, 'the idle picture is held, not looping').toBe(true)
+  expect(held.t, 'the held frame: eyes open, calm smile').toBeCloseTo(0.72, 1)
+  expect([held.w, held.h], 'stage-size 16:9 clip').toEqual([1280, 720])
   await page.reload()
   await expect(page.getByLabel('Avatar')).toHaveValue('new')
 })
 
-test('New ARIA Avatar switches to a talking clip while a voice plays and back to the calm loop after', async ({ page }) => {
+test('New ARIA Avatar is attentive only while the client speaks, and stable otherwise (including while ARIA talks without the GPU server)', async ({ page }) => {
+  test.setTimeout(120000)
   await open(page)
   await page.getByLabel('Avatar').selectOption('new')
   await expect.poll(async () => (await kind(page)).kind, { timeout: 40000 }).toBe('video')
   const { cf } = await kind(page)
-  expect(await cf.evaluate(() => (window as any).__ariaLive.speaker().current())).toMatch(/idle|greet/)
-  // a synthetic 3 s voice: noise with a loud start so the emphasis rule can fire
+  const clip = () => cf.evaluate(() => (window as any).__ariaLive.speaker().current())
+  expect(await clip()).toBe('idle')
+  // the idle picture is a held frame, not a moving loop
+  expect(await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).paused)).toBe(true)
+  // a note explains how to get lip-sync when the GPU server is not running
+  await expect(cf.locator('#note')).toContainText('Launch_ARIA.bat gpu')
+  // ARIA speaking without lip-sync keeps the stable face (no unrelated mouth or head movement)
   await cf.evaluate(async () => {
     const sp = (window as any).__ariaLive.speaker()
     await sp.ctx.resume()
@@ -48,17 +56,10 @@ test('New ARIA Avatar switches to a talking clip while a voice plays and back to
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (i < 8000 ? 0.7 : 0.2)
     sp.play(buf, 'test voice')
   })
-  await expect.poll(() => cf.evaluate(() => (window as any).__ariaLive.speaker().current()), { timeout: 5000 }).toMatch(/^talk[123]$/)
-  await expect.poll(() => cf.evaluate(() => (window as any).__ariaLive.speaker().current()), { timeout: 9000 }).toMatch(/idle|greet/)
-})
-
-test('New ARIA Avatar stays on its calm loop when nothing is happening (no random smiles, tilts or clip changes)', async ({ page }) => {
-  test.setTimeout(120000)
-  await open(page)
-  await page.getByLabel('Avatar').selectOption('new')
-  await expect.poll(async () => (await kind(page)).kind, { timeout: 40000 }).toBe('video')
-  const { cf } = await kind(page)
-  const seen = new Set<string>()
-  for (let i = 0; i < 16; i++) { seen.add(await cf.evaluate(() => (window as any).__ariaLive.speaker().current())); await page.waitForTimeout(1000) }
-  expect([...seen]).toEqual(['idle'])
+  for (let i = 0; i < 4; i++) { expect(await clip()).toBe('idle'); await page.waitForTimeout(600) }
+  // while the client speaks she listens attentively, then settles again
+  await cf.evaluate(() => { (window as any).__forceUserSpeaking = true })
+  await expect.poll(clip, { timeout: 4000 }).toBe('listen')
+  await cf.evaluate(() => { (window as any).__forceUserSpeaking = false })
+  await expect.poll(clip, { timeout: 5000 }).toBe('idle')
 })

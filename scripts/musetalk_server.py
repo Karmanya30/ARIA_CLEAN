@@ -88,7 +88,7 @@ def _frames_from(source: str) -> list[np.ndarray]:
         out.append(frame)
 
 
-def _prepare(source: str) -> None:
+def _prepare(source: str) -> dict:
     """MuseTalk's Avatar.prepare_material, minus its interactive prompts; cached per source file content."""
     key = hashlib.sha1(open(source, "rb").read()).hexdigest()[:12]
     cache = f"./results/v15/avatars/aria_{key}.pkl"
@@ -138,24 +138,24 @@ def _prepare(source: str) -> None:
     # position carries on from one phrase to the next (cursor) so consecutive phrases are continuous.
     A["full"] = os.path.splitext(source)[1].lower() not in (".png", ".jpg", ".jpeg", ".webp", ".bmp")
     A["cursor"] = 0
-    S["avatar"] = A
+    return A
 
 
-def _jpeg(frame: np.ndarray) -> bytes:
-    if S["avatar"].get("full"):  # same size and light sharpening as the page's idle video (ffmpeg lanczos + unsharp), so frames match it
-        frame = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_LANCZOS4)
-        frame = cv2.addWeighted(frame, 1.5, cv2.GaussianBlur(frame, (0, 0), 1.4), -0.5, 0)
+def _jpeg(frame: np.ndarray, A: dict) -> bytes:
+    if A.get("full"):  # same size and light sharpening as the page's idle video (ffmpeg lanczos + unsharp), so frames match it
+        if frame.shape[1] != 1280:  # a source that is not already stage size
+            frame = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_LANCZOS4)
+            frame = cv2.addWeighted(frame, 1.5, cv2.GaussianBlur(frame, (0, 0), 1.4), -0.5, 0)
         return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
-    s = S["avatar"]["scale"]
+    s = A["scale"]
     if s < 1:
         frame = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
     return cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 92])[1].tobytes()
 
 
-def _blend(k: int, face: np.ndarray) -> bytes:
+def _blend(k: int, face: np.ndarray, A: dict) -> bytes:
     """MuseTalk's own blend (generated face pasted through a soft mask), but only for the rectangle it can change.
     The page draws this patch over the full-size photo, so nothing outside the face is ever re-encoded or altered."""
-    A = S["avatar"]
     x1, y1, x2, y2 = A["coords"][k]
     xs, ys, xe, ye = A["mask_boxes"][k]
     base = A["frames"][k][ys:ye, xs:xe]
@@ -166,15 +166,14 @@ def _blend(k: int, face: np.ndarray) -> bytes:
     if A.get("full"):
         whole = A["frames"][k].copy()
         whole[ys:ye, xs:xe] = out
-        return _jpeg(whole)
+        return _jpeg(whole, A)
     return cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 94])[1].tobytes()
 
 
-def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) -> None:
+def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event, A: dict, start_req: int | None) -> None:
     """UNet + VAE on the GPU, one batch at a time, handing each batch's faces to the CPU side as soon as it is ready.
     Waits for its turn (arrival order); gives up as soon as the client has gone, so an abandoned request cannot hold the GPU."""
     global _serving
-    A = S["avatar"]
 
     def put(item) -> bool:
         deadline = time.time() + 30
@@ -205,7 +204,7 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) 
                 # the head keeps moving at normal speed: output frame k comes from source frame start + k * 25/FPS, and the next
                 # phrase carries on from where this one ends
                 n_src, step = len(A["frames"]), SRC_FPS / FPS
-                start = A["cursor"]
+                start = A["cursor"] if start_req is None else start_req % n_src  # the page may say where in the loop to begin
                 positions = [(start + int(round(k * step))) % n_src for k in range(len(chunks))]
                 A["cursor"] = (start + int(round(len(chunks) * step))) % n_src
                 latents = [A["latents"][q] for q in positions]
@@ -231,19 +230,19 @@ def _gpu_worker(wav: bytes, q: queue.Queue, ticket: int, stop: threading.Event) 
             _turns.notify_all()
 
 
-def _generate(wav: bytes, ticket: int):
+def _generate(wav: bytes, ticket: int, A: dict, start_req: int | None = None):
     """Stream frames. The GPU keeps working on the next batch while the CPU blends and encodes the previous one."""
     q: queue.Queue = queue.Queue(maxsize=3)
     stop = threading.Event()
-    threading.Thread(target=_gpu_worker, args=(wav, q, ticket, stop), daemon=True).start()
-    n_frames = len(S["avatar"]["frames"])
+    threading.Thread(target=_gpu_worker, args=(wav, q, ticket, stop, A, start_req), daemon=True).start()
+    n_frames = len(A["frames"])
     try:
-        yield from _consume(q, n_frames)
+        yield from _consume(q, n_frames, A)
     finally:
         stop.set()  # the client left (Stop pressed, tab closed) or we finished: release the GPU turn either way
 
 
-def _consume(q: queue.Queue, n_frames: int):
+def _consume(q: queue.Queue, n_frames: int, A: dict):
     i, produced, t0 = 0, 0, time.perf_counter()
     with ThreadPoolExecutor(max_workers=4) as pool:
         while True:
@@ -255,11 +254,11 @@ def _consume(q: queue.Queue, n_frames: int):
             if kind == "n":
                 i, positions = payload[1], payload[2]  # where in the source video this phrase starts (0 for a photo)
                 yield struct.pack("<I", payload[0])
-                if S["avatar"].get("full"):
+                if A.get("full"):
                     yield struct.pack("<I", payload[1])  # whole-frame mode only: the loop position of the first frame
                 continue
             idx = positions[produced:produced + len(payload)] if positions else [(i + d) % n_frames for d in range(len(payload))]
-            jpgs = list(pool.map(_blend, idx, payload))
+            jpgs = list(pool.map(lambda kf: _blend(kf[0], kf[1], A), zip(idx, payload)))
             for jpg in jpgs:
                 yield struct.pack("<I", len(jpg)) + jpg
             i += len(payload)
@@ -271,12 +270,15 @@ def _consume(q: queue.Queue, n_frames: int):
 @app.post("/lipsync")
 async def lipsync(request: Request):
     wav = await request.body()
-    return StreamingResponse(_generate(wav, next(_tickets)), media_type="application/octet-stream", headers={"X-Fps": str(FPS)})
+    q = request.query_params
+    A = S["avatars"].get(q.get("avatar") or "photo") or S["avatar"]  # "photo" (the original avatar) or "video" (the New ARIA Avatar)
+    start = int(q["start"]) if (q.get("start") or "").lstrip("-").isdigit() else None
+    return StreamingResponse(_generate(wav, next(_tickets), A, start), media_type="application/octet-stream", headers={"X-Fps": str(FPS)})
 
 
 @app.get("/idle.jpg")
 def idle():
-    return Response(_jpeg(S["avatar"]["frames"][0]), media_type="image/jpeg", headers={"Cache-Control": "no-cache"})
+    return Response(_jpeg(S["avatar"]["frames"][0], S["avatar"]), media_type="image/jpeg", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/health")
@@ -286,8 +288,13 @@ def health():
     if A:
         h, w = A["frames"][0].shape[:2]
         size = [round(w * A["scale"]), round(h * A["scale"])]
+    extra = {}
+    for name, V in S.get("avatars", {}).items():
+        if V is not A:  # the second avatar (the New ARIA Avatar's presenter video), reached with /lipsync?avatar=video
+            h, w = V["frames"][0].shape[:2]
+            extra[name] = {"source": V.get("name"), "size": [w, h], "mode": "frames" if V.get("full") else "patch", "frames": len(V["frames"])}
     return {"source": S.get("source"), "ready": S["ready"], "fps": FPS, "size": size, "patch": A["patch"] if A else None,
-            "mode": "frames" if A and A.get("full") else "patch"}
+            "mode": "frames" if A and A.get("full") else "patch", "avatars": extra}
 
 
 if __name__ == "__main__":
@@ -295,6 +302,7 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", required=True, help="photo or short video of the face")
+    ap.add_argument("--source-video", help="a second source (the New ARIA Avatar's presenter video), served at /lipsync?avatar=video from the same loaded models")
     ap.add_argument("--port", type=int, default=8010)
     ap.add_argument("--fps", type=int, default=15, help="mouth frames per second of speech; throughput depends on the GPU and scene (measure before claiming realtime)")
     ap.add_argument("--batch", type=int, default=12, help="frames per GPU batch; small = first frames sooner, large = higher throughput")
@@ -302,7 +310,13 @@ if __name__ == "__main__":
     FPS = a.fps
     t = time.time()
     _load_models(a.batch)
-    _prepare(os.path.abspath(os.path.join(LAUNCH_DIR, a.source)))
+    main_avatar = _prepare(os.path.abspath(os.path.join(LAUNCH_DIR, a.source)))
+    main_avatar["name"] = os.path.basename(a.source)
+    S["avatar"], S["avatars"] = main_avatar, {"photo": main_avatar}
+    if a.source_video:
+        video_avatar = _prepare(os.path.abspath(os.path.join(LAUNCH_DIR, a.source_video)))
+        video_avatar["name"] = os.path.basename(a.source_video)
+        S["avatars"]["video"] = video_avatar
     S["source"] = os.path.basename(a.source)
     S["ready"] = True
     # warm the GPU kernels so the first real request is not the slow one
@@ -310,8 +324,9 @@ if __name__ == "__main__":
     import soundfile as sf
 
     sf.write(silence, np.zeros(16000, dtype=np.float32), 16000)
-    for _ in _generate(open(silence, "rb").read(), next(_tickets)):
-        pass
+    for av in S["avatars"].values():
+        for _ in _generate(open(silence, "rb").read(), next(_tickets), av):
+            pass
     os.unlink(silence)
     print(f"MuseTalk ready in {time.time() - t:.0f}s on {S['device']}", flush=True)
     uvicorn.run(app, host="127.0.0.1", port=a.port)
