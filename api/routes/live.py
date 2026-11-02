@@ -172,6 +172,9 @@ async def _reply_impl(ws: WebSocket, text: str, session_id: str, turn: int, lock
         raise
 
 
+IDLE_SECONDS = 90
+
+
 @router.websocket("/api/live/ws")
 async def live_socket(ws: WebSocket) -> None:
     await ws.accept()
@@ -180,7 +183,11 @@ async def live_socket(ws: WebSocket) -> None:
     lock = asyncio.Lock()
     try:
         while True:
-            msg = await ws.receive_json()
+            try:
+                msg = await asyncio.wait_for(ws.receive_json(), IDLE_SECONDS)  # the page pings every 25 s; a silent socket is dropped
+            except asyncio.TimeoutError:
+                await ws.close(code=1001, reason="Idle")
+                return
             from api import auth
             if auth.mode() == "accounts":
                 account = auth.principal(ws)  # also observes logout/expiry during a live socket

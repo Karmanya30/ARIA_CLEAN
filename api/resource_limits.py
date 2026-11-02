@@ -22,6 +22,8 @@ class ResourceLimits:
             raise ValueError("Invalid ARIA resource limits")
         self.body_timeout = body_timeout
         self.active = 0
+        self.sockets: dict[str, int] = {}  # open WebSockets per peer; they do not take request slots
+        self.max_sockets, self.max_sockets_per_peer = 64, 4
         self.clients = OrderedDict()
 
     async def __call__(self, scope, receive, send):
@@ -36,7 +38,11 @@ class ResourceLimits:
                                    headers={"Retry-After": "60"} if status in (429, 503) else {})(scope, receive, send)
 
         # No await between the check and increment: atomic on the ASGI loop.
-        if self.active >= self.max_active:
+        is_socket = scope["type"] == "websocket"
+        peer = (scope.get("client") or ("unknown", 0))[0]
+        if is_socket and (sum(self.sockets.values()) >= self.max_sockets or self.sockets.get(peer, 0) >= self.max_sockets_per_peer):
+            return await reject(503, "Too many open live sessions.")
+        if not is_socket and self.active >= self.max_active:
             return await reject(503, "ARIA is busy. Please try again shortly.")
         expensive = scope["type"] == "websocket" or scope.get("method") == "POST"
         if self.rate and expensive:
@@ -50,10 +56,16 @@ class ResourceLimits:
                 self.clients.popitem(last=False)
             if count >= self.rate:
                 return await reject(429, "Too many requests. Please try again in a minute.")
+        if is_socket:
+            self.sockets[peer] = self.sockets.get(peer, 0) + 1
+            try:
+                return await self.app(scope, receive, send)
+            finally:
+                self.sockets[peer] -= 1
+                if not self.sockets[peer]:
+                    del self.sockets[peer]
         self.active += 1
         try:
-            if scope["type"] == "websocket":
-                return await self.app(scope, receive, send)
             lengths = [v for k, v in scope.get("headers", []) if k.lower() == b"content-length"]
             try:
                 if len(lengths) > 1 or (lengths and int(lengths[0]) < 0):

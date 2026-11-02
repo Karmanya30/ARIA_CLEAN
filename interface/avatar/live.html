@@ -750,6 +750,8 @@ function connect() {
     setState("error", ev.code === 1008 ? "Session unavailable. Please sign in again." : "Connection lost — reconnecting…");
     if (ev.code !== 1008) reconnectTimer = setTimeout(connect, 1500);
   };
+  const keepAlive = setInterval(() => { if (socket.readyState === 1) socket.send(JSON.stringify({ type: "ping" })); }, 25000);
+  socket.addEventListener("close", () => clearInterval(keepAlive));
   ws.onopen = () => {
     if (ended) return;
     connected = true;
