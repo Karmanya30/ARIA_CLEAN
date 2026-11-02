@@ -29,8 +29,56 @@ _RUNTIME_REVISION = backend_revision()  # snapshot loaded source, not files edit
 from api.routes import avatar, chat, conversations, feedback, forecast, instruments, live, markets, profile, progress, research, scenario_backtest, transactions, voice
 
 auth.mode()  # reject misspelled modes rather than falling back to private access
+_LOOPBACK = ("localhost", "127.0.0.1", "::1", "[::1]", "testserver")
+if auth.mode() == "private" and os.getenv("ARIA_BIND_HOST", "127.0.0.1") not in _LOOPBACK and os.getenv("ARIA_ALLOW_OPEN") != "1":
+    # Private mode has no login: the owner id is the only credential. Reachable from other machines it is an open door (SEC-04).
+    raise RuntimeError("ARIA_AUTH_MODE=private with ARIA_BIND_HOST=%s would be open to the network. Use ARIA_AUTH_MODE=accounts, "
+                       "or set ARIA_ALLOW_OPEN=1 if that is intended." % os.getenv("ARIA_BIND_HOST"))
 app = FastAPI(title="ARIA API", dependencies=[Depends(auth.authorize)])
 app.add_middleware(ResourceLimits)
+
+
+@app.middleware("http")
+async def hide_api_reference(request, call_next):
+    """With accounts, the route list (/docs, /redoc, /openapi.json) is for signed-in users only (SEC-07). Private mode keeps it open:
+    the launcher checks /openapi.json to recognise ARIA's own API."""
+    if auth.mode() == "accounts" and request.url.path in ("/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect") and auth.principal(request) is None:
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"detail": "Not found."}, status_code=404)
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def private_mode_guard(request, call_next):
+    """Private mode has no login, so a page on another site (or a DNS-rebinding host name) must not be able to write through the
+    visitor's browser: writes need a loopback Host, and a browser Origin that is loopback or the host itself (SEC-04)."""
+    if auth.mode() == "private" and os.getenv("ARIA_ALLOW_OPEN") != "1" and request.method not in ("GET", "HEAD", "OPTIONS"):
+        from urllib.parse import urlsplit
+        host = urlsplit("//" + request.headers.get("host", "")).hostname or ""
+        origin = request.headers.get("origin")
+        origin_host = urlsplit(origin).hostname if origin and origin != "null" else None
+        if host not in _LOOPBACK or (origin is not None and origin_host not in _LOOPBACK):
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"detail": "This request must come from ARIA on this computer."}, status_code=403)
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def no_store_personal(request, call_next):
+    """Answers that carry personal data are not kept by browsers or proxies."""
+    response = await call_next(request)
+    if request.url.path.startswith("/api/") and request.method == "GET":
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
+
+
+_CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' data: https://fonts.gstatic.com; "
+        "img-src 'self' data: blob: https:; media-src 'self' blob: data:; worker-src 'self' blob:; "
+        "connect-src 'self' http://localhost:8010 http://127.0.0.1:8010 https://accounts.google.com https://cdn.jsdelivr.net https://storage.googleapis.com data: blob:; "
+        "frame-src 'self' https://accounts.google.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'")
+_CSP_REPORT = ("default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; "
+               "script-src 'sha256-FbkIjM5XrDskHC2ER/ErjgfkR0w9Xn8+kzogAgqiHV4='")  # only the print-on-open line of the downloadable report
 
 
 @app.middleware("http")
@@ -40,6 +88,9 @@ async def security_headers(request, call_next):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "no-referrer")
     response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")  # the live meeting and report viewer are same-origin frames
+    # Report pages are generated HTML from third-party text: no script at all. Everything else may load what the app itself loads
+    # (Google sign-in and fonts, the 3D avatar's libraries on jsDelivr, the lip-sync server on port 8010) and nothing more (SEC-06).
+    response.headers.setdefault("Content-Security-Policy", _CSP_REPORT if "/research/reports/" in request.url.path and request.url.path.endswith("/html") else _CSP)
     return response
 
 
@@ -54,6 +105,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def _redact_access_log() -> None:
+    """The uvicorn access log would record owner_id/session_id (the private-mode credential) from query strings (SEC-04)."""
+    import logging
+    import re
+
+    class Redact(logging.Filter):
+        def filter(self, record):
+            if isinstance(record.args, tuple) and len(record.args) >= 3 and isinstance(record.args[2], str):
+                path = re.sub(r"((?:owner_id|session_id|audio_token)=)[^&\s]+", r"\1***", record.args[2])
+                record.args = record.args[:2] + (path,) + record.args[3:]
+            return True
+
+    logging.getLogger("uvicorn.access").addFilter(Redact())
+
+
+_redact_access_log()
+
 
 def _warm_up() -> None:
     """Load the heavy pieces (orchestrator imports, the Sentence-BERT encoder, NER) in the background at

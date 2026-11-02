@@ -123,6 +123,7 @@ def test_signed_in_account_can_send(client, smtp, monkeypatch):
     from uuid import uuid4
     monkeypatch.setenv("ARIA_AUTH_MODE", "accounts")
     monkeypatch.setenv("ARIA_AUTH_ALLOW_SIGNUP", "1")
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "0")
     registered = client.post('/api/auth/register', json={"email": uuid4().hex + "@example.test", "password": "long-test-password-123"})
     assert registered.status_code == 200
     assert client.post('/api/feedback', json=PAYLOAD).json() == {"sent": True}

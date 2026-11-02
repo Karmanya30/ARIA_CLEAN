@@ -102,6 +102,7 @@ def test_sb01_cookie_attributes_and_secure_flag(monkeypatch):
     monkeypatch.setenv("ARIA_AUTH_MODE", "accounts")
     monkeypatch.setenv("ARIA_APP_ORIGIN", "https://aria.example")
     monkeypatch.setenv("ARIA_AUTH_ALLOW_SIGNUP", "1")
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "0")  # cookie attributes are checked on the session a sign-up returns
     c = TestClient(app, base_url="https://aria.example", headers={"Origin": "https://aria.example"})
     r = c.post("/api/auth/register", json={"email": uuid.uuid4().hex + "@example.test", "password": PASSWORD})
     assert r.status_code == 200, r.text
@@ -158,18 +159,22 @@ def test_sb05_login_does_not_reveal_which_part_is_wrong(accounts):
     assert (bad_pw.status_code, bad_pw.json()) == (no_user.status_code, no_user.json())
 
 
-def test_sb06_register_does_not_enumerate_existing_emails(accounts):
+def test_sb06_register_does_not_enumerate_existing_emails(accounts, monkeypatch):
     """Signup enabled: a taken email must be indistinguishable from a new one."""
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "1")
+    monkeypatch.setenv("ARIA_AUTH_DEV_MAIL", "1")
     email = uuid.uuid4().hex + "@example.test"
     first = accounts.post("/api/auth/register", json={"email": email, "password": PASSWORD})
     again = TestClient(app, headers={"Origin": "http://testserver"}).post("/api/auth/register", json={"email": email, "password": PASSWORD})
     assert first.status_code == again.status_code, f"register reveals an existing account: {first.status_code} vs {again.status_code}"
 
 
-def test_sb07_register_requires_proof_of_email_ownership(accounts):
+def test_sb07_register_requires_proof_of_email_ownership(accounts, monkeypatch):
     """Pre-account-takeover precondition: anyone can register an address they do not own and receive a signed-in session."""
+    monkeypatch.setenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "1")
+    monkeypatch.setenv("ARIA_AUTH_DEV_MAIL", "1")
     r = accounts.post("/api/auth/register", json={"email": "someone.else." + uuid.uuid4().hex[:8] + "@example.test", "password": PASSWORD})
-    assert r.status_code != 200, "registration returns a signed-in session without any proof of email ownership"
+    assert "user" not in r.json() and "set-cookie" not in r.headers, "registration returns a signed-in session without any proof of email ownership"
 
 
 def test_sb08_google_endpoint_fails_closed_without_configuration(accounts):
