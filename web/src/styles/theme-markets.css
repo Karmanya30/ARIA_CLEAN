@@ -246,3 +246,18 @@
 [data-theme='vitara-markets'] .app-sidebar .sidebar-nav { min-width: 0; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
 [data-theme='vitara-markets'] .app-sidebar .sidebar-new-btn { white-space: nowrap; flex: none; }
 [data-theme='vitara-markets'] .app-sidebar .mode-toggle { order: 3; flex: none; }
+
+/* Every destination is visible at once, never scrolled: compact items, then labels only, then a wrapping second row on small screens */
+[data-theme='vitara-markets'] .app-sidebar .sidebar-nav { overflow: visible; flex-wrap: nowrap; gap: 2px; }
+[data-theme='vitara-markets'] .app-sidebar .sidebar-nav-item { padding: 8px 10px; gap: 6px; font-size: 13.5px; white-space: nowrap; flex: none; width: auto; }
+@media (max-width: 1500px) {
+  [data-theme='vitara-markets'] .app-sidebar .sidebar-nav-item svg { display: none; }
+}
+@media (max-width: 1180px) {
+  [data-theme='vitara-markets'] .app-sidebar .sidebar-nav-item { padding: 7px 8px; font-size: 13px; }
+  [data-theme='vitara-markets'] .app-sidebar .brand-wordmark, [data-theme='vitara-markets'] .app-sidebar .sidebar-brand span { display: none; }
+}
+@media (max-width: 1000px) {
+  [data-theme='vitara-markets'] .app-sidebar { height: auto; flex-wrap: wrap; }
+  [data-theme='vitara-markets'] .app-sidebar .sidebar-nav { flex-wrap: wrap; flex: 1 1 100%; order: 9; max-width: none; }
+}

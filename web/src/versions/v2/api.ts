@@ -23,12 +23,9 @@ const TONE_KEY = 'aria_adapt_tone'
 
 /** Settings > Conversation: adapt ARIA's tone to how the user seems to feel (on unless switched off on this device). */
 export function adaptTone(): boolean {
-  try {
-    return localStorage.getItem(TONE_KEY) !== 'off'
-  } catch {
-    return true
-  }
+  return true // always adapt to how the user feels: there is no setting for it any more
 }
+
 export function setAdaptTone(on: boolean) {
   try {
     localStorage.setItem(TONE_KEY, on ? 'on' : 'off')

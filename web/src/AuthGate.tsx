@@ -65,6 +65,8 @@ function GoogleButton({ state, linked, onSuccess, onError }: { state: State; lin
   return <div ref={target} aria-label={linked ? 'Link Google account' : 'Sign in with Google'} />
 }
 
+import { AccountPanelContext } from './accountContext'
+
 export function AuthGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State | null>(null)
   const [error, setError] = useState('')
@@ -126,14 +128,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
   if (!state) return <main className="aria-auth"><section><BrandLogo stacked tagline className="aria-auth-brand" /><h1>ARIA</h1>{error ? <><p role="alert">{error}</p><button onClick={() => void load()}>Retry connection</button></> : <p>Loading ARIA…</p>}</section></main>
   if (state.mode === 'private') return children
-  if (state.user) return <Fragment key={state.user.id}>
-    <details className="aria-account"><summary>Account</summary><p>{state.user.email}</p>
+  if (state.user) {
+    const panel = <div className="aria-account-panel">
+      <p>Signed in as <strong>{state.user.email}</strong></p>
       {state.google_client_id && <><p>Connect Google to this account</p><GoogleButton state={state} linked onSuccess={success} onError={setError} /></>}
       {notice && <p role="status">{notice}</p>}{error && <p role="alert">{error}</p>}
-      <button disabled={busy} onClick={() => void logout()}>Sign out</button>
-      <button disabled={busy} onClick={() => void logout(true)}>Sign out all devices</button>
-    </details>{children}
-  </Fragment>
+      <div className="aria-account-actions">
+        <button className="btn" disabled={busy} onClick={() => void logout()}>Sign out</button>
+        <button className="btn" disabled={busy} onClick={() => void logout(true)}>Sign out all devices</button>
+      </div>
+    </div>
+    return <Fragment key={state.user.id}><AccountPanelContext.Provider value={panel}>{children}</AccountPanelContext.Provider></Fragment>
+  }
   return <main className="aria-auth"><section><BrandLogo stacked tagline className="aria-auth-brand" /><h1>{signup ? 'Create your ARIA account' : 'Sign in to ARIA'}</h1>
     <p>Your financial profile and conversations belong to your account.</p>
     <form onSubmit={(event) => void submit(event)}>

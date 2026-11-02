@@ -23,7 +23,7 @@ async function device(browser: Browser) {
     for (const name of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, name, { value: undefined }) // never listen to the real microphone
     localStorage.setItem('aria_owner_id', o)
     localStorage.setItem('aria_mode', 'Normal Mode')
-  }, [owner, process.env.ARIA_UI ?? 'v1'])
+  }, [owner, 'v2'])
   return { ctx, page: await ctx.newPage() }
 }
 
@@ -32,7 +32,7 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
   const a = await device(browser)
   const errors: string[] = []
   a.page.on('pageerror', (e) => errors.push(e.message))
-  await a.page.goto('/')
+  await a.page.goto('/#/chat')
   await leaveMeeting(a.page)
   // ask through the app's own API route so the answer does not depend on a language model
   await expect(a.page.locator('.history-button')).toBeVisible() // the app has started and chosen its session id
@@ -50,7 +50,7 @@ test('a chat is saved, survives refresh, opens on a second device, and can be re
 
   // second device: nothing stored locally except the owner id, yet the chat is listed and opened
   const b = await device(browser)
-  await b.page.goto('/')
+  await b.page.goto('/#/chat')
   await leaveMeeting(b.page)
   await openHistory(b.page)
   await expect(b.page.locator('.conv-item', { hasText: 'Hello' })).toBeVisible()

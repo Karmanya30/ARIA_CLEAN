@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 // Like two windows side by side: drag the divider and both panes follow.
 test('the history panel and the avatar chat can be resized by dragging their edges', async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('aria_owner_id', 'resize-' + Date.now()); localStorage.setItem('aria_version', 'v2') })
-  await page.goto('/')
+  await page.goto('/#/chat')
   await expect(page.getByRole('dialog', { name: 'ARIA Live meeting' })).toBeVisible()
   const box = (sel: string) => page.evaluate((s) => { const r = document.querySelector(s)!.getBoundingClientRect(); return { x: Math.round(r.x), w: Math.round(r.width), right: Math.round(r.right) } }, sel)
 

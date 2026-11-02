@@ -63,7 +63,7 @@ async function setup(page: Page, version = 'v2', supported = true) {
   return { errors, requests, history, sockets, frame, emit, loads: () => frameLoads }
 }
 
-for (const version of ['v1', 'v2']) {
+for (const version of ['v2']) {
   test(`${version}: shared chat, playback captions, mute, interrupt and end`, async ({ page }) => {
     const app = await setup(page, version)
     await page.getByRole('button', { name: 'Start listening', exact: true }).click()

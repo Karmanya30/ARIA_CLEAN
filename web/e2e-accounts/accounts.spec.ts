@@ -75,7 +75,7 @@ for (const version of ['v1', 'v2']) {
     await googleAdapter(anotherTab, email)
     await anotherTab.goto('/#/profile')
     await expect(anotherTab.getByLabel('Age', { exact: true })).toHaveValue('35')
-    await page.locator('summary').filter({ hasText: /^Account$/ }).click()
+    await page.getByRole('tab', { name: 'Settings', exact: true }).click() // account details live in Settings
     await page.getByRole('button', { name: 'Sign out', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Sign in to ARIA' })).toBeVisible()
     await expect(anotherTab.getByRole('heading', { name: 'Sign in to ARIA' })).toBeVisible()
@@ -122,9 +122,9 @@ test('Password account explicitly links Google and can use either sign-in method
   await start(page, 'v2', email)
   await credentials(page, email, true)
   const user = (await (await page.request.get('/api/auth/session')).json()).user
-  await page.locator('summary').filter({ hasText: /^Account$/ }).click()
+  await page.getByRole('tab', { name: 'Settings', exact: true }).click() // account details live in Settings
   await page.getByRole('button', { name: 'Synthetic Google sign-in' }).click()
-  await expect(page.locator('.aria-account').getByRole('status')).toHaveText('Google account connected.')
+  await expect(page.locator('.aria-account-panel').getByRole('status')).toHaveText('Google account connected.')
   await page.getByRole('button', { name: 'Sign out', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Sign in to ARIA' })).toBeVisible()
   await page.getByRole('button', { name: 'Synthetic Google sign-in' }).click()

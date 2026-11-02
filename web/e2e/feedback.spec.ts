@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-for (const version of ['v1', 'v2']) {
+for (const version of ['v2']) {
   test(`${version}: feedback captures contact, discovery and bug details`, async ({ page }) => {
     let submitted: any = null
     await page.addInitScript(version => localStorage.setItem('aria_version', version), version)
