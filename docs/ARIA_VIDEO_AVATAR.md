@@ -12,8 +12,8 @@
 
 ## What was built (this change)
 - A new **video presenter** avatar mode in `interface/avatar/live.html`. It plays two seamless "boomerang" loops made from the sample (`presenter-idle.mp4` for listening, `presenter-talk.mp4` for speaking, about 0.7 MB each). The talking loop plays while ARIA's voice is on and eases back to the calm loop in pauses; the start point is random so phrases do not all begin on the same gesture. A reduced-motion setting shows a still face.
-- Order of choice: **MuseTalk (GPU lip-sync) first, unchanged**, then the video presenter, then the old photo, then the 3D model. `?avatar=video`, `?avatar=photo` or `?avatar=3d` forces one. Clip files are served by `/avatar/presenter-idle.mp4` and `/avatar/presenter-talk.mp4`.
-- A browser test checks that the live meeting uses the video presenter and that it is playing.
+- **It is a separate choice, "New ARIA Avatar".** The live meeting header has an Avatar selector with "ARIA Avatar" (the original, still the default, unchanged: MuseTalk on the GPU if running, else the photo, else 3D) and "New ARIA Avatar" (the video presenter). The choice is remembered on the device. `?avatar=video` selects the new one directly. Clip files are served by `/avatar/presenter-idle.mp4` and `/avatar/presenter-talk.mp4`.
+- Browser tests check that the original avatar is still the default and that choosing the new one loads and plays the video presenter.
 
 ## What this is not
 - It is **not lip-sync**. The mouth follows the clip, not ARIA's words. The video only knows "speaking" versus "not speaking", from the loudness of the voice.
