@@ -43,6 +43,11 @@ OLD_REGIME_80C_CAP = 150_000
 OLD_REGIME_80D_CAP_SELF = 25_000
 OLD_REGIME_80D_CAP_SENIOR = 50_000
 
+# Surcharge on the income tax, by total taxable income (slab limit, rate); the new regime tops out at 25%.
+# Rates as published for individuals; check against the department's calculator before relying on them.
+SURCHARGE_OLD = [(5_000_000, 0.0), (10_000_000, 0.10), (20_000_000, 0.15), (50_000_000, 0.25), (float("inf"), 0.37)]
+SURCHARGE_NEW = [*SURCHARGE_OLD[:-2], (float("inf"), 0.25)]
+
 
 def _slab_tax(taxable: float, slabs: list[tuple[float, float]]) -> float:
     tax, prev = 0.0, 0.0
@@ -53,6 +58,24 @@ def _slab_tax(taxable: float, slabs: list[tuple[float, float]]) -> float:
         tax += (slab - prev) * rate
         prev = slab
     return tax
+
+
+def _surcharge(taxable: float, tax: float, slabs: list[tuple[float, float]], tax_at) -> float:
+    """Surcharge on `tax`, limited by marginal relief: tax plus surcharge never exceeds the tax at the slab limit
+    (with its own surcharge) plus the income above that limit. `tax_at(income)` is the tax before surcharge."""
+    prev_limit, prev_rate = 0.0, 0.0
+    for limit, rate in slabs:
+        if taxable <= limit:
+            break
+        prev_limit, prev_rate = limit, rate
+    else:
+        return 0.0
+    if rate == 0.0:
+        return 0.0
+    surcharge = tax * rate
+    at_limit = tax_at(prev_limit)
+    cap = at_limit + at_limit * prev_rate + (taxable - prev_limit)
+    return max(0.0, min(surcharge, cap - tax))
 
 
 def _apply_rebate_and_marginal_relief(
@@ -76,6 +99,7 @@ def tax_new(annual_income: float, std_deduction: bool = True) -> TaxResult:
     tax = _apply_rebate_and_marginal_relief(
         taxable, tax_before, NEW_REGIME_REBATE_THRESHOLD, NEW_REGIME_REBATE_CAP
     )
+    tax += _surcharge(taxable, tax, SURCHARGE_NEW, lambda t: _slab_tax(t, NEW_REGIME_SLABS))
     cess = tax * CESS_RATE
     total = tax + cess
     return TaxResult(
@@ -101,8 +125,8 @@ def tax_old(
     cap_80d = OLD_REGIME_80D_CAP_SENIOR if is_senior else OLD_REGIME_80D_CAP_SELF
     deduction = (
         OLD_REGIME_STD_DEDUCTION
-        + min(deductions_80c, OLD_REGIME_80C_CAP)
-        + min(deductions_80d, cap_80d)
+        + max(0.0, min(deductions_80c, OLD_REGIME_80C_CAP))
+        + max(0.0, min(deductions_80d, cap_80d))
     )
     taxable = max(0.0, annual_income - deduction)
     exemption = 500_000 if age is not None and age >= 80 else 300_000 if is_senior else 250_000
@@ -110,6 +134,7 @@ def tax_old(
     tax_before = _slab_tax(taxable, slabs)
     # The old regime has an 87A rebate, but no income-cliff marginal relief.
     tax = max(0.0, tax_before - OLD_REGIME_REBATE_CAP) if taxable <= OLD_REGIME_REBATE_THRESHOLD else tax_before
+    tax += _surcharge(taxable, tax, SURCHARGE_OLD, lambda t: _slab_tax(t, slabs))
     cess = tax * CESS_RATE
     total = tax + cess
     return TaxResult(
