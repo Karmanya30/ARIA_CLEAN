@@ -138,6 +138,16 @@ def _warm_up() -> None:
     from modules.market import instruments as instrument_catalog
 
     threading.Thread(target=instrument_catalog.warm, name="instruments-warm", daemon=True).start()  # AMFI file, coin list, stock universe
+
+    def _whisper() -> None:  # the first spoken question otherwise waits several seconds for the speech model to load
+        try:
+            from ai.speech.stt import _load
+
+            _load()
+        except Exception as exc:  # noqa: BLE001 - voice then loads on first use, as before
+            logger.debug(f"speech model warm-up skipped: {type(exc).__name__}")
+
+    threading.Thread(target=_whisper, name="whisper-warm", daemon=True).start()
     t = time.time()
     try:
         import core.orchestrator  # noqa: F401  (imports every module pipeline)
