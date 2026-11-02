@@ -102,6 +102,7 @@ for (const version of ['v2']) {
     await page.getByRole('button', { name: 'Start listening', exact: true }).click()
     await expect(disk).toHaveAttribute('data-playing', 'false')
     await listening(page)
+    page.once('dialog', d => d.accept())
     await page.getByRole('button', { name: /^Clear chat$/i }).click()
     await released(page)
     expect(transcriptions).toBe(1)

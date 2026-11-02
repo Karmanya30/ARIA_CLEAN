@@ -42,7 +42,15 @@ const FACTS: [string, string, 'num' | 'compact' | 'pct' | 'text'][] = [
   ['exchange', 'Exchange', 'text'],
 ]
 const compact = new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 2 })
-const human = (k: string) => k.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+const sentence = (k: string) => k.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+/** "return_3m_pct" -> "3-month return (%)", "cagr_since_start_pct" -> "CAGR since first date (%)": computed stats arrive with raw field names. */
+function human(k: string): string {
+  const m = /^return_(\d+)(m|y)_pct$/.exec(k)
+  if (m) return `${m[1]}-${m[2] === 'm' ? 'month' : 'year'} return (%)`
+  if (k === 'cagr_since_start_pct') return 'CAGR since first date (%)'
+  if (k === 'return_since_start_pct') return 'Return since first date (%)'
+  return k.endsWith('_pct') ? `${sentence(k.slice(0, -4))} (%)` : sentence(k)
+}
 function showFact(v: string | number, kind: string): string {
   if (typeof v === 'string') return v
   return kind === 'compact' ? compact.format(v) : kind === 'pct' ? `${fmtNum(v)}%` : fmtNum(v, Math.abs(v) >= 1000 ? 0 : 2)

@@ -20,7 +20,6 @@ export function SettingsTab({ theme }: { theme: ThemeId; onTheme?: (id: ThemeId)
   return (
     <section className="settings">
       <h1>Settings</h1>
-      <h2 className="settings-h2">Appearance</h2>
       {hasMarkets(theme) && (
         <>
           <h2 className="settings-h2">Colour mode</h2>

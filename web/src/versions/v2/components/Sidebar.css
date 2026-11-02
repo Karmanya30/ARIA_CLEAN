@@ -129,3 +129,8 @@
   .sidebar-nav { overflow-x: auto; max-width: 100%; scrollbar-width: none; gap: 4px; }
   .sidebar-nav-item { width: auto; white-space: nowrap; flex: none; padding: 9px 12px; }
 }
+
+/* touch screens: 44 px targets for the navigation */
+@media (pointer: coarse) {
+  .sidebar-nav-item { min-height: 44px; }
+}
