@@ -247,6 +247,17 @@ def avatar_wide_office() -> FileResponse:
     return FileResponse(_AVATAR_DIR / "office-wide-glasses.webp", media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
 
 
+@router.get("/avatar/presenter-{clip}.mp4")
+def avatar_presenter(clip: str) -> FileResponse:
+    """The two looping clips of the video presenter avatar (calm "idle" and "talk"); range requests are handled by FileResponse."""
+    if clip not in ("idle", "talk"):
+        raise HTTPException(status_code=404, detail="No such clip.")
+    path = _AVATAR_DIR / f"presenter-{clip}.mp4"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Presenter clips are not installed.")
+    return FileResponse(path, media_type="video/mp4", headers={"Cache-Control": "public, max-age=86400"})
+
+
 @router.get("/avatar/glasses.png")
 def avatar_glasses() -> FileResponse:
     """Optional transparent overlay drawn over the photo (scripts/make_glasses.py). 404 means: no glasses."""

@@ -442,6 +442,76 @@ async function photoSpeaker(opts = {}) {
   };
 }
 
+// Video presenter (no GPU needed): two looping clips of a real presenter, a calm listening loop and a talking loop. The talking
+// loop plays while ARIA's voice is on and eases back to the calm loop in the pauses between phrases, so the face is alive the whole
+// time. It is NOT lip-sync (the mouth follows the clip, not the words): MuseTalk, when its GPU server runs, is still used first.
+async function videoSpeaker() {
+  const stage = $("avatar");
+  const make = (src) => {
+    const v = document.createElement("video");
+    v.src = src; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto"; v.setAttribute("aria-hidden", "true");
+    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:42% 28%;opacity:0;transition:opacity 260ms ease";
+    stage.appendChild(v);
+    return v;
+  };
+  const idle = make("/avatar/presenter-idle.mp4"), talk = make("/avatar/presenter-talk.mp4");
+  const ready = (v) => new Promise((ok, bad) => {
+    if (v.readyState >= 2) return ok();
+    v.addEventListener("loadeddata", () => ok(), { once: true });
+    v.addEventListener("error", () => bad(new Error("presenter video unavailable")), { once: true });
+  });
+  try { await Promise.all([ready(idle), ready(talk)]); } catch (err) { idle.remove(); talk.remove(); throw err; }
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");  // accessibility: a still face, no movement
+  idle.style.opacity = "1";
+  if (!motion.matches) idle.play().catch(() => {});
+  setState("idle", "Ready");
+
+  const ctx = new AudioContext(), analyser = ctx.createAnalyser();
+  analyser.fftSize = 1024; analyser.connect(ctx.destination);
+  const samples = new Uint8Array(analyser.fftSize);
+  let sources = [], endAt = 0, talking = false, lastVoice = 0, alive = true;
+
+  function setTalking(on) {
+    if (on === talking || motion.matches) return;
+    talking = on;
+    if (on) {
+      talk.currentTime = Math.random() * Math.max(0.1, (talk.duration || 10) - 0.5);  // never start every phrase on the same gesture
+      talk.play().catch(() => {});
+      talk.style.opacity = "1"; idle.style.opacity = "0";
+    } else {
+      idle.style.opacity = "1"; talk.style.opacity = "0";
+      setTimeout(() => { if (!talking) talk.pause(); }, 320);
+    }
+  }
+  function tick(now) {
+    if (!alive) return;
+    analyser.getByteTimeDomainData(samples);
+    let sum = 0; for (const s of samples) { const x = (s - 128) / 128; sum += x * x; }
+    const level = Math.sqrt(sum / samples.length);
+    const speaking = ctx.currentTime < endAt - 0.01;
+    if (speaking && level > 0.012) lastVoice = now;
+    setTalking(speaking && now - lastVoice < 320);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  const visible = () => { if (document.hidden) { idle.pause(); talk.pause(); } else if (!motion.matches) { (talking ? talk : idle).play().catch(() => {}); } };
+  document.addEventListener("visibilitychange", visible);
+
+  return {
+    kind: "video", ctx, analyser, blinkNow() {}, express() {}, pose: () => ({ rot: 0, bob: 0, sway: 0, s: 1, half: 0 }),
+    play(buffer, text) {
+      const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
+      const at = Math.max(ctx.currentTime + 0.02, endAt);
+      src.start(at); endAt = at + buffer.duration;
+      scheduleCaption(text, at, buffer.duration);
+      sources.push(src); src.onended = () => { sources = sources.filter((x) => x !== src); };
+    },
+    stop() { for (const s of sources) { try { s.stop(); } catch (e) {} } sources = []; endAt = 0; setTalking(false); },
+    busy() { return ctx.currentTime < endAt - 0.01; },
+    dispose() { alive = false; document.removeEventListener("visibilitychange", visible); this.stop(); idle.remove(); talk.remove(); ctx.close(); },
+  };
+}
+
 // MuseTalk v1.5 (photoreal lip-sync, local GPU): each phrase's WAV goes to the MuseTalk server, which streams back
 // 25 fps frames; the clip starts once its first frames are in and stays in step with the audio clock.
 async function museTalkSpeaker() {
@@ -825,10 +895,13 @@ $("startBtn").onclick = async () => {
 };
 
 async function loadSpeaker() {
-  // MuseTalk when its GPU server is running (E:\musetalk), else the seated photo, else 3D.
-  // ?avatar=photo or ?avatar=3d forces one.
+  // MuseTalk when its GPU server is running (E:\musetalk), else the video presenter, else the seated photo, else 3D.
+  // ?avatar=video, ?avatar=photo or ?avatar=3d forces one.
   if (!params.get("avatar")) {
     try { return await museTalkSpeaker(); } catch (err) { console.info("MuseTalk not available:", err.message); }
+  }
+  if (!params.get("avatar") || params.get("avatar") === "video") {
+    try { return await videoSpeaker(); } catch (err) { console.info("Video presenter not available:", err.message); }
   }
   const photo = params.get("avatar") !== "3d" && (await fetch("/avatar/office-wide-glasses.webp", { cache: "no-store" }).then((r) => r.ok).catch(() => false));
   if (photo) {
