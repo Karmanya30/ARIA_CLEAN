@@ -2,601 +2,1196 @@
   {
     "id": "simple_interest",
     "canonical_name": "Simple Interest",
-    "aliases": ["SI"],
+    "aliases": [
+      "SI"
+    ],
     "category": "time_value_of_money",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["interest", "principal", "rate"],
+    "keywords": [
+      "interest",
+      "principal",
+      "rate"
+    ],
     "seed_definition": "Simple interest is interest calculated only on the original principal, not on any interest already earned.",
-    "related_concepts": ["compound_interest", "fd"]
+    "related_concepts": [
+      "compound_interest",
+      "fd"
+    ]
   },
   {
     "id": "compound_interest",
     "canonical_name": "Compound Interest",
-    "aliases": ["compounding", "power of compounding"],
+    "aliases": [
+      "compounding",
+      "power of compounding"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["simple_interest"],
+    "prerequisites": [
+      "simple_interest"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 8,
-    "keywords": ["compounding", "CAGR", "future value"],
+    "keywords": [
+      "compounding",
+      "CAGR",
+      "future value"
+    ],
     "seed_definition": "Compound interest is interest calculated on both the original principal and the interest accumulated from previous periods.",
-    "related_concepts": ["cagr", "future_value", "ppf", "sip"]
+    "related_concepts": [
+      "cagr",
+      "future_value",
+      "ppf",
+      "sip"
+    ]
   },
   {
     "id": "cagr",
     "canonical_name": "CAGR (Compound Annual Growth Rate)",
-    "aliases": ["compound annual growth rate"],
+    "aliases": [
+      "compound annual growth rate"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["compound_interest"],
+    "prerequisites": [
+      "compound_interest"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 8,
-    "keywords": ["CAGR", "annualized return", "growth rate"],
+    "keywords": [
+      "CAGR",
+      "annualized return",
+      "growth rate"
+    ],
     "seed_definition": "CAGR is the single steady annual growth rate that would take an investment from its starting value to its ending value over a given period.",
-    "related_concepts": ["xirr", "compound_interest"]
+    "related_concepts": [
+      "xirr",
+      "compound_interest"
+    ]
   },
   {
     "id": "xirr",
     "canonical_name": "XIRR (Extended Internal Rate of Return)",
-    "aliases": ["extended IRR"],
+    "aliases": [
+      "extended IRR"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["cagr"],
+    "prerequisites": [
+      "cagr"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 8,
-    "keywords": ["XIRR", "IRR", "SIP returns", "irregular cash flows"],
+    "keywords": [
+      "XIRR",
+      "IRR",
+      "SIP returns",
+      "irregular cash flows"
+    ],
     "seed_definition": "XIRR is the annualized return for a series of cash flows that happen on irregular dates, such as multiple SIP instalments.",
-    "related_concepts": ["cagr", "sip"]
+    "related_concepts": [
+      "cagr",
+      "sip"
+    ]
   },
   {
     "id": "future_value",
     "canonical_name": "Future Value (FV)",
-    "aliases": ["FV"],
+    "aliases": [
+      "FV"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["compound_interest"],
+    "prerequisites": [
+      "compound_interest"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 8,
-    "keywords": ["future value", "FV", "projection"],
+    "keywords": [
+      "future value",
+      "FV",
+      "projection"
+    ],
     "seed_definition": "Future value is what a sum of money invested today (or a series of regular investments) will be worth at a future date, given an assumed rate of return.",
-    "related_concepts": ["present_value", "retirement_corpus", "sip"]
+    "related_concepts": [
+      "present_value",
+      "retirement_corpus",
+      "sip"
+    ]
   },
   {
     "id": "present_value",
     "canonical_name": "Present Value (PV)",
-    "aliases": ["PV", "discounting"],
+    "aliases": [
+      "PV",
+      "discounting"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["future_value"],
+    "prerequisites": [
+      "future_value"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 8,
-    "keywords": ["present value", "discount rate"],
+    "keywords": [
+      "present value",
+      "discount rate"
+    ],
     "seed_definition": "Present value is what a future sum of money is worth today, after discounting it back by an assumed rate of return.",
-    "related_concepts": ["future_value", "npv"]
+    "related_concepts": [
+      "future_value",
+      "npv"
+    ]
   },
   {
     "id": "npv",
     "canonical_name": "NPV (Net Present Value)",
-    "aliases": ["net present value"],
+    "aliases": [
+      "net present value"
+    ],
     "category": "time_value_of_money",
-    "prerequisites": ["present_value"],
+    "prerequisites": [
+      "present_value"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 8,
-    "keywords": ["NPV", "discounted cash flow", "investment appraisal"],
+    "keywords": [
+      "NPV",
+      "discounted cash flow",
+      "investment appraisal"
+    ],
     "seed_definition": "NPV is the sum of the present values of all expected cash inflows and outflows of an investment; a positive NPV means the investment is expected to add value.",
-    "related_concepts": ["present_value"]
+    "related_concepts": [
+      "present_value"
+    ]
   },
   {
     "id": "mutual_fund",
     "canonical_name": "Mutual Fund",
-    "aliases": ["MF"],
+    "aliases": [
+      "MF"
+    ],
     "category": "investment_vehicles",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["mutual fund", "NAV", "fund house", "AMC"],
+    "keywords": [
+      "mutual fund",
+      "NAV",
+      "fund house",
+      "AMC"
+    ],
     "seed_definition": "A mutual fund pools money from many investors and invests it in stocks, bonds, or other assets on their behalf, managed by a professional fund manager.",
-    "related_concepts": ["sip", "elss", "index_fund", "diversification"]
+    "related_concepts": [
+      "sip",
+      "elss",
+      "index_fund",
+      "diversification"
+    ],
+    "risk_level": 5,
+    "lock_in_years": 0,
+    "liquidity": "high",
+    "tax_treatment": "Varies by underlying fund type (equity/debt/hybrid) -- see the specific fund category.",
+    "min_horizon_years": 3,
+    "is_recommendable_instrument": false
   },
   {
     "id": "sip",
     "canonical_name": "SIP (Systematic Investment Plan)",
-    "aliases": ["systematic investment plan"],
+    "aliases": [
+      "systematic investment plan"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["mutual_fund", "compound_interest"],
+    "prerequisites": [
+      "mutual_fund",
+      "compound_interest"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["SIP", "rupee cost averaging", "monthly investment"],
+    "keywords": [
+      "SIP",
+      "rupee cost averaging",
+      "monthly investment"
+    ],
     "seed_definition": "An SIP is a method of investing a fixed amount regularly, usually monthly, into a mutual fund, instead of investing a lump sum at once.",
-    "related_concepts": ["mutual_fund", "xirr", "compound_interest"]
+    "related_concepts": [
+      "mutual_fund",
+      "xirr",
+      "compound_interest"
+    ],
+    "risk_level": null,
+    "lock_in_years": 0,
+    "liquidity": "high",
+    "tax_treatment": "A contribution method, not an asset class -- tax treatment follows whatever you SIP into.",
+    "min_horizon_years": null,
+    "is_recommendable_instrument": false
   },
   {
     "id": "elss",
     "canonical_name": "ELSS (Equity Linked Savings Scheme)",
-    "aliases": ["tax saver fund", "equity linked savings scheme"],
+    "aliases": [
+      "tax saver fund",
+      "equity linked savings scheme"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["mutual_fund", "section_80c"],
+    "prerequisites": [
+      "mutual_fund",
+      "section_80c"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["ELSS", "tax saving", "lock-in"],
+    "keywords": [
+      "ELSS",
+      "tax saving",
+      "lock-in"
+    ],
     "seed_definition": "ELSS is a type of equity mutual fund that qualifies for tax deduction under Section 80C and has a mandatory 3-year lock-in period.",
-    "related_concepts": ["mutual_fund", "section_80c"]
+    "related_concepts": [
+      "mutual_fund",
+      "section_80c"
+    ],
+    "risk_level": 6,
+    "lock_in_years": 3,
+    "liquidity": "low (locked for 3 years)",
+    "tax_treatment": "Section 80C eligible under the old regime; LTCG on equity applies after the lock-in.",
+    "min_horizon_years": 3,
+    "is_recommendable_instrument": true
   },
   {
     "id": "etf",
     "canonical_name": "ETF (Exchange-Traded Fund)",
-    "aliases": ["exchange traded fund"],
+    "aliases": [
+      "exchange traded fund"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["mutual_fund", "stock_exchange"],
+    "prerequisites": [
+      "mutual_fund",
+      "stock_exchange"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["ETF", "index tracking", "exchange traded"],
+    "keywords": [
+      "ETF",
+      "index tracking",
+      "exchange traded"
+    ],
     "seed_definition": "An ETF is a fund that holds a basket of securities, tracks an index, and trades on a stock exchange throughout the day like a regular share.",
-    "related_concepts": ["mutual_fund", "index_fund"]
+    "related_concepts": [
+      "mutual_fund",
+      "index_fund"
+    ],
+    "risk_level": 6,
+    "lock_in_years": 0,
+    "liquidity": "high (trades on exchange like a stock)",
+    "tax_treatment": "LTCG/STCG rules for equity funds; no Section 80C benefit.",
+    "min_horizon_years": 5,
+    "is_recommendable_instrument": true
   },
   {
     "id": "index_fund",
     "canonical_name": "Index Fund",
-    "aliases": ["passive fund"],
+    "aliases": [
+      "passive fund"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["etf"],
+    "prerequisites": [
+      "etf"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["index fund", "passive investing", "Nifty 50"],
+    "keywords": [
+      "index fund",
+      "passive investing",
+      "Nifty 50"
+    ],
     "seed_definition": "An index fund is a mutual fund or ETF designed to simply replicate the performance of a market index like the Nifty 50, rather than trying to beat it.",
-    "related_concepts": ["etf", "mutual_fund"]
+    "related_concepts": [
+      "etf",
+      "mutual_fund"
+    ],
+    "risk_level": 6,
+    "lock_in_years": 0,
+    "liquidity": "high",
+    "tax_treatment": "LTCG/STCG rules for equity funds; no Section 80C benefit.",
+    "min_horizon_years": 5,
+    "is_recommendable_instrument": true
   },
   {
     "id": "fd",
     "canonical_name": "Fixed Deposit (FD)",
-    "aliases": ["FD", "term deposit"],
+    "aliases": [
+      "FD",
+      "term deposit"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["simple_interest"],
+    "prerequisites": [
+      "simple_interest"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 5,
-    "keywords": ["fixed deposit", "bank FD", "guaranteed return"],
+    "keywords": [
+      "fixed deposit",
+      "bank FD",
+      "guaranteed return"
+    ],
     "seed_definition": "A fixed deposit is a bank product where a lump sum is locked in for a fixed tenure at a fixed interest rate, offering predictable but generally lower returns than equity.",
-    "related_concepts": ["simple_interest"]
+    "related_concepts": [
+      "simple_interest"
+    ],
+    "risk_level": 1,
+    "lock_in_years": 0,
+    "liquidity": "medium (breakable early, usually with a penalty)",
+    "tax_treatment": "Interest is fully taxable as regular income; a separate 5-year tax-saver FD variant is 80C eligible under the old regime.",
+    "min_horizon_years": 0,
+    "is_recommendable_instrument": true
   },
   {
     "id": "ppf",
     "canonical_name": "PPF (Public Provident Fund)",
-    "aliases": ["public provident fund"],
+    "aliases": [
+      "public provident fund"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["compound_interest"],
+    "prerequisites": [
+      "compound_interest"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["PPF", "government scheme", "15-year lock-in"],
+    "keywords": [
+      "PPF",
+      "government scheme",
+      "15-year lock-in"
+    ],
     "seed_definition": "PPF is a government-backed long-term savings scheme with a 15-year tenure, tax-free interest, and tax deduction on contributions under Section 80C.",
-    "related_concepts": ["compound_interest", "section_80c"]
+    "related_concepts": [
+      "compound_interest",
+      "section_80c"
+    ],
+    "risk_level": 1,
+    "lock_in_years": 15,
+    "liquidity": "very low (15-year lock-in, partial withdrawal allowed from year 7)",
+    "tax_treatment": "EEE -- contribution, interest, and maturity are all tax-exempt; Section 80C eligible under the old regime.",
+    "min_horizon_years": 15,
+    "is_recommendable_instrument": true
   },
   {
     "id": "nps",
     "canonical_name": "NPS (National Pension System)",
-    "aliases": ["national pension system", "national pension scheme"],
+    "aliases": [
+      "national pension system",
+      "national pension scheme"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["retirement_corpus"],
+    "prerequisites": [
+      "retirement_corpus"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["NPS", "pension", "retirement account"],
+    "keywords": [
+      "NPS",
+      "pension",
+      "retirement account"
+    ],
     "seed_definition": "NPS is a government-regulated retirement savings scheme that invests contributions across equity, corporate bonds, and government securities until retirement.",
-    "related_concepts": ["retirement_corpus", "annuity"]
+    "related_concepts": [
+      "retirement_corpus",
+      "annuity"
+    ],
+    "risk_level": 4,
+    "lock_in_years": null,
+    "liquidity": "very low (locked until retirement, with limited partial withdrawals)",
+    "tax_treatment": "Additional deduction under Section 80CCD(1B) beyond the 80C limit (old regime); withdrawal is partially taxable.",
+    "min_horizon_years": 15,
+    "is_recommendable_instrument": true
   },
   {
     "id": "direct_equity",
     "canonical_name": "Direct Equity (Stocks)",
-    "aliases": ["stocks", "shares", "direct stock investing"],
+    "aliases": [
+      "stocks",
+      "shares",
+      "direct stock investing"
+    ],
     "category": "investment_vehicles",
-    "prerequisites": ["stock_exchange"],
+    "prerequisites": [
+      "stock_exchange"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["stocks", "shares", "equity investing"],
+    "keywords": [
+      "stocks",
+      "shares",
+      "equity investing"
+    ],
     "seed_definition": "Direct equity investing means buying shares of individual listed companies yourself, rather than through a pooled vehicle like a mutual fund.",
-    "related_concepts": ["stock_exchange", "ltcg", "stcg"]
+    "related_concepts": [
+      "stock_exchange",
+      "ltcg",
+      "stcg"
+    ],
+    "risk_level": 8,
+    "lock_in_years": 0,
+    "liquidity": "high",
+    "tax_treatment": "LTCG/STCG rules for equity; no Section 80C benefit.",
+    "min_horizon_years": 7,
+    "is_recommendable_instrument": true
   },
   {
     "id": "standard_deviation",
     "canonical_name": "Standard Deviation (Investment Risk)",
-    "aliases": ["SD", "risk measure"],
+    "aliases": [
+      "SD",
+      "risk measure"
+    ],
     "category": "risk_concepts",
     "prerequisites": [],
     "difficulty_floor": 2,
     "difficulty_ceiling": 8,
-    "keywords": ["standard deviation", "risk", "dispersion"],
+    "keywords": [
+      "standard deviation",
+      "risk",
+      "dispersion"
+    ],
     "seed_definition": "In investing, standard deviation measures how much an investment's returns swing above and below its average return — a common proxy for risk.",
-    "related_concepts": ["volatility"]
+    "related_concepts": [
+      "volatility"
+    ]
   },
   {
     "id": "volatility",
     "canonical_name": "Volatility",
-    "aliases": ["market volatility", "price swings"],
+    "aliases": [
+      "market volatility",
+      "price swings"
+    ],
     "category": "risk_concepts",
-    "prerequisites": ["standard_deviation"],
+    "prerequisites": [
+      "standard_deviation"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["volatility", "risk", "price fluctuation"],
+    "keywords": [
+      "volatility",
+      "risk",
+      "price fluctuation"
+    ],
     "seed_definition": "Volatility describes how much and how quickly the price of an investment moves up and down over time.",
-    "related_concepts": ["standard_deviation", "beta", "drawdown"]
+    "related_concepts": [
+      "standard_deviation",
+      "beta",
+      "drawdown"
+    ]
   },
   {
     "id": "beta",
     "canonical_name": "Beta",
-    "aliases": ["stock beta"],
+    "aliases": [
+      "stock beta"
+    ],
     "category": "risk_concepts",
-    "prerequisites": ["volatility"],
+    "prerequisites": [
+      "volatility"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 8,
-    "keywords": ["beta", "market sensitivity"],
+    "keywords": [
+      "beta",
+      "market sensitivity"
+    ],
     "seed_definition": "Beta measures how sensitive a stock's price movements are relative to the overall market — a beta above 1 means it tends to move more than the market.",
-    "related_concepts": ["volatility"]
+    "related_concepts": [
+      "volatility"
+    ]
   },
   {
     "id": "sharpe_ratio",
     "canonical_name": "Sharpe Ratio",
-    "aliases": ["risk-adjusted return"],
+    "aliases": [
+      "risk-adjusted return"
+    ],
     "category": "risk_concepts",
-    "prerequisites": ["volatility", "real_return"],
+    "prerequisites": [
+      "volatility",
+      "real_return"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 8,
-    "keywords": ["Sharpe ratio", "risk-adjusted return"],
+    "keywords": [
+      "Sharpe ratio",
+      "risk-adjusted return"
+    ],
     "seed_definition": "The Sharpe ratio measures how much extra return an investment earned for each unit of risk taken, compared to a risk-free investment.",
-    "related_concepts": ["volatility", "real_return"]
+    "related_concepts": [
+      "volatility",
+      "real_return"
+    ]
   },
   {
     "id": "drawdown",
     "canonical_name": "Drawdown",
-    "aliases": ["maximum drawdown", "peak-to-trough decline"],
+    "aliases": [
+      "maximum drawdown",
+      "peak-to-trough decline"
+    ],
     "category": "risk_concepts",
-    "prerequisites": ["volatility"],
+    "prerequisites": [
+      "volatility"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["drawdown", "peak to trough", "decline"],
+    "keywords": [
+      "drawdown",
+      "peak to trough",
+      "decline"
+    ],
     "seed_definition": "Drawdown is the drop in an investment's value from its highest point to its lowest point before it recovers, usually expressed as a percentage.",
-    "related_concepts": ["volatility"]
+    "related_concepts": [
+      "volatility"
+    ]
   },
   {
     "id": "diversification",
     "canonical_name": "Diversification",
-    "aliases": ["asset diversification", "not putting all eggs in one basket"],
+    "aliases": [
+      "asset diversification",
+      "not putting all eggs in one basket"
+    ],
     "category": "risk_concepts",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["diversification", "asset allocation", "spreading risk"],
+    "keywords": [
+      "diversification",
+      "asset allocation",
+      "spreading risk"
+    ],
     "seed_definition": "Diversification means spreading investments across different assets, sectors, or geographies so that one investment's poor performance doesn't sink the whole portfolio.",
-    "related_concepts": ["mutual_fund", "standard_deviation"]
+    "related_concepts": [
+      "mutual_fund",
+      "standard_deviation"
+    ]
   },
   {
     "id": "stock_exchange",
     "canonical_name": "Stock Exchange",
-    "aliases": ["NSE", "BSE", "share market"],
+    "aliases": [
+      "NSE",
+      "BSE",
+      "share market"
+    ],
     "category": "market_mechanics",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["NSE", "BSE", "stock exchange", "listed company"],
+    "keywords": [
+      "NSE",
+      "BSE",
+      "stock exchange",
+      "listed company"
+    ],
     "seed_definition": "A stock exchange (like the NSE or BSE in India) is a regulated marketplace where shares of listed companies are bought and sold.",
-    "related_concepts": ["direct_equity", "market_cap"]
+    "related_concepts": [
+      "direct_equity",
+      "market_cap"
+    ]
   },
   {
     "id": "settlement_cycle",
     "canonical_name": "Settlement Cycle",
-    "aliases": ["T+1 settlement"],
+    "aliases": [
+      "T+1 settlement"
+    ],
     "category": "market_mechanics",
-    "prerequisites": ["stock_exchange"],
+    "prerequisites": [
+      "stock_exchange"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 7,
-    "keywords": ["settlement", "T+1", "trade settlement"],
+    "keywords": [
+      "settlement",
+      "T+1",
+      "trade settlement"
+    ],
     "seed_definition": "The settlement cycle is the time it takes for a stock trade to be finalized — shares credited to the buyer and money credited to the seller — currently T+1 (one working day) on Indian exchanges.",
-    "related_concepts": ["stock_exchange"]
+    "related_concepts": [
+      "stock_exchange"
+    ]
   },
   {
     "id": "bid_ask_spread",
     "canonical_name": "Bid-Ask Spread",
-    "aliases": ["bid-offer spread"],
+    "aliases": [
+      "bid-offer spread"
+    ],
     "category": "market_mechanics",
-    "prerequisites": ["stock_exchange"],
+    "prerequisites": [
+      "stock_exchange"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["bid", "ask", "spread", "liquidity"],
+    "keywords": [
+      "bid",
+      "ask",
+      "spread",
+      "liquidity"
+    ],
     "seed_definition": "The bid-ask spread is the gap between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask) for a stock.",
-    "related_concepts": ["stock_exchange"]
+    "related_concepts": [
+      "stock_exchange"
+    ]
   },
   {
     "id": "market_cap",
     "canonical_name": "Market Capitalization",
-    "aliases": ["market cap", "m-cap"],
+    "aliases": [
+      "market cap",
+      "m-cap"
+    ],
     "category": "market_mechanics",
-    "prerequisites": ["stock_exchange"],
+    "prerequisites": [
+      "stock_exchange"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["market cap", "large cap", "mid cap", "small cap"],
+    "keywords": [
+      "market cap",
+      "large cap",
+      "mid cap",
+      "small cap"
+    ],
     "seed_definition": "Market capitalization is the total value of a company's shares in the market, calculated as share price multiplied by the total number of outstanding shares.",
-    "related_concepts": ["stock_exchange", "pe_ratio"]
+    "related_concepts": [
+      "stock_exchange",
+      "pe_ratio"
+    ]
   },
   {
     "id": "pe_ratio",
     "canonical_name": "P/E Ratio (Price-to-Earnings)",
-    "aliases": ["PE ratio", "price to earnings ratio"],
+    "aliases": [
+      "PE ratio",
+      "price to earnings ratio"
+    ],
     "category": "market_mechanics",
-    "prerequisites": ["market_cap"],
+    "prerequisites": [
+      "market_cap"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["PE ratio", "valuation", "earnings"],
+    "keywords": [
+      "PE ratio",
+      "valuation",
+      "earnings"
+    ],
     "seed_definition": "The P/E ratio compares a company's current share price to its earnings per share, commonly used as a quick gauge of whether a stock looks expensive or cheap.",
-    "related_concepts": ["market_cap", "dividend_yield"]
+    "related_concepts": [
+      "market_cap",
+      "dividend_yield"
+    ]
   },
   {
     "id": "dividend_yield",
     "canonical_name": "Dividend Yield",
-    "aliases": ["dividend rate"],
+    "aliases": [
+      "dividend rate"
+    ],
     "category": "market_mechanics",
-    "prerequisites": ["market_cap"],
+    "prerequisites": [
+      "market_cap"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 6,
-    "keywords": ["dividend yield", "dividend income"],
+    "keywords": [
+      "dividend yield",
+      "dividend income"
+    ],
     "seed_definition": "Dividend yield is the annual dividend a company pays per share, expressed as a percentage of its current share price.",
-    "related_concepts": ["pe_ratio"]
+    "related_concepts": [
+      "pe_ratio"
+    ]
   },
   {
     "id": "section_80c",
     "canonical_name": "Section 80C",
-    "aliases": ["80C deduction"],
+    "aliases": [
+      "80C deduction"
+    ],
     "category": "taxation_india",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["80C", "tax deduction", "old tax regime"],
+    "keywords": [
+      "80C",
+      "tax deduction",
+      "old tax regime"
+    ],
     "seed_definition": "Section 80C lets taxpayers under the old tax regime deduct up to ₹1.5 lakh per year from taxable income for investments like ELSS, PPF, and life insurance premiums.",
-    "related_concepts": ["elss", "ppf", "tax_regime_comparison"]
+    "related_concepts": [
+      "elss",
+      "ppf",
+      "tax_regime_comparison"
+    ]
   },
   {
     "id": "section_80d",
     "canonical_name": "Section 80D",
-    "aliases": ["80D deduction", "health insurance deduction"],
+    "aliases": [
+      "80D deduction",
+      "health insurance deduction"
+    ],
     "category": "taxation_india",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["80D", "health insurance", "tax deduction"],
+    "keywords": [
+      "80D",
+      "health insurance",
+      "tax deduction"
+    ],
     "seed_definition": "Section 80D allows a tax deduction under the old regime for health insurance premiums paid for yourself, family, and parents, within set limits.",
-    "related_concepts": ["section_80c"]
+    "related_concepts": [
+      "section_80c"
+    ]
   },
   {
     "id": "ltcg",
     "canonical_name": "LTCG (Long-Term Capital Gains)",
-    "aliases": ["long term capital gains"],
+    "aliases": [
+      "long term capital gains"
+    ],
     "category": "taxation_india",
-    "prerequisites": ["direct_equity"],
+    "prerequisites": [
+      "direct_equity"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["LTCG", "capital gains tax", "long-term"],
+    "keywords": [
+      "LTCG",
+      "capital gains tax",
+      "long-term"
+    ],
     "seed_definition": "LTCG is the tax on profit from selling an investment (like equity shares held over a year) that has been held longer than the threshold that qualifies it as 'long-term'.",
-    "related_concepts": ["direct_equity", "stcg"]
+    "related_concepts": [
+      "direct_equity",
+      "stcg"
+    ]
   },
   {
     "id": "stcg",
     "canonical_name": "STCG (Short-Term Capital Gains)",
-    "aliases": ["short term capital gains"],
+    "aliases": [
+      "short term capital gains"
+    ],
     "category": "taxation_india",
-    "prerequisites": ["direct_equity"],
+    "prerequisites": [
+      "direct_equity"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["STCG", "capital gains tax", "short-term"],
+    "keywords": [
+      "STCG",
+      "capital gains tax",
+      "short-term"
+    ],
     "seed_definition": "STCG is the tax on profit from selling an investment held for a short period (below the long-term threshold), generally taxed at a higher rate than LTCG.",
-    "related_concepts": ["direct_equity", "ltcg"]
+    "related_concepts": [
+      "direct_equity",
+      "ltcg"
+    ]
   },
   {
     "id": "tax_regime_comparison",
     "canonical_name": "Old vs New Tax Regime",
-    "aliases": ["new tax regime", "old tax regime"],
+    "aliases": [
+      "new tax regime",
+      "old tax regime"
+    ],
     "category": "taxation_india",
-    "prerequisites": ["section_80c"],
+    "prerequisites": [
+      "section_80c"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["tax regime", "old regime", "new regime"],
+    "keywords": [
+      "tax regime",
+      "old regime",
+      "new regime"
+    ],
     "seed_definition": "India lets taxpayers choose between the new regime (lower slab rates, almost no deductions) and the old regime (higher slab rates, but deductions like 80C and HRA), whichever results in lower tax.",
-    "related_concepts": ["section_80c", "hra", "standard_deduction"]
+    "related_concepts": [
+      "section_80c",
+      "hra",
+      "standard_deduction"
+    ]
   },
   {
     "id": "hra",
     "canonical_name": "HRA (House Rent Allowance)",
-    "aliases": ["house rent allowance"],
+    "aliases": [
+      "house rent allowance"
+    ],
     "category": "taxation_india",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["HRA", "rent exemption", "old tax regime"],
+    "keywords": [
+      "HRA",
+      "rent exemption",
+      "old tax regime"
+    ],
     "seed_definition": "HRA is a salary component that can be partly or fully tax-exempt under the old regime if the employee pays rent, based on a formula involving salary, rent paid, and city of residence.",
-    "related_concepts": ["tax_regime_comparison"]
+    "related_concepts": [
+      "tax_regime_comparison"
+    ]
   },
   {
     "id": "standard_deduction",
     "canonical_name": "Standard Deduction",
-    "aliases": ["flat deduction"],
+    "aliases": [
+      "flat deduction"
+    ],
     "category": "taxation_india",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 5,
-    "keywords": ["standard deduction", "salaried employees"],
+    "keywords": [
+      "standard deduction",
+      "salaried employees"
+    ],
     "seed_definition": "The standard deduction is a flat amount automatically subtracted from a salaried taxpayer's income before tax is calculated, available in both old and new regimes.",
-    "related_concepts": ["tax_regime_comparison"]
+    "related_concepts": [
+      "tax_regime_comparison"
+    ]
   },
   {
     "id": "emergency_fund",
     "canonical_name": "Emergency Fund",
-    "aliases": ["contingency fund", "rainy day fund"],
+    "aliases": [
+      "contingency fund",
+      "rainy day fund"
+    ],
     "category": "personal_finance",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 5,
-    "keywords": ["emergency fund", "liquidity", "safety net"],
+    "keywords": [
+      "emergency fund",
+      "liquidity",
+      "safety net"
+    ],
     "seed_definition": "An emergency fund is money set aside in an easily accessible form, usually covering 3-6 months of essential expenses, to handle unexpected events like job loss or medical emergencies.",
-    "related_concepts": ["net_worth"]
+    "related_concepts": [
+      "net_worth"
+    ]
   },
   {
     "id": "debt_trap",
     "canonical_name": "Debt Trap",
-    "aliases": ["debt spiral"],
+    "aliases": [
+      "debt spiral"
+    ],
     "category": "personal_finance",
-    "prerequisites": ["emi"],
+    "prerequisites": [
+      "emi"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["debt trap", "over-borrowing", "high-interest debt"],
+    "keywords": [
+      "debt trap",
+      "over-borrowing",
+      "high-interest debt"
+    ],
     "seed_definition": "A debt trap happens when someone borrows more to repay existing debt, and interest accumulates faster than they can pay it down, making the debt grow instead of shrink.",
-    "related_concepts": ["emi", "credit_score"]
+    "related_concepts": [
+      "emi",
+      "credit_score"
+    ]
   },
   {
     "id": "credit_score",
     "canonical_name": "Credit Score",
-    "aliases": ["CIBIL score"],
+    "aliases": [
+      "CIBIL score"
+    ],
     "category": "personal_finance",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["credit score", "creditworthiness"],
+    "keywords": [
+      "credit score",
+      "creditworthiness"
+    ],
     "seed_definition": "A credit score is a three-digit number summarizing how reliably a person has repaid past debt, used by lenders to decide loan approval and interest rates.",
-    "related_concepts": ["cibil_score", "debt_trap"]
+    "related_concepts": [
+      "cibil_score",
+      "debt_trap"
+    ]
   },
   {
     "id": "net_worth",
     "canonical_name": "Net Worth",
-    "aliases": ["personal net worth"],
+    "aliases": [
+      "personal net worth"
+    ],
     "category": "personal_finance",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 5,
-    "keywords": ["net worth", "assets", "liabilities"],
+    "keywords": [
+      "net worth",
+      "assets",
+      "liabilities"
+    ],
     "seed_definition": "Net worth is the total value of everything you own (assets) minus everything you owe (liabilities) at a given point in time.",
-    "related_concepts": ["emergency_fund"]
+    "related_concepts": [
+      "emergency_fund"
+    ]
   },
   {
     "id": "inflation",
     "canonical_name": "Inflation",
-    "aliases": ["cost of living increase"],
+    "aliases": [
+      "cost of living increase"
+    ],
     "category": "personal_finance",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["inflation", "purchasing power", "CPI"],
+    "keywords": [
+      "inflation",
+      "purchasing power",
+      "CPI"
+    ],
     "seed_definition": "Inflation is the rate at which the general price level of goods and services rises over time, eroding the purchasing power of money.",
-    "related_concepts": ["real_return", "inflation_adjusted_need"]
+    "related_concepts": [
+      "real_return",
+      "inflation_adjusted_need"
+    ]
   },
   {
     "id": "real_return",
     "canonical_name": "Real Return",
-    "aliases": ["inflation-adjusted return"],
+    "aliases": [
+      "inflation-adjusted return"
+    ],
     "category": "personal_finance",
-    "prerequisites": ["inflation"],
+    "prerequisites": [
+      "inflation"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["real return", "inflation-adjusted"],
+    "keywords": [
+      "real return",
+      "inflation-adjusted"
+    ],
     "seed_definition": "Real return is an investment's return after subtracting the effect of inflation, showing how much purchasing power was actually gained.",
-    "related_concepts": ["inflation", "sharpe_ratio"]
+    "related_concepts": [
+      "inflation",
+      "sharpe_ratio"
+    ]
   },
   {
     "id": "emi",
     "canonical_name": "EMI (Equated Monthly Instalment)",
-    "aliases": ["equated monthly instalment"],
+    "aliases": [
+      "equated monthly instalment"
+    ],
     "category": "loans",
     "prerequisites": [],
     "difficulty_floor": 1,
     "difficulty_ceiling": 6,
-    "keywords": ["EMI", "loan repayment", "monthly instalment"],
+    "keywords": [
+      "EMI",
+      "loan repayment",
+      "monthly instalment"
+    ],
     "seed_definition": "An EMI is a fixed amount paid every month toward repaying a loan, covering both principal and interest, over an agreed tenure.",
-    "related_concepts": ["amortization", "fixed_vs_floating_rate", "debt_trap"]
+    "related_concepts": [
+      "amortization",
+      "fixed_vs_floating_rate",
+      "debt_trap"
+    ]
   },
   {
     "id": "fixed_vs_floating_rate",
     "canonical_name": "Fixed vs Floating Interest Rate",
-    "aliases": ["floating rate loan", "fixed rate loan"],
+    "aliases": [
+      "floating rate loan",
+      "fixed rate loan"
+    ],
     "category": "loans",
-    "prerequisites": ["emi"],
+    "prerequisites": [
+      "emi"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["fixed rate", "floating rate", "loan interest"],
+    "keywords": [
+      "fixed rate",
+      "floating rate",
+      "loan interest"
+    ],
     "seed_definition": "A fixed interest rate stays the same for the loan tenure, while a floating rate moves up or down with market benchmark rates, changing the EMI over time.",
-    "related_concepts": ["emi"]
+    "related_concepts": [
+      "emi"
+    ]
   },
   {
     "id": "amortization",
     "canonical_name": "Loan Amortization",
-    "aliases": ["amortization schedule"],
+    "aliases": [
+      "amortization schedule"
+    ],
     "category": "loans",
-    "prerequisites": ["emi"],
+    "prerequisites": [
+      "emi"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 8,
-    "keywords": ["amortization", "principal vs interest split"],
+    "keywords": [
+      "amortization",
+      "principal vs interest split"
+    ],
     "seed_definition": "Amortization is the process of gradually paying off a loan through regular instalments, where early EMIs go mostly toward interest and later EMIs go mostly toward principal.",
-    "related_concepts": ["emi", "prepayment"]
+    "related_concepts": [
+      "emi",
+      "prepayment"
+    ]
   },
   {
     "id": "prepayment",
     "canonical_name": "Loan Prepayment",
-    "aliases": ["part-prepayment", "foreclosure"],
+    "aliases": [
+      "part-prepayment",
+      "foreclosure"
+    ],
     "category": "loans",
-    "prerequisites": ["emi", "amortization"],
+    "prerequisites": [
+      "emi",
+      "amortization"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["prepayment", "foreclosure", "reduce tenure"],
+    "keywords": [
+      "prepayment",
+      "foreclosure",
+      "reduce tenure"
+    ],
     "seed_definition": "Prepayment means paying off part or all of a loan's principal ahead of schedule, which reduces the total interest paid over the loan's life.",
-    "related_concepts": ["emi", "amortization"]
+    "related_concepts": [
+      "emi",
+      "amortization"
+    ]
   },
   {
     "id": "cibil_score",
     "canonical_name": "CIBIL Score",
-    "aliases": ["credit bureau score"],
+    "aliases": [
+      "credit bureau score"
+    ],
     "category": "loans",
-    "prerequisites": ["credit_score"],
+    "prerequisites": [
+      "credit_score"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 6,
-    "keywords": ["CIBIL", "credit bureau", "loan eligibility"],
+    "keywords": [
+      "CIBIL",
+      "credit bureau",
+      "loan eligibility"
+    ],
     "seed_definition": "The CIBIL score is India's most widely used credit score, ranging from 300 to 900, calculated by TransUnion CIBIL from a person's credit repayment history.",
-    "related_concepts": ["credit_score"]
+    "related_concepts": [
+      "credit_score"
+    ]
   },
   {
     "id": "retirement_corpus",
     "canonical_name": "Retirement Corpus",
-    "aliases": ["retirement fund target"],
+    "aliases": [
+      "retirement fund target"
+    ],
     "category": "retirement_planning",
-    "prerequisites": ["future_value"],
+    "prerequisites": [
+      "future_value"
+    ],
     "difficulty_floor": 1,
     "difficulty_ceiling": 7,
-    "keywords": ["retirement corpus", "nest egg", "retirement target"],
+    "keywords": [
+      "retirement corpus",
+      "nest egg",
+      "retirement target"
+    ],
     "seed_definition": "A retirement corpus is the total savings target a person aims to accumulate by retirement age, big enough to fund their expenses for the rest of their life.",
-    "related_concepts": ["future_value", "nps", "annuity", "withdrawal_rate"]
+    "related_concepts": [
+      "future_value",
+      "nps",
+      "annuity",
+      "withdrawal_rate"
+    ]
   },
   {
     "id": "inflation_adjusted_need",
     "canonical_name": "Inflation-Adjusted Retirement Need",
-    "aliases": ["future expense estimate"],
+    "aliases": [
+      "future expense estimate"
+    ],
     "category": "retirement_planning",
-    "prerequisites": ["retirement_corpus", "inflation"],
+    "prerequisites": [
+      "retirement_corpus",
+      "inflation"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 8,
-    "keywords": ["inflation-adjusted", "retirement need", "future expenses"],
+    "keywords": [
+      "inflation-adjusted",
+      "retirement need",
+      "future expenses"
+    ],
     "seed_definition": "Estimating retirement needs in inflation-adjusted terms means projecting today's monthly expenses forward to retirement age using an assumed inflation rate, rather than using today's rupee value.",
-    "related_concepts": ["retirement_corpus", "inflation"]
+    "related_concepts": [
+      "retirement_corpus",
+      "inflation"
+    ]
   },
   {
     "id": "annuity",
     "canonical_name": "Annuity",
-    "aliases": ["pension annuity"],
+    "aliases": [
+      "pension annuity"
+    ],
     "category": "retirement_planning",
-    "prerequisites": ["retirement_corpus"],
+    "prerequisites": [
+      "retirement_corpus"
+    ],
     "difficulty_floor": 2,
     "difficulty_ceiling": 7,
-    "keywords": ["annuity", "regular pension income"],
+    "keywords": [
+      "annuity",
+      "regular pension income"
+    ],
     "seed_definition": "An annuity is a financial product that converts a lump sum (often a retirement corpus) into a regular stream of income, typically paid monthly or yearly for life.",
-    "related_concepts": ["retirement_corpus", "nps"]
+    "related_concepts": [
+      "retirement_corpus",
+      "nps"
+    ]
   },
   {
     "id": "withdrawal_rate",
     "canonical_name": "Safe Withdrawal Rate",
-    "aliases": ["4% rule"],
+    "aliases": [
+      "4% rule"
+    ],
     "category": "retirement_planning",
-    "prerequisites": ["retirement_corpus"],
+    "prerequisites": [
+      "retirement_corpus"
+    ],
     "difficulty_floor": 3,
     "difficulty_ceiling": 8,
-    "keywords": ["withdrawal rate", "4% rule", "retirement drawdown"],
+    "keywords": [
+      "withdrawal rate",
+      "4% rule",
+      "retirement drawdown"
+    ],
     "seed_definition": "The safe withdrawal rate is the percentage of a retirement corpus that can be withdrawn each year, adjusted for inflation, with a low risk of running out of money over a long retirement.",
-    "related_concepts": ["retirement_corpus"]
+    "related_concepts": [
+      "retirement_corpus"
+    ]
   }
 ]

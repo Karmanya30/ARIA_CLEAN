@@ -241,6 +241,56 @@ def _extract_age(text: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def _extract_horizon_years(text: str) -> float | None:
+    text_lower = text.lower()
+    match = re.search(r"\b(?:in|within|over(?:\s+the\s+next)?)\s+(\d{1,2})\s*years?\b", text_lower)
+    if match:
+        return float(match.group(1))
+    match = re.search(r"\b(\d{1,2})[\s-]*years?\s*(?:horizon|time\s*frame|timeframe)\b", text_lower)
+    return float(match.group(1)) if match else None
+
+
+# Checked in this order -- first matching goal wins, so more specific
+# categories (retirement/house/education/wedding) are listed before the
+# catch-all "short_term" bucket.
+_GOAL_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "retirement": ("retire", "retirement", "pension"),
+    "house": ("house", "home", "flat", "apartment", "property"),
+    "education": ("education", "college", "school fees", "child's education", "children's education", "study abroad"),
+    "wedding": ("wedding", "marriage"),
+    "short_term": ("short term", "short-term",),
+}
+
+
+def _extract_goal(text: str) -> str | None:
+    text_lower = text.lower()
+    for goal, keywords in _GOAL_KEYWORDS.items():
+        if any(kw in text_lower for kw in keywords):
+            return goal
+    return None
+
+
+# "where/how should I invest"-style requests -- gates the extra LLM call
+# for instrument_recommender's narration (modules/finance/orchestrator.py)
+# so it only runs when actually asked for, not on every income-bearing
+# query. "how much should/can i invest" already exist in
+# _PERSONALIZATION_SIGNALS above for the income-clarification gate; they
+# belong here too since once income IS known, that phrasing is asking
+# for exactly this instrument-type breakdown, not just a bare SIP number.
+_INVESTMENT_PLAN_SIGNALS = (
+    "where should i invest", "how should i invest", "where to invest",
+    "how to invest", "start investing", "which instrument",
+    "investment options", "help me invest", "what should i invest in",
+    "invest my money", "invest my savings", "how much should i invest",
+    "how much can i invest",
+)
+
+
+def _wants_investment_plan(query: str) -> bool:
+    text = query.lower()
+    return any(signal in text for signal in _INVESTMENT_PLAN_SIGNALS)
+
+
 def _load_transactions(user_id: str) -> list[Transaction]:
     """Real transactions entered via the Profile tab (shared/user_store.py),
     if any. Without this, the LSTM spend forecaster and Isolation Forest
@@ -426,10 +476,22 @@ def _apply_facts(uid: str, sid: str, flat: dict[str, Any]) -> list[str]:
     return notes
 
 
+def _remember_plan_context(query: str, uid: str) -> None:
+    """The goal (retirement, house, ...) and horizon the user mentions are kept for the next turn's instrument plan."""
+    goal, horizon = _extract_goal(query), _extract_horizon_years(query)
+    fields = {**({"investment_goal": goal} if goal else {}), **({"horizon_years": int(horizon)} if horizon is not None and 1 <= horizon <= 60 else {})}
+    if fields:
+        try:
+            user_store.save_financial_profile(uid, **fields)
+        except ValueError:
+            pass
+
+
 def _remember(query: str, uid: str, sid: str, stated: dict | None = None) -> list[str]:
     flat = {**_regex_facts(query), **_llm_facts(query)}
     if stated is not None:
         stated.update(flat)  # the caller overlays these on the saved profile for this answer
+    _remember_plan_context(query, uid)
     return _apply_facts(uid, sid, flat)
 
 
@@ -454,6 +516,9 @@ def _try_build_financial_profile(query: str, user_id: str, sid: str | None = Non
         "emergency_fund_months": engine.snapshot(saved)["emergency_months"] or 0.0,
         "city_tier": saved.get("city_tier") or 1,
         "tax_regime": saved.get("tax_regime") or "new",
+        # drive instrument_recommender's horizon-fit scoring; None = not stated (the scorer then skips horizon adjustments)
+        "goal": _extract_goal(query) or saved.get("investment_goal") or "general",
+        "horizon_years": _extract_horizon_years(query) if _extract_horizon_years(query) is not None else (saved.get("horizon_years") if isinstance(saved.get("horizon_years"), (int, float)) else None),
     }
     return UserFinancialInput(user_id=user_id, transactions=_load_transactions(user_id), **profile)
 
@@ -773,23 +838,39 @@ def _run_tool(query: str, uid: str, sid: str, tool: str, args: dict, stated: dic
 def _legacy(query: str, user_id: str, sid: str) -> dict[str, Any]:
     profile = _try_build_financial_profile(query, user_id, sid)
     if profile is not None:
-        m1_response = m1_orchestrator.run(profile)
+        # Instrument-plan narration is a second LLM call -- only pay for
+        # it when the query actually asked "where/how should I invest",
+        # not on every income-bearing query (e.g. "what is my risk
+        # profile" shouldn't silently double the LLM calls it makes).
+        wants_plan = _wants_investment_plan(query)
+        m1_response = m1_orchestrator.run(profile, include_investment_plan_narrative=wants_plan)
         user_store.save_financial_profile(
             user_id,
             risk_label=m1_response.risk.label,
             risk_confidence=m1_response.risk.confidence,
             risk_top_features=json.dumps(m1_response.risk.top_features),
         )
+        # When the user specifically asked about investment options, that
+        # narrative -- not the generic risk/SIP summary -- is the more
+        # relevant primary response; natural_language is still returned
+        # separately so nothing is lost.
+        response_text = (
+            m1_response.investment_plan_narrative
+            if wants_plan and m1_response.investment_plan_narrative
+            else m1_response.natural_language
+        )
         return {
             "domain": "finance",
             "query": query,
-            "response": m1_response.natural_language,
+            "response": response_text,
+            "natural_language": m1_response.natural_language,
             "risk": m1_response.risk.model_dump(),
             "sip_plan": m1_response.sip_plan.model_dump(),
             "budget": m1_response.budget.model_dump(),
             "tax": m1_response.tax.model_dump(),
             "anomalies": [a.model_dump() for a in m1_response.anomalies],
             "forecast": [f.model_dump() for f in m1_response.forecast],
+            "investment_plan": [rec.model_dump() for rec in m1_response.investment_plan],
         }
     return _freeform(query)
 
@@ -831,7 +912,9 @@ def run_pipeline(query: str, user_id: str = "default", *, intent_query: str | No
     stated: dict[str, Any] = {}
     notes = _remember(query, uid, sid, stated)
     hit = finance_intent(intent_query or query)
-    ack = not hit and notes and finance_statement(query)
+    if hit and _wants_investment_plan(query) and "how much" not in query.lower():
+        hit = None  # "where should I invest for retirement" asks which instruments, not for the retirement corpus maths
+    ack = not hit and notes and finance_statement(query) and not _wants_investment_plan(query)  # "I earn 80k, where should I invest" is a question
     if ack:
         result, notes = _acknowledge(query, uid, notes, sid), []
     else:
