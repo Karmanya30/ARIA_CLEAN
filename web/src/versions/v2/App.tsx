@@ -68,7 +68,7 @@ export default function App() {
   const [instrumentId, setInstrumentId] = useState<string | null>(null) // any instrument opened from search / Explore, shown in its drawer
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null) // opened from the ticker tape, shown by the Markets tab drawer
   // Vitara Clear uses shorter tab names so the whole bar fits at laptop widths
-  const tabs = tabsFor(theme).map((t) => (theme === 'vitara-clear' && SHORT_LABEL[t.id] ? { ...t, label: SHORT_LABEL[t.id] } : t))
+  const tabs = tabsFor(theme).map((t) => (SHORT_LABEL[t.id] ? { ...t, label: SHORT_LABEL[t.id] } : t)) // short labels everywhere so the whole bar fits without scrolling
   const prevLabel = tabs.find((t) => t.id === prev)?.label
   const askInChat = (q: string) => { setPendingAsk(q); setTab('chat') }
 

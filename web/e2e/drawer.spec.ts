@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test('history is a left panel on the Chat page only, and lists chats from every mode', async ({ page }) => {
   const owner = 'drawer-' + Date.now()
   await page.addInitScript((o) => { for (const n of ['SpeechRecognition', 'webkitSpeechRecognition']) Object.defineProperty(window, n, { value: undefined }); localStorage.setItem('aria_owner_id', o); localStorage.setItem('aria_version', 'v2') }, owner)
-  await page.goto('/')
+  await page.goto('/#/chat')
   await page.getByRole('button', { name: 'Leave meeting' }).click({ timeout: 8000 }).catch(() => {})
   const sid = await page.evaluate(() => localStorage.getItem('aria_session_id'))
   await page.request.post('/api/chat', { data: { query: 'You are a market news analyst. 1. x User question: when was this result out?', session_id: sid, owner_id: owner, request_id: crypto.randomUUID() } })

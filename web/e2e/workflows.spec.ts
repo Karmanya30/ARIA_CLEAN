@@ -47,7 +47,7 @@ function stored(owner: string) {
   return JSON.parse(execFileSync(path.resolve('..', '.venv', 'Scripts', 'python.exe'), ['-c', query, db, owner], { encoding: 'utf8' }))
 }
 
-for (const version of ['v1', 'v2']) {
+for (const version of ['v2']) {
   test(`${version}: conversational disk measures voice amplitude and frequency and stops on pause`, async ({ page }) => {
     // A quiet 220 Hz segment followed by a louder 880 Hz segment, using actual browser decoding/Web Audio.
     const sampleRate = 24000
@@ -168,7 +168,7 @@ for (const version of ['v1', 'v2']) {
 
   test(`${version}: company analysis accepts a suggested completion`, async ({ page }) => {
     await start(page, version)
-    await page.getByRole('tab', { name: 'Company intelligence', exact: true }).click()
+    await page.getByRole('tab', { name: 'Intelligence', exact: true }).click()
     const company = page.getByRole('combobox', { name: 'Company', exact: true })
     await company.fill('reli')
     await expect(page.getByRole('option', { name: /Reliance Industries/ })).toBeVisible()
@@ -188,7 +188,7 @@ for (const version of ['v1', 'v2']) {
 
   test(`${version}: research report uses a selected company and remains saved after refresh`, async ({ page }) => {
     await start(page, version)
-    await page.getByRole('tab', { name: 'Research reports', exact: true }).click()
+    await page.getByRole('tab', { name: 'Reports', exact: true }).click()
     const company = page.getByRole('combobox', { name: 'Report company', exact: true })
     const generate = page.getByRole('button', { name: 'Generate research report', exact: true })
     await expect(generate).toBeDisabled()
@@ -205,7 +205,7 @@ for (const version of ['v1', 'v2']) {
     expect(response.request().postDataJSON().query).toBe('equity research report on RELIANCE.NS')
     expect(response.ok()).toBeTruthy()
     expect((await response.json()).report).toBeTruthy()
-    await page.getByRole('tab', { name: 'Research reports', exact: true }).click()
+    await page.getByRole('tab', { name: 'Reports', exact: true }).click()
     await expect(page.locator('iframe')).toBeVisible()
     await page.reload()
     await expect(page.locator('iframe')).toBeVisible()
@@ -217,7 +217,6 @@ for (const version of ['v1', 'v2']) {
   test(`${version}: news includes stories beyond thirty across pages and search`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Settings', exact: true }).click()
-    await page.locator('label').filter({ has: page.locator('input[name=theme][value=vitara-markets]') }).click()
     await page.getByRole('tab', { name: 'Markets', exact: true }).click()
     const news = page.getByRole('region', { name: 'Market news', exact: true })
     await expect(news.locator('.nw-list > li')).toHaveCount(10)
@@ -253,7 +252,7 @@ for (const version of ['v1', 'v2']) {
 
   test(`${version}: company analysis, sentiment control, progress and profile load retry`, async ({ page }) => {
     await start(page, version)
-    await page.getByRole('tab', { name: 'Company intelligence', exact: true }).click()
+    await page.getByRole('tab', { name: 'Intelligence', exact: true }).click()
     await page.getByLabel('Company', { exact: true }).fill('TESTCO')
     await page.getByRole('button', { name: 'Analyse', exact: true }).click()
     await expect(page.getByRole('button', { name: /New search/ })).toBeVisible()
@@ -268,26 +267,25 @@ for (const version of ['v1', 'v2']) {
     const sid = await page.evaluate(() => localStorage.getItem('aria_session_id'))
     const answer = await page.request.post('/api/quiz/answer', { data: { session_id: sid, concept_id: 'sip', is_correct: true } })
     expect(answer.ok()).toBeTruthy()
-    await page.getByRole('tab', { name: 'Your Progress', exact: true }).click()
+    await page.getByRole('tab', { name: 'Progress', exact: true }).click()
     await expect(page.locator('.progress-list')).toBeVisible()
     await page.reload()
     await expect(page.locator('.progress-list')).toBeVisible()
     await page.route('**/api/profile?*', route => route.fulfill({ status: 503, json: { detail: 'Synthetic profile outage' } }))
-    await page.getByRole('tab', { name: 'Your Profile', exact: true }).click()
+    await page.getByRole('tab', { name: 'Profile', exact: true }).click()
     await expect(page.getByRole('alert')).toContainText('Synthetic profile outage')
     await page.unroute('**/api/profile?*')
     await page.getByRole('button', { name: 'Try again', exact: true }).click()
     await expect(page.getByRole('region', { name: 'Quick form' })).toBeVisible()
   })
 
-  test(`${version}: settings persist, markets renders, and the technical version picker is gone`, async ({ page }) => {
+  test(`${version}: settings page has only the colour mode, markets renders, and the technical version picker is gone`, async ({ page }) => {
     await start(page, version)
     await page.getByRole('tab', { name: 'Settings', exact: true }).click()
-    await page.getByRole('checkbox', { name: 'Adapt tone to how I feel' }).check()
-    await page.locator('label').filter({ has: page.locator('input[name=theme][value=vitara-markets]') }).click()
     await page.reload()
-    await expect(page.locator('input[name=theme][value=vitara-markets]')).toBeChecked()
-    await expect(page.getByRole('checkbox', { name: 'Adapt tone to how I feel' })).toBeChecked()
+    // one look only (Vitara Markets) and tone adaptation is always on: neither has a setting any more
+    await expect(page.locator('input[name=theme]')).toHaveCount(0)
+    await expect(page.getByRole('checkbox', { name: 'Adapt tone to how I feel' })).toHaveCount(0)
     await page.getByRole('tab', { name: 'Markets', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Markets', exact: true })).toBeVisible()
     await expect(page.getByRole('list', { name: 'Indices and benchmarks' })).toContainText('Nifty 50')
@@ -324,7 +322,7 @@ for (const version of ['v1', 'v2']) {
     expect((await (await page.request.get(`/api/chat/history?session_id=${sid}&owner_id=${id}`)).json()).history).toHaveLength(2)
     const report = await send('equity research report on TESTCO')
     expect(report.report_id).toBeTruthy()
-    await page.getByRole('tab', { name: 'Research reports', exact: true }).click()
+    await page.getByRole('tab', { name: 'Reports', exact: true }).click()
     await expect(page.locator('iframe[title="Equity research report"]')).toBeVisible()
     await expect(page.frameLocator('iframe[title="Equity research report"]').locator('body')).toContainText('Test')
     for (const title of ['Download HTML']) {

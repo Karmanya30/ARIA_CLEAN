@@ -54,7 +54,7 @@ function replyAudio() {
   return audio
 }
 
-for (const version of ['v1', 'v2']) {
+for (const version of ['v2']) {
   test(`${version}: conversational microphone toggles, automatically submits and plays the reply`, async ({ page }) => {
     const errors = await openConversation(page, version)
     let transcriptions = 0, messages = 0

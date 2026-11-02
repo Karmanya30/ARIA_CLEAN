@@ -2,43 +2,20 @@ import { useEffect, useReducer } from 'react'
 
 export type ThemeId = 'classic' | 'vitara' | 'vitara-markets' | 'vitara-clear'
 
+// One look only: Vitara Markets (the other looks and the version picker were removed). The union type is kept so existing code compiles.
 export const THEMES: { id: ThemeId; label: string; blurb: string }[] = [
-  { id: 'classic', label: 'Classic', blurb: 'The original ARIA look: left sidebar, cool blue accent, compact cards.' },
-  {
-    id: 'vitara',
-    label: 'Vitara',
-    blurb: 'Warm ivory canvas, top navigation bar, rounded pill controls and a deep green accent.',
-  },
   { id: 'vitara-markets', label: 'Vitara Markets', blurb: 'Vitara with a live markets dashboard, ticker tape and charts.' },
-  {
-    id: 'vitara-clear',
-    label: 'Vitara Clear',
-    blurb: 'A calmer, clearer Vitara: roomier type and spacing, higher contrast, gentle motion, search up front and a night mode.',
-  },
 ]
 
 /** Themes that show the Markets tab and the Light/Night switch. */
 export const hasMarkets = (id: ThemeId) => id === 'vitara-markets' || id === 'vitara-clear'
 
-// index.html applies the saved value before first paint (no flash) -- keep the key in sync there.
-const KEY = 'aria_theme'
-
 export function getTheme(): ThemeId {
-  try {
-    const saved = localStorage.getItem(KEY)
-    return THEMES.find((t) => t.id === saved)?.id ?? 'classic'
-  } catch {
-    return 'classic'
-  }
+  return 'vitara-markets'
 }
 
 export function setTheme(id: ThemeId) {
   document.documentElement.dataset.theme = id
-  try {
-    localStorage.setItem(KEY, id)
-  } catch {
-    // Storage blocked (private window etc.): the choice still applies until the tab is closed.
-  }
 }
 
 // ── Colour mode (Vitara Markets and Vitara Clear; the CSS rules are scoped to those themes) ──────────────
