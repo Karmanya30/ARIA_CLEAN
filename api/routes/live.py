@@ -262,7 +262,7 @@ def avatar_presenter(clip: str) -> FileResponse:
     path = _AVATAR_DIR / f"presenter-{clip}.mp4"
     if not path.exists():
         raise HTTPException(status_code=404, detail="Presenter clips are not installed.")
-    return FileResponse(path, media_type="video/mp4", headers={"Cache-Control": "public, max-age=86400"})
+    return FileResponse(path, media_type="video/mp4", headers={"Cache-Control": "no-cache"})  # always revalidate: a day-long cache kept showing an earlier version of the clips
 
 
 @router.get("/avatar/glasses.png")
