@@ -27,6 +27,11 @@ COPY requirements.txt requirements-security.txt ./
 RUN pip install torch==2.13.0 --extra-index-url https://download.pytorch.org/whl/cpu \
     && pip install -r requirements.txt
 
+# The default query routing (adaptive) imports langgraph for multi-part questions; without it every answer fails.
+# Its own layer, so the torch layer above stays cached.
+COPY requirements-intent.txt ./
+RUN pip install -r requirements-intent.txt
+
 COPY . .
 COPY --from=web /web/dist web/dist
 

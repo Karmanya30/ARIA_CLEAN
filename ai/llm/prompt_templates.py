@@ -204,6 +204,7 @@ RULES:
 - No extra sections
 - No brand names
 - Use Indian examples
+- In the ₹ example, state the final total, and work the arithmetic out step by step before giving it
 
 Stop after CAUSAL.
 """
