@@ -47,10 +47,11 @@ from musetalk.utils.face_parsing import FaceParsing  # noqa: E402
 from musetalk.utils.utils import datagen, load_all_model  # noqa: E402
 
 FPS, EXTRA_MARGIN, MIN_SIDE, MAX_OUT = 25, 10, 640, 1440
+SHARPEN = 0.7  # unsharp amount on the generated face: the VAE output is softer than the camera footage around it (set per request with ?sharpen=)
 SRC_FPS = 25  # frame rate of a video source (the lip-sync source is cut at 25 fps)
 torch.backends.cudnn.benchmark = True  # fixed-size batches: let cuDNN pick the fastest kernels once
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start", "X-Cursor"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start", "X-Cursor", "X-Render-S"])
 S: dict = {"ready": False}
 gpu = threading.Lock()
 _turns, _tickets, _serving = threading.Condition(), itertools.count(), 0  # requests use the GPU strictly in arrival order
@@ -59,11 +60,11 @@ _turns, _tickets, _serving = threading.Condition(), itertools.count(), 0  # requ
 def _load_models(batch: int) -> None:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     vae, unet, pe = load_all_model(unet_model_path="./models/musetalkV15/unet.pth", vae_type="sd-vae",
-                                   unet_config="./models/musetalkV15/musetalk.json", device=device)
+                                   unet_config="./models/musetalkV15/musetalk.json", device="cpu")  # converted to half on the CPU, then moved: the fp32 copies never sit on a small GPU
     pe = pe.half().to(device)
     vae.vae = vae.vae.half().to(device)
     unet.model = unet.model.half().to(device)
-    whisper = WhisperModel.from_pretrained("./models/whisper").to(device=device, dtype=unet.model.dtype).eval()
+    whisper = WhisperModel.from_pretrained("./models/whisper").to(dtype=unet.model.dtype).to(device).eval()
     whisper.requires_grad_(False)
     S.update(device=device, vae=vae, unet=unet, pe=pe, whisper=whisper, batch=batch,
              audio=AudioProcessor(feature_extractor_path="./models/whisper"), dtype=unet.model.dtype,
@@ -159,7 +160,10 @@ def _blend(k: int, face: np.ndarray, A: dict, raw: bool = False):
     xs, ys, xe, ye = A["mask_boxes"][k]
     base = A["frames"][k][ys:ye, xs:xe]
     patch = base.copy()
-    patch[y1 - ys:y2 - ys, x1 - xs:x2 - xs] = cv2.resize(face.astype(np.uint8), (x2 - x1, y2 - y1))
+    gen = cv2.resize(face.astype(np.uint8), (x2 - x1, y2 - y1), interpolation=cv2.INTER_LANCZOS4)
+    if SHARPEN:  # MuseTalk decodes a 256 px face: restore the fine detail (lips, teeth) the decoder smooths away
+        gen = cv2.addWeighted(gen, 1 + SHARPEN, cv2.GaussianBlur(gen, (0, 0), 1.0), -SHARPEN, 0)
+    patch[y1 - ys:y2 - ys, x1 - xs:x2 - xs] = gen
     alpha = A["alpha"][k]
     out = (patch.astype(np.float32) * alpha + base.astype(np.float32) * (1 - alpha)).astype(np.uint8)
     if A.get("full"):
@@ -293,17 +297,18 @@ async def lipsync(request: Request):
     return StreamingResponse(_generate(wav, next(_tickets), A, start), media_type="application/octet-stream", headers={"X-Fps": str(FPS)})
 
 
-def _video_bytes(wav: bytes, A: dict, start: int | None, gen_fps: int) -> tuple[bytes, int]:
+def _video_bytes(wav: bytes, A: dict, start: int | None, gen_fps: int) -> tuple[bytes, int, float]:
     """The whole phrase as one silent H.264 clip (the page plays it beside its own audio clock): frames are generated, then encoded once,
     so playback is a plain <video> with no per-frame drawing in the page. Returns (mp4, loop position where the next phrase continues)."""
     h, w = A["frames"][0].shape[:2]
     fps = SRC_FPS
     gen = _generate(wav, next(_tickets), A, start, gen_fps, raw=True, out_fps=fps)
     count = struct.unpack("<I", next(gen))[0]
+    t_render = time.perf_counter()  # the GPU turn has come: from here it is rendering, not queueing
     with tempfile.TemporaryDirectory() as d:
         out = os.path.join(d, "a.mp4")
         ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{w}x{h}", "-framerate", str(fps), "-i", "-",
-                               "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", out],
+                               "-c:v", "libx264", "-preset", "veryfast", "-crf", "15", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", out],
                               stdin=subprocess.PIPE)
         n = 0
         try:
@@ -315,22 +320,25 @@ def _video_bytes(wav: bytes, A: dict, start: int | None, gen_fps: int) -> tuple[
             ff.wait()
         if n != count or ff.returncode:
             raise RuntimeError(f"video encode failed ({n}/{count} frames, ffmpeg exit {ff.returncode})")
-        return open(out, "rb").read(), A["cursor"]
+        return open(out, "rb").read(), A["cursor"], time.perf_counter() - t_render
 
 
 @app.post("/lipsync_video")
-def lipsync_video(body: bytes = Body(...), avatar: str = "video", start: int | None = None, fps: int = 15):
+def lipsync_video(body: bytes = Body(...), avatar: str = "video", start: int | None = None, fps: int = 15, sharpen: float | None = None):
     """The New ARIA Avatar's answer as a video: POST the speech WAV, get a silent 25 fps MP4 (the source's own rate, so the head moves smoothly).
     fps = mouth frames generated per second of speech (10..25): fewer is faster to produce, 25 is the finest mouth movement."""
     A = S["avatars"].get(avatar)
     if not A or not A.get("full"):
         return Response("this avatar has no video mode", status_code=400)
+    global SHARPEN
     fps = max(10, min(fps, 25))
+    if sharpen is not None:
+        SHARPEN = max(0.0, min(sharpen, 3.0))  # a tuning knob; the default is set above
     try:
-        mp4, cursor = _video_bytes(body, A, start, fps)
+        mp4, cursor, render_s = _video_bytes(body, A, start, fps)
     except Exception as exc:
         return Response(str(exc), status_code=500)
-    return Response(mp4, media_type="video/mp4", headers={"X-Fps": str(SRC_FPS), "X-Gen-Fps": str(fps), "X-Cursor": str(cursor)})
+    return Response(mp4, media_type="video/mp4", headers={"X-Fps": str(SRC_FPS), "X-Gen-Fps": str(fps), "X-Cursor": str(cursor), "X-Render-S": f"{render_s:.2f}"})
 
 
 @app.get("/idle.jpg")
