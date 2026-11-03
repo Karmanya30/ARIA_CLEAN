@@ -13,3 +13,4 @@ services:
 
 volumes:
   aria-data:
+    name: aria-data   # fixed name, so the backup command in docs/DEPLOYMENT.md does not depend on the folder name
