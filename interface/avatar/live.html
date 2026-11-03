@@ -519,9 +519,13 @@ async function videoSpeaker() {
 }
 
 // "New ARIA Avatar" with real lip-sync (GPU): each phrase of ARIA's answer is sent to the MuseTalk server (the same one as the original
-// avatar's), which renders the whole phrase as a short silent video (/lipsync_video, 25 frames a second, the source's own rate, whole scene; the mouth is generated at 12).
-// The page plays it in a plain <video> on top of the held frame, started in step with the audio clock, so there is no per-frame drawing to
-// stutter. Consecutive phrases carry on from where the last one ended; every turn starts from the held frame and she settles back on it.
+// avatar's), which renders the whole phrase as a short silent video (/lipsync_video, 25 frames a second, the source's own rate, whole scene).
+// The page plays it in a plain <video> on top of the held frame, started just ahead of the voice and kept on the audio clock, so there is
+// no per-frame drawing to stutter. Every phrase is requested the moment its voice arrives (the server renders them in order), and the
+// answer starts only when the renders are far enough ahead of the voice that the next phrase will be ready at the full stop: the pause
+// between sentences is then only the pause in the voice. While more phrases are still being rendered she keeps her speaking face (the last
+// frame of the phrase) instead of dropping back to the held frame. Consecutive phrases carry on from where the last one ended; every answer
+// starts from the held frame and she fades back to it when she stops.
 // If the server is not running (or was started before this avatar existed), videoSpeaker() above is used, with a note.
 async function lipSyncVideoSpeaker() {
   const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
@@ -530,22 +534,58 @@ async function lipSyncVideoSpeaker() {
   if (!health.ready || !health.avatars || !health.avatars.video) throw new Error("the lip-sync server is not running, or was started before the New ARIA Avatar existed");
   const base = await videoSpeaker();
   const ctx = base.ctx, analyser = base.analyser, stage = $("avatar");
-  let clips = [], sources = [], endAt = 0, pending = 0, gen = 0, ctl = new AbortController(), prevBegun = Promise.resolve(), alive = true;
-  const stats = { clips: 0, dropped: 0, total: 0, latency: [] };
+  let queue = [], clips = [], sources = [], endAt = 0, gen = 0, ctl = new AbortController(), alive = true, waitTimer = 0, rho = 0.9, overhead = 0.4;
+  let lastClipEnd = 0, lastTurn = null;
+  const stats = { clips: 0, dropped: 0, total: 0, latency: [], gaps: [], waits: [], rho: () => rho, newAnswer: () => { lastTurn = null; } };  // newAnswer: for tests that play several answers under one turn
+  const MAX_WAIT = 3000, KEEP_FACE = 8000;  // ms: the longest she waits for a lead on the renders / holds the speaking face while a render is still coming
 
   function drop(c) { try { c.video.pause(); } catch (e) {} c.video.remove(); URL.revokeObjectURL(c.url); }
+  const est = (p) => rho * p.dur + overhead;  // how long the server needs for a phrase
+  // Is the render far enough ahead? Phrases render one after another; each must be ready before the voice reaches it.
+  function leadOK(now) {
+    let need = 0, have = 0;
+    for (const p of queue) {
+      if (p.state === "render") { need += est(p); if (need > have + 0.05) return false; }
+      have += p.dur;
+    }
+    return true;
+  }
+  function pump() {
+    clearTimeout(waitTimer);
+    if (!alive) return;
+    while (queue.length && queue[0].state !== "render") {
+      const head = queue[0];
+      const playing = ctx.currentTime < endAt - 0.01;
+      if (!playing && !leadOK() && performance.now() - head.readyAt < MAX_WAIT) {
+        waitTimer = setTimeout(pump, Math.max(50, MAX_WAIT - (performance.now() - head.readyAt)));
+        return;
+      }
+      queue.shift();
+      schedule(head);
+    }
+  }
+  function schedule(p) {
+    const now = ctx.currentTime;
+    const at = Math.max(now + 0.05, endAt);
+    if (lastTurn === p.turn && endAt > 0) stats.gaps.push(Math.max(0, Math.round((at - endAt) * 1000)));  // ms of silence between the end of the last phrase and this one
+    else stats.waits.push(Math.round(performance.now() - p.readyAt));  // a new answer: how long the first phrase waited for the renders to get ahead
+    lastTurn = p.turn;
+    const src = ctx.createBufferSource(); src.buffer = p.buffer; src.connect(analyser);
+    src.start(at); endAt = at + p.buffer.duration;
+    scheduleCaption(p.text, at, p.buffer.duration, p.turn);
+    sources.push(src); src.onended = () => { sources = sources.filter((x) => x !== src); };
+    if (p.clip) { p.clip.start = at; clips.push(p.clip); }
+  }
   function playClip(buffer, text, raw) {
-    const myGen = gen, signal = ctl.signal, forTurn = turn;
-    const before = prevBegun;
-    let markBegun;
-    prevBegun = new Promise((ok) => (markBegun = ok));
-    const continuing = pending > 0 || ctx.currentTime < endAt - 0.01;  // the same answer carries on: the server continues the head movement
-    pending += 1;
+    const myGen = gen, signal = ctl.signal;
+    const continuing = queue.length > 0 || ctx.currentTime < endAt - 0.01;  // the same answer carries on: the server continues the head movement
+    const p = { buffer, text, turn, dur: buffer.duration, state: "render", clip: null, readyAt: 0 };
+    queue.push(p);
+    const t0 = performance.now();
+    const fps = rho > 0.95 ? 10 : FPSV;  // a slow server: coarser mouth, faster render
     (async () => {
-      let scheduled = false, clip = null;
-      const t0 = performance.now();
       try {
-        const res = await fetch(`${BASE}/lipsync_video?avatar=video&fps=${FPSV}${continuing ? "" : `&start=${base.HOLD}`}`, { method: "POST", body: raw, signal });
+        const res = await fetch(`${BASE}/lipsync_video?avatar=video&fps=${fps}${continuing ? "" : `&start=${base.HOLD}`}`, { method: "POST", body: raw, signal });
         if (!res.ok) throw new Error("Lip-sync service unavailable");
         const url = URL.createObjectURL(await res.blob());
         const video = document.createElement("video");
@@ -553,32 +593,19 @@ async function lipSyncVideoSpeaker() {
         video.setAttribute("aria-hidden", "true");
         video.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;opacity:0;transition:opacity 90ms linear";
         stage.appendChild(video);
-        clip = { video, url, start: 0, dur: buffer.duration, state: "wait" };
+        p.clip = { video, url, start: 0, dur: buffer.duration, state: "wait" };
         await new Promise((ok, bad) => { video.addEventListener("loadeddata", ok, { once: true }); video.addEventListener("error", () => bad(new Error("video error")), { once: true }); });
-        await before;  // phrases keep their order
-        if (myGen !== gen) return;
-        const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
-        clip.start = Math.max(ctx.currentTime + 0.05, endAt); src.start(clip.start); endAt = clip.start + buffer.duration;
-        scheduled = true;
-        stats.latency.push(Math.round(performance.now() - t0));
-        scheduleCaption(text, clip.start, buffer.duration, forTurn);
-        sources.push(src); clips.push(clip);
-        src.onended = () => { sources = sources.filter((s) => s !== src); };
-        markBegun();
+        if (myGen !== gen) { drop(p.clip); return; }
+        const took = (performance.now() - t0) / 1000, rs = +res.headers.get("X-Render-S");
+        if (rs > 0) rho = 0.6 * rho + 0.4 * Math.max(0.2, rs / buffer.duration);  // the server's own render time (not the queue): seconds of rendering per second of speech
+        stats.latency.push(Math.round(took * 1000));
       } catch (e) {
         if (e.name !== "AbortError") console.error(e);
-        if (myGen === gen) {  // the server failed for this phrase: still say it, with the stable face
-          await before;
-          if (myGen !== gen || scheduled) return;
-          const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(analyser);
-          const at = Math.max(ctx.currentTime + 0.03, endAt); src.start(at); endAt = at + buffer.duration;
-          scheduleCaption(text, at, buffer.duration, forTurn);
-          sources.push(src); src.onended = () => { sources = sources.filter((s) => s !== src); };
-        }
-      } finally {
-        if (clip && !scheduled) drop(clip);
-        markBegun(); pending -= 1;
+        if (p.clip) { drop(p.clip); p.clip = null; }  // the server failed for this phrase: it is still said, with the stable face
       }
+      if (myGen !== gen) return;
+      p.state = "ready"; p.readyAt = performance.now();
+      pump();
     })();
   }
   function tick() {
@@ -594,26 +621,33 @@ async function lipSyncVideoSpeaker() {
         const drift = v.currentTime - Math.max(at, 0);
         if (!v.ended && Math.abs(drift) > 0.15) v.currentTime = Math.max(at, 0);  // the video follows the audio clock, never the other way round
         if (at >= c.dur) {
-          c.state = "done"; v.pause();
+          c.state = "done"; v.pause(); c.doneAt = performance.now();
           if (c.q0) { const q = v.getVideoPlaybackQuality(); stats.dropped += q.droppedVideoFrames - c.q0.droppedVideoFrames; stats.total += q.totalVideoFrames - c.q0.totalVideoFrames; }
-          if (!clips.some((o) => o !== c && o.state !== "done" && o.start < c.start + c.dur + 0.3)) v.style.opacity = "0";  // back to the held frame
-          setTimeout(() => drop(c), 600);
+          lastClipEnd = performance.now();
+          c.hold = true;  // stays on screen (its last frame) while the next phrase is still being rendered
         }
       }
     }
-    clips = clips.filter((c) => c.state !== "done");
+    // a finished phrase stays visible while the next one is on its way (or about to start), then she fades back to the held frame
+    const more = queue.length > 0 || clips.some((o) => o.state !== "done" && o.state !== "gone");
+    for (const c of clips) {
+      if (c.state === "done" && c.hold && (!more || performance.now() - c.doneAt > KEEP_FACE)) { c.hold = false; c.state = "gone"; c.video.style.opacity = "0"; setTimeout(() => drop(c), 600); }
+      else if (c.state === "done" && more && clips.some((o) => o !== c && o.state === "play" && o.video.currentTime > 0.05)) { c.state = "gone"; setTimeout(() => drop(c), 200); }  // the next phrase is showing: the old one can go
+    }
+    clips = clips.filter((c) => c.state !== "gone");
   }
   requestAnimationFrame(tick);
   return {
     kind: "video-lipsync", ctx, analyser, blinkNow() {}, express() {}, pose: base.pose, current: base.current, stats,
     play(buffer, text, raw) { playClip(buffer, text, raw); },
     stop() {
-      gen += 1; ctl.abort(); ctl = new AbortController(); prevBegun = Promise.resolve();
+      gen += 1; ctl.abort(); ctl = new AbortController(); clearTimeout(waitTimer);
       for (const s of sources) { try { s.stop(); } catch (e) {} }
       clips.forEach((c) => { c.video.style.opacity = "0"; setTimeout(() => drop(c), 200); });
-      sources = []; clips = []; endAt = 0; base.stop();
+      queue.forEach((p) => p.clip && drop(p.clip));
+      sources = []; clips = []; queue = []; endAt = 0; base.stop();
     },
-    busy() { return pending > 0 || ctx.currentTime < endAt - 0.01; },
+    busy() { return queue.length > 0 || ctx.currentTime < endAt - 0.01; },
     dispose() { alive = false; this.stop(); base.dispose(); },
   };
 }
