@@ -25,7 +25,7 @@ requests==2.34.2
 beautifulsoup4==4.14.3
 openai-whisper==20250625
 imageio-ffmpeg==0.6.0
-edge-tts==7.2.8
+edge-tts==7.3.1  # 7.2.8 gets 403 from Microsoft (stale client version); bump when it does again
 piper-tts==1.8.0  # Live Avatar voice (local, free); voice files: python -m ai.speech.live_tts --download
 pyttsx3==2.99
 loguru==0.7.3
