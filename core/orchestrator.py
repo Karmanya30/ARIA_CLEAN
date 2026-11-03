@@ -129,6 +129,10 @@ def _scope_refusal(query: str, shown: str, session_id: str) -> dict[str, Any] | 
     q = query.lower()
     if get_session(session_id).get("history") and len(q.split()) <= 6:
         return None  # a short follow-up inherits the topic of the conversation
+    if re.search(r"\b(who are you|what are you|what can you|what do you|how can you|how do you|can you help|your (name|purpose|features?|capabilit\w+))\b", q):
+        return None  # questions about ARIA itself
+    if re.search(r"financ|money|saving|budget|invest|loan|tax|bank|insur|retire|income|salary|debt|credit|stock|econom|inflation|interest|business|compan|rupee|₹|mutual fund|portfolio", q):
+        return None
     if _FINANCE_TERMS.search(q) or classify_intent(query) in ("finance", "market") or is_finance_concept_question(query):
         return None
     verdict = domain_guard.classify_domain(query)
@@ -143,6 +147,10 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
     """Route a user query (already spelling-corrected) to the correct module pipeline. `original` is what the user typed:
     it is what history and the response show."""
     shown = original or query
+
+    if (not get_session(session_id).get("finance_pending") and not active_focus.get() and not _is_smalltalk(query) and not resolve_company(query)
+            and not finance_intent(query) and not finance_statement(query) and (refusal := _scope_refusal(query, shown, session_id))):
+        return refusal  # not about money, markets or business: a polite refusal before any answer is written
 
     if interpreted := current_interpretation.get():
         route = interpreted.intent
@@ -233,8 +241,6 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
                     "response": "Which holding do you mean? Tell me the company, fund or asset, and I can show you what the data says about it."}
         save_turn(session_id, shown, response)
         return response
-    if not by_intent and not ticker and not pending_before and (refusal := _scope_refusal(query, shown, session_id)):
-        return refusal
     arch_response = None if pending_before else _architecture_route(query, shown, session_id)
     if arch_response is not None:
         response = arch_response

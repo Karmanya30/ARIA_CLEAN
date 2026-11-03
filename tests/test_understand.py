@@ -87,8 +87,8 @@ ROWS = [
     ("thx", "smalltalk"),
     # clarify and general stay model-free / unchanged
     ("how healthy r ur finances", "clarify"),
-    ("who won the cricket match yesterday", "general"),
-    ("write me a python program", "general"),
+    ("who won the cricket match yesterday", "refused"),
+    ("write me a python program", "refused"),
 ]
 UNCHANGED = ["TCS", "INFY", "L&T", "50k", "1.2L", "₹10,000", "SIP", "EMI", "FOIR", "NAV", "ELSS", "a@b.com", "Reliance", "U.S. market",
              "tell me about tata motors", "can i invest 50 k", "10 L in an ELSS fund", "hello aria"]

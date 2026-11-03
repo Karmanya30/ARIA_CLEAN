@@ -30,9 +30,8 @@ def test_confidently_non_finance_query_receives_capability_aware_help(mock_llm):
     mock_llm.set_response(_classifier_json(domain="non_finance", allowed=False, confidence=0.97))
     try:
         response = handle_query("who won yesterday's cricket match", session_id=session_id)
-        assert response["domain"] == "general"
-        assert response["response"]
-        # A general reply is allowed even when the old category policy rejected it.
+        assert response["domain"] == "refused"  # ARIA covers finance only: a confident "not finance" gets the polite refusal
+        assert "finance" in response["response"].lower()
         assert "Insight:" not in response["response"]
     finally:
         clear_session(session_id)
