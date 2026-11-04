@@ -39,7 +39,7 @@ One container runs the API and the built web app. Start with a private staging c
 ## Optional extras
 
 * **FinBERT sentiment** (better headline scoring): download the weights into `models/nlp/finbert` as in the README, then rebuild. Without them a keyword read is used.
-* **Photoreal Live Avatar (MuseTalk)** needs an NVIDIA GPU and a separate environment; it is not part of this image. The other chat modes work without it.
+* **Photoreal Live Avatar (MuseTalk, the "New ARIA Avatar")** needs an NVIDIA GPU and is not part of this image. Without it the avatar speaks without moving its lips and the other chat modes are unaffected. To add it, deploy `deploy/modal_lipsync.py` to Modal (`python -m modal secret create aria-lipsync ARIA_LIPSYNC_SECRET=<random>`, then `python -m modal deploy deploy/modal_lipsync.py`; it starts a GPU only while someone is using the avatar, about a minute on a cold start) and set `ARIA_LIPSYNC_URLS` and `ARIA_LIPSYNC_SECRET` in `.env`. List a second deployment after the first to have it used when the first fails.
 
 ## Operations
 

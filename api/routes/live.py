@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hmac
+import os
 import random
 import re
 import time
@@ -223,6 +225,24 @@ async def live_socket(ws: WebSocket) -> None:
     finally:
         if task and not task.done():
             task.cancel()
+
+
+def lipsync_urls() -> list[str]:
+    """The GPU lip-sync service addresses in order of preference (ARIA_LIPSYNC_URLS, comma separated; deploy/modal_lipsync.py)."""
+    return [u.strip().rstrip("/") for u in os.getenv("ARIA_LIPSYNC_URLS", "").split(",") if u.strip()]
+
+
+@router.get("/api/avatar/lipsync")
+def lipsync_endpoints() -> dict:
+    """Where the New ARIA Avatar's GPU service is, with a pass for it: the service rejects any request without a valid, unexpired
+    `<expiry>.<hmac-sha256(ARIA_LIPSYNC_SECRET, expiry)>` (scripts/musetalk_server.py), so only signed-in users can spend GPU time.
+    No endpoints: the page uses the lip-sync server on this machine, if there is one."""
+    secret, urls = os.getenv("ARIA_LIPSYNC_SECRET", ""), lipsync_urls()
+    if not secret or not urls:
+        return {"endpoints": []}
+    expiry = str(int(time.time()) + 7200)  # two hours: longer than a call; the page asks again when it reconnects
+    token = f"{expiry}.{hmac.new(secret.encode(), expiry.encode(), 'sha256').hexdigest()}"
+    return {"endpoints": [{"url": url, "token": token} for url in urls]}
 
 
 @router.get("/avatar/live", response_class=HTMLResponse)

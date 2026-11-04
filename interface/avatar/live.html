@@ -527,10 +527,37 @@ async function videoSpeaker() {
 // frame of the phrase) instead of dropping back to the held frame. Consecutive phrases carry on from where the last one ended; every answer
 // starts from the held frame and she fades back to it when she stops.
 // If the server is not running (or was started before this avatar existed), videoSpeaker() above is used, with a note.
+const withPass = (E, path) => E.url + path + (E.token ? (path.includes("?") ? "&" : "?") + "t=" + encodeURIComponent(E.token) : "");
+
+// Where the lip-sync server is: the ARIA server lists the GPU service's addresses (ARIA_LIPSYNC_URLS) and signs a short-lived pass for them;
+// with none configured it is the local server on :8010, as before. A cold GPU takes about a minute to start, so a GPU address is given time.
+// An address that answers with an error or cannot be reached (out of credit, down) hands over to the next address; one that is only slow does
+// not (that would wake the backup GPU as well).
+async function connectLipsync() {
+  let list = [{ url: params.get("musetalk") || `http://${location.hostname}:8010`, token: "" }];
+  try {
+    const r = await fetch("/api/avatar/lipsync", { cache: "no-store" });
+    const j = r.ok ? await r.json() : null;
+    if (j && j.endpoints.length) list = j.endpoints;
+  } catch (e) { /* no list: the local server */ }
+  let last = new Error("no lip-sync server");
+  for (const E of list) {
+    if (E.token) setState("connecting", "Starting the new avatar…");
+    try {
+      const r = await fetch(withPass(E, "/health"), { signal: AbortSignal.timeout(E.token ? 150000 : 1200) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return { E, health: await r.json() };
+    } catch (e) {
+      last = e;
+      if (e.name === "TimeoutError") break;
+    }
+  }
+  throw last;
+}
+
 async function lipSyncVideoSpeaker() {
-  const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
   const FPSV = +params.get("fps") || 12;  // mouth frames generated per second of speech; the head always moves at 25
-  const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1200) }).then((r) => r.json());
+  const { E, health } = await connectLipsync();
   if (!health.ready || !health.avatars || !health.avatars.video) throw new Error("the lip-sync server is not running, or was started before the New ARIA Avatar existed");
   const base = await videoSpeaker();
   const ctx = base.ctx, analyser = base.analyser, stage = $("avatar");
@@ -585,7 +612,7 @@ async function lipSyncVideoSpeaker() {
     const fps = rho > 0.95 ? 10 : FPSV;  // a slow server: coarser mouth, faster render
     (async () => {
       try {
-        const res = await fetch(`${BASE}/lipsync_video?avatar=video&fps=${fps}${continuing ? "" : `&start=${base.HOLD}`}`, { method: "POST", body: raw, signal });
+        const res = await fetch(withPass(E, `/lipsync_video?avatar=video&fps=${fps}${continuing ? "" : `&start=${base.HOLD}`}`), { method: "POST", body: raw, signal });
         if (!res.ok) throw new Error("Lip-sync service unavailable");
         const url = URL.createObjectURL(await res.blob());
         const video = document.createElement("video");
@@ -1071,7 +1098,7 @@ async function loadSpeaker() {
     try { return await lipSyncVideoSpeaker(); } catch (err) { console.info("New ARIA Avatar lip-sync not available:", err.message); }
     try {
       const v = await videoSpeaker();
-      $("note").textContent = "The New ARIA Avatar's lip-sync needs the GPU server: start ARIA with Launch_ARIA.bat gpu (restart it if it was already running).";
+      $("note").textContent = "The New ARIA Avatar's lip-sync GPU is not available right now, so she speaks without moving her lips. Try again in a few minutes.";
       return v;
     } catch (err) { console.info("New ARIA Avatar not available:", err.message); }
   }
