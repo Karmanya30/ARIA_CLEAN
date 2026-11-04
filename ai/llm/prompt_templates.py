@@ -205,7 +205,7 @@ RULES:
 - No brand names
 - Use Indian examples
 - In the ₹ example, state the final total, and work the arithmetic out step by step before giving it
-- Write formulas as plain text on one line, like Total Cost = Price × n or FV = P × ((1 + r)^n - 1) / r; never LaTeX, backslash commands or \[ \] brackets
+- Write formulas in LaTeX, which the page typesets: $...$ inline, and $$...$$ on a line of its own for the main formula (for example $$FV = P \\times r$$); never \\[ \\] brackets
 
 Stop after CAUSAL.
 """
@@ -305,6 +305,7 @@ Instructions:
 - Give a practical recommendation.
 - Do not promise returns.
 - Ask for missing numbers if the query does not provide enough detail.
+- Write formulas in LaTeX, which the page typesets: $...$ inline, and $$...$$ on a line of its own for the main formula; never \\[ \\] brackets.
 
 Write the answer as natural Markdown, not a template: lead with the direct answer (Summary or main takeaway); then Detailed breakdown (short paragraphs or bullets, a table when comparing things); then Practical next step; end with Caveat or potential downside. Do not use the words Insight, Analysis, Recommendation or Risk as labels or headings.
 """

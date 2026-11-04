@@ -21,6 +21,13 @@ def test_fractions_powers_and_symbols():
     assert plain_math("\\sqrt{x}") == "sqrt(x)"
 
 
+def test_the_voice_hears_words_not_latex():
+    from api.text_utils import speech_text
+
+    spoken = speech_text("Total cost: $$\\text{Price} \\times n$$ and with $r$ the rate, \\[ x = \\frac{a}{b} \\]")
+    assert "\\" not in spoken and "$" not in spoken and "×" in spoken and "(a)/(b)" in spoken
+
+
 def test_ordinary_answers_are_not_touched():
     for text in ["A SIP of ₹5,000 for 10 years at 12% grows to about ₹11.6 lakh.", "Total = 1,200 × 5 = ₹6,000", "Use the [ENTER] key", "path C:\\temp\\new", "Cost is $5 and $10"]:
         assert plain_math(text) == text

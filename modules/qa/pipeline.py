@@ -21,7 +21,6 @@ from typing import Any, Callable
 from loguru import logger
 
 from ai.llm.groq_client import llm_stats
-from api.text_utils import plain_math
 
 from modules.qa import present, trust
 from modules.qa.models import Focus, QAContext, QARequest, QAResponse, active_focus
@@ -54,8 +53,6 @@ def _run(req: QARequest, text: str, stages: dict[str, int]) -> dict[str, Any]:
 
 def _finish(result: dict[str, Any], req: QARequest, text: str, changes: list, stages: dict[str, int], t0: float) -> dict[str, Any]:
     started = time.perf_counter()
-    if isinstance(result.get("response"), str):
-        result["response"] = plain_math(result["response"])  # before grounding and before the answer is saved or spoken
     if trust.failed(result.get("response")) and result.get("domain") != "company_intelligence" and "response" in result:
         result["response"], result["degraded"] = trust.DEGRADED, True
     result["grounding"] = trust.enforce(result)

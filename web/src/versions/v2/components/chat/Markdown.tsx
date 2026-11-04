@@ -1,6 +1,20 @@
 import ReactMarkdown from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import 'katex/dist/katex.min.css'
 import './Markdown.css'
+
+// Formulas are typeset with KaTeX. remark-math reads $...$ and $$...$$, but models also write \[ ... \] and \( ... \), and
+// sometimes a bare "[ \text{...} ]" line once markdown ate the backslashes, so those become $$ / $ first.
+// Prices are always rupees, so a dollar sign in an answer is a math delimiter.
+export function toMath(text: string): string {
+  return text
+    .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => `\n\n$$\n${m.trim()}\n$$\n\n`)  // fenced on its own lines: a centred display formula
+    .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => `$${m.trim()}$`)
+    .replace(/^[ \t]*\$\$([^$\n]+)\$\$[ \t]*$/gm, (_, m) => `\n\n$$\n${m.trim()}\n$$\n\n`)  // $$x$$ alone on its line is also a display formula
+    .replace(/^[ \t]*\[\s*([^[\]\n]*\\(?:text|times|frac|cdot|div|sqrt)[^[\]\n]*?)\s*\][ \t]*\.?[ \t]*$/gm, (_, m) => `\n\n$$\n${m.trim()}\n$$\n\n`)
+}
 
 // LLM narration occasionally wraps a whole section in "** text **" -- note
 // the whitespace hugging the markers. CommonMark's flanking-delimiter rule
@@ -36,7 +50,7 @@ function normalizeEmphasis(text: string): string {
 export function Markdown({ text }: { text: string }) {
   return (
     <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} disallowedElements={['img']} unwrapDisallowed>{normalizeEmphasis(text)}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { throwOnError: false, trust: false, strict: 'ignore' }]]} disallowedElements={['img']} unwrapDisallowed>{toMath(normalizeEmphasis(text))}</ReactMarkdown>
     </div>
   )
 }
