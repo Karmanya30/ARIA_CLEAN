@@ -11,8 +11,8 @@ _LATEX_CMD = re.compile(r"\\(?:text|textbf|mathrm|mathbf|frac|sqrt|times|cdot|di
 
 
 def plain_math(text: str) -> str:
-    """Formulas as plain text (ARIA shows no LaTeX: shared/blocks.py). Models still write `\\[ \\text{Cost} = P \\times n \\]` now and then;
-    that reads as code on screen and is spoken as 'backslash text'. Text without a LaTeX command is returned untouched."""
+    """A formula as words and plain symbols, for the voice: the screen typesets the LaTeX (web/.../Markdown.tsx), but read aloud
+    `\\[ \\text{Cost} = P \\times n \\]` would be 'backslash text'. Text without a LaTeX command is returned untouched."""
     s = str(text or "")
     if not (_LATEX_CMD.search(s) or "$$" in s):
         return s
@@ -33,7 +33,7 @@ def speech_text(text: str) -> str:
     """Convert Markdown-ish assistant output into text that sounds natural
     when spoken by TTS (strip code fences, links, headings, bullets, bold
     markers, etc.)."""
-    cleaned = str(text or "")
+    cleaned = plain_math(str(text or "")).replace("$", "")  # answers carry LaTeX for the screen; the voice gets it as plain words (prices are rupees, so $ is only ever math)
     cleaned = re.sub(r"```.*?```", " ", cleaned, flags=re.DOTALL)
     cleaned = re.sub(r"`([^`]*)`", r"\1", cleaned)
     cleaned = re.sub(r"!\[[^\]]*\]\([^)]+\)", " ", cleaned)
