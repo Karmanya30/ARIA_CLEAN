@@ -542,7 +542,7 @@ async function connectLipsync() {
   } catch (e) { /* no list: the local server */ }
   let last = new Error("no lip-sync server");
   for (const E of list) {
-    if (E.token) setState("connecting", "Starting the new avatar…");
+    if (E.token) setState("connecting", "Starting the avatar (the first start takes about a minute)…");
     try {
       const r = await fetch(withPass(E, "/health"), { signal: AbortSignal.timeout(E.token ? 150000 : 1200) });
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -682,8 +682,7 @@ async function lipSyncVideoSpeaker() {
 // MuseTalk v1.5 (photoreal lip-sync, local GPU): each phrase's WAV goes to the MuseTalk server, which streams back
 // 25 fps frames; the clip starts once its first frames are in and stays in step with the audio clock.
 async function museTalkSpeaker() {
-  const BASE = params.get("musetalk") || `http://${location.hostname}:8010`;
-  const health = await fetch(BASE + "/health", { signal: AbortSignal.timeout(1500) }).then((r) => r.json());
+  const { E, health } = await connectLipsync();  // the GPU service (or the local server); without one the caller falls back to the painted-lips photo
   if (!health.ready) throw new Error("server still loading");
   if (health.source !== "office-wide-glasses.webp") throw new Error("restart the GPU service to load the seated scene");
   // MuseTalk draws the mouth; the photo renderer adds blinks, breathing, sway and nods on top (same face file)
@@ -705,7 +704,7 @@ async function museTalkSpeaker() {
       let scheduled = false;
       const allocatedFrames = [];
       try {
-        const res = await fetch(BASE + "/lipsync", { method: "POST", body: raw, signal });
+        const res = await fetch(withPass(E, "/lipsync"), { method: "POST", body: raw, signal });
         if (!res.ok) throw new Error("Lip-sync service unavailable");
         const reader = res.body.getReader();
         let buf = new Uint8Array(0), total = null, started = false, tFirst = 0;
