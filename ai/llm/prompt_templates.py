@@ -205,6 +205,7 @@ RULES:
 - No brand names
 - Use Indian examples
 - In the ₹ example, state the final total, and work the arithmetic out step by step before giving it
+- Write formulas as plain text on one line, like Total Cost = Price × n or FV = P × ((1 + r)^n - 1) / r; never LaTeX, backslash commands or \[ \] brackets
 
 Stop after CAUSAL.
 """
