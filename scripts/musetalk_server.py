@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import itertools
 import os
 import pickle
@@ -51,6 +52,21 @@ SHARPEN = 0.7  # unsharp amount on the generated face: the VAE output is softer 
 SRC_FPS = 25  # frame rate of a video source (the lip-sync source is cut at 25 fps)
 torch.backends.cudnn.benchmark = True  # fixed-size batches: let cuDNN pick the fastest kernels once
 app = FastAPI()
+SECRET = os.environ.get("ARIA_LIPSYNC_SECRET", "")
+
+
+@app.middleware("http")
+async def _require_pass(request: Request, call_next):
+    """Cloud deployment: every request carries a short-lived pass minted by the ARIA server (ARIA_LIPSYNC_SECRET unset = open, for local use).
+    Added before CORS, so CORS wraps it and the browser's preflight never needs a pass."""
+    if SECRET and request.method != "OPTIONS":
+        exp, _, sig = (request.headers.get("x-aria-token") or request.query_params.get("t") or "").partition(".")
+        good = hmac.new(SECRET.encode(), exp.encode(), "sha256").hexdigest()
+        if not (exp.isdigit() and int(exp) > time.time() and hmac.compare_digest(sig, good)):
+            return Response("pass missing or expired", status_code=401)
+    return await call_next(request)
+
+
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], expose_headers=["X-Fps", "X-Start", "X-Cursor", "X-Render-S"])
 S: dict = {"ready": False}
 gpu = threading.Lock()
@@ -369,6 +385,7 @@ if __name__ == "__main__":
     ap.add_argument("--source", required=True, help="photo or short video of the face")
     ap.add_argument("--source-video", help="a second source (the New ARIA Avatar's presenter video), served at /lipsync?avatar=video from the same loaded models")
     ap.add_argument("--port", type=int, default=8010)
+    ap.add_argument("--host", default="127.0.0.1", help="0.0.0.0 inside a container (the cloud GPU service)")
     ap.add_argument("--fps", type=int, default=15, help="mouth frames per second of speech; throughput depends on the GPU and scene (measure before claiming realtime)")
     ap.add_argument("--batch", type=int, default=12, help="frames per GPU batch; small = first frames sooner, large = higher throughput")
     a = ap.parse_args()
@@ -394,4 +411,4 @@ if __name__ == "__main__":
             pass
     os.unlink(silence)
     print(f"MuseTalk ready in {time.time() - t:.0f}s on {S['device']}", flush=True)
-    uvicorn.run(app, host="127.0.0.1", port=a.port)
+    uvicorn.run(app, host=a.host, port=a.port)

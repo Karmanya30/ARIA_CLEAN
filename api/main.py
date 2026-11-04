@@ -75,7 +75,7 @@ async def no_store_personal(request, call_next):
 _CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' data: https://fonts.gstatic.com; "
         "img-src 'self' data: blob: https:; media-src 'self' blob: data:; worker-src 'self' blob:; "
-        "connect-src 'self' http://localhost:8010 http://127.0.0.1:8010 https://accounts.google.com https://cdn.jsdelivr.net https://storage.googleapis.com data: blob:; "
+        "connect-src 'self' http://localhost:8010 http://127.0.0.1:8010 " + " ".join(live.lipsync_urls()) + " https://accounts.google.com https://cdn.jsdelivr.net https://storage.googleapis.com data: blob:; "
         "frame-src 'self' https://accounts.google.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'")
 _CSP_REPORT = ("default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; "
                "script-src 'sha256-FbkIjM5XrDskHC2ER/ErjgfkR0w9Xn8+kzogAgqiHV4='")  # only the print-on-open line of the downloadable report
