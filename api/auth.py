@@ -80,8 +80,16 @@ def principal(connection: HTTPConnection):
 
 
 def same_origin(request):
-    if request.headers.get("origin") != origin():
-        raise HTTPException(403, "This request must come from the ARIA application.")
+    req_origin = request.headers.get("origin")
+    configured = origin()
+    if req_origin == configured:
+        return
+    if req_origin and (configured.startswith("http://localhost:") or configured.startswith("http://127.0.0.1:")):
+        conf_port = urlsplit(configured).port
+        req_url = urlsplit(req_origin)
+        if req_url.scheme == "http" and req_url.hostname in ("localhost", "127.0.0.1") and req_url.port == conf_port:
+            return
+    raise HTTPException(403, "This request must come from the ARIA application.")
 
 
 def _accounts(request):
@@ -155,7 +163,7 @@ def _peer(request):
 
 class Credentials(BaseModel):
     email: str = Field(min_length=3, max_length=254)
-    password: str = Field(min_length=12, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
 
 
 def _email(value):
@@ -192,7 +200,11 @@ _VERIFY_SECONDS = 24 * 3600
 def verification_required():
     """Sign-up needs a click on a link sent to the address (SEC-05). ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION=0 keeps instant sign-up,
     for invite-only testing where nobody can register uninvited."""
-    return os.getenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION", "1") != "0"
+    val = os.getenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION")
+    if val is not None:
+        return val.strip().lower() not in {"0", "false", "no", "off"}
+    from api.routes.feedback import _config
+    return _config() is not None or os.getenv("ARIA_AUTH_DEV_MAIL", "0") == "1"
 
 
 def send_mail(to, subject, body):

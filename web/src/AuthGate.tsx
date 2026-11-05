@@ -26,7 +26,15 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
     let data
     try { data = await response.json() }
     catch { throw new Error('ARIA returned an unreadable response. Restart ARIA with the launcher, then retry the connection.') }
-    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to sign in. Check your details and try again.')
+    if (!response.ok) {
+      let message = 'Unable to sign in. Check your details and try again.'
+      if (typeof (data as any)?.detail === 'string') {
+        message = (data as any).detail
+      } else if (Array.isArray((data as any)?.detail)) {
+        message = (data as any).detail.map((e: any) => e.msg || String(e)).join('; ')
+      }
+      throw new Error(message)
+    }
     return data as T
   } catch (failure) {
     if ((failure as Error).name === 'AbortError') throw new Error('ARIA is taking too long to connect. Run the ARIA launcher again, then retry the connection.')
@@ -154,8 +162,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     <p>Your financial profile and conversations belong to your account.</p>
     <form onSubmit={(event) => void submit(event)}>
       <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
-      <label>Password<input name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} required minLength={12} maxLength={128} /></label>
-      <p>Use at least 12 characters.</p>
+      <label>Password<input name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} required minLength={8} maxLength={128} /></label>
+      <p>Use at least 8 characters.</p>
       <button disabled={busy} type="submit">{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}</button>
     </form>
     {state.allow_signup && <button disabled={busy} onClick={() => { setSignup(!signup); setError('') }}>{signup ? 'Already have an account? Sign in' : 'Create an account'}</button>}

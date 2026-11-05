@@ -288,3 +288,17 @@ def test_signup_needs_the_emailed_link_and_answers_the_same_for_taken_addresses(
     second = accounts.post("/api/auth/register", json={"email": email, "password": PASSWORD})
     assert second.status_code == first.status_code and second.json() == first.json()  # same answer for a taken address (SEC-08)
     assert "already has one" in mails[-1][2]
+
+
+def test_password_minimum_length_eight(accounts):
+    email = uuid.uuid4().hex + "@example.test"
+    # 7 characters should be rejected (422)
+    too_short = accounts.post("/api/auth/register", json={"email": email, "password": "1234567"})
+    assert too_short.status_code == 422
+    # 8 characters should succeed
+    exact_eight = accounts.post("/api/auth/register", json={"email": email, "password": "12345678"})
+    assert exact_eight.status_code == 200 and exact_eight.json()["user"]["email"] == email
+    # Login with 8-character password succeeds
+    login = accounts.post("/api/auth/login", json={"email": email, "password": "12345678"})
+    assert login.status_code == 200
+
