@@ -50,7 +50,7 @@ function normalizeEmphasis(text: string): string {
 export function Markdown({ text }: { text: string }) {
   return (
     <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { throwOnError: false, trust: false, strict: 'ignore' }]]} disallowedElements={['img']} unwrapDisallowed>{toMath(normalizeEmphasis(text))}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { throwOnError: false, trust: false, strict: 'ignore' }]]} disallowedElements={['img']} unwrapDisallowed>{toMath(normalizeEmphasis(text).replace(/<br\s*\/?>/gi, ' '))}</ReactMarkdown>
     </div>
   )
 }

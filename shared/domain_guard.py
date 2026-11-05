@@ -85,6 +85,10 @@ keyword.
 - Pure general trivia, coding help, entertainment, sports, weather, or \
 politics unrelated to economics/markets/policy are NOT in scope: \
 "domain": "non_finance", "allowed": false.
+- Sometimes the user's earlier question is shown for context. Classify only the \
+new message: a genuine follow-up on the same finance topic is in scope, but a \
+new, unrelated topic (people, sports, entertainment, general technology, \
+trivia) is NOT in scope even when the earlier question was about finance.
 - If you are unsure, lower "confidence" rather than guessing "allowed": true.
 - Output ONLY the JSON object. No markdown, no explanation, no code fence.
 """
@@ -105,18 +109,20 @@ def _unavailable() -> DomainClassification:
     return {"domain": None, "intent": None, "allowed": None, "confidence": None, "available": False}
 
 
-def classify_domain(query: str) -> DomainClassification:
+def classify_domain(query: str, previous: str | None = None) -> DomainClassification:
     """Cheap pre-check: is this query in ARIA's finance/business/company/
     management scope? Never raises -- on any failure (disabled, LLM error,
     unparseable output) returns an "unavailable" result so the caller can
-    fail open and defer to its own existing routing."""
+    fail open and defer to its own existing routing. `previous`: the user's
+    earlier question, shown for context when `query` is a short follow-up."""
     if not ENABLED or not query or not query.strip():
         return _unavailable()
 
     from ai.llm.groq_client import generate_response
 
+    text = f"Earlier question: {previous.strip()[:300]}\nNew message (classify this one): {query}" if previous and previous.strip() else query
     try:
-        raw = generate_response(query, system_prompt=CLASSIFIER_SYSTEM_PROMPT, model=CLASSIFIER_MODEL)
+        raw = generate_response(text, system_prompt=CLASSIFIER_SYSTEM_PROMPT, model=CLASSIFIER_MODEL)
     except Exception as exc:
         logger.warning(f"Domain guard classifier call failed: {exc}")
         return _unavailable()
