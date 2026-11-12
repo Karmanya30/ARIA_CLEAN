@@ -1113,7 +1113,7 @@ loadSpeaker().then((s) => {
   speaker = s;
   connect();
   if (!SR && !CAN_RECORD) $("note").textContent = "Voice input needs microphone recording support. You can still type.";
-}).catch((err) => { if (ended) return; setState("error", "Avatar failed to load. Leave and try again."); $("note").textContent = String(err); console.error(err); });
+}).catch((err) => { if (ended) return; setState("error", "Avatar failed to load. Leave and try again."); $("note").textContent = "The avatar could not load. It needs internet access to fetch its animation files. Leave the meeting and switch to Chat to keep going."; console.error(err); });
 
 function endSession() {
   if (ended) return;

@@ -39,7 +39,8 @@ function Test-Port($port) {
 }
 function Test-Http($url, $secs = 3) { try { (Invoke-WebRequest $url -UseBasicParsing -TimeoutSec $secs).StatusCode -eq 200 } catch { $false } }
 function Get-Json($url, $secs = 3) { try { Invoke-RestMethod $url -UseBasicParsing -TimeoutSec $secs } catch { $null } }
-function Test-AriaApi($port) { $j = Get-Json "http://127.0.0.1:$port/openapi.json"; [bool]($j -and $j.info.title -eq "ARIA API") }
+# /api/health is public in every auth mode (accounts mode hides /openapi.json); a revision marks it as ARIA's API
+function Test-AriaApi($port) { $j = Get-Json "http://127.0.0.1:$port/api/health" 5; [bool]($j -and $j.status -eq "ok" -and $j.revision) }
 function Test-CurrentApi($base) { $j = Get-Json "$base/api/health"; [bool]($j -and $j.status -eq "ok" -and $j.revision -eq $expectedRevision) }
 function Test-ReadyApi($base) {
     if (-not (Test-CurrentApi $base)) { return $false }
