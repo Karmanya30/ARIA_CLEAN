@@ -46,7 +46,7 @@ test('New ARIA Avatar is attentive only while the client speaks, and stable othe
   // the idle picture is a held frame, not a moving loop
   expect(await cf.evaluate(() => (document.querySelector('video') as HTMLVideoElement).paused)).toBe(true)
   // a note explains how to get lip-sync when the GPU server is not running
-  await expect(cf.locator('#note')).toContainText('Launch_ARIA.bat gpu')
+  await expect(cf.locator('#note')).toContainText('lip-sync GPU is not available right now')
   // ARIA speaking without lip-sync keeps the stable face (no unrelated mouth or head movement)
   await cf.evaluate(async () => {
     const sp = (window as any).__ariaLive.speaker()
