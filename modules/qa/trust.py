@@ -122,6 +122,10 @@ def _redact(text: str, source: str, lenient: bool) -> tuple[str, list[float]]:
     return kept + f"\n\n{UNVERIFIED.format(n=dropped)}", removed
 
 
+UNVERIFIED_NOTE = "Note: the figures above come from general knowledge, not live data, so please verify them before relying on them."
+_GENERAL_FIGURE = re.compile(r"[\u20b9$]\s?\d|\d\s?(?:%|percent|lakh|crore|rs\b)", re.I)
+
+
 def enforce(resp: dict[str, Any]) -> dict[str, Any]:
     """The invented-numbers guard for every channel. Returns the `grounding` tag; edits resp["response"] when it must.
 
@@ -157,6 +161,10 @@ def finalize(resp: dict[str, Any]) -> dict[str, Any]:
     valuation = bool(resp.get("report_id") or resp.get("report")) or (domain in ("equity_research", "investment", "instrument") and bool(_VALUATION.search(text)))
     if advice and valuation and "limited accuracy" not in text.lower():
         text += f"\n{ACCURACY_CAVEAT}"
+    grounding = resp.get("grounding")
+    if (domain == "general" and isinstance(grounding, dict) and grounding.get("numbers_checked") is False and len(text) > 40
+            and _GENERAL_FIGURE.search(text) and not _GENERAL_FIGURE.search(str(resp.get("query") or "")) and UNVERIFIED_NOTE not in text):
+        text += f"\n\n{UNVERIFIED_NOTE}"  # RAG-02: general answers carry figures from the model's memory; say so instead of passing them silently
     if text != resp.get("response") and text:
         resp["response"] = text
     resp["trust"] = {"disclaimer": DISCLAIMER_LINE, "strip": DISCLAIMER_STRIP, "accuracy_caveat": ACCURACY_CAVEAT,
