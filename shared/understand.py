@@ -26,13 +26,17 @@ TEXTSPEAK = {"wat": "what", "wht": "what", "shud": "should", "shld": "should", "
              "tdy": "today", "mnth": "month", "mth": "month", "yr": "year", "yrs": "years", "rnt": "rent", "pr": "per", "thx": "thanks",
              "n": "and", "wid": "with", "gud": "good", "expln": "explain"}
 # common transpositions SymSpell would rank behind a rarer domain word; still announced as spelling fixes (not in TEXTSPEAK)
-TYPOS = {"teh": "the", "adn": "and", "taht": "that", "wiht": "with", "abuot": "about", "becuase": "because", "recieve": "receive", "spnd": "spend"}
+TYPOS = {"teh": "the", "adn": "and", "taht": "that", "wiht": "with", "abuot": "about", "becuase": "because", "recieve": "receive", "spnd": "spend",
+         # misspellings the general speller got wrong ("fnd" became "and", "nifti" stayed unknown)
+         "nifti": "nifty", "niftyy": "nifty", "sensx": "sensex", "senex": "sensex", "fnd": "fund", "fnds": "funds", "mutal": "mutual", "mutul": "mutual",
+         "beter": "better", "invst": "invest", "investmnt": "investment", "shre": "share", "shres": "shares", "stok": "stock", "stoks": "stocks"}
 _SPELL_PHRASES = [(re.compile(p, re.I), r) for p, r in (
     (r"\bbye (a|an|the|this|new)\b", r"buy \1"), (r"\bsel (my|all|the)\b", r"sell \1"), (r"\b2day\b", "today"))]
 _HINGLISH_PHRASES = [(re.compile(p, re.I), r) for p, r in (
     (r"\bband (?:kr|kar|karo|karna|karu|kardu|kardo)\b", "stop"), (r"\bbech(?:o|na|du|u)?\b", "sell"), (r"\bnikaa?l\b", "withdraw"), (r"\brok\b", "stop"),
     (r"\b(?:kitna|kitni)\b", "how much"), (r"\bkharch[ae]?\b", "spend"), (r"\bbachat\b", "savings"), (r"\bnivesh\b", "invest"),
-    (r"\b(?:mera|meri|mere)\b", "my"), (r"\bmaine\b", "i"), (r"\bmujhe\b", "me"))]
+    (r"\b(?:mera|meri|mere)\b", "my"), (r"\bmaine\b", "i"), (r"\bmujhe\b", "me"),
+    (r"\bkya main\b", "can i"), (r"\bkar sakta (?:hu|hoon|hun)\b", ""))]
 # 'du', 'kya', 'karu' stay: the finance pipeline's _WEIGHING needs them.
 HINGLISH_KEEP = frozenset(human_state.HINGLISH) | set(
     "ho rha rhi rhe raha hai du kiya hua gaya liya diya pe par mein main hum sirf thoda zyada jyada bol bolo batao bata dikhao lagta lag hu hun hoon "
@@ -92,7 +96,7 @@ def _fix(tok: str, sp, domain, known, after_number: bool, spell: bool = True) ->
     low = tok.lower()
     if len(tok) > 1 and tok.isupper() and len(tok) <= 6:
         return None
-    if low in TEXTSPEAK or (spell and low in TYPOS):
+    if low in TEXTSPEAK or low in TYPOS:
         return TEXTSPEAK.get(low) or TYPOS[low]
     if not spell or low in known or after_number or len(low) <= 2:
         return None
