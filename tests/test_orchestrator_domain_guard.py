@@ -30,8 +30,9 @@ def test_confidently_non_finance_query_receives_capability_aware_help(mock_llm):
     mock_llm.set_response(_classifier_json(domain="non_finance", allowed=False, confidence=0.97))
     try:
         response = handle_query("who won yesterday's cricket match", session_id=session_id)
-        assert response["domain"] == "refused"  # ARIA covers finance only: a confident "not finance" gets the polite refusal
-        assert "finance" in response["response"].lower()
+        assert response["domain"] == "general"
+        assert response["response"]
+        # A general reply is allowed even when the old category policy rejected it.
         assert "Insight:" not in response["response"]
     finally:
         clear_session(session_id)
@@ -90,37 +91,3 @@ def test_smalltalk_bypasses_the_guard_entirely(mock_llm):
         assert len(mock_llm.calls) == 1
     finally:
         clear_session(session_id)
-
-
-def test_a_short_off_topic_message_in_a_running_chat_is_still_checked_with_the_earlier_question(monkeypatch):
-    """The scope check used to be skipped for any message of six words or fewer once a chat had history, so "who is virat kohli"
-    and "in field of cricket" were answered. The classifier is now shown the earlier question and decides."""
-    from core import orchestrator
-    from shared import domain_guard
-
-    session_id = "__pytest_guard_short__"
-    clear_session(session_id)
-    seen = []
-
-    def classify(query, previous=None):
-        seen.append((query, previous))
-        return {"domain": "non_finance", "intent": "people", "allowed": False, "confidence": 0.95, "available": True}
-
-    monkeypatch.setattr(domain_guard, "classify_domain", classify)
-    monkeypatch.setattr(orchestrator, "get_session", lambda sid="default": {"history": [{"query": "What is a SIP?", "response": {"domain": "tutor"}}]})
-    monkeypatch.setattr(orchestrator, "save_turn", lambda *a, **k: None)
-    try:
-        response = orchestrator._scope_refusal("who is virat kohli", "who is virat kohli", session_id)
-        assert response and response["domain"] == "refused"
-        assert seen == [("who is virat kohli", "What is a SIP?")]  # short message: the earlier question travels with it
-    finally:
-        clear_session(session_id)
-
-
-def test_a_follow_up_the_classifier_allows_is_not_refused(monkeypatch):
-    from core import orchestrator
-    from shared import domain_guard
-
-    monkeypatch.setattr(domain_guard, "classify_domain", lambda query, previous=None: {"domain": "finance", "intent": "follow_up", "allowed": True, "confidence": 0.9, "available": True})
-    monkeypatch.setattr(orchestrator, "get_session", lambda sid="default": {"history": [{"query": "What is a SIP?", "response": {"domain": "tutor"}}]})
-    assert orchestrator._scope_refusal("and for 10 years", "and for 10 years", "__pytest_guard_follow__") is None

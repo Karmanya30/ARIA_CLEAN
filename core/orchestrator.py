@@ -119,40 +119,10 @@ def _support_reply(query: str, profile: dict, hinglish: bool, turn: int) -> dict
     return {"domain": "support", "query": query, "response": reply}
 
 
-def _scope_refusal(query: str, shown: str, session_id: str) -> dict[str, Any] | None:
-    """ARIA covers finance, markets, economics, business and personal money. A question with no finance signal at all is
-    checked once by the domain classifier; only a confident "not finance" gets the polite refusal (it fails open)."""
-    from core.router import _FINANCE_TERMS
-    from shared import domain_guard
-    from shared.intent_classifier import classify_intent
-
-    q = query.lower()
-    history = get_session(session_id).get("history") or []
-    # A short message in a running chat may be a follow-up, so the classifier is shown the earlier question as well. It is not exempt:
-    # "who is virat kohli" and "in field of cricket" are short too, and a chat that has started never made them finance.
-    previous = str(history[-1].get("query") or "") if history and len(q.split()) <= 6 else None
-    if re.search(r"\b(who are you|what are you|what can you|what do you|how can you|how do you|can you help|your (name|purpose|features?|capabilit\w+))\b", q):
-        return None  # questions about ARIA itself
-    if re.search(r"financ|money|saving|budget|invest|loan|tax|bank|insur|retire|income|salary|debt|credit|stock|econom|inflation|interest|business|compan|rupee|₹|mutual fund|portfolio", q):
-        return None
-    if _FINANCE_TERMS.search(q) or classify_intent(query) in ("finance", "market") or is_finance_concept_question(query):
-        return None
-    verdict = domain_guard.classify_domain(query, previous)
-    if verdict.get("allowed") is False and (verdict.get("confidence") or 0) >= domain_guard.CONFIDENCE_THRESHOLD:
-        response = domain_guard.build_refusal_response(shown, verdict)
-        save_turn(session_id, shown, response)
-        return response
-    return None
-
-
 def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", original: str | None = None) -> dict[str, Any]:
     """Route a user query (already spelling-corrected) to the correct module pipeline. `original` is what the user typed:
     it is what history and the response show."""
     shown = original or query
-
-    if (not get_session(session_id).get("finance_pending") and not active_focus.get() and not _is_smalltalk(query) and not resolve_company(query)
-            and not finance_intent(query) and not finance_statement(query) and (refusal := _scope_refusal(query, shown, session_id))):
-        return refusal  # not about money, markets or business: a polite refusal before any answer is written
 
     if interpreted := current_interpretation.get():
         route = interpreted.intent
