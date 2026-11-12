@@ -129,8 +129,14 @@ def _search_yahoo_company(search_text: str) -> dict[str, str] | None:
     return {"ticker": symbol, "company_name": company_name}
 
 
+# capitals that are finance words, not listed symbols ("What is the PE ratio of ITC?" is about ITC, not "PE")
+_FINANCE_ACRONYMS = frozenset("""PE EPS ROE ROCE ROI IRR XIRR CAGR NAV SIP SWP STP EMI FD RD PPF EPF NPS ELSS ULIP ETF MF IPO FPO NFO GST ITR TDS TCS_NO LTCG STCG HRA
+KYC PAN UPI NEFT RTGS IMPS RBI SEBI AMFI IRDAI CPI GDP WPI FII DII FPI NSE BSE USD INR EUR GBP EV AI DCF EBITDA PAT PBT PB PS PEG DPS FY QOQ YOY""".split())
+_FINANCE_ACRONYMS = _FINANCE_ACRONYMS - {"TCS_NO"}
+
+
 def detect_company(query: str) -> dict[str, str] | None:
-    ticker_match = re.search(r"\b([A-Z]{2,12})(?:\.NS|\.BO)?\b", query)
+    ticker_match = next((m for m in re.finditer(r"\b([A-Z]{2,12})(?:\.NS|\.BO)?\b", query) if m.group(1) not in _FINANCE_ACRONYMS), None)
     if ticker_match:
         ticker = ticker_match.group(1)
         if not ticker.endswith((".NS", ".BO")):
