@@ -119,6 +119,25 @@ def _support_reply(query: str, profile: dict, hinglish: bool, turn: int) -> dict
     return {"domain": "support", "query": query, "response": reply}
 
 
+_NEWS_ASK = re.compile(r"\b(news|headlines?)\b", re.I)
+
+
+def _news_reply(query: str) -> dict[str, Any]:
+    """"latest news on Reliance", "market news", "RBI news": the actual headlines about it, not one canned market snapshot."""
+    from shared.news import fetch_news, format_headlines
+
+    topic = re.sub(r"\b(latest|recent|today'?s?|todays|current|the|me|show|tell|give|any|about|on|of|for|news|headlines?|what'?s|whats|is|there|please|stock|market|share)\b", " ", query, flags=re.I)
+    topic = " ".join(topic.split())
+    items = fetch_news(query, limit=8)
+    if not items:
+        text = "I couldn't find fresh headlines on that right now. Try again in a little while, or ask me about a specific company."
+        return {"domain": "market", "response": text}
+    lines = format_headlines(items)
+    intro = f"Here are the latest headlines about {topic}:" if topic else "Here are the latest headlines:"
+    text = intro + "\n\n" + "\n".join("- " + line for line in lines) + "\n\nThese come from public news feeds; tell me if you want any of them explained or what it could mean for your money."
+    return {"domain": "market", "response": text, "context": {"news_headlines": lines}}
+
+
 def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", original: str | None = None) -> dict[str, Any]:
     """Route a user query (already spelling-corrected) to the correct module pipeline. `original` is what the user typed:
     it is what history and the response show."""
@@ -188,6 +207,12 @@ def _handle(query: str, session_id: str = "default", mode: str = "Normal Mode", 
 
     if _is_smalltalk(query):
         response = _smalltalk_reply(query)
+        response["query"] = shown
+        save_turn(session_id, shown, response)
+        return response
+
+    if _NEWS_ASK.search(query) and not get_session(session_id).get("finance_pending") and not finance_intent(query):
+        response = _news_reply(query)
         response["query"] = shown
         save_turn(session_id, shown, response)
         return response
