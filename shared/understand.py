@@ -45,7 +45,7 @@ HINGLISH_KEEP = frozenset(human_state.HINGLISH) | set(
     "mujhe mera meri mere humein tumhara unka iska uska isse usse kisi koi kahan kab kitna kitni jaldi lagta lagti lagte".split())
 _EXTRA = ("lakh lakhs crore nifty sensex spend food rent score health intelligence research compound interest mutual fund equity elss ppf epf nps "
           "foir nav xirr cagr sip emi how much what should buy sell afford loan tax stop invest savings withdraw income expenses goal aria "
-          "lumpsum lump sum swp stp nfo neft imps rtgs demat cibil sebi amfi ltcg stcg upi kyc itr gst etf ipo mf mfs fd fds rd ulip swp stp hra tds zerodha groww paytm").split()
+          "lumpsum lump sum swp stp nfo neft imps rtgs demat cibil sebi amfi ltcg stcg upi kyc itr gst etf ipo mf mfs fd fds rd ulip swp stp hra tds zerodha groww paytm zomato swiggy ipos nykaa eternal policybazaar lenskart tesla adani ambani infosys wipro bajaj maruti hdfc icici sbi irctc ongc coal bse nse fii dii nbfc reit invit sgb gilt").split()
 _TOKEN = re.compile(r"(?<![\w@.&/₹])[A-Za-z]+(?![\w@&/])(?!\.[A-Za-z])")
 MIN_COUNT = 500_000  # index only common words: the full 82k-word index cost ~135 MB (67 MB at this cut); every word still counts as KNOWN
 _SPLIT = {"mutualfund": "mutual fund", "mutualfunds": "mutual funds", "indexfund": "index fund", "indexfunds": "index funds", "goldfund": "gold fund",
