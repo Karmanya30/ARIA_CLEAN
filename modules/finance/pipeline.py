@@ -712,11 +712,11 @@ def finance_intent(query: str) -> tuple[str, dict] | None:
         return "retirement", {}
     if re.search(r"\bregime\b|old vs new|new vs old|old or new", t):
         return "tax", {}
-    if nums and years and re.search(r"\b(reach|achieve|accumulate|build|builds|building|build up|get to|save up|grow to)\b", t):  # "how much do I need monthly to reach 1 crore in 20 years"
+    if nums and years and re.search(r"\b(reach|achieve|accumulate|build|builds|building|build up|get to|save up|save|saving|grow to|need|want to have|target)\b", t):  # "how much do I need monthly to reach 1 crore in 20 years"
         return "goal", {"goal": {"name": "your goal", "target": max(nums), "years": float(years.group(1))}}
     if re.search(r"\bgoals?\b", t):
         return "goal", {"goal": {"name": "your goal", "target": nums[0], "years": float(years.group(1))} if nums and years else None}
-    if re.search(r"health score|financial health|net ?worth|\bmy score\b|savings rate", t) and not re.search(r"credit score|cibil", t):
+    if re.search(r"health score|financial health|net ?worth|\bmy score\b|savings rate|how am i doing|emergency fund (?:enough|sufficient|ok|okay|adequate)|months of (?:expenses|spending)", t) and not re.search(r"credit score|cibil", t):
         return "health", {}
     return None
 
