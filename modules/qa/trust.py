@@ -40,10 +40,25 @@ def _nums(text: str) -> list[float]:
     return out
 
 
+_WORD_UNITS = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split())}
+_WORD_TENS = {w: 10 * i for i, w in enumerate("_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()) if w != "_"}
+_WORD_NUM = re.compile(r"\b(?:(" + "|".join(_WORD_TENS) + r")(?:[- ](" + "|".join(k for k, v in _WORD_UNITS.items() if 1 <= v <= 9) + r"))?|(" + "|".join(_WORD_UNITS) + r"))\s+(percent|per cent|hundred|thousand|lakh|lakhs|crore|crores)\b", re.I)
+
+
+def _number_words(text: str) -> str:
+    """"twelve percent" / "five lakh" -> "12 percent" / "5 lakh", so a figure written out in words is checked like one in digits (RAG-03)."""
+    def sub(m: re.Match) -> str:
+        tens, unit, single, scale = m.group(1), m.group(2), m.group(3), m.group(4)
+        n = _WORD_TENS[tens.lower()] + (_WORD_UNITS[unit.lower()] if unit else 0) if tens else _WORD_UNITS[single.lower()]
+        return f"{n} {scale}"
+    return _WORD_NUM.sub(sub, text)
+
+
 def ungrounded(reply: str, source: str, lenient: bool = False) -> list[float]:
     """Numbers in `reply` that match nothing in `source`. Rounded values, lakh/crore/million/billion scalings and small
     calendar numbers are allowed. `lenient` (routes whose prompts allow one-decimal rounding) widens the rounding band."""
     allowed = _nums(source)
+    reply = _number_words(reply)
     reply = _INDEX_NAME.sub(r"\1", reply)  # "Nifty 50" is a name, not a figure
     reply = _FISCAL_YEAR.sub("FY", reply)  # "FY23-24" / "2023-24" is a period label, not a figure
     rel, floor = (0.012, 0.06) if lenient else (0.006, 0.011)
