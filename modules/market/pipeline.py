@@ -98,9 +98,21 @@ def run_pipeline(query: str) -> dict[str, Any]:
     prompt = build_prompt(query, context, grounding=finance_knowledge.grounding_for(query))
     answer, fallback = grounded_market_text(generate_response(prompt), context)
     response = {"domain": "market", "query": query, "context": context, "response": answer, "market_semantic_fallback": fallback, "blocks": _build_market_blocks(answer, context)}
+    if fallback:  # the strict fallback is the same index lines for every question: add what the question is actually about
+        try:
+            from shared.news import fetch_news, format_headlines
+
+            items = fetch_news("sensex nifty stock market", limit=5)
+        except Exception:  # noqa: BLE001 - headlines are a bonus
+            items = []
+        if items:
+            lines = format_headlines(items)
+            answer += "\n\nHeadlines on this (they do not prove what caused the moves):\n" + "\n".join("- " + line for line in lines)
+            response["context"]["news_headlines"] = lines
+            response["response"] = answer
     if note:
         response['freshness_note'] = note
-        response['response'] = note + "\n\n" + answer
+        response['response'] = note + "\n\n" + response["response"]
     if caption := personal.market_caption(personal.profile()):
         response["profile_basis"] = caption
     return response
