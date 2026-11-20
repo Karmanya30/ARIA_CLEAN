@@ -16,15 +16,15 @@
   align-items: flex-start;
   gap: 10px;
   text-align: left;
-  background: rgba(255, 255, 255, 0.52);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.52));
   backdrop-filter: blur(14px) saturate(1.5);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--glass-line, rgba(255, 255, 255, 0.75));
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow:
     0 4px 18px rgba(16, 24, 54, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    inset 0 1px 0 var(--glass-sheen, rgba(255, 255, 255, 0.85));
   position: relative;
   overflow: hidden;
   transition:
@@ -45,11 +45,11 @@
 }
 
 .template-card:hover {
-  border-color: rgba(41, 83, 184, 0.3);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   transform: translateY(-3px) scale(1.01);
   box-shadow:
     0 10px 32px rgba(41, 83, 184, 0.13),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    inset 0 1px 0 var(--glass-sheen, rgba(255, 255, 255, 0.9));
 }
 
 /* Shimmer sweep on hover */

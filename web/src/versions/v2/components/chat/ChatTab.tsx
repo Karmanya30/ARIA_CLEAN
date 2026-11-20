@@ -81,6 +81,13 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
   // message (the hero used to stay unchanged until the reply arrived, which looked like a dead button).
   const [pending, setPending] = useState<string | null>(null)
   const [profileVer, setProfileVer] = useState(0)
+  // Another chat was opened (New chat, or one picked from Chats): start clean, during render rather than in an effect,
+  // so the old chat's "thinking" bubble, locked composer and typed text never show in the new one.
+  const [shownSession, setShownSession] = useState(sessionId)
+  if (shownSession !== sessionId) {
+    setShownSession(sessionId)
+    setHistory([]); setPending(null); setSending(false); setQuery(''); setCaptureEpoch((v) => v + 1)
+  }
 
   const isConversational = mode === 'Conversational Mode'
   // Free streaming voice mode (api/routes/live.py + interface/avatar/live.html): the call UI lives in the iframe,
@@ -114,6 +121,10 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
 
   const abortRef = useRef<AbortController | null>(null)
   const stop = () => abortRef.current?.abort()
+  // The chat that is open now. A reply still on its way for a chat that was left is not shown here; the server still saves
+  // it to that chat, so it is there when the chat is reopened from Chats.
+  const sessionRef = useRef(sessionId)
+  useEffect(() => { sessionRef.current = sessionId }, [sessionId])
 
   async function send(text: string, correct = true) {
     const trimmed = text.trim()
@@ -122,8 +133,10 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
     setPending(trimmed)
     setQuery('')
     const ctl = (abortRef.current = new AbortController())
+    const left = () => sessionRef.current !== sessionId // the user opened another chat meanwhile
     try {
       const response = await api.sendMessage(trimmed, sessionId, mode, correct, undefined, ctl.signal)
+      if (left()) return
       setHistory((h) => [...h, { query: trimmed, response, audio_token: response.audio_token }])
       // the saved turn carries the id that rating needs; keep what is on screen if the reload fails
       api.getHistory(sessionId).then((res) => {
@@ -132,6 +145,7 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
         setHistory((h) => h.map((t, i) => (saved[i]?.query === t.query ? { ...t, message_id: saved[i].message_id, rating: saved[i].rating } : t)))
       }).catch(() => {})
     } catch (err) {
+      if (left()) return
       if (ctl.signal.aborted) {
         setQuery(trimmed) // stopped: put the question back so it can be edited or sent again
         return
@@ -144,16 +158,8 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
         },
       ])
     } finally {
-      setSending(false)
-      setPending(null)
+      if (!left()) { setSending(false); setPending(null) }
     }
-  }
-
-  async function clearChat() {
-    if (history.length && !window.confirm('Clear this chat? Its messages will be removed and cannot be brought back.')) return
-    setCaptureEpoch(value => value + 1)
-    await api.clearChat(sessionId)
-    setHistory([])
   }
 
   function markQuizAnswered(index: number, correct: boolean) {
@@ -197,9 +203,6 @@ export function ChatTab({ sessionId, onOpenProfile, pendingAsk, onAskHandled, co
           </option>
         ))}
       </select>
-      <button className="btn" onClick={clearChat} type="button" aria-label="Clear chat">
-        Clear
-      </button>
       {isSplitLayout && (
         <button className="btn" onClick={() => setMode('Normal Mode')} type="button">
           <ArrowLeft size={15} aria-hidden="true" /> {isConversational ? 'Back to chat' : 'End and go back'}

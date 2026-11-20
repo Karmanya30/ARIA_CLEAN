@@ -94,19 +94,19 @@
   gap: 10px;
   margin-bottom: 12px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.6));
   backdrop-filter: blur(14px) saturate(1.4);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--glass-line, rgba(255, 255, 255, 0.75));
   border-radius: var(--radius-lg);
   padding: 8px 12px;
-  box-shadow: 0 2px 12px rgba(16, 24, 54, 0.06), inset 0 1px 0 rgba(255,255,255,0.9);
+  box-shadow: 0 2px 12px rgba(16, 24, 54, 0.06), inset 0 1px 0 var(--glass-sheen, rgba(255, 255, 255, 0.9));
 }
 .chat-mode-select {
   width: auto;
   min-width: 210px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(41, 83, 184, 0.18);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.5));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: var(--radius-md);
   padding: 7px 12px;
   font-size: 13.5px;
@@ -164,23 +164,23 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.62));
   backdrop-filter: blur(20px) saturate(1.6);
   -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--glass-line, rgba(255, 255, 255, 0.82));
   border-radius: var(--radius-lg);
   padding: 6px 6px 6px 14px;
   box-shadow:
     0 6px 28px rgba(16, 24, 54, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    inset 0 1px 0 var(--glass-sheen, rgba(255, 255, 255, 0.9));
   flex-shrink: 0;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 .composer:focus-within {
-  border-color: rgba(41, 83, 184, 0.35);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   box-shadow:
     0 6px 32px rgba(41, 83, 184, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    inset 0 1px 0 var(--glass-sheen, rgba(255, 255, 255, 0.9));
 }
 .composer-centered {
   margin-bottom: 28px;
