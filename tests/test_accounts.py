@@ -302,3 +302,69 @@ def test_password_minimum_length_eight(accounts):
     login = accounts.post("/api/auth/login", json={"email": email, "password": "12345678"})
     assert login.status_code == 200
 
+
+
+def test_login_with_a_short_password_is_just_incorrect(accounts):
+    user = register(accounts)
+    short = accounts.post("/api/auth/login", json={"email": user["email"], "password": "abc"})
+    assert short.status_code == 401 and short.json()["detail"] == "Email or password is incorrect."
+
+
+def test_forgot_password_link_resets_once_signs_out_everywhere_and_signs_in(accounts, monkeypatch):
+    mails = []
+    monkeypatch.setattr("api.auth.send_mail", lambda to, subject, body, purpose="sign-up": mails.append((to, subject, body)))
+    monkeypatch.setattr("api.auth.mail_available", lambda: True)
+    user = register(accounts)
+    other_device = TestClient(app, headers={"Origin": "http://testserver"})
+    assert other_device.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 200
+    accounts.post("/api/auth/logout", json={})
+    missing = accounts.post("/api/auth/password/forgot", json={"email": "nobody-" + user["email"]})
+    asked = accounts.post("/api/auth/password/forgot", json={"email": user["email"].upper()})
+    assert asked.status_code == missing.status_code == 200 and asked.json() == missing.json()  # same answer either way (SEC-08)
+    assert "no ARIA account" in mails[0][2]
+    token = mails[1][2].split("?reset=")[1].split()[0]
+    assert accounts.post("/api/auth/password/reset", json={"token": "x" * 43, "password": "brand-new-pass-1"}).status_code == 400
+    assert accounts.post("/api/auth/password/reset", json={"token": token, "password": "short"}).status_code == 422
+    done = accounts.post("/api/auth/password/reset", json={"token": token, "password": "brand-new-pass-1"})
+    assert done.status_code == 200 and done.json()["user"] == user
+    assert accounts.get("/api/auth/session").json()["user"] == user  # signed in on this device
+    assert other_device.get("/api/auth/session").json()["user"] is None  # every other session ended
+    assert accounts.post("/api/auth/password/reset", json={"token": token, "password": "another-pass-22"}).status_code == 400  # one use
+    assert accounts.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD}).status_code == 401
+    assert accounts.post("/api/auth/login", json={"email": user["email"], "password": "brand-new-pass-1"}).status_code == 200
+
+
+def test_forgot_password_without_mail_says_so(accounts, monkeypatch):
+    monkeypatch.setattr("api.auth.mail_available", lambda: False)
+    assert accounts.get("/api/auth/session").json()["password_reset"] is False
+    assert accounts.post("/api/auth/password/forgot", json={"email": "someone@example.test"}).status_code == 503
+
+
+def test_change_password_needs_the_current_one_and_signs_out_other_devices(accounts):
+    user = register(accounts)
+    assert accounts.get("/api/auth/session").json()["methods"] == {"password": True, "google": False}
+    other_device = TestClient(app, headers={"Origin": "http://testserver"})
+    other_device.post("/api/auth/login", json={"email": user["email"], "password": PASSWORD})
+    wrong = accounts.post("/api/auth/password/change", json={"current_password": "not-it-at-all", "new_password": "changed-pass-9"})
+    assert wrong.status_code == 400 and "current password" in wrong.json()["detail"]
+    same = accounts.post("/api/auth/password/change", json={"current_password": PASSWORD, "new_password": PASSWORD})
+    assert same.status_code == 400
+    ok = accounts.post("/api/auth/password/change", json={"current_password": PASSWORD, "new_password": "changed-pass-9"})
+    assert ok.status_code == 200 and ok.json()["changed"] is True
+    assert accounts.get("/api/auth/session").json()["user"] == user  # this device stays signed in
+    assert other_device.get("/api/auth/session").json()["user"] is None
+    assert accounts.post("/api/auth/login", json={"email": user["email"], "password": "changed-pass-9"}).status_code == 200
+    assert TestClient(app, headers={"Origin": "http://testserver"}).post("/api/auth/password/change", json={"new_password": "whatever-123"}).status_code == 401
+
+
+def test_google_only_account_can_set_a_password(accounts, monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "synthetic-client.apps.googleusercontent.com")
+    session = accounts.get("/api/auth/session").json()
+    claims = {"sub": uuid.uuid4().hex, "email": uuid.uuid4().hex + "@example.test", "email_verified": True, "nonce": session["google_nonce"],
+              "aud": "synthetic-client.apps.googleusercontent.com", "iss": "https://accounts.google.com", "exp": time.time() + 600}
+    monkeypatch.setattr(auth, "verify_google", lambda credential: claims)
+    assert accounts.post("/api/auth/google", json={"credential": "synthetic-google-credential"}).status_code == 200
+    assert accounts.get("/api/auth/session").json()["methods"] == {"password": False, "google": True}
+    assert accounts.post("/api/auth/password/change", json={"new_password": "first-pass-123"}).status_code == 200  # no current password to give
+    assert accounts.get("/api/auth/session").json()["methods"] == {"password": True, "google": True}
+    assert accounts.post("/api/auth/login", json={"email": claims["email"], "password": "first-pass-123"}).status_code == 200
