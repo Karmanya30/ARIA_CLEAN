@@ -17,7 +17,7 @@ body {
   /* Belt-and-braces alongside index.html's <meta name="color-scheme"> --
    * some browsers key their forced-dark-mode heuristic off this CSS
    * property instead of (or in addition to) the meta tag. */
-  color-scheme: light;
+  color-scheme: only light; /* "only" also opts out of browser force-dark */
 }
 
 #root {
