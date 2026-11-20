@@ -258,7 +258,10 @@ const SECTIONS: { id: string; short: string; title: string; body: ReactNode }[] 
           ARIA is not endorsed by, or affiliated with, any of them or with any exchange. Their terms apply to the data, and availability or accuracy is not
           guaranteed.
         </p>
-        <p>Charts are drawn with the open-source TradingView Lightweight Charts library.</p>
+        <p>
+          Charts are drawn with the open-source TradingView Lightweight Charts™ library. TradingView Lightweight Charts™ Copyright (c) TradingView, Inc.{' '}
+          <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">https://www.tradingview.com/</a>
+        </p>
       </>
     ),
   },

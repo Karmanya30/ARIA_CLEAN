@@ -21,7 +21,9 @@ export function AskPanel({ quote, sessionId, onDisclaimers }: { quote: Instrumen
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const end = useRef<HTMLDivElement>(null)
-  useEffect(() => { end.current?.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }, [turns, busy])
+  useEffect(() => {
+    if (!turns.length && !busy) return // nothing asked yet: don't drag the drawer down to this box when it opens
+    end.current?.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }, [turns, busy])
 
   async function ask(q: string) {
     q = q.trim()

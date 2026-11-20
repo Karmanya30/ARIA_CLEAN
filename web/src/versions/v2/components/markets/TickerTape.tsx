@@ -25,7 +25,7 @@ export function TickerTape({ onOpen }: { onOpen: OpenStock }) {
       {items.map((i) => (
         <li key={i.symbol}>
           <button type="button" className="tape-item" tabIndex={hidden ? -1 : undefined} onClick={() => onOpen(i.symbol)} title={i.name}>
-            <b>{i.symbol.replace(/\.(NS|BO)$/, '')}</b>
+            <b>{i.symbol.startsWith('^') ? i.name : i.symbol.replace(/\.(NS|BO)$/, '')}</b>{/* indices: "Nifty 50", not Yahoo's "^NSEI" */}
             <span className="num">{fmtNum(i.price)}</span>
             <Delta value={i.pct} />
           </button>

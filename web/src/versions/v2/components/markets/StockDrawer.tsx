@@ -7,6 +7,7 @@ import { Delta } from './Delta'
 import { Provenance } from './Provenance'
 import { Ring } from './charts'
 import { fmtCr, fmtInr, fmtNum } from './format'
+import { useDrawerWidth } from './useDrawerWidth'
 import type { Chart, Quote } from './types'
 import './panels.css'
 
@@ -92,7 +93,8 @@ function PriceChart({ bars, mode, intraday, onTip }: { bars: Chart['bars']; mode
         autoSize: false,
         width: el.clientWidth,
         height: el.clientHeight,
-        layout: { background: { type: ColorType.Solid, color: bg }, textColor: ink, attributionLogo: true, fontSize: 11 },
+        // No TradingView logo on the chart: the licence's credit + link is on the Disclaimers page ("Data sources").
+        layout: { background: { type: ColorType.Solid, color: bg }, textColor: ink, attributionLogo: false, fontSize: 11 },
         grid: { vertLines: { color: border }, horzLines: { color: border } },
         rightPriceScale: { borderColor: border },
         timeScale: { borderColor: border, timeVisible: intraday, tickMarkFormatter: (t: number) => timeFmt(t) },
@@ -126,7 +128,7 @@ function PriceChart({ bars, mode, intraday, onTip }: { bars: Chart['bars']; mode
           </>,
         )
       })
-      ro = new ResizeObserver(() => chart?.resize(el.clientWidth, el.clientHeight))
+      ro = new ResizeObserver(() => { chart?.resize(el.clientWidth, el.clientHeight); chart?.timeScale().fitContent() }) // re-fit after the drawer expands or shrinks
       ro.observe(el)
     })
     return () => {
@@ -181,6 +183,7 @@ const skel = (h: string, w?: number) => <span className="mk-skel" style={{ '--h'
 
 function Drawer({ symbol, onClose, onAsk }: { symbol: string; onClose: () => void; onAsk: (q: string) => void }) {
   const dlg = useRef<HTMLDialogElement>(null)
+  const size = useDrawerWidth()
   const [range, setRange] = useState<(typeof RANGES)[number]>('1Y')
   const [mode, setMode] = useState<'area' | 'candles'>('area')
   const [tip, setTip] = useState<React.ReactNode>(null)
@@ -227,7 +230,8 @@ function Drawer({ symbol, onClose, onAsk }: { symbol: string; onClose: () => voi
   return (
     <dialog
       ref={dlg}
-      className="sd"
+      className={`sd${size.dragging ? ' is-dragging' : ''}`}
+      style={{ '--sd-w': `${size.width}px` } as React.CSSProperties}
       aria-labelledby="sd-title"
       onCancel={(e) => (e.preventDefault(), onClose())}
       onClick={(e) => e.target === dlg.current && onClose()}
@@ -345,6 +349,8 @@ function Drawer({ symbol, onClose, onAsk }: { symbol: string; onClose: () => voi
 
         <Intel symbol={symbol} onChat={() => ask(`Give me the full ARIA intelligence read on ${name}`)} />
       </div>
+      {/* after the content, so opening the drawer still focuses its close button */}
+      <div className="sd-resize" aria-label="Resize panel. Drag, or use the arrow keys; double-click resets." {...size.handle} />
     </dialog>
   )
 }
