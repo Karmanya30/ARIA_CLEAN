@@ -215,6 +215,14 @@ class AuthThrottleRecord(Base):
     expires_at = Column(Float, nullable=False, index=True)
 
 
+class PasswordResetRecord(Base):
+    """A one-use "forgot password" link (1 hour). Only the token's hash is stored, like sessions."""
+    __tablename__ = "auth_password_resets"
+    token_hash = Column(String, primary_key=True)
+    account_id = Column(String, nullable=False, index=True)
+    expires_at = Column(Float, nullable=False, index=True)
+
+
 class StatementPreviewRecord(Base):
     """Owner-scoped, expiring normalized preview and transactional retry receipts."""
     __tablename__ = "statement_previews"

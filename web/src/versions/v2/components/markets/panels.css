@@ -16,6 +16,16 @@
   overflow: hidden;
   animation: sd-in var(--t-med) var(--ease);
 }
+.sd { width: min(var(--sd-w, 560px), 100vw); }
+/* Drag the left edge to resize (useDrawerWidth) */
+.sd-resize { position: absolute; z-index: 3; top: 0; bottom: 0; left: 0; width: 12px; cursor: col-resize; touch-action: none; }
+.sd-resize::after { content: ''; position: absolute; top: 50%; left: 4px; width: 4px; height: 48px; margin-top: -24px; border-radius: 4px; background: var(--border-strong); transition: background .15s, height .15s, margin .15s; }
+.sd-resize:hover::after, .sd-resize:focus-visible::after, .sd.is-dragging .sd-resize::after { height: 80px; margin-top: -40px; background: var(--accent); }
+.sd-resize:focus-visible { outline: none; }
+.sd.is-dragging { user-select: none; }
+.sd.is-dragging .sd-chart-wrap { pointer-events: none; }
+.sd .sd-chart-wrap { height: clamp(300px, calc(var(--sd-w, 560px) * 0.45), 560px); } /* a wider panel gets a taller chart */
+@media (max-width: 700px) { .sd-resize { display: none; } } /* full-width on phones */
 .sd::backdrop {
   background: var(--backdrop, rgba(26, 26, 23, 0.4));
 }

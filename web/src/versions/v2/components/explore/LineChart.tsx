@@ -42,7 +42,8 @@ export function LineChart({ points, intraday, label, onTip }: { points: { t: num
         autoSize: false,
         width: el.clientWidth,
         height: el.clientHeight,
-        layout: { background: { type: ColorType.Solid, color: bg }, textColor: ink, attributionLogo: true, fontSize: 11 },
+        // No TradingView logo on the chart: the licence's credit + link is on the Disclaimers page ("Data sources").
+        layout: { background: { type: ColorType.Solid, color: bg }, textColor: ink, attributionLogo: false, fontSize: 11 },
         grid: { vertLines: { color: border }, horzLines: { color: border } },
         rightPriceScale: { borderColor: border },
         timeScale: { borderColor: border, timeVisible: intraday, tickMarkFormatter: (t: number) => timeFmt(t) },
@@ -60,7 +61,7 @@ export function LineChart({ points, intraday, label, onTip }: { points: { t: num
         const val = p.time !== undefined ? byT.get(p.time as number) : undefined
         onTip(val === undefined ? null : `${timeFmt(p.time as number)}: ${fmtNum(val)}`)
       })
-      ro = new ResizeObserver(() => chart?.resize(el.clientWidth, el.clientHeight))
+      ro = new ResizeObserver(() => { chart?.resize(el.clientWidth, el.clientHeight); chart?.timeScale().fitContent() }) // re-fit after the drawer expands or shrinks
       ro.observe(el)
     })
     return () => {

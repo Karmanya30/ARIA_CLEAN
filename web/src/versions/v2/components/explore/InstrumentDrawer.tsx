@@ -5,6 +5,7 @@ import type { InstrumentChart, InstrumentProfile, InstrumentQuote, InstrumentRan
 import { Delta } from '../markets/Delta'
 import { fmtIst, fmtNum } from '../markets/format'
 import { Provenance } from '../markets/Provenance'
+import { useDrawerWidth } from '../markets/useDrawerWidth'
 import '../markets/panels.css'
 import { AskPanel } from './AskPanel'
 import { cleanPoints, LineChart } from './LineChart'
@@ -72,6 +73,7 @@ function collectFacts(q: InstrumentQuote, p: InstrumentProfile | null): [string,
 const skel = (h: string, w?: number) => <span className="mk-skel" style={{ '--h': h, ...(w ? { width: w } : {}) } as React.CSSProperties} />
 
 function Drawer({ id, sessionId, onClose, onDisclaimers }: { id: string; sessionId: string; onClose: () => void; onDisclaimers: () => void }) {
+  const size = useDrawerWidth()
   const dlg = useRef<HTMLDialogElement>(null)
   const [range, setRange] = useState<InstrumentRange>('1y')
   const [tip, setTip] = useState<string | null>(null)
@@ -116,7 +118,7 @@ function Drawer({ id, sessionId, onClose, onDisclaimers }: { id: string; session
   const chartNote = ch.data?.meta?.note
 
   return (
-    <dialog ref={dlg} className="sd ix-drawer" aria-labelledby="ix-title" onCancel={(e) => (e.preventDefault(), onClose())} onClick={(e) => e.target === dlg.current && onClose()}>
+    <dialog ref={dlg} className={`sd ix-drawer${size.dragging ? ' is-dragging' : ''}`} style={{ '--sd-w': `${size.width}px` } as React.CSSProperties} aria-labelledby="ix-title" onCancel={(e) => (e.preventDefault(), onClose())} onClick={(e) => e.target === dlg.current && onClose()}>
       <div className="sd-body">
         <div className="sd-head">
           <div>
@@ -225,6 +227,8 @@ function Drawer({ id, sessionId, onClose, onDisclaimers }: { id: string; session
           skel('120px')
         )}
       </div>
+      {/* after the content, so opening the drawer still focuses its close button */}
+      <div className="sd-resize" aria-label="Resize panel. Drag, or use the arrow keys; double-click resets." {...size.handle} />
     </dialog>
   )
 }

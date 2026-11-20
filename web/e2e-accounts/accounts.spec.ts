@@ -45,6 +45,7 @@ async function credentials(page: Page, email: string, signup = false) {
   if (signup) await page.getByRole('button', { name: 'Create an account', exact: true }).click()
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Password', { exact: true }).fill(password)
+  if (signup) await page.getByLabel('Confirm password', { exact: true }).fill(password)
   await page.getByRole('button', { name: signup ? 'Create account' : 'Sign in', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Your Finance Profile' })).toBeVisible()
 }

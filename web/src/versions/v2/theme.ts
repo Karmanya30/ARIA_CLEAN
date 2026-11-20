@@ -32,9 +32,9 @@ const dark = window.matchMedia('(prefers-color-scheme: dark)')
 export function getModeSetting(): ModeSetting {
   try {
     const saved = localStorage.getItem(MODE_KEY)
-    return MODES.find((m) => m.id === saved)?.id ?? 'light'
+    return MODES.find((m) => m.id === saved)?.id ?? 'auto' // no choice yet: follow the device
   } catch {
-    return 'light'
+    return 'auto'
   }
 }
 

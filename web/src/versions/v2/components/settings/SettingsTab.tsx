@@ -3,6 +3,7 @@ import { BrandLogo } from '../../../../components/brand/BrandLogo'
 import { MODES, hasMarkets, useModeSetting, type ThemeId } from '../../theme'
 import { useAccountPanel } from '../../../../accountContext'
 import { api } from '../../api'
+import { UIS, getUi, setUi } from '../../../../uiVersion'
 import './SettingsTab.css'
 
 /** Native radios (arrow keys, focus and screen-reader semantics for free). The preview swatch
@@ -34,6 +35,16 @@ export function SettingsTab({ theme }: { theme: ThemeId; onTheme?: (id: ThemeId)
           <p className="settings-sub">Night is a dark trading-terminal look. Auto follows your device.</p>
         </>
       )}
+      <h2 className="settings-h2">Interface</h2>
+      <div className="seg" role="radiogroup" aria-label="Interface">
+        {UIS.map((u) => (
+          <label key={u.id}>
+            <input type="radio" name="ui" value={u.id} checked={getUi() === u.id} onChange={() => setUi(u.id)} />
+            <span>{u.label}</span>
+          </label>
+        ))}
+      </div>
+      <p className="settings-sub">{UIS.find((u) => u.id === getUi())?.blurb} The page reloads when you switch.</p>
       {account && (
         <>
           <h2 className="settings-h2">Account</h2>

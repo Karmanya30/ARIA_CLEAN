@@ -1,18 +1,101 @@
-.aria-auth { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg, var(--auth-bg, #f3f6fa)); color: var(--ink, var(--auth-ink, #182a40)); font-family: system-ui, sans-serif; }
-.aria-auth section { width: min(100%, 440px); padding: 32px; border: 1px solid var(--border, var(--auth-border, #dce5ee)); border-radius: 22px; background: var(--bg-elevated, var(--auth-surface, white)); box-shadow: 0 12px 45px #182a4014; }
-.aria-auth h1 { font-size: 25px; margin-top: 0; }
-.aria-auth p { line-height: 1.5; font-size: 14px; }
-.aria-auth form, .aria-auth label { display: grid; gap: 9px; }
-.aria-auth form { gap: 16px; }
-.aria-auth input { border: 1px solid var(--border-strong, var(--auth-border, #a7b6ca)); border-radius: 8px; padding: 12px; color: inherit; background: var(--bg-elevated, var(--auth-surface, white)); font: inherit; }
-.aria-auth button, .aria-account button { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-strong, var(--auth-border, #a7b6ca)); background: var(--bg-inset, var(--auth-control, #edf3fa)); color: inherit; cursor: pointer; margin: 8px 0; font: inherit; }
-.aria-auth button:disabled, .aria-account button:disabled { opacity: .6; cursor: wait; }
-.aria-auth [role=alert], .aria-account [role=alert] { color: #a32727; }
+/* Loading / connection screen and the sign-in page (AuthGate.tsx). Uses the Vitara tokens set on <html>. */
+.aria-auth { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg, #f8f5ee); color: var(--ink, #1a1a17); font-family: var(--font-body, system-ui), sans-serif; }
+.aria-auth > section:not(.auth-card) { width: min(100%, 440px); padding: 32px; border: 1px solid var(--border, #e7e0d1); border-radius: 22px; background: var(--bg-elevated, #fff); box-shadow: var(--shadow-lg); text-align: center; }
+.aria-auth > section:not(.auth-card) h1 { font-family: var(--font-display, inherit); font-size: 25px; }
+.aria-auth > section:not(.auth-card) button { padding: 10px 16px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--bg-inset); color: inherit; cursor: pointer; font: inherit; }
+.aria-auth [role=alert] { color: var(--red, #a32727); }
+
+/* ── Sign-in page: same palette and aurora as the landing page (tokens from landing.css) ── */
+.aria-auth--split { position: relative; isolation: isolate; grid-template-columns: minmax(340px, .9fr) minmax(0, 1.1fr); place-items: stretch; padding: 0;
+  background: var(--lp-bg); color: var(--lp-ink); }
+.aria-auth--split::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; filter: blur(30px);
+  background: radial-gradient(40% 50% at 85% 10%, var(--lp-glow2), transparent 70%), radial-gradient(40% 45% at 70% 95%, var(--lp-glow3), transparent 72%); }
+.auth-aside { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
+  padding: clamp(32px, 5vw, 64px); background: var(--lp-dark); color: #fff; }
+.auth-aside::before { content: ''; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(70% 55% at 10% 0%, rgba(16, 185, 129, .38), transparent 70%), radial-gradient(60% 45% at 100% 100%, rgba(230, 194, 127, .2), transparent 70%); }
+.auth-aside::after { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5;
+  background-image: linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+  background-size: 48px 48px; mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%); }
+.auth-aside-brand .aria-brand-wordmark, .auth-aside-brand .aria-brand-tagline { color: #fff; }
+.auth-aside-title { margin: 0 0 26px; font-family: var(--font-display, inherit); font-size: clamp(28px, 2.8vw, 40px); font-weight: 800; line-height: 1.12; letter-spacing: -.03em;
+  background: linear-gradient(100deg, #ffffff 30%, #9fe9c8 70%, #e6c27f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.auth-aside ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.auth-aside li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08);
+  font-size: 15px; line-height: 1.4; color: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); }
+.auth-aside li svg { flex: none; padding: 4px; width: 26px; height: 26px; border-radius: 50%; background: rgba(126, 232, 187, .16); color: #7ee8bb; }
+.auth-aside-note { margin: 0; font-size: 13px; color: rgba(255, 255, 255, .7); }
+
+.auth-card { width: min(100% - 32px, 460px); margin: auto; padding: clamp(28px, 4vw, 44px); border-radius: 28px; background: var(--lp-glass);
+  border: 1px solid var(--lp-glass-line); box-shadow: var(--lp-shadow); backdrop-filter: blur(22px) saturate(1.3); }
+.auth-back { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 24px; padding: 8px 12px 8px 8px; border: 0; border-radius: 999px;
+  background: none; color: var(--lp-muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.auth-back:hover { background: var(--lp-soft); color: var(--lp-ink); }
+.auth-mark { display: block; width: 52px; height: 52px; margin-bottom: 18px; filter: drop-shadow(0 8px 20px var(--lp-glow1)); }
+.auth-card h1 { margin: 0; font-family: var(--font-display, inherit); font-size: clamp(26px, 3vw, 32px); font-weight: 800; line-height: 1.2; letter-spacing: -.03em; color: var(--lp-ink); }
+.auth-sub { margin: 10px 0 26px; color: var(--lp-muted); font-size: 15px; line-height: 1.55; }
+
+.auth-google { min-height: 44px; display: flex; justify-content: center; }
+.auth-google > div { width: 100%; display: flex; justify-content: center; }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--lp-faint); font-size: 13px; font-weight: 600; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--lp-line); }
+
+.auth-card form { display: grid; gap: 18px; }
+.auth-field { display: grid; gap: 8px; font-size: 14px; font-weight: 700; color: var(--lp-ink); }
+.auth-field input { width: 100%; min-height: 50px; padding: 0 16px; border: 1px solid var(--lp-line); border-radius: 14px;
+  background: var(--lp-card); color: var(--lp-ink); font: inherit; font-size: 15px; font-weight: 500; transition: border-color .2s, box-shadow .2s; }
+.auth-field input::placeholder { color: var(--lp-faint); }
+.auth-field input:focus { outline: none; border-color: var(--lp-em); box-shadow: 0 0 0 4px var(--lp-soft); }
+.auth-card button:focus-visible { outline: 2px solid var(--lp-em); outline-offset: 2px; }
+.auth-password { position: relative; }
+.auth-password input::-ms-reveal, .auth-password input::-ms-clear { display: none; } /* Edge's own eye would sit beside ours */
+.auth-password input { padding-right: 52px; }
+.auth-password button { position: absolute; top: 3px; right: 3px; width: 44px; height: 44px; display: grid; place-items: center;
+  border: 0; border-radius: 10px; background: none; color: var(--lp-muted); cursor: pointer; }
+.auth-password button:hover { color: var(--lp-ink); }
+.auth-hint { margin: 0; font-size: 13px; font-weight: 500; color: var(--lp-faint); }
+.auth-submit { position: relative; overflow: hidden; min-height: 52px; margin-top: 4px; border: 0; border-radius: 999px; background: var(--lp-btn); color: var(--lp-btn-ink);
+  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: var(--lp-btn-glow), inset 0 1px 0 rgba(255, 255, 255, .25); transition: transform .2s; }
+.auth-submit:hover { transform: translateY(-1px); }
+.auth-submit:disabled { opacity: .6; cursor: wait; transform: none; }
+.auth-notice, .auth-error { margin: 18px 0 0; padding: 12px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+.auth-notice { background: var(--lp-soft); color: var(--lp-ink); }
+.auth-error { background: color-mix(in srgb, var(--lp-down) 12%, transparent); color: var(--lp-down) !important; }
+.auth-switch { margin: 24px 0 0; text-align: center; color: var(--lp-muted); font-size: 14px; }
+.auth-link { padding: 4px 2px; border: 0; background: none; color: var(--lp-em); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.auth-field-row { position: relative; }
+.auth-forgot { position: absolute; top: -2px; right: 0; z-index: 1; font-size: 13px; text-decoration: none; }
+.auth-forgot:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .aria-auth--split { grid-template-columns: 1fr; }
+  .auth-aside { display: none; }
+}
+
+/* ── Account details (Settings) ─────────────────────────────── */
 .aria-account { position: fixed; right: 18px; bottom: 18px; z-index: 1000; background: var(--bg-elevated, white); color: var(--ink, #182a40); border: 1px solid var(--border-strong, #a7b6ca); border-radius: 10px; padding: 10px 14px; max-width: min(360px, 90vw); box-shadow: 0 3px 14px #182a4020; }
 .aria-account summary { cursor: pointer; }
 .aria-account p { overflow-wrap: anywhere; }
-.aria-account button { display: block; }
-[data-mode='night'] .aria-auth { --auth-bg: #08121c; --auth-surface: #10212b; --auth-ink: #e6f0f4; --auth-border: #38505d; --auth-control: #19323e; }
-[data-mode='night'] .aria-auth [role=alert] { color: #ff9da6; }
-[data-theme^='vitara'] .aria-auth { --auth-bg: #f4f3ed; --auth-surface: #fffef9; --auth-ink: #1c3026; --auth-border: #c8d5cc; --auth-control: #e8f1e9; }
-[data-theme^='vitara'][data-mode='night'] .aria-auth { --auth-bg: #0c1511; --auth-surface: #13221b; --auth-ink: #e5eee8; --auth-border: #334e40; --auth-control: #1b3327; }
+.aria-account button { display: block; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-inset); color: inherit; cursor: pointer; margin: 8px 0; font: inherit; }
+.aria-account button:disabled { opacity: .6; cursor: wait; }
+.aria-account [role=alert] { color: var(--red, #a32727); }
+
+/* ── Settings → Account (AccountPanel in AuthGate.tsx); app tokens, so it follows every interface and mode ── */
+.aria-account-panel { display: grid; gap: 14px; max-width: 520px; }
+.aria-methods { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.aria-methods li { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-inset); color: var(--ink-muted); font-size: 13px; font-weight: 600; }
+.aria-methods li.on { color: var(--accent-strong, var(--accent)); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
+.aria-password-form { display: grid; gap: 12px; padding: 18px; border-radius: var(--radius-md, 14px); border: 1px solid var(--border); background: var(--bg-elevated); }
+.aria-password-form h3 { margin: 0; font-family: var(--font-display, inherit); font-size: 16px; }
+.aria-password-form > p { margin: 0; color: var(--ink-muted); font-size: 14px; }
+.aria-password-form .auth-field { display: grid; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.aria-password-form .auth-field input { width: 100%; min-height: 44px; padding: 0 48px 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm, 10px); background: var(--bg); color: var(--ink); font: inherit; font-size: 15px; font-weight: 500; }
+.aria-password-form .auth-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.aria-password-form .auth-password button { top: 0; right: 0; width: 44px; height: 44px; color: var(--ink-muted); }
+.aria-password-form .auth-hint { color: var(--ink-faint); }
+.aria-password-form .btn-primary { justify-self: start; }
+.aria-link-google { display: grid; gap: 8px; }
+.aria-link-google p { margin: 0; }
+.aria-account-notice { padding: 10px 12px; border-radius: var(--radius-sm, 10px); background: var(--accent-soft); color: var(--ink) !important; }
+.aria-account-panel [role=alert] { color: var(--red, #a32727); }
+

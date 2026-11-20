@@ -17,6 +17,10 @@
   --ink-faint: #8fa59a;
 
   --accent: #3ecf8e;
+  /* chat glass (thinking bubble, topic cards, composer, top bar): dark glass instead of the light-mode white */
+  --glass-bg: rgba(18, 30, 25, 0.72);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --glass-sheen: rgba(255, 255, 255, 0.04);
   --accent-strong: #6fe3ad;
   --accent-soft: rgba(62, 207, 142, 0.14);
   --accent-ink: #04140d;

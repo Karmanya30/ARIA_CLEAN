@@ -5,11 +5,9 @@
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=aria-brand-1" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Tells the browser this page is intentionally light-themed, so
-         browser-level "force dark mode" (Edge/Chrome's auto-darkening of
-         web content) doesn't heuristically invert it into a muddy,
-         desaturated dark render on top of our own light CSS. -->
-    <meta name="color-scheme" content="light" />
+    <!-- The page has its own light and night palettes. Declaring both stops browser-level
+         "force dark mode" (Edge/Chrome auto-darkening) from inverting it into a muddy render. -->
+    <meta name="color-scheme" content="light dark" />
     <title>ARIA</title>
     <!-- Apply the saved UI theme before first paint so there is no flash of the
          default one. Same key as src/theme.ts; unknown values fall back to Classic. -->
@@ -21,7 +19,7 @@
         // Colour mode (only styled by the Vitara Markets theme): light | night | auto. Same key as src/theme.ts.
         var m = new URLSearchParams(location.search).get('mode') // ?mode=night for screenshots / demo links
         if (m) localStorage.setItem('aria_mode', m)
-        m = localStorage.getItem('aria_mode')
+        m = localStorage.getItem('aria_mode') || 'auto' // no choice yet: follow the device
         if (m === 'auto') m = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light'
         document.documentElement.dataset.mode = m === 'night' ? 'night' : 'light'
       } catch (e) {}

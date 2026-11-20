@@ -114,7 +114,8 @@ def _session(account, response):
         for row in rows[:-9]:
             db.delete(row)
         db.add(store.AuthSessionRecord(token_hash=fingerprint(token), account_id=account["id"], expires_at=time.time() + SESSION_SECONDS))
-        db.query(store.AuthThrottleRecord).filter_by(key=fingerprint(account["email"])).delete()
+        # A successful sign-in clears this email's own ceiling (the key _throttle uses; per-address pairs expire on their own).
+        db.query(store.AuthThrottleRecord).filter_by(key=fingerprint(f"email|{account['email']}")).delete()
         db.commit()
     _cookie(response, COOKIE, token, SESSION_SECONDS)
     response.headers["Cache-Control"] = "no-store"
@@ -166,6 +167,12 @@ class Credentials(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class LoginRequest(BaseModel):
+    """Signing in checks the password, not its length: a short guess gets the usual "incorrect" answer, not a validation error."""
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=1, max_length=128)
+
+
 def _email(value):
     value = value.strip().casefold()
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
@@ -180,7 +187,12 @@ def session_info(request: Request, response: Response):
     if mode() == "accounts":
         origin()  # validate configuration even for unauthenticated requests
         config.update(user=principal(request), google_client_id=os.getenv("GOOGLE_CLIENT_ID", ""),
-                      allow_signup=os.getenv("ARIA_AUTH_ALLOW_SIGNUP", "0") == "1")
+                      allow_signup=os.getenv("ARIA_AUTH_ALLOW_SIGNUP", "0") == "1", password_reset=mail_available())
+        if config["user"]:  # which sign-in methods the account has, for Settings (change vs set password, link Google)
+            store = _store()
+            with store._SessionLocal() as db:
+                row = db.get(store.AccountRecord, config["user"]["id"])
+                config["methods"] = {"password": bool(row and row.password_hash), "google": bool(row and row.google_sub)}
         if config["google_client_id"]:
             try:
                 issued, nonce = request.cookies.get(NONCE_COOKIE, "").split(".", 1)
@@ -203,11 +215,16 @@ def verification_required():
     val = os.getenv("ARIA_AUTH_REQUIRE_EMAIL_VERIFICATION")
     if val is not None:
         return val.strip().lower() not in {"0", "false", "no", "off"}
+    return mail_available()
+
+
+def mail_available():
+    """True when ARIA can send account mail: the operator's SMTP settings, or ARIA_AUTH_DEV_MAIL=1 (mail written to the log)."""
     from api.routes.feedback import _config
     return _config() is not None or os.getenv("ARIA_AUTH_DEV_MAIL", "0") == "1"
 
 
-def send_mail(to, subject, body):
+def send_mail(to, subject, body, purpose="sign-up"):
     """Mail through the operator's SMTP settings (the feedback form's). Without them: ARIA_AUTH_DEV_MAIL=1 writes the mail to the
     log for local development; otherwise sign-up is unavailable rather than silently unverified."""
     from email.message import EmailMessage
@@ -220,7 +237,7 @@ def send_mail(to, subject, body):
             from loguru import logger
             logger.warning(f"[dev mail] to={to} subject={subject}\n{body}")
             return
-        raise HTTPException(503, "Sign-up email is not configured yet. Please try again later.")
+        raise HTTPException(503, f"{purpose.capitalize()} email is not configured yet. Please try again later.")
     msg = EmailMessage()
     msg["From"], msg["To"], msg["Subject"] = config["sender"], to, subject
     msg.set_content(body)
@@ -234,7 +251,7 @@ def send_mail(to, subject, body):
                 server.login(config["username"], config["password"])
             server.send_message(msg)
     except (OSError, smtplib.SMTPException):
-        raise HTTPException(502, "The sign-up email could not be sent. Please try again later.") from None
+        raise HTTPException(502, f"The {purpose} email could not be sent. Please try again later.") from None
 
 
 _PENDING_MESSAGE = "If that address can be registered, we have sent a link to confirm it. Open it within 24 hours."
@@ -301,7 +318,7 @@ def verify(req: VerifyRequest, request: Request, response: Response):
 
 
 @router.post("/login")
-def login(req: Credentials, request: Request, response: Response):
+def login(req: LoginRequest, request: Request, response: Response):
     _accounts(request)
     email = _email(req.email)
     attempt = _throttle(email, _peer(request))
@@ -315,6 +332,100 @@ def login(req: Credentials, request: Request, response: Response):
         account = {"id": row.id, "email": row.email}
     _throttle_clear(attempt)  # a successful sign-in does not count against the budget
     return _session(account, response)
+
+
+_RESET_SECONDS = 3600
+_RESET_MESSAGE = "If an account uses that address, we have sent it a link to choose a new password. Open it within 1 hour."
+
+
+class EmailRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
+@router.post("/password/forgot")
+def password_forgot(req: EmailRequest, request: Request, response: Response):
+    """Emails a one-use reset link. Same answer, and a mail either way, whether or not the address has an account (SEC-08)."""
+    _accounts(request)
+    email = _email(req.email)
+    _throttle("reset|" + email, _peer(request))
+    if not mail_available():
+        raise HTTPException(503, "Password reset by email is not set up on this server yet. Please contact the ARIA team.")
+    store = _store()
+    token = secrets.token_urlsafe(32)
+    with store._SessionLocal() as db:
+        row = db.query(store.AccountRecord).filter_by(email=email).one_or_none()
+        exists = row is not None
+        if exists:
+            now = time.time()
+            db.query(store.PasswordResetRecord).filter(store.PasswordResetRecord.expires_at <= now).delete()
+            db.query(store.PasswordResetRecord).filter_by(account_id=row.id).delete()  # the newest link replaces older ones
+            db.add(store.PasswordResetRecord(token_hash=fingerprint(token), account_id=row.id, expires_at=now + _RESET_SECONDS))
+            db.commit()
+    if exists:
+        send_mail(email, "Reset your ARIA password", f"Open this link within 1 hour to choose a new ARIA password:\n\n{origin()}/?reset={token}\n\n"
+                  "If you did not ask for this, ignore this email. Your password stays the same.", purpose="password reset")
+    else:
+        send_mail(email, "ARIA password reset", "Someone asked to reset an ARIA password for this address, but it has no ARIA account. "
+                  "If it was you, sign up instead. If not, ignore this email.", purpose="password reset")
+    response.headers["Cache-Control"] = "no-store"
+    return {"sent": True, "message": _RESET_MESSAGE}
+
+
+class ResetRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
+
+
+@router.post("/password/reset")
+def password_reset(req: ResetRequest, request: Request, response: Response):
+    """Sets the new password from a reset link, signs out every device (whoever knew the old password is out) and signs this one in."""
+    _accounts(request)
+    _throttle("reset-token|" + fingerprint(req.token), _peer(request))
+    store = _store()
+    invalid = HTTPException(400, "This reset link is invalid or has expired. Ask for a new one.")
+    with store._SessionLocal() as db:
+        db.execute(text("BEGIN IMMEDIATE"))
+        link = db.get(store.PasswordResetRecord, fingerprint(req.token))
+        if link is None or link.expires_at <= time.time():
+            raise invalid
+        row = db.get(store.AccountRecord, link.account_id)
+        if row is None:
+            raise invalid
+        row.password_hash = password_hash(req.password)
+        db.query(store.PasswordResetRecord).filter_by(account_id=row.id).delete()
+        db.query(store.AuthSessionRecord).filter_by(account_id=row.id).delete()
+        account = {"id": row.id, "email": row.email}
+        db.commit()
+    return _session(account, response)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(default="", max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+@router.post("/password/change")
+def password_change(req: PasswordChange, request: Request, response: Response):
+    """Change the password (current one required), or set one on an account created with Google. Other devices are signed out;
+    this one gets a fresh session."""
+    _accounts(request)
+    account = principal(request)
+    if account is None:
+        raise HTTPException(401, "Please sign in first.")
+    attempt = _throttle("change|" + account["email"], _peer(request))
+    store = _store()
+    with store._SessionLocal() as db:
+        row = db.get(store.AccountRecord, account["id"])
+        if row.password_hash:
+            if not password_matches(req.current_password, row.password_hash):
+                raise HTTPException(400, "Your current password is incorrect.")
+            if password_matches(req.new_password, row.password_hash):
+                raise HTTPException(400, "Choose a new password that is different from the current one.")
+        row.password_hash = password_hash(req.new_password)
+        db.query(store.AuthSessionRecord).filter_by(account_id=row.id).delete()
+        db.commit()
+    _throttle_clear(attempt)
+    return {**_session(account, response), "changed": True}
 
 
 class GoogleCredential(BaseModel):

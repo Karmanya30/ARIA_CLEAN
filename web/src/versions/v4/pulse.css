@@ -1,0 +1,218 @@
+/* "Pulse" interface (versions/v4). Palette and shared-page polish come from ../v3/aurora.css (scoped to Aurora and Pulse);
+ * this file is the top-navigation shell and the live effects, scoped to html[data-ui='pulse']. */
+html[data-ui='pulse'] { --strip-h: 0px; --ux4-pad: clamp(14px, 2.6vw, 36px); }
+html[data-ui='pulse'] body { padding-top: 0; }
+html[data-ui='pulse'] .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.ux4 { position: relative; min-height: 100vh; background: var(--bg); color: var(--ink); isolation: isolate; }
+.ux4-glow { position: fixed; inset: -20% -10% auto; height: 70vh; z-index: -2; pointer-events: none; filter: blur(60px); transition: background 1.2s;
+  background: radial-gradient(40% 50% at 20% 30%, var(--ux3-glow1), transparent 70%), radial-gradient(35% 45% at 85% 20%, var(--ux3-glow2), transparent 70%); }
+.ux4-glow[data-mood='down'] { background: radial-gradient(40% 50% at 20% 30%, color-mix(in srgb, var(--down) 18%, transparent), transparent 70%), radial-gradient(35% 45% at 85% 20%, var(--ux3-glow3), transparent 70%); }
+
+/* Disclaimer: a quiet line above the bar */
+html[data-ui='pulse'] .ux4 .aria-strip { position: static; height: auto; min-height: 30px; padding: 6px var(--ux4-pad); background: transparent; border: 0; color: var(--ink-faint); font-size: 12px; }
+html[data-ui='pulse'] .ux4 .aria-strip p { margin: 0; }
+html[data-ui='pulse'] .ux4 .aria-strip svg { color: var(--ux3-gold); flex: none; }
+
+/* ── Top bar: one floating glass row ── */
+.ux4-bar { position: sticky; top: 10px; z-index: 50; display: flex; align-items: center; gap: 12px; max-width: 1480px; margin: 0 auto; margin-inline: max(var(--ux4-pad), calc((100% - 1480px) / 2));
+  min-height: 66px; padding: 8px 10px 8px 16px; border-radius: 22px; background: var(--ux3-glass); border: 1px solid var(--ux3-glass-line);
+  backdrop-filter: blur(22px) saturate(1.5); box-shadow: var(--shadow-lg); }
+.ux4-bar::before { content: ''; position: absolute; left: 24px; right: 24px; top: 0; height: 1px; pointer-events: none; opacity: .8;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--ux3-gold), transparent); background-size: 200% 100%; animation: ux3-flow 6s linear infinite; }
+.ux4-logo { flex: none; display: flex; padding: 4px; border: 0; border-radius: 12px; background: none; cursor: pointer; }
+.ux4-logo .aria-brand-mark { width: 34px; height: 34px; }
+.ux4-logo .aria-brand-wordmark { font-size: 19px; color: var(--ink); }
+
+.ux4-nav { position: relative; display: flex; align-items: center; gap: 2px; margin-left: 8px; padding: 4px; border-radius: 16px; background: color-mix(in srgb, var(--bg-inset) 60%, transparent); }
+.ux4-pill { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 0; width: var(--pill-w, 0); transform: translateX(var(--pill-x, 0)); opacity: var(--pill-o, 0);
+  border-radius: 12px; background: var(--bg-elevated); box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  transition: transform .4s cubic-bezier(.3, 1.3, .5, 1), width .4s cubic-bezier(.3, 1.3, .5, 1), opacity .25s; }
+.ux4-pill::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: -1px; height: 2px; border-radius: 2px; background: var(--ux3-grad); box-shadow: 0 0 12px var(--accent); }
+.ux4-link { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 13px; border: 0; border-radius: 12px; background: none;
+  color: var(--ink-muted); font: 650 14px var(--font-body); white-space: nowrap; cursor: pointer; transition: color .2s; }
+.ux4-link:hover, .ux4-link.is-active { color: var(--ink); }
+.ux4-link.is-active svg { color: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
+
+.ux4-pop { margin: 0; inset: auto; position-anchor: auto; top: 84px; left: auto; right: max(24px, calc((100vw - 1480px) / 2 + 24px)); min-width: 220px; padding: 8px; border-radius: 18px;
+  background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-lg); color: var(--ink); }
+.ux4-pop:popover-open { display: grid; gap: 2px; animation: ux4-drop .25s cubic-bezier(.2, .7, .2, 1); }
+.ux4-pop button { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px; border: 0; border-radius: 12px; background: none; color: var(--ink-muted); font: 600 14.5px var(--font-body); cursor: pointer; text-align: left; }
+.ux4-pop button:hover { background: var(--accent-soft); color: var(--ink); }
+.ux4-pop button.is-active { color: var(--ink); background: var(--accent-soft); }
+.ux4-pop button.is-active svg { color: var(--accent); }
+@keyframes ux4-drop { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+
+.ux4-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+html[data-ui='pulse'] .ux4-tools .gs-btn { height: 42px; border-radius: 13px; padding: 0 12px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--ink-muted); }
+html[data-ui='pulse'] .ux4-tools .gs-btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--ink); }
+html[data-ui='pulse'] .ux4-tools .mode-toggle { width: 42px; height: 42px; border-radius: 13px; }
+html[data-ui='pulse'] .ux4-tools .history-button { height: 42px; border-radius: 13px; background: var(--bg-elevated); }
+.ux4-new { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 42px; padding: 0 16px; border: 0; border-radius: 13px;
+  background: var(--ux3-grad); color: var(--accent-ink); font: 700 14px var(--font-body); white-space: nowrap; cursor: pointer; box-shadow: var(--shadow-glow); transition: transform .2s; }
+.ux4-new:hover { transform: translateY(-1px); }
+.ux4-new::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .5) 50%, transparent 65%); transform: translateX(-130%); animation: ux3-shine 4.5s ease-in-out infinite; }
+.ux4-burger { order: 9; display: none; place-items: center; width: 42px; height: 42px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg-elevated); color: var(--ink); cursor: pointer; }
+
+/* Market mood: ring = share of Indian indices up, pulsing dot when the market is open, ticking IST clock */
+.ux4-mood { display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 12px 0 6px; border-radius: 13px; background: var(--bg-elevated); border: 1px solid var(--border); }
+.ux4-ring { --share: .5; position: relative; display: grid; place-items: center; width: 30px; height: 30px; }
+.ux4-ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; transition: background 1s;
+  background: conic-gradient(var(--up) calc(var(--share) * 360deg), color-mix(in srgb, var(--down) 70%, transparent) 0); mask: radial-gradient(circle, transparent 52%, #000 54%); }
+.ux4-ring i { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); }
+.ux4-mood.is-open .ux4-ring i { background: var(--up); animation: ux4-ping 1.8s infinite; }
+@keyframes ux4-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--up) 70%, transparent); } 70%, 100% { box-shadow: 0 0 0 8px transparent; } }
+.ux4-mood-text { display: grid; line-height: 1.15; font-size: 11.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.ux4-mood-text b { font-size: 12.5px; color: var(--ink); }
+
+/* ── Live ribbon ── */
+.ux4-ribbon { position: relative; z-index: 2; max-width: 1480px; margin: 12px auto 0; margin-inline: max(var(--ux4-pad), calc((100% - 1480px) / 2)); overflow: hidden; border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-elevated) 62%, transparent); border: 1px solid var(--border); backdrop-filter: blur(12px);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+.ux4-ribbon.is-empty { padding: 12px 20px; color: var(--ink-faint); font-size: 13px; mask-image: none; }
+.ux4-ribbon-track { display: flex; width: max-content; animation: ux4-marquee 60s linear infinite; }
+.ux4-ribbon:hover .ux4-ribbon-track { animation-play-state: paused; }
+.ux4-ribbon ul { display: flex; margin: 0; padding: 0; list-style: none; }
+.ux4-ribbon button { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 20px; border: 0; border-right: 1px solid var(--border); background: none; color: var(--ink); font: inherit; font-size: 13.5px; cursor: pointer; white-space: nowrap; }
+.ux4-ribbon button:hover { background: var(--accent-soft); }
+.ux4-ribbon b { font-weight: 700; }
+.ux4-ribbon .num { font-variant-numeric: tabular-nums; font-weight: 600; }
+.ux4-ribbon em { font-style: normal; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.ux4-ribbon em.up, .ux4-spark.up { color: var(--up); } .ux4-ribbon em.down, .ux4-spark.down { color: var(--down); }
+.ux4-spark { width: 60px; height: 20px; }
+.ux4-spark polyline { fill: none; stroke: currentColor; stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+@keyframes ux4-marquee { to { transform: translateX(-50%); } }
+
+/* Prices flash when they change (Live.tsx useNumberFlash) */
+html[data-ui='pulse'] .ux4-up { animation: ux4-flash-up 1.2s ease-out; }
+html[data-ui='pulse'] .ux4-down { animation: ux4-flash-down 1.2s ease-out; }
+@keyframes ux4-flash-up { from { background: color-mix(in srgb, var(--up) 35%, transparent); color: var(--up); box-shadow: 0 0 14px color-mix(in srgb, var(--up) 50%, transparent); border-radius: 6px; } }
+@keyframes ux4-flash-down { from { background: color-mix(in srgb, var(--down) 35%, transparent); color: var(--down); box-shadow: 0 0 14px color-mix(in srgb, var(--down) 50%, transparent); border-radius: 6px; } }
+
+/* ── Page ── */
+.ux4-main { max-width: 1480px; margin: 0 auto; padding: clamp(22px, 3vw, 40px) var(--ux4-pad) 90px; }
+.ux4-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; padding: 7px 14px 7px 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent); color: var(--ink-muted); font: 600 13px var(--font-body); cursor: pointer; backdrop-filter: blur(8px); }
+.ux4-back:hover { color: var(--ink); border-color: var(--accent); }
+/* Chat's live meeting covers the page; keep it under the floating bar's shadow on wide screens */
+@media (min-width: 900px) { html[data-ui='pulse'] .live-meeting { inset: 10px; border-radius: 24px; overflow: hidden; height: auto; } }
+
+/* ── Fitting the bar: labels give way first, then the whole nav folds into a menu ── */
+@media (max-width: 1360px) {
+  .ux4-link:not(.is-active) span { display: none; }
+  .ux4-link { padding: 0 11px; }
+}
+@media (max-width: 1100px) {
+  .ux4-mood-text { display: none; }
+  .ux4-mood { padding: 0 6px; }
+  html[data-ui='pulse'] .ux4-tools .gs-label, html[data-ui='pulse'] .ux4-tools .gs-kbd { display: none; }
+  .ux4-new span { display: none; }
+  .ux4-new { width: 42px; padding: 0; }
+}
+@media (max-width: 860px) {
+  .ux4-nav { display: none; }
+  .ux4-burger { display: grid; }
+  .ux4-bar { top: 8px; padding-left: 10px; }
+  html[data-ui='pulse'] .ux4-tools .mode-toggle, .ux4-tools > .ux4-new { display: none; }
+  .ux4-logo .aria-brand-wordmark { font-size: 16px; }
+}
+
+/* Full-screen menu (phones and narrow windows) */
+.ux4-menu { margin: 0; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; padding: 22px; border: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(24px); color: var(--ink); }
+.ux4-menu:popover-open { display: flex; flex-direction: column; gap: 22px; animation: ux4-fade .3s both; }
+@keyframes ux4-fade { from { opacity: 0; } }
+.ux4-menu-close { position: absolute; top: 18px; right: 18px; display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-elevated); color: var(--ink); cursor: pointer; }
+.ux4-menu-list { display: grid; gap: 4px; }
+.ux4-menu-list button { display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 16px; border: 0; border-radius: 16px; background: none; color: var(--ink); font: 700 22px var(--font-display); letter-spacing: -.02em; cursor: pointer; text-align: left; animation: ux4-slide .45s cubic-bezier(.2, .7, .2, 1) both; }
+.ux4-menu-list button svg { color: var(--accent); }
+.ux4-menu-list button.is-active { background: var(--accent-soft); }
+@keyframes ux4-slide { from { opacity: 0; transform: translateX(-24px); } }
+.ux4-menu > .ux4-new { width: auto; height: 52px; padding: 0 20px; font-size: 16px; }
+.ux4-menu > .ux4-new span { display: inline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ux4 *, .ux4 *::before, .ux4 *::after, .ux4-menu * { animation: none !important; transition: none !important; }
+}
+
+/* ── Page transition: blur focus (effect lab 4C) ── */
+html[data-ui='pulse'] .ux4-main { animation: ux4-focus .6s cubic-bezier(.2, .7, .2, 1) both; }
+html[data-ui='pulse'] .ux4-main > * > * { animation: none; } /* scroll reveal replaces Aurora's load-time stagger */
+html[data-ui='pulse'] .ux3-main.ux3-page-chat { animation: none; } /* a filter would pin chat's fixed live meeting to the page */
+@keyframes ux4-focus { from { opacity: 0; filter: blur(14px); scale: 1.025; } to { opacity: 1; filter: none; scale: 1; } }
+
+/* ── Depth (effect lab 2): tilt toward the pointer, light + edge glow where it points (motion.ts sets the variables) ── */
+@media (hover: hover) and (pointer: fine) {
+  html[data-ui='pulse'] .ux4-main :is(.card, .mk-card, .ri-card, .fb-card, .template-card, .ux4-kpi, .ux4-chart) {
+    transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+  html[data-ui='pulse'] .ux4-main :is(.card, .mk-card, .ri-card, .fb-card, .template-card, .ux4-kpi, .ux4-chart):hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), 0 0 40px -12px color-mix(in srgb, var(--accent) 45%, transparent); }
+}
+html[data-ui='pulse'] :is(.btn-primary, .ri-primary, .ux4-new, .rt-create button[type='submit'], .composer-submit, .mk-chipbtn) { transition: translate .25s cubic-bezier(.2, .7, .2, 1), transform .2s, box-shadow .2s, background .2s; }
+
+/* ── Scroll reveal (effect lab 5) ── */
+html[data-ui='pulse'] .ux4-main .ux4-rv { opacity: 0; translate: 0 36px;
+  transition: opacity .8s ease, translate .9s cubic-bezier(.2, .7, .2, 1), transform .25s ease-out, box-shadow .3s, border-color .3s; }
+html[data-ui='pulse'] .ux4-main .ux4-rv.ux4-in { opacity: 1; translate: 0 0; }
+
+/* ── Live Markets dashboard (effect lab 1) ── */
+html[data-ui='pulse'] .ux3-page-markets .mk-page > .mk-head,
+html[data-ui='pulse'] .ux3-page-markets .mk-page > .mk-groups,
+html[data-ui='pulse'] .ux3-page-markets .mk-page > .mk-indices { display: none; } /* LiveDeck shows these, live */
+.ux4-deck { max-width: 1240px; margin: 0 auto 22px; display: grid; gap: 18px; }
+.ux4-deck-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.ux4-deck-head h1 { margin: 0; }
+.ux4-deck-head p { margin: 6px 0 0; color: var(--ink-muted); font-size: 15.5px; }
+.ux4-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-inset); border: 1px solid var(--border); width: fit-content; }
+.ux4-seg button { height: 34px; padding: 0 14px; border: 0; border-radius: 10px; background: none; color: var(--ink-muted); font: 650 13.5px var(--font-body); cursor: pointer; transition: background .2s, color .2s, box-shadow .2s; }
+.ux4-seg button:hover { color: var(--ink); }
+.ux4-seg button[aria-pressed='true'] { background: var(--bg-elevated); color: var(--ink); box-shadow: var(--shadow-md); }
+.ux4-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.ux4-kpi { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-content: start; gap: 2px 8px; min-height: 152px; padding: 16px 18px 0; text-align: left;
+  border-radius: var(--radius-lg); border: 1px solid var(--border); background-color: var(--bg-elevated); color: var(--ink); font: inherit; cursor: pointer; box-shadow: var(--shadow-md), inset 0 1px 0 var(--ux3-sheen); }
+.ux4-kpi:hover { background-image: radial-gradient(420px circle at var(--px, 50%) var(--py, 0%), var(--accent-soft), transparent 65%); }
+.ux4-kpi.is-active { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 0 34px -10px color-mix(in srgb, var(--accent) 60%, transparent); }
+.ux4-kpi.is-skel { cursor: default; background: linear-gradient(90deg, var(--bg-elevated), var(--bg-inset), var(--bg-elevated)); background-size: 200% 100%; animation: ux4-shim 1.2s linear infinite; }
+@keyframes ux4-shim { to { background-position: -200% 0; } }
+.ux4-kpi-name { grid-column: 1 / -1; color: var(--ink-muted); font-size: 13px; font-weight: 700; }
+.ux4-kpi-price { grid-column: 1 / -1; font: 800 clamp(22px, 2vw, 28px) var(--font-display); letter-spacing: -.02em; }
+.ux4-kpi em { grid-column: 1 / -1; font-style: normal; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ux4-kpi em .num { font-weight: 600; opacity: .8; }
+.ux4-kpi-spark { grid-column: 1 / -1; display: block; width: calc(100% + 36px); height: 48px; margin: 8px -18px 0; }
+.ux4-kpi-spark polyline { fill: none; stroke: currentColor; stroke-width: 1.8; vector-effect: non-scaling-stroke; }
+.ux4-kpi-spark polygon { fill: currentColor; opacity: .12; stroke: none; }
+.ux4-kpi em.up, .ux4-kpi-spark.up, .ux4-chart em.up { color: var(--up); }
+.ux4-kpi em.down, .ux4-kpi-spark.down, .ux4-chart em.down { color: var(--down); }
+
+.ux4-chart { --c: var(--up); display: flex; flex-direction: column; gap: 12px; padding: 20px 22px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-elevated);
+  box-shadow: var(--shadow-md), inset 0 1px 0 var(--ux3-sheen); }
+.ux4-chart.down { --c: var(--down); }
+.ux4-chart header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.ux4-chart-name { color: var(--ink-muted); font-size: 13px; font-weight: 700; }
+.ux4-chart-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.ux4-chart-price b { font: 800 clamp(30px, 3.4vw, 44px) var(--font-display); letter-spacing: -.03em; }
+.ux4-chart-price em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ux4-chart-price em small { color: var(--ink-faint); font-weight: 600; }
+.ux4-chart-price em.ux4-chart-when { color: var(--ink-muted); }
+.ux4-chart-tools { display: flex; align-items: center; gap: 8px; }
+.ux4-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-inset); color: var(--ink-muted); cursor: pointer; }
+.ux4-icon:hover { color: var(--ink); border-color: var(--accent); }
+.ux4-chart-plot { position: relative; height: clamp(220px, 32vw, 340px); color: var(--c); }
+.ux4-chart-plot svg { width: 100%; height: 100%; cursor: crosshair; overflow: visible; }
+.ux4-chart .grid { stroke: var(--border); stroke-dasharray: 3 6; vector-effect: non-scaling-stroke; }
+.ux4-chart .base { stroke: var(--ink-faint); stroke-dasharray: 2 5; opacity: .5; vector-effect: non-scaling-stroke; }
+.ux4-chart .area { fill: url(#ux4-area); animation: ux4-fadein 1.2s .7s both; }
+.ux4-chart .ln { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: ux4-draw 1.8s cubic-bezier(.2, .7, .2, 1) forwards;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--c) 45%, transparent)); }
+@keyframes ux4-draw { to { stroke-dashoffset: 0; } }
+@keyframes ux4-fadein { from { opacity: 0; } }
+.ux4-chart .xh line { stroke: var(--ink-muted); stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }
+.ux4-chart .xh circle { fill: var(--c); stroke: var(--bg-elevated); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.ux4-chart-empty { display: grid; place-items: center; height: 100%; margin: 0; color: var(--ink-faint); font-size: 14px; }
+html[data-ui='pulse'] .mk-tile { transition: filter .3s, transform .3s; }
+html[data-ui='pulse'] .mk-tile:hover { filter: brightness(1.12) saturate(1.15); transform: scale(1.03); z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui='pulse'] .ux4-main .ux4-rv { opacity: 1; translate: none; }
+  .ux4-chart .ln { stroke-dashoffset: 0; }
+}

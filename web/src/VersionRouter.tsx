@@ -1,7 +1,10 @@
 import { lazy, Suspense } from 'react'
+import { getUi } from './uiVersion'
 
-/** The app has one UI (Vitara Markets). The earlier versions and the version picker were removed. */
-const App = lazy(() => import('./versions/v2/App'))
+/** Three interfaces over the same pages: Classic (versions/v2, the default), Aurora (versions/v3) and Pulse (versions/v4). Settings → Interface switches. */
+const ui = getUi()
+document.documentElement.dataset.ui = ui
+const App = lazy(() => (ui === 'pulse' ? import('./versions/v4/App') : ui === 'aurora' ? import('./versions/v3/App') : import('./versions/v2/App')))
 
 function Fallback() {
   return (
